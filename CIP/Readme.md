@@ -58,6 +58,157 @@ This CIP partially addresses the [Ouroboros Faster Settlement Problem Statememen
 
 ## Specification
 
+### 1. Contextual Overview and Current Anti-Grinding Measures in Ouroboros Praos
+
+
+To understand why anti-grinding mechanisms are necessary in Ouroboros Praos, it’s important to first explain how the Leader Election process works. In the Praos, the fairness and security of leader election are essential for maintaining the integrity of the blockchain. Grinding attacks target this very mechanism by trying to manipulate the randomness used in leader election, so the leader election process itself must be both fair and unpredictable. 
+
+Let’s walk through how leader election works, followed by an explanation of the anti-grinding mechanism.
+
+#### 1.1 Leader Election in Praos
+
+##### 1.1.1 Key Notifiable Particularities of Praos
+
+As Explained into [KRD017 - Ouroboros- A provably secure proof-of-stake blockchain protocol](https://eprint.iacr.org/2016/889.pdf), Praos protocol possesses the following basic characteristics : 
+
+> Based on her local view, a party is capable of deciding, in a publicly verifiable way, whether she is permitted to produce the next block. Assuming the block is valid, other parties update their local views by adopting the block, and proceed in this way continuously. At any moment, the probability of being permitted to issue a block is proportional to the relative stake a player has in the system, as reported by the blockchain itself.
+
+1. potentially, multiple slot leaders may be elected for a particular slot (forming a slot leader set); 
+2. frequently, slots will have no leaders assigned to them; This defined by the **Active Slot Coefficient f**
+3. a priori, only a slot leader is aware that it is indeed a leader for a given slot; this assignment is unknown to all the other stakeholders—including other slot leaders of the same slot—until the other stakeholders receive a valid block from this slot leader.
+
+the **Verifiable Random Function (VRF)** plays a pivotal role in ensuring the security and fairness of the leader election process.
+
+##### 1.1.2 Application of Verifiable Random Function (VRF)
+
+The VRF is used to introduce randomness into the protocol, making the leader election process unpredictable. It ensures that:
+- A participant is privately and verifiably selected to create a block for a given slot.
+- The VRF output is both secret (only known to the selected leader) and verifiable (publicly checkable).
+
+If the VRF output (Slot Leader Proof) is less than her private $ \text{epoch}_e $ threshold, the participant is eligible to produce a block, she becomes a Slot Leader for that particular $ \text{slot}_t $. Her $ \text{SlotLeaderProof}_\text{t} $ is added in the $ \text{BlockHeader}_\text{t}$ and others participants have the ability to verify the proof.
+
+| **Features** | **Mathematical Form** | **Description**  | 
+|--------------|------------------|-----------------------|
+| **Slot Leader Proof** | $ \text{SlotLeaderProof}_\text{t} = VRF_\text{gen} \left( key_\text{private}, \text{slot}_t \, \|\| \, \eta_\text{e} \right) $ | This function computes the leader eligibility proof using the VRF, based on the slot number and randomness nonce.       | 
+| **Slot Leader Threshold** | $ \text{Threshold}_\text{e} = \frac{\text{stake}^\text{e}_\text{participant}}{\text{stake}^\text{e}_\text{total}} \times f  $ | This function calculates the threshold for a participant's eligibility to be selected as a slot leader during $ \text{epoch}_e $.   | 
+| **Eligibility Check** | $ \text{SlotLeaderProof}_\text{t} < \text{Threshold}_\text{e} $ |The leader proof is compared against a threshold to determine if the participant is eligible to create a block.         |
+| **Verification**       | $ VRF_\text{verify} \left( key_\text{public}, \text{SlotLeaderProof}_\text{t}\right) = \text{slot}_t \, \|\| \, \eta_\text{e}   $ | Other nodes verify the correctness of the leader proof by recomputing it using the public VRF key and slot-specific input.     | 
+ 
+| Where | |
+|-----------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| $ \text{slot}_t $                   | The current slot number.                                                                                                          |
+| $ \eta_\text{e} $                   | Eta, The randomness nonce used in $ \text{epoch}_\text{e} $, computed within the previous $ \text{epoch}_\text{e-1} $.            |
+| $ key_\text{private} $              | The node's secret (private) key.                                                                                                  |
+| $ key_\text{public} $               | The node's public key.                                                                                                            |
+| $ VRF_\text{gen} \left( key_\text{private}, \text{input} \right) \rightarrow Proof $ | Generate a Proof with input |
+| $ VRF_\text{verify} \left( key_\text{private}, proof \right) \rightarrow Input  $ | Generate a Proof with input |
+| $ a \|\| b $                        | The concatenation of a and b.                                                 |
+| $ \text{stake}^\text{e}_\text{participant} $ | The stake owned by the participant used in $ \text{epoch}_\text{e} $, computed within the previous $ \text{epoch}_\text{e-1} $                                                                                              |
+| $ \text{stake}^\text{e}_\text{total} $       | The total stake in the system used in $ \text{epoch}_\text{e} $, computed within the previous $ \text{epoch}_\text{e-1} $                                                                                                  |
+| $ f $                               | The active slot coefficient, representing the fraction of slots that will have a leader and eventually a block produced.                                           |
+
+##### 1.1.3 VRF Inputs : Randomessness Beacon $ \eta_\text{e} $ and Stake Distribution details  
+
+the **Randomness Beacon $ \eta_\text{e} $** is a vital part of the leader election mechanism, as it provides the randomness used to determine slot leaders for each epoch. The beacon needs to be unpredictable, decentralized, and resistant to manipulation, ensuring that the leader election process is fair and secure. $ \eta_\text{e} $ (for an $ \text{epoch}_e $) is computed using the $ \text{SlotLeaderProof}_\text{t} $ produced and added in the $ \text{BlockHeader}_\text{t}$ from the previous $ \text{epoch}_\text{e-1} $ :
+    
+
+##### Visual Summary
+
+
+If the recomputed value matches the original VRF output, the block is considered valid and the leader is confirmed.
+
+
+Deciding whether a participant is eligible to issue a block is done through a private test, executed locally using a **VRF**. This VRF must have strong security characteristics even in the setting of malicious key generation: specifically, if provided with an input that has high entropy, the output of the VRF is unpredictable even when an adversary has subverted the key generation procedure. We call such VRF functions “**VRF with unpredictability under malicious key generation**”
+
+This function takes the current slot and a nonce, which is predetermined for an epoch :
+
+```math
+   \text{VRF}_\text{output} = \text{VRF}(sk_\text{VRF}, \text{slot}_t \, || \, \eta)
+```
+
+##### The Simulated Randomness Beacon : the nonce η (eta) for an epoch e
+
+This hash function is applied to the concatenation of VRF values that are inserted into each block during the first 16k/f slots of an epoch that lasts 24k/f slots in entirety. (The “quiet” period of the final 8k/f slots in each epoch will ensure that the nonce is stable before the next epoch begins.) The verifiability of those values is a key property that we exploit in the proof.
+
+
+```haskell
+-- | Input to the verifiable random function. Consists of the hash of the slot
+-- and the epoch nonce.
+newtype InputVRF = InputVRF {unInputVRF :: Hash Blake2b_256 InputVRF}
+  deriving (Eq, Ord, Show, Generic)
+  deriving newtype (NoThunks, ToCBOR)
+
+instance SignableRepresentation InputVRF where
+  getSignableRepresentation (InputVRF x) = hashToBytes x
+
+-- | Construct a unified VRF value
+mkInputVRF ::
+  SlotNo ->
+  -- | Epoch nonce (Eta)
+  Nonce ->
+  InputVRF
+mkInputVRF (SlotNo slot) eNonce =
+  InputVRF
+    . Hash.castHash
+    . Hash.hashWith id
+    . runByteBuilder (8 + 32)
+    $ BS.word64BE slot
+      <> ( case eNonce of
+             NeutralNonce -> mempty
+             Nonce h      -> BS.byteStringCopy (Hash.hashToBytes h)
+         )
+```
+
+
+- code places to look at 
+ ```haskell
+-- | Check whether this node meets the leader threshold to issue a block.
+-- | pi =φf(αi)≜1−(1−f)^αi 
+meetsLeaderThreshold ::
+  forall c.
+  PraosCrypto c =>
+  ConsensusConfig (Praos c) ->
+  LedgerView (Praos c) ->
+  SL.KeyHash 'SL.StakePool c ->
+  VRF.CertifiedVRF (VRF c) InputVRF ->
+  Bool
+meetsLeaderThreshold
+  PraosConfig {praosParams}
+  Views.LedgerView {Views.lvPoolDistr}
+  keyHash
+  rho =
+    checkLeaderNatValue
+      (vrfLeaderValue (Proxy @c) rho)
+      getStakeProportion
+      (praosLeaderF praosParams)
+    where
+      getStakeProportion =
+        maybe 0 SL.individualPoolStake $
+          Map.lookup keyHash poolDistr
+      SL.PoolDistr poolDistr _totalActiveStake = lvPoolDistr
+
+
+checkLeaderNatValue ::
+  -- | Certified nat value
+  BoundedNatural ->
+  -- | Stake proportion
+  Rational ->
+  ActiveSlotCoeff ->
+  Bool 
+
+ -- | This module implements VRF range extension as described in
+-- https://iohk.io/en/research/library/papers/on-uc-secure-range-extension-and-batch-verification-for-ecvrf/
+
+checkLeaderNatValue
+meetsLeaderThreshold
+module Ouroboros.Consensus.Protocol.Praos.VRF (
+    InputVRF
+  , VRFUsage (..)
+  , mkInputVRF
+  , vrfLeaderValue
+  , vrfNonceValue
+  )
+ ```
 <!-- The technical specification should describe the proposed improvement in sufficient technical detail. In particular, it should provide enough information that an implementation can be performed solely on the basis of the design in the CIP. This is necessary to facilitate multiple, interoperable implementations. This must include how the CIP should be versioned, if not covered under an optional Versioning main heading. If a proposal defines structure of on-chain data it must include a CDDL schema in its specification.-->
 
 
@@ -87,7 +238,7 @@ It must also explain how the proposal affects the backward compatibility of exis
 - [KRD017 - Ouroboros- A provably secure proof-of-stake blockchain protocol](https://eprint.iacr.org/2016/889.pdf)
 - [DGKR18 - Ouroboros Praos/ An adaptively-secure, semi-synchronous proof-of-stake blockchain](https://eprint.iacr.org/2017/573.pdf)
 - [Practical Settlement Bounds For Longest Chain Consensus](https://eprint.iacr.org/2022/1571.pdf) 
-
+- [On UC-Secure Range Extension and Batch Verification for ECVRF](https://eprint.iacr.org/2022/1045.pdf)
 ## Definitions
 
 ### Security Parameter k
