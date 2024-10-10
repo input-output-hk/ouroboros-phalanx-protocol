@@ -55,23 +55,79 @@ This CIP partially addresses the [Ouroboros Faster Settlement Problem Statememen
 - DApps
 - High-value transactions
 
-
 ## Specification
 
 ### 1. Contextual Overview and Current Anti-Grinding Measures in Ouroboros Praos
 
+#### 1.1 Transaction Ledger Properties
+
+A protocol implements a robust transaction ledger if it maintains the ledger as a sequence of blocks, where each block is associated with a specific slot. Each slot can contain at most one ledger block, and this strict association ensures a well-defined and immutable ordering of transactions within the ledger. This structure is critical for preventing manipulation of the transaction order, which is a key vector for grinding attacks. 
+
+For the ledger to be resistant to such attacks, the protocol must satisfy the following 2 critical properties (Persistence & Liveness), which ensure that blocks and transactions are securely committed and cannot be easily manipulated by adversaries. Persistence and liveness, can be derived to fundamental **chain properties** which are *used to explain how and why the leader election mechanism has been designed in this manner*. 
+
+| **Chain Property**                      | **Description**                                                                                                                    |
+|-----------------------------------------|------------------------------------------------------------------------------------------------------------------------------|
+| **Common Prefix (CP)**                  | Ensures consistency across honest parties by requiring that chains adopted by different honest nodes share a common prefix.   |
+| **Honest-Bounded Chain Growth (HCG)**   | Governs the rate at which the blockchain grows, ensuring that the chain grows at a rate proportional to time.     |
+| **Existential Chain Quality (∃CQ)**     | Guarantees that at least one honestly-generated block appears in any given portion of the chain, ensuring honest contributions. |
+| **Chain Growth (CG)**                   | Provides a more general notion of growth by combining **HCG** and **∃CQ**, ensuring both the quality and rate of chain expansion. |
+
+
+##### 1.1.1 Persistence with **security parameter $` \text{k} \in \mathbb{N} `$**
+ 
+Once a node of the system proclaims a certain transaction tx in the stable part of its ledger, the remaining nodes, if queried, will either report tx in the same position of that ledger or report a stable ledger which is a prefix of that ledger. Here the notion of stability is a predicate that is parameterized by a **security parameter $` \text{k} `$**. Specifically, a transaction is declared **stable** if and only if it is in a block that is more than $` \text{k} `$ blocks deep in the ledger.
+
+##### 1.1.1 Liveness with **parameter $` u \in \mathbb{N} `$** 
+
+If all honest nodes in the system attempt to include a certain transaction then, after the passing of time corresponding to $` \text{u} `$ slots (called the **transaction confirmation time**), all nodes, if queried and responding honestly, will report the transaction as stable.
+
+##### 1.1.2 Chains properties 
+
+**Persistence** and **liveness** can be derived from basic **chain properties**, provided that the protocol structures the ledger as a **blockchain**—a sequential data structure. The following key chain properties ensure that the blockchain behaves securely and efficiently:
+
+###### 1.1.2.1 **Common Prefix (CP)**: With parameter $`k \in \mathbb{N}`$. 
+
+Consider two chains $`C_1`$ and $`C_2`$ adopted by two honest parties at the onset of slots $`sl_1`$ and $`sl_2`$, respectively, where $`sl_1 \leq sl_2`$. The chains must satisfy the condition:
+
+  ```math
+  C_1^{\lceil k} \preceq C_2
+  ```
+  Where:
+  - $`C_1^{\lceil k}`$ represents the chain obtained by removing the last $`k`$ blocks from $`C_1`$.
+  - $`\preceq`$ denotes the **prefix relation**.
+
+  This ensures that the shorter chain is a prefix of the longer one, ensuring consistency across honest parties.
+
+###### 1.1.2.2 **Honest-Bounded Chain Growth (HCG)**: With parameters $`\tau \in (0, 1]`$ (speed coefficient) and $`s \in \mathbb{N}`$. 
+
+Consider a chain $`C`$ adopted by an honest party. Let:
+  - $`sl_2`$ be the slot associated with the **last block** of $`C`$,
+  - $`sl_1`$ be a prior slot where $`C`$ has an honestly-generated block.
+
+  If $`sl_2 \geq sl_1 + s`$, then the number of blocks appearing in $`C`$ after $`sl_1`$ is at least $`\tau s`$. The parameter $`\tau`$, called the **speed coefficient**, governs the rate at which the chain grows.
+
+###### 1.1.2.3 **Existential Chain Quality (∃CQ)**: With parameter $`s \in \mathbb{N}`$. 
+
+Consider a chain $`C`$ adopted by an honest party at the onset of a slot. For any portion of $`C`$ spanning $`s`$ prior slots, there must be at least one honestly-generated block within this portion. This ensures that the chain includes contributions from honest participants.
+
+###### 1.1.2.4 **Chain Growth (CG)**: With parameters $`\tau \in (0, 1]`$ and $`s \in \mathbb{N}`$. 
+
+Consider a chain $`C`$ held by an honest party at the onset of a slot. For any portion of $`C`$ spanning $`s`$ contiguous prior slots, the number of blocks in this portion must be at least $`\tau s`$, where $`\tau`$ is the **speed coefficient**.
+
+**N.B** : **∃CQ** and **HCG** are combined to provide this more general notion of chain growth (CG) 
+
+
+#### 1.2 Leader Election in Praos
 
 To understand why anti-grinding mechanisms are necessary in Ouroboros Praos, it’s important to first explain how the Leader Election process works. In the Praos, the fairness and security of leader election are essential for maintaining the integrity of the blockchain. Grinding attacks target this very mechanism by trying to manipulate the randomness used in leader election, so the leader election process itself must be both fair and unpredictable. 
 
 Let’s walk through how leader election works, followed by an explanation of the anti-grinding mechanism.
 
-#### 1.1 Leader Election in Praos
-
-##### 1.1.1 Key Notifiable Particularities of Praos
+##### 1.2.1 Key Notifiable Particularities of Praos
 
 As Explained into [KRD017 - Ouroboros- A provably secure proof-of-stake blockchain protocol](https://eprint.iacr.org/2016/889.pdf), Praos protocol possesses the following basic characteristics : 
 
-> Based on her local view, a party is capable of deciding, in a publicly verifiable way, whether she is permitted to produce the next block. Assuming the block is valid, other parties update their local views by adopting the block, and proceed in this way continuously. At any moment, the probability of being permitted to issue a block is proportional to the relative stake a player has in the system, as reported by the blockchain itself.
+Based on her local view, a party is capable of deciding, in a publicly verifiable way, whether she is permitted to produce the next block, she is called a **slot leader**. Assuming the block is valid, other parties update their local views by adopting the block, and proceed in this way continuously. At any moment, the probability of being permitted to issue a block is proportional to the relative stake a player has in the system, as reported by the blockchain itself.
 
 1. potentially, multiple slot leaders may be elected for a particular slot (forming a slot leader set); 
 2. frequently, slots will have no leaders assigned to them; This defined by the **Active Slot Coefficient f**
@@ -79,38 +135,38 @@ As Explained into [KRD017 - Ouroboros- A provably secure proof-of-stake blockcha
 
 the **Verifiable Random Function (VRF)** plays a pivotal role in ensuring the security and fairness of the leader election process.
 
-##### 1.1.2 Application of Verifiable Random Function (VRF)
+##### 1.2.2 Application of Verifiable Random Function (VRF)
 
 The VRF is used to introduce randomness into the protocol, making the leader election process unpredictable. It ensures that:
 - A participant is privately and verifiably selected to create a block for a given slot.
 - The VRF output is both secret (only known to the selected leader) and verifiable (publicly checkable).
 
-If the VRF output (Slot Leader Proof) is less than her private $ \text{epoch}_e $ threshold, the participant is eligible to produce a block, she becomes a Slot Leader for that particular $ \text{slot}_t $. Her $ \text{SlotLeaderProof}_\text{t} $ is added in the $ \text{BlockHeader}_\text{t}$ and others participants have the ability to verify the proof.
+If the VRF output (Slot Leader Proof) is less than her private $` \text{epoch}_e `$ threshold, the participant is eligible to produce a block, she becomes a Slot Leader for that particular $` \text{slot}_t `$. Her $` \text{SlotLeaderProof}_\text{t} `$ is added in the $` \text{BlockHeader}_\text{t} `$ and others participants have the ability to verify the proof.
 
 | **Features** | **Mathematical Form** | **Description**  | 
 |--------------|------------------|-----------------------|
-| **Slot Leader Proof** | $ \text{SlotLeaderProof}_\text{t} = VRF_\text{gen} \left( key_\text{private}, \text{slot}_t \, \|\| \, \eta_\text{e} \right) $ | This function computes the leader eligibility proof using the VRF, based on the slot number and randomness nonce.       | 
-| **Slot Leader Threshold** | $ \text{Threshold}_\text{e} = \frac{\text{stake}^\text{e}_\text{participant}}{\text{stake}^\text{e}_\text{total}} \times f  $ | This function calculates the threshold for a participant's eligibility to be selected as a slot leader during $ \text{epoch}_e $.   | 
-| **Eligibility Check** | $ \text{SlotLeaderProof}_\text{t} < \text{Threshold}_\text{e} $ |The leader proof is compared against a threshold to determine if the participant is eligible to create a block.         |
-| **Verification**       | $ VRF_\text{verify} \left( key_\text{public}, \text{SlotLeaderProof}_\text{t}\right) = \text{slot}_t \, \|\| \, \eta_\text{e}   $ | Other nodes verify the correctness of the leader proof by recomputing it using the public VRF key and slot-specific input.     | 
+| **Slot Leader Proof** | $` \text{SlotLeaderProof}_\text{t} = VRF_\text{gen} \left( key_\text{private}, \text{slot}_t \, \|\| \, \eta_\text{e} \right) `$ | This function computes the leader eligibility proof using the VRF, based on the slot number and randomness nonce.       | 
+| **Slot Leader Threshold** | $` \text{Threshold}_\text{e} = \frac{\text{stake}^\text{e}_\text{participant}}{\text{stake}^\text{e}_\text{total}} \times f `$ | This function calculates the threshold for a participant's eligibility to be selected as a slot leader during $` \text{epoch}_e `$.   | 
+| **Eligibility Check** | $` \text{SlotLeaderProof}_\text{t} < \text{Threshold}_\text{e} `$ |The leader proof is compared against a threshold to determine if the participant is eligible to create a block.         |
+| **Verification**       | $` VRF_\text{verify} \left( key_\text{public}, \text{SlotLeaderProof}_\text{t}\right) = \text{slot}_t \, \|\| \, \eta_\text{e}  `$ | Other nodes verify the correctness of the leader proof by recomputing it using the public VRF key and slot-specific input.     | 
  
 | Where | |
 |-----------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
-| $ \text{slot}_t $                   | The current slot number.                                                                                                          |
-| $ \eta_\text{e} $                   | Eta, The randomness nonce used in $ \text{epoch}_\text{e} $, computed within the previous $ \text{epoch}_\text{e-1} $.            |
-| $ key_\text{private} $              | The node's secret (private) key.                                                                                                  |
-| $ key_\text{public} $               | The node's public key.                                                                                                            |
-| $ VRF_\text{gen} \left( key_\text{private}, \text{input} \right) \rightarrow Proof $ | Generate a Proof with input |
-| $ VRF_\text{verify} \left( key_\text{private}, proof \right) \rightarrow Input  $ | Generate a Proof with input |
-| $ a \|\| b $                        | The concatenation of a and b.                                                 |
-| $ \text{stake}^\text{e}_\text{participant} $ | The stake owned by the participant used in $ \text{epoch}_\text{e} $, computed within the previous $ \text{epoch}_\text{e-1} $                                                                                              |
-| $ \text{stake}^\text{e}_\text{total} $       | The total stake in the system used in $ \text{epoch}_\text{e} $, computed within the previous $ \text{epoch}_\text{e-1} $                                                                                                  |
-| $ f $                               | The active slot coefficient, representing the fraction of slots that will have a leader and eventually a block produced.                                           |
+| $` \text{slot}_t `$                   | The current slot number.                                                                                                          |
+| $` \eta_\text{e} `$                   | Eta, The randomness nonce used in $` \text{epoch}_\text{e} `$, computed within the previous $` \text{epoch}_\text{e-1} `$.            |
+| $` key_\text{private} `$              | The node's secret (private) key.                                                                                                  |
+| $` key_\text{public} `$               | The node's public key.                                                                                                            |
+| $` VRF_\text{gen} \left( key_\text{private}, \text{input} \right) \rightarrow Proof `$ | Generate a Proof with input |
+| $` VRF_\text{verify} \left( key_\text{private}, proof \right) \rightarrow Input  `$ | Generate a Proof with input |
+| $` a \|\| b `$                        | The concatenation of a and b.                                                 |
+| $` \text{stake}^\text{e}_\text{participant} `$ | The stake owned by the participant used in $` \text{epoch}_\text{e} `$, computed within the previous $` \text{epoch}_\text{e-1} `$                                                                                              |
+| $` \text{stake}^\text{e}_\text{total} `$       | The total stake in the system used in $` \text{epoch}_\text{e} `$, computed within the previous $` \text{epoch}_\text{e-1} `$                                                                                                  |
+| $` f `$                               | The active slot coefficient, representing the fraction of slots that will have a leader and eventually a block produced.                                           |
 
-##### 1.1.3 VRF Inputs : Randomessness Beacon $ \eta_\text{e} $ and Stake Distribution details  
+##### 1.2.3 VRF Inputs : Randomessness Beacon $ \eta_\text{e} $ and Stake Distribution details  
 
-the **Randomness Beacon $ \eta_\text{e} $** is a vital part of the leader election mechanism, as it provides the randomness used to determine slot leaders for each epoch. The beacon needs to be unpredictable, decentralized, and resistant to manipulation, ensuring that the leader election process is fair and secure. $ \eta_\text{e} $ (for an $ \text{epoch}_e $) is computed using the $ \text{SlotLeaderProof}_\text{t} $ produced and added in the $ \text{BlockHeader}_\text{t}$ from the previous $ \text{epoch}_\text{e-1} $ :
-    
+the **Randomness Beacon $` \eta_\text{e} `$** is a vital part of the leader election mechanism, as it provides the randomness used to determine slot leaders for each epoch. The beacon needs to be unpredictable, decentralized, and resistant to manipulation, ensuring that the leader election process is fair and secure. $` \eta_\text{e} `$ (for $` \text{epoch}_e `$) is computed based on the $` \text{SlotLeaderProof}_\text{t} `$ generated and included in the $` \text{BlockHeader}_\text{t} `$ during the previous $` \text{epoch}_\text{e-1} `$ :  
+
 
 ##### Visual Summary
 
