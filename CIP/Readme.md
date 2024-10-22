@@ -58,25 +58,28 @@ This CIP partially addresses the [Ouroboros Faster Settlement Problem Statememen
 ## Specification
 
 
-### Table of Contents
+## Table of Contents
 
 - [1. Essential Praos Fundamentals for Understanding How a Grinding Attack Could Be Executed](#1-essential-praos-fundamentals-for-understanding-how-a-grinding-attack-could-be-executed)
-  - [1.1 Transaction Ledger Properties](#11-transaction-ledger-properties)
-    - [1.1.1 Persistence with the security parameter k &in; &#x2115;](#111-persistence-with-the-security-parameter-alpha--in--mathbbn)
-    - [1.1.2 Liveness with the transaction confirmation time parameter &#x3C4; &in; &#x2115;](#112-liveness-with-the-transaction-confirmation-time-parameter-tau--in--mathbbn)
-  - [1.2 Chain Properties](#12-chain-properties)
-    - [1.2.1 Common Prefix (CP) with parameter k &in; &#x2115;](#121-common-prefix-cp-with-parameter-alpha--in--mathbbn)
-    - [1.2.2 Honest-Bounded Chain Growth (HCG) with parameters &#x3C4; &in; &#x0028; 0, 1 &#x005D; and s &in; &#x2115;](#122-honest-bounded-chain-growth-hcg-with-parameters-tau-in-028-01-and-sigma-in-mathbbn)
-    - [1.2.3 Existential Chain Quality (&#x2203;CQ) with parameter s &in; &#x2115;](#123-existential-chain-quality-existscq-with-parameter-sigma-in-mathbbn)
-    - [1.2.4 Chain Growth (CG) with parameters &#x3C4; &in; &#x0028; 0, 1 &#x005D; and s &in; &#x2115;](#124-chain-growth-cg-with-parameters-tau-in-028-01-and-sigma-in-mathbbn)
-  - [1.3 Leader Election in Praos](#13-leader-election-in-praos)
-    - [1.3.1 Key Notifiable Particularities of Praos](#131-key-notifiable-particularities-of-praos)
-    - [1.3.2 Application of Verifiable Random Function (VRF)](#132-application-of-verifiable-random-function-vrf)
-  
+  - [1.1 Properties](#11-properties)
+    - [1.1.1 Transaction Ledger Properties](#111-transaction-ledger-properties)
+      - [1.1.1.1 Persistence with the security parameter k &in; &#x2115;](#1111-persistence-with-the-security-parameter-k-in-n)
+      - [1.1.1.2 Liveness with the transaction confirmation time parameter u &in; &#x2115;](#1112-liveness-with-the-transaction-confirmation-time-parameter-u-in-n)
+    - [1.1.2 Chain Properties](#112-chains-properties)
+      - [1.1.2.1 Common Prefix (CP) with parameter k &in; &#x2115;](#1121-common-prefix-cp-with-parameter-k-in-n)
+      - [1.1.2.2 Honest-Bounded Chain Growth (HCG) with parameters &#x3C4; &in; &#x0028; 0, 1 &#x005D; and s &in; &#x2115;](#1122-honest-bounded-chain-growth-hcg-with-parameters-tau-in-028-01-and-s-in-n)
+      - [1.1.2.3 Existential Chain Quality (&#x2203;CQ) with parameter s &in; &#x2115;](#1123-existential-chain-quality-existscq-with-parameter-s-in-n)
+      - [1.1.2.4 Chain Growth (CG) with parameters &#x3C4; &in; &#x0028; 0, 1 &#x005D; and s &in; &#x2115;](#1124-chain-growth-cg-with-parameters-tau-in-028-01-and-s-in-n)
+  - [1.2 Leader Election in Praos](#12-leader-election-in-praos)
+    - [1.2.1 Key Notifiable Particularities of Praos](#121-key-notifiable-particularities-of-praos)
+    - [1.2.2 Application of Verifiable Random Function (VRF)](#122-application-of-verifiable-random-function-vrf)
+    - [1.2.3 Eligibility Check Input Variables](#123-eligibility-check-input-variables)
+    - [1.2.4 Epoch Structure](#124-epoch-structure)
+    - [1.2.5 Epoch & Phases Length](#125-epoch--phases-length)
 
 ## 1. Essential Praos Fundamentals for Understanding How a Grinding Attack Could Be Executed 
 
-### 1.1 Transaction Ledger Properties
+## 1.1 Properties
 
 A protocol implements a robust transaction ledger if it maintains the ledger as a sequence of blocks, where each block is associated with a specific slot. Each slot can contain at most one ledger block, and this strict association ensures a well-defined and immutable ordering of transactions within the ledger. This structure is critical for preventing manipulation of the transaction order, which is a key vector for grinding attacks. 
 
@@ -89,20 +92,20 @@ For the ledger to be resistant to such attacks, the protocol must satisfy the fo
 | **Existential Chain Quality (∃CQ)**     | Guarantees that at least one honestly-generated block appears in any given portion of the chain, ensuring honest contributions. |
 | **Chain Growth (CG)**                   | Provides a more general notion of growth by combining **HCG** and **∃CQ**, ensuring both the quality and rate of chain expansion. |
 
-
-#### 1.1.1 Persistence with the **security parameter $` \text{k} \in \mathbb{N} `$**
+### 1.1.1 Transaction Ledger Properties 
+#### 1.1.1.1 Persistence with the **security parameter $` \text{k} \in \mathbb{N} `$**
  
 Once a node of the system proclaims a certain transaction tx in the stable part of its ledger, the remaining nodes, if queried, will either report tx in the same position of that ledger or report a stable ledger which is a prefix of that ledger. Here the notion of stability is a predicate that is parameterized by a **security parameter $` \text{k} `$**. Specifically, a transaction is declared **stable** if and only if it is in a block that is more than $` \text{k} `$ blocks deep in the ledger.
 
-#### 1.1.1 Liveness with the **transaction confirmation time parameter $` u \in \mathbb{N} `$** 
+#### 1.1.1.2 Liveness with the **transaction confirmation time parameter $` u \in \mathbb{N} `$** 
 
 If all honest nodes in the system attempt to include a certain transaction then, after the passing of time corresponding to $` \text{u} `$ slots (called the **transaction confirmation time**), all nodes, if queried and responding honestly, will report the transaction as stable.
 
-### 1.2 Chains properties 
+### 1.1.2 Chains properties 
 
 **Persistence** and **liveness** can be derived from basic **chain properties**, provided that the protocol structures the ledger as a **blockchain**—a sequential data structure. The following key chain properties ensure that the blockchain behaves securely and efficiently:
 
-#### 1.2.1 **Common Prefix (CP)**: With parameter $`k \in \mathbb{N}`$. 
+#### 1.1.2.1 **Common Prefix (CP)**: With parameter the **security parameter $`k \in \mathbb{N}`$**. 
 
 Consider 2 chains $`C_1`$ and $`C_2`$ adopted by 2 honest parties at the onset of slots $`sl_1`$ and $`sl_2`$, respectively, where $`sl_1 \leq sl_2`$. The chains must satisfy the condition:
 
@@ -115,31 +118,45 @@ Consider 2 chains $`C_1`$ and $`C_2`$ adopted by 2 honest parties at the onset o
 
   This ensures that the shorter chain is a prefix of the longer one, ensuring consistency across honest parties.
 
-#### 1.2.2 **Honest-Bounded Chain Growth (HCG)**: With parameters $`\tau \in (0, 1]`$ (speed coefficient) and $`s \in \mathbb{N}`$. 
+#### 1.1.2.2 **Honest-Bounded Chain Growth (HCG)**: With parameters $`\tau \in (0, 1]`$ (speed coefficient) and $`s \in \mathbb{N}`$ (Minimum Honest Block Inclusion Interval). 
+
+The Honest-Bounded Chain Growth (HCG) property ensures that the blockchain grows steadily with honest participation. It uses two key parameters: $`\tau`$, the **speed coefficient**, which dictates how quickly blocks are produced relative to time, and $`s`$, the **Minimum Honest Block Inclusion Interval**, which defines the smallest span of consecutive slots in which at least one honest block must be produced.
 
 Consider a chain $`C`$ adopted by an honest party. Let:
   - $`sl_2`$ be the slot associated with the **last block** of $`C`$,
   - $`sl_1`$ be a prior slot where $`C`$ has an honestly-generated block.
 
-  If $`sl_2 \geq sl_1 + s`$, then the number of blocks appearing in $`C`$ after $`sl_1`$ is at least $`\tau s`$. The parameter $`\tau`$, called the **speed coefficient**, governs the rate at which the chain grows.
+If $`sl_2 \geq sl_1 + s`$, this means that the honest chain has passed through an interval of $`s`$ slots. In such a case, the number of blocks produced in $`C`$ after $`sl_1`$ must be at least $`\tau s`$, where $`\tau`$ represents the fraction of slots that produce blocks.
 
-#### 1.2.3 **Existential Chain Quality (∃CQ)**: With parameter $`s \in \mathbb{N}`$. 
+- **$`s`$ (Minimum Honest Block Inclusion Interval)**: This parameter guarantees that within any sequence of $`s`$ consecutive slots, at least one block must be generated by an honest party. The choice of $`s`$ ensures that the chain grows consistently and prevents adversaries from delaying block production for too long. A higher value of $`s`$ allows for longer intervals between honest block production, while a smaller $`s`$ increases the frequency at which blocks must be produced, tightening the chain growth requirements.
 
-Consider a chain $`C`$ adopted by an honest party at the onset of a slot. For any portion of $`C`$ spanning $`s`$ prior slots, there must be at least one honestly-generated block within this portion. This ensures that the chain includes contributions from honest participants.
+- **$`\tau`$ (Speed Coefficient)**: The speed coefficient $`\tau`$ defines the proportion of slots in the interval $`s`$ that are expected to produce blocks. For instance, if $`\tau = 0.5`$ and $`s = 10`$, then at least $`\tau s = 5`$ blocks must be produced by honest participants within those 10 slots. 
 
-#### 1.2.4 **Chain Growth (CG)**: With parameters $`\tau \in (0, 1]`$ and $`s \in \mathbb{N}`$. 
+Together, $`\tau`$ and $`s`$ ensure that the chain grows at a steady pace, with a balance between how frequently blocks must be produced and how much time is allowed between honest block generations. The $`s`$ parameter plays a critical role in ensuring that honest contributions remain frequent enough to maintain chain security, while $`\tau`$ governs the actual rate of block production within those intervals.
 
-Consider a chain $`C`$ held by an honest party at the onset of a slot. For any portion of $`C`$ spanning $`s`$ contiguous prior slots, the number of blocks in this portion must be at least $`\tau s`$, where $`\tau`$ is the **speed coefficient**.
+### 1.1.2.3 **Existential Chain Quality (∃CQ)**: With parameter $`s \in \mathbb{N}`$ (Minimum Honest Block Inclusion Interval). 
 
-**N.B** : **∃CQ** and **HCG** are combined to provide this more general notion of chain growth (CG) 
+Consider a chain $`C`$ adopted by an honest party at the onset of a slot. For any portion of $`C`$ spanning $`s`$ prior slots, there must be at least one honestly-generated block within this portion. This ensures that the chain includes contributions from honest participants. In practical terms, $`s`$ defines the length of a "safety window" where honest contributions are guaranteed.
 
-### 1.3 Leader Election in Praos
+### 1.1.2.4 **Chain Growth (CG)**: With parameters $`\tau \in (0, 1]`$ (speed coefficient) and $`s \in \mathbb{N}`$ (Minimum Honest Block Inclusion Interval).
+
+The Chain Growth (CG) property is a more general concept that combines both the **speed of block production** and the **frequency of honest contributions**. It uses two parameters: $`\tau`$, the **speed coefficient**, which governs how fast the chain grows, and $`s`$, the **Minimum Honest Block Inclusion Interval**, which ensures that honest blocks are consistently produced within a given interval of slots.
+
+Consider a chain $`C`$ held by an honest party at the onset of a slot. For any portion of $`C`$ spanning $`s`$ contiguous prior slots . The number of blocks in this portion must be at least $`\tau s`$. 
+The parameter $`\tau`$ determines the fraction of slots in which blocks are produced. For example, if $`\tau = 0.5`$ and $`s = 10`$, there should be at least 5 blocks produced within that span.
+  
+For example, if $`\tau = 0.5`$ and $`s = 10`$, then at least $`\tau s = 0.5 \times 10 = 5`$ blocks must be produced over the span of those 10 slots. 
+
+**Note**: **∃CQ** and **HCG** are combined to provide this more general notion of chain growth (CG) 
+
+
+## 1.2 Leader Election in Praos
 
 To understand why anti-grinding mechanisms are necessary in Ouroboros Praos, it’s important to first explain how the Leader Election process works. In the Praos, the fairness and security of leader election are essential for maintaining the integrity of the blockchain. Grinding attacks target this very mechanism by trying to manipulate the randomness used in leader election, so the leader election process itself must be both fair and unpredictable. 
 
 Let’s walk through how leader election works, followed by an explanation of the anti-grinding mechanism.
 
-#### 1.3.1 Key Notifiable Particularities of Praos
+### 1.2.1 Key Notifiable Particularities of Praos
 
 As Explained into [KRD017 - Ouroboros- A provably secure proof-of-stake blockchain protocol](https://eprint.iacr.org/2016/889.pdf), Praos protocol possesses the following basic characteristics : 
 
@@ -151,7 +168,7 @@ Based on her local view, a party is capable of deciding, in a publicly verifiabl
 
 the **Verifiable Random Function (VRF)** plays a pivotal role in ensuring the security and fairness of the leader election process.
 
-#### 1.3.2 Application of Verifiable Random Function (VRF)
+### 1.2.2 Application of Verifiable Random Function (VRF)
 
 The VRF is used to introduce randomness into the protocol, making the leader election process unpredictable. It ensures that:
 - A participant is privately and verifiably selected to create a block for a given slot.
@@ -162,7 +179,7 @@ If the VRF output (Slot Leader Proof) is less than her private $` \text{epoch}_e
 | **Features** | **Mathematical Form** | **Description**  | 
 |--------------|------------------|-----------------------|
 | **Slot Leader Proof** | $` \text{SlotLeaderProof}_\text{t} = VRF_\text{gen} \left( key_\text{private}, \text{slot}_t \, \|\| \, \eta_\text{e} \right) `$ | This function computes the leader eligibility proof using the VRF, based on the slot number and randomness nonce.       | 
-| **Slot Leader Threshold** | $` \text{Threshold}_\text{e} = \frac{\text{ActiveStake}^\text{e}_\text{participant}}{\text{ActiveStake}^\text{e}_\text{total}} \times f `$ | This function calculates the threshold for a participant's eligibility to be selected as a slot leader during $` \text{epoch}_e `$.   | 
+| **Slot Leader Threshold** | $` \text{Threshold}_\text{e} = \frac{\text{ActiveStake}^\text{e}_\text{participant}}{\text{ActiveStake}^\text{e}_\text{total}} \times ActiveSlotCoefficient `$ | This function calculates the threshold for a participant's eligibility to be selected as a slot leader during $` \text{epoch}_e `$.   | 
 | **Eligibility Check** | $` \text{SlotLeaderProof}_\text{t} < \text{Threshold}_\text{e} `$ |The leader proof is compared against a threshold to determine if the participant is eligible to create a block.         |
 | **Verification**       | $` VRF_\text{verify} \left( key_\text{public}, \text{SlotLeaderProof}_\text{t}\right) = \text{slot}_t \, \|\| \, \eta_\text{e}  `$ | Other nodes verify the correctness of the leader proof by recomputing it using the public VRF key and slot-specific input.     | 
  
@@ -174,31 +191,26 @@ If the VRF output (Slot Leader Proof) is less than her private $` \text{epoch}_e
 | $` key_\text{public} `$               | The node's public key.                                                                                                            |
 | $` VRF_\text{gen} \left( key_\text{private}, \text{input} \right) \rightarrow Proof `$ | Generate a Proof with input |
 | $` VRF_\text{verify} \left( key_\text{private}, proof \right) \rightarrow Input  `$ | Generate a Proof with input |
-| $` a \|\| b `$                        | The concatenation of a and b.                                                 |
+| $` a \|\| b `$                        | The concatenation of $`a`$ and $`b`$.                                                 |
 | $` \text{ActiveStake}^\text{e}_\text{participant} `$ | The stake owned by the participant used in $` \text{epoch}_\text{e} `$, computed within the previous $` \text{epoch}_\text{e-1} `$                                                                                              |
 | $` \text{ActiveStake}^\text{e}_\text{total} `$       | The total stake in the system used in $` \text{epoch}_\text{e} `$, computed within the previous $` \text{epoch}_\text{e-1} `$                                                                                                  |
-| $` f `$                               | The active slot coefficient, representing the fraction of slots that will have a leader and eventually a block produced.                                           |
+| $` ActiveSlotCoefficient`$                            | The active slot coefficient (referred as $`f`$), representing the fraction of slots that will have a leader and eventually a block produced.                                           |
 
-#### 1.3.3 VRF Inputs , Epoch Length & structure  
+#### 1.2.3 Eligibility Check Input Variables   
 
 For a participant to determine if they are eligible to be a slot leader, 2 key variable inputs are required:
 
+```math 
+\text{SlotLeaderProof}_\text{t} < \text{Threshold}_\text{e} \equiv isEligible\left (\text{ActivesStake}^\text{e},\eta_\text{e}\right) = VRF_\text{gen} \left( key_\text{private}, \text{slot}_t \, \|\| \, \eta_\text{e} \right) < \frac{\text{ActiveStake}^\text{e}_\text{participant}}{\text{ActiveStake}^\text{e}_\text{total}} \times ActiveSlotCoefficient 
+```
+
 1. **Active Stake Distribution**:  
-   - $`\text{stake}^\text{e}_\text{participant}`$: The participant's stake during epoch $`e`$.
-   - $`\text{stake}^\text{e}_\text{total}`$: The total stake in the system during epoch $`e`$.
+   - $`\text{ActivesStake}^\text{e}_\text{participant}`$: The participant's stake during epoch $`e`$.
+   - $`\text{ActiveStake}^\text{e}_\text{total}`$: The total stake in the system during epoch $`e`$.
 
 2. **Randomness Beacon**:  
    - $`\eta_\text{e}`$: The randomness beacon for epoch $`e`$, which is derived from previous epoch contributions.
-
-In Praos and Genesis, An epoch consists of 3 logical phases to compute these 2 key variables—**active stake distribution** and **randomness beacon**—by going through the following phases:
-
-| **Phase** | **Description**| **Key Property**   |
-|-----------------------------------|---------------------------|-------------------------------|
-| **1. $\text{ActiveStakeDistribution}_e $** Stabilization | This phase must be long enough to satisfy the **Chain Growth (CG)** property, ensuring that each honest party's chain grows by at least $`k`$ blocks. This guarantees that all honest parties agree on the stake distribution from the previous epoch. | **Chain Growth (CG)**          |
-| **2. Honest Randomness in $`\eta_\text{e}`$**     | This phase must be long enough to satisfy the **Existential Chain Quality (∃CQ)** property, ensuring the inclusion of at least one honestly-generated block. This honest contribution affects the randomness used in the leader election process.    | **Existential Chain Quality (∃CQ)** |
-| **3. $\eta_\text{e} $** Stabilization          | This phase must again be long enough to satisfy the **Chain Growth (CG)** property, ensuring that each honest party's chain grows by at least $`k`$ blocks, allowing all honest parties to agree on the randomness contributions from the second phase. | **Chain Growth (CG)**          |
-
-$` \eta_\text{e} `$ (for $` \text{epoch}_e `$) is computed based on the $` \text{SlotLeaderProof}_\text{t} `$ generated and included in the $` \text{BlockHeader}_\text{t} `$ during the previous $` \text{epoch}_\text{e-1} `$ : 
+   - $` \eta_\text{e} `$ (for $` \text{epoch}_e `$) is computed based on the $` \text{SlotLeaderProof}_\text{t} `$ generated and included in the $` \text{BlockHeader}_\text{t} `$ during the previous $` \text{epoch}_\text{e-1} `$ : 
 
 ```math
  \eta_\text{e} = H\left( \eta_\text{e-1}, \text{SlotLeaderProof}_1^{e-1}, \text{SlotLeaderProof}_2^{e-1}, \dots, \text{SlotLeaderProof}_\text{n}^{e-1} \right) 
@@ -210,7 +222,30 @@ $` \eta_\text{e} `$ (for $` \text{epoch}_e `$) is computed based on the $` \text
 | $` \text{SlotLeaderProof}_i^{e-1} `$ | The **VRF proof** generated by the $` \text{slot}_\text{i} `$ leader  in  $` \text{epoch}_\text{e-1} `$ and included in the block header |
 | $` n `$ | is the total number of blocks within the 2 first phases  ($` \text{\|epoch\| - } \|\eta_\text{e} \text{ Stabilization }\| `$  ) in  $` \text{epoch}_\text{e-1} `$. |
 
+An epoch is structured to ensure that these two key input variables are distributively available to each participant, allowing for decentralized and secure leader election across the network.
 
+#### 1.2.4 Epoch Structure 
+
+In Praos and Genesis, An epoch consists of 3 logical phases to compute these 2 key variables—**active stake distribution** and **randomness beacon**—by going through the following phases:
+
+![Epoch Structure](epoch-structure-praos.png)
+
+The sequential flow of these 3 phases is deliberately structured by designed : 
+
+| Id | **Phase**                                                  | **Key Property**                 | **Description**| 
+|----|-------------------------------|---------------------------|-------------------------------|
+| **1.**| $`\text{ActiveStakeDistribution}_e `$ Stabilization | **Chain Growth (CG)**  | This phase must be long enough to satisfy the **Chain Growth (CG)** property, ensuring that each honest party's chain grows by at least $`k`$ blocks. This guarantees that all honest parties agree on the stake distribution from the previous epoch. | 
+| **2.**| Honest Randomness in $`\eta_\text{e}`$     | **Existential Chain Quality (∃CQ)** | After the Active Stake Distribution being stabilized to prevent adversaries from adjusting their stake in their favor, this phase must be sufficiently long to satisfy the Existential Chain Quality (∃CQ) property, which is parameterized by $`s \in \mathbb{N}`$, ensuring that at least one honestly-generated block is included within any span of $s$ slots. The presence of such a block guarantees that honest contributions to the randomness used in the leader election process are incorporated. This phase directly improves the quality of the randomness $` \eta_\text{e} `$ by ensuring that adversarial attempts to manipulate the randomness beacon are mitigated. The honest block serves as a critical input, strengthening the unpredictability and fairness of the leader election mechanism.   | 
+| **3.**| $`\eta_\text{e}`$ Stabilization   | **Chain Growth (CG)**          | This phase must again be long enough to satisfy the **Chain Growth (CG)** property, ensuring that each honest party's chain grows by at least $`k`$ blocks, allowing all honest parties to agree on the randomness contributions from the second phase. | 
+
+#### 1.2.5 Epoch & Phases Length 
+
+With the overall epoch length determined independently by social considerations : 
+
+ - Phases 1 and 3 are dedicated to stabilizing the 2 critical inputs for leader election, and thus are of equal length, each spanning $`4k/f`$ slots. 
+ - Phase 2, responsible for generating sufficient randomness, has a minimum duration of $`s=1k/f`$ slots (the Minimum Honest Block Inclusion Interval) to ensure the necessary conditions for secure randomness are met.
+
+**e.g** : In the context of the current Cardano mainnet, where the epoch window is set at $`10k/f`$ slots (~ 5 days), Phase 2 is adapted accordingly :  Given that Phases 1 and 3 each consume $`4k/f`$ slots for stabilization, this leaves $`2k/f`$ slots for randomness generation in Phase 2. 
 
 
 Dump
