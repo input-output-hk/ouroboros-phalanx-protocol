@@ -1,24 +1,58 @@
----
-CIP: ?
-Title: Ouroboros Aegis - (CPS Faster Settlement)
-Category: Consensus
-Status: Proposed
-Authors:
-    - Nicolas Henin <nicolas.henin@iohk.io>
-Implementors: []
-Discussions:
-    - https://github.com/cardano-foundation/CIPs/pull/?
-Created: 2024-10-03
-License: CC-BY-4.0
----
 
+- CIP: `??`
+- Title: `Ouroboros Enhancement Phalanx - (CPS Faster Settlement)`
+- Category: Consensus
+- Status: Proposed
+- Authors:
+    - `Nicolas Henin <nicolas.henin@iohk.io>`
+- Implementors: []
+- Discussions:
+    - `https://github.com/cardano-foundation/CIPs/pull/?`
+- Created: `2024-10-03`
+- License: `CC-BY-4.0`
+
+
+## Table of Contents
+- [Abstract]()
+- [Motivation: why is this CIP necessary?]()
+- [Specifications]()
+  - [1. Essential Ouroboros Fundamentals for Understanding How a Grinding Attack Could Be Performed](#1-essential-ouroboros-fundamentals-for-understanding-how-a-grinding-attack-could-be-executed)
+    - [1.1 Properties](#11-properties)
+      - [1.1.1 Transaction Ledger Properties](#111-transaction-ledger-properties)
+        - [1.1.1.1 Persistence with the security parameter k &in; &#x2115;](#1111-persistence-with-the-security-parameter-k-in-n)
+        - [1.1.1.2 Liveness with the transaction confirmation time parameter u &in; &#x2115;](#1112-liveness-with-the-transaction-confirmation-time-parameter-u-in-n)
+      - [1.1.2 Chain Properties](#112-chains-properties)
+        - [1.1.2.1 Common Prefix (CP) with parameter k &in; &#x2115;](#1121-common-prefix-cp-with-parameter-k-in-n)
+        - [1.1.2.2 Honest-Bounded Chain Growth (HCG) with parameters &#x3C4; &in; &#x0028; 0, 1 &#x005D; and s &in; &#x2115;](#1122-honest-bounded-chain-growth-hcg-with-parameters-tau-in-028-01-and-s-in-n)
+        - [1.1.2.3 Existential Chain Quality (&#x2203;CQ) with parameter s &in; &#x2115;](#1123-existential-chain-quality-existscq-with-parameter-s-in-n)
+        - [1.1.2.4 Chain Growth (CG) with parameters &#x3C4; &in; &#x0028; 0, 1 &#x005D; and s &in; &#x2115;](#1124-chain-growth-cg-with-parameters-tau-in-028-01-and-s-in-n)
+    - [1.2 Leader Election in Praos](#12-leader-election-in-praos)
+      - [1.2.1 Key Notifiable Particularities of Praos](#121-key-notifiable-particularities-of-praos)
+      - [1.2.2 Application of Verifiable Random Function (VRF)](#122-application-of-verifiable-random-function-vrf)
+      - [1.2.3 Eligibility Check Input Variables](#123-eligibility-check-input-variables)
+      - [1.2.4 Epoch Structure](#124-epoch-structure)
+      - [1.2.5 Epoch & Phases Length](#125-epoch--phases-length)
+        - [1.2.5.1 Stabilization of a Ledger Value in &#x0033;&#x006B;&#x002F;&#x0066;](#1251-stabilization-of-a-ledger-value-in-3kf)
+        - [1.2.5.2 Lower Bound of the "Honest Randomness in &#x03B7;<sub>&#x1D07;</sub>" Phase in &#x006B;&#x002F;&#x0066; slots](#1252-lower-bound-of-the-honest-randomness-in-eta_e-phase-in-kf-slots)
+        - [1.2.5.3 Additional &#x006B;&#x002F;&#x0066; slots for the &#x03B7;<sub>&#x1D07;</sub> Stabilization Phase (Genesis Specific Constraints)](#1253-additional-kf-slots-for-the-eta_e-stabilization-phase-genesis-specific-constraints)
+  - [2. Grinding Attack](#2-grinding-attack)
+    - [2.1 Algorithm: How to Perform an Attack?](#21-algorithm-how-to-perform-an-attack)
+    - [2.2 Impacts on the Parameter k Value](#22-impacts-on-the-parameter-k-value)
+  - [3. New Anti-grinding Measure](#3-new-anti-grinding-measure)
+  - [4. The Security Parameter K]()
+- [Rationale: how does this CIP achieve its goals?]()
+  - [1. Path to Active]()
+  - [2. Acceptance Criteria]()
+  - [3. Implementation Plan]()
+- [References]()
+- [Copyright]()
 
 
 ## Abstract
 
 <!-- A short (\~200 word) description of the proposed solution and the technical issue being addressed. --> 
 
-We propose the **Ourboros Aegis** Extension to the Ouroboros Praos Protocol as one of 3 approaches ([Peras](),[Aegis]() and [Atalanta]()) to improve its settlement times (see [Faster Settlement CPS](https://github.com/cardano-scaling/CIPs/blob/053a1c3a428d8f2270d6e961feeac5a44a3c8be3/CPS-0STL/README.md)): 
+We propose the **Ourboros Phalanx** Enhancement to the Ouroboros Praos Protocol as one of 3 approaches ([Peras](),[Phalanx]() and [the active slot coefficient f increase]()) to improve its settlement times (see [Settlement Speed CPS-0017](https://github.com/cardano-foundation/CIPs/pull/922)): 
 
 ![alt text](program.png)
 
@@ -28,7 +62,6 @@ Particurlarly, The **security parameter k** has been substantially increased to 
 To reduce this effect and achieve faster settlement times, this CIP proposes some modifications to the Praos Protocol that would make such attacks considerably more expensive for adversaries, with a negligible additional cost to honest participants. 
 
 By increasing the cost of a grinding attack, the protocol limits adversaries, who possess a certain amount of computational power, forcing them to carry out a much weaker form of the attack.
-
 
 ## Motivation: why is this CIP necessary?
 
@@ -48,7 +81,7 @@ In the security analysis of Ouroboros Praos, this threat is contained by estimat
 
 This CIP is proposing to make a single grinding attempt significantly more costly for the adversary, hence decreasing the number of grinding attempts that an adversary with the same resource budget is capable of. In addition to reinforcing the protocol against CPU resource-based attacks, this enhancement will also enable to eventually reduce the **security parameter k**. 
 
-This CIP partially addresses the [Ouroboros Faster Settlement Problem Statemement](https://github.com/cardano-scaling/CIPs/blob/053a1c3a428d8f2270d6e961feeac5a44a3c8be3/CPS-0STL/README.md) and will benefit a wide range of use cases and stakeholders across the Cardano community, including:
+This CIP partially addresses the [Settlement Speed CPS-0017](https://github.com/cardano-foundation/CIPs/pull/922) and will benefit a wide range of use cases and stakeholders across the Cardano community, including:
 - Partner chains
 - Exchanges
 - Bridges
@@ -57,27 +90,7 @@ This CIP partially addresses the [Ouroboros Faster Settlement Problem Statememen
 
 ## Specification
 
-
-## Table of Contents
-
-- [1. Essential Praos Fundamentals for Understanding How a Grinding Attack Could Be Executed](#1-essential-praos-fundamentals-for-understanding-how-a-grinding-attack-could-be-executed)
-  - [1.1 Properties](#11-properties)
-    - [1.1.1 Transaction Ledger Properties](#111-transaction-ledger-properties)
-      - [1.1.1.1 Persistence with the security parameter k &in; &#x2115;](#1111-persistence-with-the-security-parameter-k-in-n)
-      - [1.1.1.2 Liveness with the transaction confirmation time parameter u &in; &#x2115;](#1112-liveness-with-the-transaction-confirmation-time-parameter-u-in-n)
-    - [1.1.2 Chain Properties](#112-chains-properties)
-      - [1.1.2.1 Common Prefix (CP) with parameter k &in; &#x2115;](#1121-common-prefix-cp-with-parameter-k-in-n)
-      - [1.1.2.2 Honest-Bounded Chain Growth (HCG) with parameters &#x3C4; &in; &#x0028; 0, 1 &#x005D; and s &in; &#x2115;](#1122-honest-bounded-chain-growth-hcg-with-parameters-tau-in-028-01-and-s-in-n)
-      - [1.1.2.3 Existential Chain Quality (&#x2203;CQ) with parameter s &in; &#x2115;](#1123-existential-chain-quality-existscq-with-parameter-s-in-n)
-      - [1.1.2.4 Chain Growth (CG) with parameters &#x3C4; &in; &#x0028; 0, 1 &#x005D; and s &in; &#x2115;](#1124-chain-growth-cg-with-parameters-tau-in-028-01-and-s-in-n)
-  - [1.2 Leader Election in Praos](#12-leader-election-in-praos)
-    - [1.2.1 Key Notifiable Particularities of Praos](#121-key-notifiable-particularities-of-praos)
-    - [1.2.2 Application of Verifiable Random Function (VRF)](#122-application-of-verifiable-random-function-vrf)
-    - [1.2.3 Eligibility Check Input Variables](#123-eligibility-check-input-variables)
-    - [1.2.4 Epoch Structure](#124-epoch-structure)
-    - [1.2.5 Epoch & Phases Length](#125-epoch--phases-length)
-
-## 1. Essential Praos Fundamentals for Understanding How a Grinding Attack Could Be Executed 
+## 1. Essential Ouroboros Fundamentals for Understanding How a Grinding Attack Could Be Executed 
 
 ## 1.1 Properties
 
@@ -240,17 +253,77 @@ The sequential flow of these 3 phases is deliberately structured by designed :
 
 #### 1.2.5 Epoch & Phases Length 
 
-With the overall epoch length determined independently by social considerations : 
+While there is no theoretical upper bound on the epoch size—since it is defined by social and practical considerations (e.g., $`10 \, \text{k}/f`$ slots, approximately 5 days)—the epoch does have a defined lower bound. Phases 1 and 3 have fixed sizes of $`3 \, \text{k}/f`$ and $`4 \, \text{k}/f`$, respectively. The size of Phase 2, "Honest Randomness in $`\eta_\text{e}`$," is adjustable with a minimum size of $`1 \, \text{k}/f`$. 
 
- - Phases 1 and 3 are dedicated to stabilizing the 2 critical inputs for leader election, and thus are of equal length, each spanning $`4k/f`$ slots. 
- - Phase 2, responsible for generating sufficient randomness, has a minimum duration of $`s=1k/f`$ slots (the Minimum Honest Block Inclusion Interval) to ensure the necessary conditions for secure randomness are met.
+The structure of an epoch is often described by the ratio `3:3:4`:
+- **Phase 1** occupies **3** parts of the total epoch.
+- **Phase 2** also occupies **3** parts of the epoch (adjusted slightly to ensure the total reaches **10** parts in total.). 
+- **Phase 3** takes up the remaining **4** parts of the epoch.
 
-**e.g** : In the context of the current Cardano mainnet, where the epoch window is set at $`10k/f`$ slots (~ 5 days), Phase 2 is adapted accordingly :  Given that Phases 1 and 3 each consume $`4k/f`$ slots for stabilization, this leaves $`2k/f`$ slots for randomness generation in Phase 2. 
+
+##### 1.2.5.1 Stabilization of a ledger value in $`3k/f`$
+
+<details>
+<summary>in Progress</summary> 
+This argument, known as "CG from CP," proceeds as follows:
+
+Within these $3k/f$ slots, there are expected to be approximately $3k/2$ adversarial slots, assuming an adversary of strength close to $1/2$. Consequently, with overwhelming probability, there will be at least $k$ adversarial slots in this period.
 
 
-Dump
-----
+Now, if the honest chain were to grow by fewer than $k$ blocks during this interval, it would signal an imminent $k$-common-prefix (k-CP) violation. The adversary could, at that point, maintain a private chain of length $k$ starting from the beginning of this interval. By simply waiting for the honest chain to reach a length of $k$ blocks, the adversary could present two disjoint chains of $k$ blocks each within the same epoch, thereby violating the k-CP property.
+
+This reasoning assumes an adversary strength near $1/2$, but it is worth noting that the weaker the adversary, the better the chain growth (CG) properties.
+</details>
+
+
+##### 1.2.5.2 Lower Bound of the "Honest Randomness in $`\eta_\text{e}`$" phase in $`k/f`$ slots
+
+<details>
+<summary>in Progress</summary> 
+TBD
+</details>
+
+##### 1.2.5.4 Additional $`k/f`$ flots for the $`\eta_\text{e}`$ Stabilization phase (Genesis Specific Constraints)
+
+<details>
+<summary>in Progress</summary> 
+TBD
+</details>
+
+## 2. Grinding Attack 
+
+### 2.1 Algorithm : how to perform an attack ?
+
+### 2.2 Impacts on the parameter k value
+
+## 3. Phalanx : the New Anti-grinding Measure
+
+## 4. The security Parameter k
+
+<details>
+<summary>in Progress</summary> 
+
+The strongest bounds that we know for settlement arise by considering executions of longest-chain-rule protocols divided into “phases.” 
+
+Each phase is a window of time that terminates with a Delta period in which there are no honest leaders. 
+
+Formally, a phase is a window of slots [s, s+1, ..., t] with the property that the last Delta slots have no honest leader, and no other subwindow of Delta slots in [s,t] has this property. (Note that for convenience here, and in the rest of the discussion, Delta—the maximum network delay—is measured in terms of slots.) If you take a long sequence of slots {0, 1, ..., L}, you can naturally decompose this into a sequence of phases by scanning the sequence from left to right and “ending a phase” every time you observe a sequence of Delta slot with no honest leaders. (This can leave a partial phase at the end.) Note that it is possible that a phase has no honest leaders in it, in which case it just consists of Delta slots.
+The whole operation we are discussing is parametrized by
+
+* Delta (as above), the maximum network delay measured in slots,
+* p_a, the probability that a slot has at least one adversarial leader,
+* p_h, the probability that a slot has at least one honest leader. A related probability that is important in the analysis is p_h*, the probability that the number of honest leaders in a slot is exactly one. We assume that the actual number of honest leaders in a slot is given by a Poisson distribution, which means that p_h* = - (1 - p_h) ln (1 - p_h). (To explain this, if the number of leaders is Poisson, then Pr[k honest leaders] = exp(-L) L^k/k! for some L. Now you can solve for L in terms of p_h and determine p_h*.
+* (Note that it is also possible to determine p_a and p_h from adversarial stake, participating honest stake, and the “active slot coefficient.”)
+
+The first challenge is to generate the phase distribution. Specifically, consider a sequence of slots {1, 2, ...} with associated random variables H_1, H_2, ... and A_1, A_2, ...; here A_t (taking values 0, 1) determines whether there is an adversarial leader in slot t and H_t whether there is an honest leader in slot t. In fact, for the honest case, we need slightly more information and we let H_t take values in {0, 1, 2+} , indicating whether there was 0, 1, or more than 1 leader in that slot. Here the A_t and H_t are independently set so that Pr[A_t = 1] = p_h, Pr[H_t = 1] = p_h*, and Pr[H_t = 0] = 1 - p_h. In terms of these random variables, there is a phase determined that starts at slot 1 and extends through some slot M; the value M is the smallest index so that the window {M-Delta, ..., M} has no honest successes (with the understanding that M >= Delta). We say that a phase has signature (h, a), where h takes values in the set {0, !, 1, 2, ...} and a takes values in the set {0, 1, ...} , if a and h  are numbers of slots in the phase in which there is are adversarial success and honest successes, with the extra understanding that if there is one honest slot and it has exactly one honest leader, then h = ! (instead of 1).
+(This is not right: We need to update honest depth! So, that will mean two “suffix” parameters when we carry out the evolution of the probability distributions.)
+
+</details>
+<details>
+  <summary>Brain Dump Area</summary>
+
 This hash function is applied to the concatenation of VRF values that are inserted into each block during the first 16k/f slots of an epoch that lasts 24k/f slots in entirety. (The “quiet” period of the final 8k/f slots in each epoch will ensure that the nonce is stable before the next epoch begins.) The verifiability of those values is a key property that we exploit in the proof.
+
 
 
 ```haskell
@@ -331,6 +404,9 @@ module Ouroboros.Consensus.Protocol.Praos.VRF (
   , vrfNonceValue
   )
  ```
+
+</details>
+
 <!-- The technical specification should describe the proposed improvement in sufficient technical detail. In particular, it should provide enough information that an implementation can be performed solely on the basis of the design in the CIP. This is necessary to facilitate multiple, interoperable implementations. This must include how the CIP should be versioned, if not covered under an optional Versioning main heading. If a proposal defines structure of on-chain data it must include a CDDL schema in its specification.-->
 
 ### Agda Specification Changes
@@ -429,15 +505,6 @@ It must also explain how the proposal affects the backward compatibility of exis
 - [Practical Settlement Bounds For Longest Chain Consensus](https://eprint.iacr.org/2022/1571.pdf) 
 - [On UC-Secure Range Extension and Batch Verification for ECVRF](https://eprint.iacr.org/2022/1045.pdf)
 ## Definitions
-
-### Security Parameter k
-
-Persistence with parameter k ∈ N. Once a node of the system proclaims a certain transaction
-tx in the stable part of its ledger, the remaining nodes, if queried, will either report tx in the
-same position of that ledger or report a stable ledger which is a prefix of that ledger. Here the
-notion of stability is a predicate that is parameterized by a security parameter k; specifically, a
-transaction is declared stable if and only if it is in a block that is more than k blocks deep in
-the ledger.
 
 ## Copyright
 <!-- The CIP must be explicitly licensed under acceptable copyright terms.  Uncomment the one you wish to use (delete the other one) and ensure it matches the License field in the header: -->
