@@ -11,41 +11,40 @@
 - Created: `2024-10-03`
 - License: `CC-BY-4.0`
 
-
 ## Table of Contents
-- [Abstract]()
-- [Motivation: why is this CIP necessary?]()
-- [Specifications]()
-  - [1. Essential Ouroboros Fundamentals for Understanding How a Grinding Attack Could Be Performed](#1-essential-ouroboros-fundamentals-for-understanding-how-a-grinding-attack-could-be-executed)
-    - [1.1 Properties](#11-properties)
+- [Abstract](#abstract)
+- [Motivation: why is this CIP necessary?](#motivation-why-is-this-cip-necessary)
+- [Specifications](#specifications)
+  - [1. Ouroboros Fundamentals and Grinding Attacks](#1-ouroboros-fundamentals-and-grinding-attacks)
+    - [1.1 Protocol Properties](#11-protocol-properties)
       - [1.1.1 Transaction Ledger Properties](#111-transaction-ledger-properties)
-        - [1.1.1.1 Persistence with the security parameter k &in; &#x2115;](#1111-persistence-with-the-security-parameter-k-in-n)
-        - [1.1.1.2 Liveness with the transaction confirmation time parameter u &in; &#x2115;](#1112-liveness-with-the-transaction-confirmation-time-parameter-u-in-n)
-      - [1.1.2 Chain Properties](#112-chains-properties)
-        - [1.1.2.1 Common Prefix (CP) with parameter k &in; &#x2115;](#1121-common-prefix-cp-with-parameter-k-in-n)
-        - [1.1.2.2 Honest-Bounded Chain Growth (HCG) with parameters &#x3C4; &in; &#x0028; 0, 1 &#x005D; and s &in; &#x2115;](#1122-honest-bounded-chain-growth-hcg-with-parameters-tau-in-028-01-and-s-in-n)
-        - [1.1.2.3 Existential Chain Quality (&#x2203;CQ) with parameter s &in; &#x2115;](#1123-existential-chain-quality-existscq-with-parameter-s-in-n)
-        - [1.1.2.4 Chain Growth (CG) with parameters &#x3C4; &in; &#x0028; 0, 1 &#x005D; and s &in; &#x2115;](#1124-chain-growth-cg-with-parameters-tau-in-028-01-and-s-in-n)
+        - [1.1.1.1 Persistence with Security Parameter &#x006B;](#1111-persistence-with-security-parameter-&#x006B;)
+        - [1.1.1.2 Liveness with Transaction Confirmation Time &#x0075;](#1112-liveness-with-transaction-confirmation-time-&#x0075;)
+      - [1.1.2 Chain Properties](#112-chain-properties)
+        - [1.1.2.1 Common Prefix (CP) with Parameter &#x006B;](#1121-common-prefix-cp-with-parameter-&#x006B;)
+        - [1.1.2.2 Chain Growth (CG) with Speed Coefficient &#x3C4; and Interval &#x0073;](#1122-chain-growth-cg-with-speed-coefficient-&#x3C4;-and-interval-&#x0073;)
+        - [1.1.2.3 Existential Chain Quality (&#x2203;CQ) with Interval &#x0073;](#1123-existential-chain-quality-∃cq-with-interval-&#x0073;)
     - [1.2 Leader Election in Praos](#12-leader-election-in-praos)
-      - [1.2.1 Key Notifiable Particularities of Praos](#121-key-notifiable-particularities-of-praos)
-      - [1.2.2 Application of Verifiable Random Function (VRF)](#122-application-of-verifiable-random-function-vrf)
-      - [1.2.3 Eligibility Check Input Variables](#123-eligibility-check-input-variables)
+      - [1.2.1 Oblivious Leader Selection](#121-oblivious-leader-selection)
+      - [1.2.2 Verifiable Random Function (VRF) Application](#122-verifiable-random-function-vrf-application)
+      - [1.2.3 Eligibility Check Variables](#123-eligibility-check-variables)
       - [1.2.4 Epoch Structure](#124-epoch-structure)
-      - [1.2.5 Epoch & Phases Length](#125-epoch--phases-length)
-        - [1.2.5.1 Stabilization of a Ledger Value in &#x0033;&#x006B;&#x002F;&#x0066;](#1251-stabilization-of-a-ledger-value-in-3kf)
-        - [1.2.5.2 Lower Bound of the "Honest Randomness in &#x03B7;<sub>&#x1D07;</sub>" Phase in &#x006B;&#x002F;&#x0066; slots](#1252-lower-bound-of-the-honest-randomness-in-eta_e-phase-in-kf-slots)
-        - [1.2.5.3 Additional &#x006B;&#x002F;&#x0066; slots for the &#x03B7;<sub>&#x1D07;</sub> Stabilization Phase (Genesis Specific Constraints)](#1253-additional-kf-slots-for-the-eta_e-stabilization-phase-genesis-specific-constraints)
+      - [1.2.5 Epoch & Phase Length](#125-epoch--phase-length)
+        - [1.2.5.1 Stabilization of Ledger Value in &#x0033;&#x006B;&#x002F;&#x0066;](#1251-stabilization-of-ledger-value-in-3kf)
+        - [1.2.5.2 Lower Bound of Honest Randomness Phase in &#x006B;&#x002F;&#x0066; slots](#1252-lower-bound-of-honest-randomness-phase-in-kf-slots)
+        - [1.2.5.3 Additional &#x006B;&#x002F;&#x0066; Slots for &#x03B7;<sub>&#x1D07;</sub> Stabilization](#1253-additional-kf-slots-for-η<sub>e</sub>-stabilization)
   - [2. Grinding Attack](#2-grinding-attack)
     - [2.1 Algorithm: How to Perform an Attack?](#21-algorithm-how-to-perform-an-attack)
-    - [2.2 Impacts on the Parameter k Value](#22-impacts-on-the-parameter-k-value)
-  - [3. New Anti-grinding Measure](#3-new-anti-grinding-measure)
-  - [4. The Security Parameter K]()
-- [Rationale: how does this CIP achieve its goals?]()
-  - [1. Path to Active]()
-  - [2. Acceptance Criteria]()
-  - [3. Implementation Plan]()
-- [References]()
-- [Copyright]()
+    - [2.2 Impact on Security Parameter &#x006B;](#22-impact-on-security-parameter-&#x006B;)
+  - [3. New Anti-grinding Measure (Phalanx)](#3-new-anti-grinding-measure-phalanx)
+  - [4. The Security Parameter &#x006B;](#4-the-security-parameter-&#x006B;)
+- [Rationale: how does this CIP achieve its goals?](#rationale-how-does-this-cip-achieve-its-goals)
+  - [1. Path to Active](#1-path-to-active)
+  - [2. Acceptance Criteria](#2-acceptance-criteria)
+  - [3. Implementation Plan](#3-implementation-plan)
+- [References](#references)
+- [Copyright](#copyright)
+
 
 
 ## Abstract
@@ -169,17 +168,20 @@ To understand why anti-grinding mechanisms are necessary in Ouroboros Praos, it�
 
 Let’s walk through how leader election works, followed by an explanation of the anti-grinding mechanism.
 
-### 1.2.1 Key Notifiable Particularities of Praos
+### 1.2.1 Oblivious Leader Selection
 
 As Explained into [KRD017 - Ouroboros- A provably secure proof-of-stake blockchain protocol](https://eprint.iacr.org/2016/889.pdf), Praos protocol possesses the following basic characteristics : 
+- **Privacy**: Only the selected leader knows they have been chosen until they reveal themselves, often by publishing a proof. This minimizes the risk of targeted attacks against the leader since other network participants are unaware of the leader's identity during the selection process.
 
-Based on her local view, a party is capable of deciding, in a publicly verifiable way, whether she is permitted to produce the next block, she is called a **slot leader**. Assuming the block is valid, other parties update their local views by adopting the block, and proceed in this way continuously. At any moment, the probability of being permitted to issue a block is proportional to the relative stake a player has in the system, as reported by the blockchain itself.
+- **Verifiable Randomness**: The selection process uses verifiable randomness functions (VRFs) to ensure that the leader is chosen fairly and unpredictably. The VRF output acts as a cryptographic proof that the selection was both random and valid, meaning others can verify it without needing to know the leader in advance.
 
+- **Low Communication Overhead**: Since the identity of the leader is hidden until the proof is revealed, Oblivious Leader Selection can reduce communication overhead and minimize the chance of network-level attacks, such as Distributed Denial of Service (DDoS) attacks, aimed at preventing the leader from performing their role.
+
+Based on her local view, a party is capable of deciding, in a publicly verifiable way, whether she is permitted to produce the next block, she is called a **slot leader**. Assuming the block is valid, other parties update their local views by adopting the block, and proceed in this way continuously. At any moment, the probability of being permitted to issue a block is proportional to the relative stake a player has in the system, as reported by the blockchain itself :
 1. potentially, multiple slot leaders may be elected for a particular slot (forming a slot leader set); 
 2. frequently, slots will have no leaders assigned to them; This defined by the **Active Slot Coefficient f**
 3. a priori, only a slot leader is aware that it is indeed a leader for a given slot; this assignment is unknown to all the other stakeholders—including other slot leaders of the same slot—until the other stakeholders receive a valid block from this slot leader.
 
-the **Verifiable Random Function (VRF)** plays a pivotal role in ensuring the security and fairness of the leader election process.
 
 ### 1.2.2 Application of Verifiable Random Function (VRF)
 
@@ -187,14 +189,16 @@ The VRF is used to introduce randomness into the protocol, making the leader ele
 - A participant is privately and verifiably selected to create a block for a given slot.
 - The VRF output is both secret (only known to the selected leader) and verifiable (publicly checkable).
 
-If the VRF output (Slot Leader Proof) is less than her private $` \text{epoch}_e `$ threshold, the participant is eligible to produce a block, she becomes a Slot Leader for that particular $` \text{slot}_t `$. Her $` \text{SlotLeaderProof}_\text{t} `$ is added in the $` \text{BlockHeader}_\text{t} `$ and others participants have the ability to verify the proof.
+If $`VRF^\text{Output}_\text{(participant,t)} `$ is less than her private $` \text{epoch}_e `$ threshold, the participant is eligible to produce a block, she becomes a Slot Leader for that particular $` \text{slot}_t `$. Her $` \text{SlotLeaderProof}_\text{t} `$ is added in the $` \text{BlockHeader}_\text{t} `$ and others participants have the ability to verify the proof.
+
+
 
 | **Features** | **Mathematical Form** | **Description**  | 
 |--------------|------------------|-----------------------|
-| **Slot Leader Proof** | $` \text{SlotLeaderProof}_\text{t} = VRF_\text{gen} \left( key_\text{private}, \text{slot}_t \, \|\| \, \eta_\text{e} \right) `$ | This function computes the leader eligibility proof using the VRF, based on the slot number and randomness nonce.       | 
-| **Slot Leader Threshold** | $` \text{Threshold}_\text{e} = \frac{\text{ActiveStake}^\text{e}_\text{participant}}{\text{ActiveStake}^\text{e}_\text{total}} \times ActiveSlotCoefficient `$ | This function calculates the threshold for a participant's eligibility to be selected as a slot leader during $` \text{epoch}_e `$.   | 
-| **Eligibility Check** | $` \text{SlotLeaderProof}_\text{t} < \text{Threshold}_\text{e} `$ |The leader proof is compared against a threshold to determine if the participant is eligible to create a block.         |
-| **Verification**       | $` VRF_\text{verify} \left( key_\text{public}, \text{SlotLeaderProof}_\text{t}\right) = \text{slot}_t \, \|\| \, \eta_\text{e}  `$ | Other nodes verify the correctness of the leader proof by recomputing it using the public VRF key and slot-specific input.     | 
+| **Slot Leader Proof** | $`VRF^\text{Certification}_\text{(participant,t)} \equiv (VRF^\text{Proof}_\text{(participant,t)},VRF^\text{Output}_\text{(participant,t)}) \leftarrow VRF_\text{gen} \left( KES^\text{participant}_\text{private}, \text{slot}_t \, \|\| \, \eta_\text{e} \right) `$ | This function computes the leader eligibility proof using the VRF, based on the slot number and randomness nonce.       | 
+| **Slot Leader Threshold** | $` \text{Threshold}^\text{participant}_\text{e} = (1 - ActiveSlotCoefficient )^\frac{\text{ActiveStake}^\text{e}_\text{participant}}{\text{ActiveStake}^\text{e}_\text{total}}  `$ | This function calculates the threshold for a participant's eligibility to be selected as a slot leader during $` \text{epoch}_e `$.   | 
+| **Eligibility Check** | $` isEligible\left (t,participant ,\text{ActivesStake}^\text{e},\eta_\text{e}\right) = \frac{ toBoundedNatural  \circ  VRF^\text{Output}_\text{(participant,t)}}{\text{MaxBoundedNatural}} < \text{Threshold}^\text{participant}_\text{e} `$ |The leader proof is compared against a threshold to determine if the participant is eligible to create a block.         |
+| **Verification**       | $` VRF_\text{verify} \left(  KES^\text{participant}_\text{public}, VRF^\text{Certification}_\text{(participant,t)}\right) = \text{slot}_t \, \|\| \, \eta_\text{e}  `$ | Other nodes verify the correctness of the leader proof by recomputing it using the public VRF key and slot-specific input.     | 
  
 | Where | |
 |-----------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
@@ -202,19 +206,112 @@ If the VRF output (Slot Leader Proof) is less than her private $` \text{epoch}_e
 | $` \eta_\text{e} `$                   | Eta, The randomness nonce used in $` \text{epoch}_\text{e} `$, computed within the previous $` \text{epoch}_\text{e-1} `$.            |
 | $` key_\text{private} `$              | The node's secret (private) key.                                                                                                  |
 | $` key_\text{public} `$               | The node's public key.                                                                                                            |
-| $` VRF_\text{gen} \left( key_\text{private}, \text{input} \right) \rightarrow Proof `$ | Generate a Proof with input |
-| $` VRF_\text{verify} \left( key_\text{private}, proof \right) \rightarrow Input  `$ | Generate a Proof with input |
+| $` VRF_\text{gen} \left( key_\text{private}, \text{input} \right) \rightarrow (Proof,Output) `$ | Generate a Certification with input |
+| $` VRF_\text{verify} \left( key_\text{private}, (Proof,Output) \right) \rightarrow Input  `$ | Verify a Certification with input |
 | $` a \|\| b `$                        | The concatenation of $`a`$ and $`b`$.                                                 |
 | $` \text{ActiveStake}^\text{e}_\text{participant} `$ | The stake owned by the participant used in $` \text{epoch}_\text{e} `$, computed within the previous $` \text{epoch}_\text{e-1} `$                                                                                              |
 | $` \text{ActiveStake}^\text{e}_\text{total} `$       | The total stake in the system used in $` \text{epoch}_\text{e} `$, computed within the previous $` \text{epoch}_\text{e-1} `$                                                                                                  |
 | $` ActiveSlotCoefficient`$                            | The active slot coefficient (referred as $`f`$), representing the fraction of slots that will have a leader and eventually a block produced.                                           |
+
+<details>
+  <summary>Consensus Layer Code Samples Relevant to This Section </summary>
+  
+```haskell
+-- | Assert that a natural is bounded by a certain value. Throws an error when
+-- this is not the case.
+assertBoundedNatural ::
+  -- | Maximum bound
+  Natural ->
+  -- | Value
+  Natural ->
+  BoundedNatural
+assertBoundedNatural maxVal val =
+  if val <= maxVal
+    then UnsafeBoundedNatural maxVal val
+    else error $ show val <> " is greater than max value " <> show maxVal
+
+-- | The output bytes of the VRF interpreted as a big endian natural number.
+--
+-- The range of this number is determined by the size of the VRF output bytes.
+-- It is thus in the range @0 ..  2 ^ (8 * sizeOutputVRF proxy) - 1@.
+--
+getOutputVRFNatural :: OutputVRF v -> Natural
+getOutputVRFNatural = bytesToNatural . getOutputVRFBytes
+
+-- | Check that the certified VRF output, when used as a natural, is valid for
+-- being slot leader.
+checkLeaderValue ::
+  forall v.
+  VRF.VRFAlgorithm v =>
+  VRF.OutputVRF v ->
+  Rational ->
+  ActiveSlotCoeff ->
+  Bool
+checkLeaderValue certVRF σ f =
+  checkLeaderNatValue (assertBoundedNatural certNatMax (VRF.getOutputVRFNatural certVRF)) σ f
+  where
+    certNatMax :: Natural
+    certNatMax = (2 :: Natural) ^ (8 * VRF.sizeOutputVRF certVRF)
+
+-- | Check that the certified input natural is valid for being slot leader. This
+-- means we check that
+--
+-- p < 1 - (1 - f)^σ
+--
+-- where p = certNat / certNatMax.
+--
+-- The calculation is done using the following optimization:
+--
+-- let q = 1 - p and c = ln(1 - f)
+--
+-- then           p < 1 - (1 - f)^σ
+-- <=>  1 / (1 - p) < exp(-σ * c)
+-- <=>  1 / q       < exp(-σ * c)
+--
+-- This can be efficiently be computed by `taylorExpCmp` which returns `ABOVE`
+-- in case the reference value `1 / (1 - p)` is above the exponential function
+-- at `-σ * c`, `BELOW` if it is below or `MaxReached` if it couldn't
+-- conclusively compute this within the given iteration bounds.
+--
+-- Note that  1       1               1                         certNatMax
+--           --- =  ----- = ---------------------------- = ----------------------
+--            q     1 - p    1 - (certNat / certNatMax)    (certNatMax - certNat)
+checkLeaderNatValue ::
+  -- | Certified nat value
+  BoundedNatural ->
+  -- | Stake proportion
+  Rational ->
+  ActiveSlotCoeff ->
+  Bool
+checkLeaderNatValue bn σ f =
+  if activeSlotVal f == maxBound
+    then -- If the active slot coefficient is equal to one,
+    -- then nearly every stake pool can produce a block every slot.
+    -- In this degenerate case, where ln (1-f) is not defined,
+    -- we let the VRF leader check always succeed.
+    -- This is a testing convenience, the active slot coefficient should not
+    -- bet set above one half otherwise.
+      True
+    else case taylorExpCmp 3 recip_q x of
+      ABOVE _ _ -> False
+      BELOW _ _ -> True
+      MaxReached _ -> False
+  where
+    c, recip_q, x :: FixedPoint
+    c = activeSlotLog f
+    recip_q = fromRational (toInteger certNatMax % toInteger (certNatMax - certNat))
+    x = -fromRational σ * c
+    certNatMax = bvMaxValue bn
+    certNat = bvValue bn
+  ```
+</details>
 
 #### 1.2.3 Eligibility Check Input Variables   
 
 For a participant to determine if they are eligible to be a slot leader, 2 key variable inputs are required:
 
 ```math 
-\text{SlotLeaderProof}_\text{t} < \text{Threshold}_\text{e} \equiv isEligible\left (\text{ActivesStake}^\text{e},\eta_\text{e}\right) = VRF_\text{gen} \left( key_\text{private}, \text{slot}_t \, \|\| \, \eta_\text{e} \right) < \frac{\text{ActiveStake}^\text{e}_\text{participant}}{\text{ActiveStake}^\text{e}_\text{total}} \times ActiveSlotCoefficient 
+isEligible\left (t,participant ,\text{ActivesStake}^\text{e},\eta_\text{e}\right) = \frac{ toBoundedNatural  \circ  VRF^\text{Output}_\text{(participant,t)}}{\text{MaxBoundedNatural}} < \text{Threshold}^\text{participant}_\text{e}
 ```
 
 1. **Active Stake Distribution**:  
@@ -226,14 +323,14 @@ For a participant to determine if they are eligible to be a slot leader, 2 key v
    - $` \eta_\text{e} `$ (for $` \text{epoch}_e `$) is computed based on the $` \text{SlotLeaderProof}_\text{t} `$ generated and included in the $` \text{BlockHeader}_\text{t} `$ during the previous $` \text{epoch}_\text{e-1} `$ : 
 
 ```math
- \eta_\text{e} = H\left( \eta_\text{e-1}, \text{SlotLeaderProof}_1^{e-1}, \text{SlotLeaderProof}_2^{e-1}, \dots, \text{SlotLeaderProof}_\text{n}^{e-1} \right) 
+ \eta_\text{e} = H\left( \eta_\text{e-1}, VRF^\text{Output}_\text{(*,1)} ,VRF^\text{Output}_\text{(*,2)}, \dots, VRF^\text{Output}_\text{(*,n)} \right) 
 ```
 
 | **where** ||
 |---------------|-----------------|
 | $` H(\cdot) `$ | A cryptographic hash function (e.g., **SHA-256**), used to aggregate the VRF outputs from $` \text{epoch}_\text{e-1} `$ |
-| $` \text{SlotLeaderProof}_i^{e-1} `$ | The **VRF proof** generated by the $` \text{slot}_\text{i} `$ leader  in  $` \text{epoch}_\text{e-1} `$ and included in the block header |
-| $` n `$ | is the total number of blocks within the 2 first phases  ($` \text{\|epoch\| - } \|\eta_\text{e} \text{ Stabilization }\| `$  ) in  $` \text{epoch}_\text{e-1} `$. |
+| $` VRF^\text{Output}_\text{(*,i)} `$ | The **VRF output** generated by the $` \text{slot}_\text{i} `$ leader "* " in  $` \text{epoch}_\text{e-1} `$ and included in the block header |
+| $` n `$ | is the total number of blocks produced within the 2 first phases  ($` 6k/f =  \text{\|epoch\| - } \|\eta_\text{e} \text{ Stabilization }\| `$  ) in  $` \text{epoch}_\text{e-1} `$. |
 
 An epoch is structured to ensure that these two key input variables are distributively available to each participant, allowing for decentralized and secure leader election across the network.
 
@@ -290,6 +387,20 @@ TBD
 TBD
 </details>
 
+## 1.3 Forks, Rollbacks, Finality and Slow-Settlement Times
+
+[Nakamoto consensus](https://coinmarketcap.com/academy/article/what-is-the-nakamoto-consensus) , as with Ouroboros Praos, transaction finality is probabilistic rather than immediate. This means a transaction isn't guaranteed being permanently stored in the ledger when it's first included in a block. Instead, each additional block added on top strengthens its permanence, gradually decreasing the likelihood of rollback. 
+
+Ouroboros Praos ensures that after K blocks have been produced, the probability of rolling back earlier blocks becomes so minimal that they can be considered secure and permanent in the Ledger. However, due to the distributed and probabilistic nature of the Nakamoto consensus, it’s possible for multiple chain versions or "Forks" to coexist in parallel accross the network. Each of these forks reflecting a potential ledger state until finality is achieved.
+
+The consensus layer operates with a structure that resembles a branching "tree" of blockchains before finality stabilizes :   
+![alt text](image-1.png)
+
+
+
+ 
+
+
 ## 2. Grinding Attack 
 
 ### 2.1 Algorithm : how to perform an attack ?
@@ -298,7 +409,15 @@ TBD
 
 ## 3. Phalanx : the New Anti-grinding Measure
 
+## 3.x Are Phalanx and Peras overlapping ? 
+
+https://iohk.io/en/blog/posts/2024/10/14/ouroboros-peras-the-next-step-in-the-journey-of-cardano-s-protocol-1/
 ## 4. The security Parameter k
+-
+
+```math 
+isEligible\left (t,participant ,\text{ActivesStake}^\text{e},\eta_\text{e} = H\left( \eta_\text{e-1}, \text{SlotLeaderProof}_1^{e-1}, \text{SlotLeaderProof}_2^{e-1}, \dots, \text{SlotLeaderProof}_\text{n}^{e-1} \right) \right) = VRF_\text{gen} \left( key^\text{participant}_\text{private}, \text{slot}_t \, \| \, \eta_\text{e} \right) < \frac{\text{ActiveStake}^\text{e}_\text{participant}}{\text{ActiveStake}^\text{e}_\text{total}} \times ActiveSlotCoefficient 
+```
 
 <details>
 <summary>in Progress</summary> 
@@ -317,6 +436,7 @@ The whole operation we are discussing is parametrized by
 
 The first challenge is to generate the phase distribution. Specifically, consider a sequence of slots {1, 2, ...} with associated random variables H_1, H_2, ... and A_1, A_2, ...; here A_t (taking values 0, 1) determines whether there is an adversarial leader in slot t and H_t whether there is an honest leader in slot t. In fact, for the honest case, we need slightly more information and we let H_t take values in {0, 1, 2+} , indicating whether there was 0, 1, or more than 1 leader in that slot. Here the A_t and H_t are independently set so that Pr[A_t = 1] = p_h, Pr[H_t = 1] = p_h*, and Pr[H_t = 0] = 1 - p_h. In terms of these random variables, there is a phase determined that starts at slot 1 and extends through some slot M; the value M is the smallest index so that the window {M-Delta, ..., M} has no honest successes (with the understanding that M >= Delta). We say that a phase has signature (h, a), where h takes values in the set {0, !, 1, 2, ...} and a takes values in the set {0, 1, ...} , if a and h  are numbers of slots in the phase in which there is are adversarial success and honest successes, with the extra understanding that if there is one honest slot and it has exactly one honest leader, then h = ! (instead of 1).
 (This is not right: We need to update honest depth! So, that will mean two “suffix” parameters when we carry out the evolution of the probability distributions.)
+
 
 </details>
 <details>
@@ -504,6 +624,7 @@ It must also explain how the proposal affects the backward compatibility of exis
 - [DGKR18 - Ouroboros Praos/ An adaptively-secure, semi-synchronous proof-of-stake blockchain](https://eprint.iacr.org/2017/573.pdf)
 - [Practical Settlement Bounds For Longest Chain Consensus](https://eprint.iacr.org/2022/1571.pdf) 
 - [On UC-Secure Range Extension and Batch Verification for ECVRF](https://eprint.iacr.org/2022/1045.pdf)
+- https://cexplorer.io/article/understanding-ouroboros-peras 
 ## Definitions
 
 ## Copyright
