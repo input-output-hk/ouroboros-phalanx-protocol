@@ -211,6 +211,73 @@ module Ouroboros.Consensus.Protocol.Praos.VRF (
  ```
 <!-- The technical specification should describe the proposed improvement in sufficient technical detail. In particular, it should provide enough information that an implementation can be performed solely on the basis of the design in the CIP. This is necessary to facilitate multiple, interoperable implementations. This must include how the CIP should be versioned, if not covered under an optional Versioning main heading. If a proposal defines structure of on-chain data it must include a CDDL schema in its specification.-->
 
+### Agda Specification Changes
+
+The changes to the Agda specification are found [here](https://github.com/IntersectMBO/ouroboros-consensus/tree/polina/anti-grinding/docs/agda-spec).
+The main changes can be summarized as follows :
+
+- `RandomnessStabilisationWindow` was renamed to `RandomnessStabilisationWindowPlusOne`, because this aligns better with the 
+case splitting required for the changes. The implication is that `RandomnessStabilisationWindowPlusOne` is exactly 
+one slot more than the `RandomnessStabilisationWindow`
+
+- The following modules are parametrized by the function `grindingf : Nonce → Nonce` that gets applied repeatedly to 
+the pre-nonce at the arrival of each block, called `f` in the Quick Wins document. This function is left abstract
+in the specification. 
+  - `Spec.ChainHead` , `Spec.ChainHead.Properties` , `Spec.Protocol` , `Spec.Protocol.Properties` , `Spec.UpdateNonce` , `Spec.UpdateNonce.Properties`
+
+- The field `pre-η`, representing the current value of the pre-nonce, is added to the the following states :
+  - `UpdateNonceState` , `PrtclState` , `ChainHeadState`
+
+**`UPDN` Transition.** This transition is called by the `PTCL` transition every time a new block is being applied. 
+It specifies 
+
+- how the evolving nonce `ηv` is evolved by a VRF result from the incoming block header, i.e. in every 
+case, it is combined  with the result of the VRF calculation `η` 
+ 
+- how the candidate nonce `ηc` is updated : it is kept fixed whenever the current slot 
+is less than `RandomnessStabilisationWindowPlusOne` slots away from the first slot of the next epoch, 
+and is set equal to the evolving nonce otherwise
+
+This transition is changed from having two rules, `Update-Both` and `Only-Evolve`, which 
+correspond to whether `s + RandomnessStabilisationWindowPlusOne` is `<` or `≥` than `firstSlot (sucᵉ (epoch s))` (respectively) 
+to having three separate cases. In all cases, the evolving nonce `ηv` is evolved by applying the VRF result `η`, denoted `ηv * η` :
+
+1. `Update-All`, corresponding to `≡`
+  - old pre-nonce `pre-η` is discarded, and the value in this field is set to a new pre-nonce, which is the same as 
+  the updated evolving nonce, `ηv * η`,
+  - the old candidate nonce `ηc` is discarded, and the value in this field is set to `grinding pre-η`. This is the 
+  result of the application of the anti-grinding function `grindingf` 
+
+2. `New-PreN`, corresponding to `<`
+  - old pre-nonce `pre-η` is updated to the result of the application of the anti-grinding function `grindingf`, to 
+  the existing pre-nonce to get `grindingf pre-η` 
+  - the new candidate nonce `ηc` is discarded, and the field value is set to the same as the updated pre-nonce, i.e. `grindingf pre-η` 
+
+3. `Keep-PreN`, corresponding to `>`
+  - old pre-nonce `pre-η` is updated to the result of the application of the anti-grinding function `grindingf`, to 
+  the existing pre-nonce to get `grindingf pre-η` 
+  - the candidate nonce `ηc` is kept constant, because it needs to remain fixed for this last part of the epoch
+
+These rule changes ensure that a fresh pre-nonce (which comes from the VRF-based evolving nonce) is set in the 
+slot that is `RandomnessStabilisationWindowPlusOne`
+before the first slot of the next epoch, updated by applying the anti-grinding function `grindingf` for each 
+block in the span of the subsequent epoch. Once that is complete, the updated pre-nonce becomes the new 
+candidate nonce.
+
+**Changes to other Transitions.**
+The rule that calls `UPDN`, which is `PRTL`, still does so by requiring the correct execution of `UPDN`.
+This is achieved by including the the start state of  `UPDN` the pre-nonce `pre-η`, and in its end state, the updated 
+`pre-η'`, which is the update computed by `UPDN`. The pre-nonce is also included in the state updated 
+by `PRTL` itself. Changes to rule that calls `PRTL`, which is `CHAINHEAD`, follow the same pattern 
+as the changes to `PRTL` : including the pre-nonce in its state, and updating it by calling the `PRTL` 
+rule to compute the update.
+
+**NOTE** The rule `TICKN` is used to swap out the old epoch nonce 
+at the start of the new epoch. This rule does not swap the previous epoch's nonce for the candidate 
+nonce directly, but instead, it combines the candidate nonce with the hash of previous 
+epoch's last block header to obtain the new epoch nonce. This rule remains unchanged, however, 
+this divergence from the original design impacts the analysis of the effectiveness of the 
+new anti-grinding measures.
 
 
 ## Rationale: how does this CIP achieve its goals?
