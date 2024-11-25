@@ -33,6 +33,7 @@
         - [1.2.5.1 Stabilization of Ledger Value in &#x0033;&#x006B;&#x002F;&#x0066;](#1251-stabilization-of-ledger-value-in-3kf)
         - [1.2.5.2 Lower Bound of Honest Randomness Phase in &#x006B;&#x002F;&#x0066; slots](#1252-lower-bound-of-honest-randomness-phase-in-kf-slots)
         - [1.2.5.3 Additional &#x006B;&#x002F;&#x0066; Slots for &#x03B7;<sub>&#x1D07;</sub> Stabilization](#1253-additional-kf-slots-for-η<sub>e</sub>-stabilization)
+    - [1.3 Forks, Rollbacks, Finality and Settlement Times](#13-forks-rollbacks-finality-and-settlement-times)
   - [2. Grinding Attack](#2-grinding-attack)
     - [2.1 Algorithm: How to Perform an Attack?](#21-algorithm-how-to-perform-an-attack)
     - [2.2 Impact on Security Parameter &#x006B;](#22-impact-on-security-parameter-&#x006B;)
@@ -44,6 +45,7 @@
   - [3. Implementation Plan](#3-implementation-plan)
 - [References](#references)
 - [Copyright](#copyright)
+
 
 
 
@@ -65,6 +67,8 @@ By increasing the cost of a grinding attack, the protocol limits adversaries, wh
 ## Motivation: why is this CIP necessary?
 
 <!-- A clear explanation that introduces the reason for a proposal, its use cases and stakeholders. If the CIP changes an established design then it must outline design issues that motivate a rework. For complex proposals, authors must write a Cardano Problem Statement (CPS) as defined in CIP-9999 and link to it as the `Motivation`. -->
+
+[![Watch the video](image.png)](https://youtu.be/jtk_5QED5tA)
 
 The Praos consensus protocol, a key component of the Ouroboros family, secures blockchain networks through verifiable randomness in slot leader elections. 
 
@@ -322,7 +326,7 @@ isEligible\left (t,participant ,\text{ActivesStake}^\text{e},\eta_\text{e}\right
 
 The protocol operates with three distinct nonces, each serving a critical role in determining the eligibility of participants and maintaining security and randomness within the system:
 
-1. **$`\eta_\text{e}`$**:  
+1. **The Epoch eta nonce $`\eta_\text{e}`$**
    - This is the final nonce used to determine participant eligibility during epoch $`e`$.  
    - It originates from $`\eta_e^\text{candidate}`$ XOR with $`\eta_\text{evolving}`$ of the last block of the previous epoch , which becomes stabilized at the conclusion of $`\text{epoch}_{e-1}`$ and transitions into $`\text{epoch}_e`$  
 
@@ -340,7 +344,7 @@ The protocol operates with three distinct nonces, each serving a critical role i
   </p>
 </details>
 
-2. **$`\eta_e^\text{candidate}`$**:  
+2. **The Epoch eta candidate nonce $`\eta_e^\text{candidate}`$**:  
    - It represents a candidate nonce for epoch $`e`$ and is the last derived  $`\eta_\text{evolving}^{t}`$ at the end of phase 2 $`\text{epoch}_{e-1}`$.   
    - The value of $`\eta_\text{e}`$ is derived from the $`\eta_e^\text{candidate}`$ contained within the fork that is ultimately selected as the **canonical chain** at the conclusion of $`\text{epoch}_{e-1}`$.  
    
@@ -348,7 +352,7 @@ The protocol operates with three distinct nonces, each serving a critical role i
 \eta_\text{e}^\text{candidate} = \eta_\text{evolving}^{t}, \quad \text{when } t = T_{\text{phase2}_\text{end}}^{\text{epoch}_{e-1}}  
 ```
 
-3. **$`\eta_\text{evolving}`$**:  
+3. **The Eta evolving nonce $`\eta_\text{evolving}`$**:  
    - This nonce evolves dynamically as the blockchain grows.  
    - For every block produced within the blockchain tree, a unique $`\eta_\text{evolving}`$ is computed :
 
@@ -429,38 +433,56 @@ TBD
 TBD
 </details>
 
-## 1.3 Forks, Rollbacks, Finality and Slow-Settlement Times
+## 1.3 Forks, Rollbacks, Finality and Settlement Times
 
-With Ouroboros Praos, as with [Nakamoto consensus](https://coinmarketcap.com/academy/article/what-is-the-nakamoto-consensus)in general, transaction finality is probabilistic rather than immediate. This means a transaction isn't guaranteed being permanently stored in the ledger when it's first included in a block. Instead, each additional block added on top strengthens its permanence, gradually decreasing the likelihood of rollback. 
+With Ouroboros Praos, as with [Nakamoto consensus](https://coinmarketcap.com/academy/article/what-is-the-nakamoto-consensus) in general, transaction finality is probabilistic rather than immediate. This means a transaction isn't guaranteed being permanently stored in the ledger when it's first included in a block. Instead, each additional block added on top strengthens its permanence, gradually decreasing the likelihood of rollback. 
 
 Ouroboros Praos guarantees that after 𝐾 blocks have been produced, the likelihood of a rollback diminishes to the point where those blocks can be regarded as secure and permanent within the Ledger. However, prior to the production of these 𝐾 blocks, multiple versions of the blockchain—commonly referred to as "forks"—may coexist across the network. Each fork represents a potential ledger state until finality is ultimately achieved.
 
 The consensus layer operates with a structure that resembles a branching "tree" of blockchains before finality stabilizes :   
 ![alt text](high-level-ledger-structure.png)
 
-Forks can occur primarily due to network delays or simultaneous block production. Here’s a breakdown of how and why forks can happen:
 
-### 1.3.1 Network Latency and Propagation Delays
+Blockchain forks can occur for several reasons:
 
-In a decentralized network, it takes time for a newly mined block to propagate to all nodes. During this propagation period, some nodes may not yet have received the latest block and could continue mining on an older version of the blockchain.
-If two miners in different parts of the network find a block at almost the same time, they will broadcast their respective blocks to the network. Some nodes will receive one block first, while others will receive the other, creating a temporary fork.
+- Multiple slot leaders can be elected for a single slot, potentially resulting in the production of multiple blocks within that slot.
+- Block propagation across the network takes time, causing nodes to have differing views of the current chain.
+- Nodes can dynamically join or leave the network.
+- An adversarial node is not obligated to agree with the most recent block (or series of blocks); it can instead choose to append its block to an earlier block in the chain.
 
-### 1.3.2 Multiple Slot Leaders (Slot Battles)
-Because block production is probabilistic, it’s possible for two miners to solve the cryptographic puzzle simultaneously or within a very short time of each other. When this happens, both miners broadcast their blocks, and the network temporarily has two competing versions of the blockchain.
-This results in a split where different parts of the network have different views of the "latest" block, creating a fork.
+Short forks, typically just a few blocks long, occur frequently and are usually non-problematic. The rolled-back blocks are often nearly identical, containing the same transactions, though they might be distributed differently among the blocks or have minor differences.
 
-3. Chain Selection Rule (Longest Chain Rule)
-In Nakamoto consensus, nodes are programmed to adopt the longest chain as the "true" version of the blockchain. When a fork occurs, miners continue to mine on top of the chain they first received until one chain becomes longer.
-Eventually, one branch of the fork will outpace the other (since more miners will mine on it, making it grow faster), and nodes will converge on this chain. The shorter branch (or branches) is abandoned, and any transactions in those blocks are returned to the mempool.
+However, longer forks can have harmful consequences. 
+For example, if an end-user (the recipient of funds) makes a decision—such as accepting payment and delivering goods to another user (the sender of the transaction)—based on a transaction that is later rolled back and does not reappear because it was invalid (e.g., due to double-spending a UTxO), 
+it creates a risk of fraud.
 
- 
+This is why It is essential to equip the community with reliable upper-bound estimates for rollback probabilities and practical tools to make informed decisions about how long to wait for a transaction to achieve secure settlement. 
 
+Significant research efforts have been made in this area, with multiple academic papers addressing the topic:
+
+- [2017 - The Combinatorics of the Longest-Chain Rule: Linear Consistency for Proof-of-Stake Blockchains](https://eprint.iacr.org/2017/241.pdf)  
+- [2022 - Practical Settlement Bounds for Longest Chain Consensus](https://eprint.iacr.org/2022/1571.pdf)
+
+**Note**: The MATLAB project [LCanalysis](https://github.com/renling/LCanalysis/) offers a practical implementation of the concepts discussed in these papers. It allows users to compute upper bounds for settlement times, serving as a valuable tool for practitioners and researchers alike.
+
+For example, the following plot illustrates settlement time bounds for 10% and 20% adversaries across different confirmation levels:
+
+![Settlement Time Bounds](settlement_bounds.png)
+
+However, these settlement times do not account for environments under grinding attacks, where results are expected to be significantly worse. Before exploring the impact of grinding attacks on settlement times, let us first explain what a grinding attack entails.
 
 ## 2. Grinding Attack 
 
-### 2.1 Algorithm : how to perform an attack ?
+### 2.1 Goal: Entry Point to Exploit the Protocol – A Means, Not an End
 
-### 2.2 Impacts on the parameter k value
+In the current version of Praos, there's a vulnerability where an adversary can exploit a key random value used in selecting block producers. This vulnerability enables a ‘grinding’ attack, where an attacker tests multiple values to maximize their probability of being chosen as a block producer. By doing so, the attacker gains partial control over the protocol's randomness—an entry point that scales with their power, amplifying potential harm. The impact can range from minor disruptions in system throughput to severe attacks compromising the entire protocol’s structure. 
+
+
+![alt text](image-1.png)
+
+### 2.2 Algorithm : how to perform an attack ?
+
+### 2.3 Impacts on settlement times
 
 ## 3. Phalanx : the New Anti-grinding Measure
 
@@ -673,13 +695,18 @@ It must also explain how the proposal affects the backward compatibility of exis
 <!-- A plan to meet those criteria or `N/A` if an implementation plan is not applicable. -->
 
 <!-- OPTIONAL SECTIONS: see CIP-0001 > Document > Structure table -->
-## References
+# References 
 
+## CPS/CIPs
+- [Faster Settlement CPS](https://github.com/cardano-scaling/CIPs/blob/053a1c3a428d8f2270d6e961feeac5a44a3c8be3/CPS-0STL/README.md)
+- [Peras' CIP](https://github.com/cardano-foundation/CIPs/pull/872)
+## Publications 
 - [KRD017 - Ouroboros- A provably secure proof-of-stake blockchain protocol](https://eprint.iacr.org/2016/889.pdf)
-- [DGKR18 - Ouroboros Praos/ An adaptively-secure, semi-synchronous proof-of-stake blockchain](https://eprint.iacr.org/2017/573.pdf)
+- [DGKR18 -  Ouroboros Praos/ An adaptively-secure, semi-synchronous proof-of-stake blockchain](https://eprint.iacr.org/2017/573.pdf)
 - [Practical Settlement Bounds For Longest Chain Consensus](https://eprint.iacr.org/2022/1571.pdf) 
-- [On UC-Secure Range Extension and Batch Verification for ECVRF](https://eprint.iacr.org/2022/1045.pdf)
-- https://cexplorer.io/article/understanding-ouroboros-peras 
+- [The combinatorics of the longest-chain rule: Linear consistency for proof-of-stake blockchains](https://eprint.iacr.org/2017/241.pdf)
+- [Efficient Random Beacons with Adaptive Securityfor Ungrindable Blockchains](https://eprint.iacr.org/2021/1698.pdf)
+
 ## Definitions
 
 ## Copyright
