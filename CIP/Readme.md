@@ -11,7 +11,9 @@
 - Created: `2024-10-03`
 - License: `CC-BY-4.0`
 
-## Table of Contents
+<details>
+  <summary><h2>Table of Contents</h2></summary>
+
 - [Abstract](#abstract)
 - [Motivation: why is this CIP necessary?](#motivation-why-is-this-cip-necessary)
 - [Specifications](#specifications)
@@ -46,7 +48,7 @@
 - [References](#references)
 - [Copyright](#copyright)
 
-
+</details>
 
 
 ## Abstract
@@ -517,7 +519,10 @@ The impact of such attacks can vary widely, ranging from minor disruptions in sy
 
 ## 3.x Are Phalanx and Peras overlapping ? 
 
-https://iohk.io/en/blog/posts/2024/10/14/ouroboros-peras-the-next-step-in-the-journey-of-cardano-s-protocol-1/
+Peras[^1] improves settlement time in the face of stake-based adversaries that attempt to promulgate the forks of their choice at the expense of honest forks. Those attempts occur as the adversarial block producers become slot leaders and they do not require grinding or heavy use of CPU resources. Grinding attacks do require CPU resources and aim to influence future slot leadership schedules: moreover, they improve the successfulness of attacks on block production. Peras remediates against the higher probability of slot leadership resulting from a grinding attack but it does not prevent obtaining that higher probability. Overall, Peras weakens grinding's effect on promulgating dishonest forks but it does not lessen the likelihood that grinding would be successful for a sequence to consecutive epochs. Thus, Peras provides a second layer of defense, but not a complete one.
+
+[^1]: https://iohk.io/en/blog/posts/2024/10/14/ouroboros-peras-the-next-step-in-the-journey-of-cardano-s-protocol-1/
+
 ## 4. The security Parameter k
 -
 
