@@ -68,7 +68,7 @@ By increasing the cost of a grinding attack, the protocol limits adversaries, wh
 
 <!-- A clear explanation that introduces the reason for a proposal, its use cases and stakeholders. If the CIP changes an established design then it must outline design issues that motivate a rework. For complex proposals, authors must write a Cardano Problem Statement (CPS) as defined in CIP-9999 and link to it as the `Motivation`. -->
 
-[![Watch the video](image.png)](https://youtu.be/jtk_5QED5tA)
+[![Watch the video](why-initiative.png)](https://youtu.be/jtk_5QED5tA)
 
 The Praos consensus protocol, a key component of the Ouroboros family, secures blockchain networks through verifiable randomness in slot leader elections. 
 
@@ -478,7 +478,7 @@ However, these settlement times do not account for environments under grinding a
 In the current version of Praos, there's a vulnerability where an adversary can exploit a key random value used in selecting block producers. This vulnerability enables a ‘grinding’ attack, where an attacker tests multiple values to maximize their probability of being chosen as a block producer. By doing so, the attacker gains partial control over the protocol's randomness—an entry point that scales with their power, amplifying potential harm. The impact can range from minor disruptions in system throughput to severe attacks compromising the entire protocol’s structure. 
 
 
-![alt text](image-1.png)
+![alt text](grinding-opportunity-window.png)
 
 ### 2.2 Algorithm : how to perform an attack ?
 
