@@ -331,7 +331,7 @@ The protocol operates with three distinct nonces, each serving a critical role i
    - It originates from $`\eta_e^\text{candidate}`$ XOR with $`\eta_\text{evolving}`$ of the last block of the previous epoch , which becomes stabilized at the conclusion of $`\text{epoch}_{e-1}`$ and transitions into $`\text{epoch}_e`$  
 
 ```math
-\eta_\text{e} = \eta^\text{candidate}_{e} \oplus \eta_\text{evolving}^{T_{\text{end}}^{\text{epoch}_{e-1}}} , \quad \text{when } t = T_{\text{start}}^{\text{epoch}_e} 
+\eta_\text{e} = \eta^\text{candidate}_{e} \oplus \eta_\text{evolving}^{T_{\text{end}}^{\text{epoch}_{e-2}}} , \quad \text{when } t = T_{\text{start}}^{\text{epoch}_e} 
 ```
 <details>
   <summary>**N.B** : divergence with academic papers </summary> 
@@ -473,16 +473,45 @@ However, these settlement times do not account for environments under grinding a
 
 ## 2. Grinding Attack 
 
-### 2.1 Goal: Entry Point to Exploit the Protocol – A Means, Not an End
+Grinding, in the context of cryptography and blockchain protocols, refers to a specific type of attack where an adversary systematically tests or manipulates a large number of possible inputs to maximize their chances of achieving a desired outcome. This approach leverages computational resources to exploit randomness or probabilistic processes, such as those used in leader election or nonce generation.
 
-In the current version of Praos, there's a vulnerability where an adversary can exploit a key random value used in selecting block producers. This vulnerability enables a ‘grinding’ attack, where an attacker tests multiple values to maximize their probability of being chosen as a block producer. By doing so, the attacker gains partial control over the protocol's randomness—an entry point that scales with their power, amplifying potential harm. The impact can range from minor disruptions in system throughput to severe attacks compromising the entire protocol’s structure. 
+### 2.1 Algorithm : how to perform an attack ?
+Now that we have established the fundamentals, let's explore the concept of a grinding attack on Cardano. 
 
+In its current version, Praos has a vulnerability where an adversary can exploit the nonce $`\eta_\text{e}`$, the random value used for selecting block producers. This allows the adversary to incrementally and iteratively undermine the uniform distribution of slot leaders, threatening the fairness and unpredictability of the leader selection process.
+
+At the conclusion of phase 2, when the $\eta^\text{candidate}_{e}$ nonce is determined, the distribution of slot leaders for the next epoch becomes deterministic in a private manner. This means that, at this point, the adversary gains precise knowledge of the slots in which they will be elected but lacks detailed knowledge of the slot distribution for honest participants.
+
+The window of opportunity opens just before the conclusion of phase 2. 
+
+For example, if the adversary serves as the slot leader immediately before this phase transition, they gain the ability to test and compare two different slot leader distributions for the upcoming epoch. 
+
+This marks the initiation of a grinding attack, where the adversary's primary objective is to maximize the size of adversarial trailing blocks at at this critical moment, thereby increasing the range of possible slot leader distributions and enhancing their influence over the protocol.
 
 ![alt text](grinding-opportunity-window.png)
 
-### 2.2 Algorithm : how to perform an attack ?
+### 2.2 Stake-based attack powered by CPU-based attack
 
-### 2.3 Impacts on settlement times
+The greater the adversarial stake, the more easily this goal can be achieved. Consequently, a grinding attack can be considered, at its core, a stake-based attack, as the adversary's success heavily depends on their ability to accumulate sufficient stake to influence the process effectively, but to better understand the implications, let’s quantify the impact as the adversary amasses these trailing blocks :
+
+| **Exponent $`x`$**| **Number of possible distributions**        | **Complexity**                                            |
+|-------------------|------------------------|-------------------------------------------------------|
+| 0                 | $`2^0 = 1`$             | Single unit, no duplication.                         |
+| 1                 | $`2^1 = 2`$             | Minimum branching or two choices.                    |
+| 4                 | $`2^4 = 16`$            | Small-scale scenarios (e.g., a few trailing blocks).  |
+| 8                 | $`2^8 = 256`$           | Moderate possibilities (e.g., basic attacks).        |
+| 16                | $`2^{16} = 65,536`$     | Large-scale possibilities, extensive grinding.       |
+| 20                | $`2^{20} = 1,048,576`$  | Highly intensive computational effort.               |
+| 32                | $`2^{32} = 4,294,967,296`$ | Massive brute-force or exhaustive attack scale.      |
+| 40                | $`2^{40} = 1,099,511,627,776`$ | Beyond realistic limits for most adversaries.        |
+
+As the adversary accumulates trailing blocks, the limiting factor swiftly shifts to their computational power. This is why the attacker can be seen as gaining partial control over the protocol through their adversarial stake, but as an entry point that scales with their computational power, amplifying potential harm. 
+
+The impact of such attacks can vary widely, ranging from minor disruptions in system throughput to severe breaches that compromise the entire protocol’s integrity and structure.
+
+### 2.3 Goal: Entry Point to Exploit the Protocol – A Means, Not an End
+
+### 2.4 Impacts on settlement times
 
 ## 3. Phalanx : the New Anti-grinding Measure
 
