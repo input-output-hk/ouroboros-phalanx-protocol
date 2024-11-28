@@ -11,7 +11,9 @@
 - Created: `2024-10-03`
 - License: `CC-BY-4.0`
 
-## Table of Contents
+<details>
+  <summary><h2>Table of Contents</h2></summary>
+
 - [Abstract](#abstract)
 - [Motivation: why is this CIP necessary?](#motivation-why-is-this-cip-necessary)
 - [Specifications](#specifications)
@@ -46,19 +48,19 @@
 - [References](#references)
 - [Copyright](#copyright)
 
-
+</details>
 
 
 ## Abstract
 
 <!-- A short (\~200 word) description of the proposed solution and the technical issue being addressed. --> 
 
-We propose the **Ourboros Phalanx** Enhancement to the Ouroboros Praos Protocol as one of 3 approaches ([Peras](),[Phalanx]() and [the active slot coefficient f increase]()) to improve its settlement times (see [Settlement Speed CPS-0017](https://github.com/cardano-foundation/CIPs/pull/922)): 
+We propose the **Ourboros Phalanx** Enhancement to the Ouroboros Praos Protocol as one of three approaches ([Peras](), [Phalanx]() and [the active slot coefficient f increase]()) to improve its settlement times (see [Settlement Speed CPS-0017](https://github.com/cardano-foundation/CIPs/pull/922)): 
 
 ![alt text](program.png)
 
-The theoretical estimates for Cardano mainchain settlement times are significantly influenced by the potential impact of a **"grinding attack."**. 
-Particurlarly, The **security parameter k** has been substantially increased to secure the Praos Protocol against these attacks. 
+The theoretical estimates for Cardano mainchain settlement times are significantly influenced by the potential impact of a **"grinding attack"**. 
+In particular, the **security parameter k** has been substantially increased to secure the Praos Protocol against these attacks. 
 
 To reduce this effect and achieve faster settlement times, this CIP proposes some modifications to the Praos Protocol that would make such attacks considerably more expensive for adversaries, with a negligible additional cost to honest participants. 
 
@@ -99,7 +101,7 @@ This CIP partially addresses the [Settlement Speed CPS-0017](https://github.com/
 
 A protocol implements a robust transaction ledger if it maintains the ledger as a sequence of blocks, where each block is associated with a specific slot. Each slot can contain at most one ledger block, and this strict association ensures a well-defined and immutable ordering of transactions within the ledger. This structure is critical for preventing manipulation of the transaction order, which is a key vector for grinding attacks. 
 
-For the ledger to be resistant to such attacks, the protocol must satisfy the following 2 critical properties (Persistence & Liveness), which ensure that blocks and transactions are securely committed and cannot be easily manipulated by adversaries. Persistence and liveness, can be derived to fundamental **chain properties** which are *used to explain how and why the leader election mechanism has been designed in this manner*. 
+For the ledger to be resistant to such attacks, the protocol must satisfy the following two critical properties (Persistence & Liveness), which ensure that blocks and transactions are securely committed and cannot be easily manipulated by adversaries. Persistence and liveness, can be derived to fundamental **chain properties** which are *used to explain how and why the leader election mechanism has been designed in this manner*. 
 
 | **Chain Property**                      | **Description**                                                                                                                    |
 |-----------------------------------------|------------------------------------------------------------------------------------------------------------------------------|
@@ -111,7 +113,7 @@ For the ledger to be resistant to such attacks, the protocol must satisfy the fo
 ### 1.1.1 Transaction Ledger Properties 
 #### 1.1.1.1 Persistence with the **security parameter $` \text{k} \in \mathbb{N} `$**
  
-Once a node of the system proclaims a certain transaction tx in the stable part of its ledger, the remaining nodes, if queried, will either report tx in the same position of that ledger or report a stable ledger which is a prefix of that ledger. Here the notion of stability is a predicate that is parameterized by a **security parameter $` \text{k} `$**. Specifically, a transaction is declared **stable** if and only if it is in a block that is more than $` \text{k} `$ blocks deep in the ledger.
+Once a node of the system proclaims a certain transaction *tx* in the stable part of its ledger, the remaining nodes, if queried, will either report *tx* in the same position of that ledger or report a stable ledger which is a prefix of that ledger. Here the notion of stability is a predicate that is parameterized by a **security parameter $` \text{k} `$**. Specifically, a transaction is declared **stable** if and only if it is in a block that is more than $` \text{k} `$ blocks deep in the ledger.
 
 #### 1.1.1.2 Liveness with the **transaction confirmation time parameter $` u \in \mathbb{N} `$** 
 
@@ -517,7 +519,10 @@ The impact of such attacks can vary widely, ranging from minor disruptions in sy
 
 ## 3.x Are Phalanx and Peras overlapping ? 
 
-https://iohk.io/en/blog/posts/2024/10/14/ouroboros-peras-the-next-step-in-the-journey-of-cardano-s-protocol-1/
+Peras[^1] improves settlement time in the face of stake-based adversaries that attempt to promulgate the forks of their choice at the expense of honest forks. Those attempts occur as the adversarial block producers become slot leaders and they do not require grinding or heavy use of CPU resources. Grinding attacks do require CPU resources and aim to influence future slot leadership schedules: moreover, they improve the successfulness of attacks on block production. Peras remediates against the higher probability of slot leadership resulting from a grinding attack but it does not prevent obtaining that higher probability. Overall, Peras weakens grinding's effect on promulgating dishonest forks but it does not lessen the likelihood that grinding would be successful for a sequence to consecutive epochs. Thus, Peras provides a second layer of defense, but not a complete one.
+
+[^1]: https://iohk.io/en/blog/posts/2024/10/14/ouroboros-peras-the-next-step-in-the-journey-of-cardano-s-protocol-1/
+
 ## 4. The security Parameter k
 -
 
