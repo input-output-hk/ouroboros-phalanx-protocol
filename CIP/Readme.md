@@ -477,7 +477,7 @@ However, these settlement times do not account for environments under grinding a
 
 Grinding, in the context of cryptography and blockchain protocols, refers to a specific type of attack where an adversary systematically tests or manipulates a large number of possible inputs to maximize their chances of achieving a desired outcome. This approach leverages computational resources to exploit randomness or probabilistic processes, such as those used in leader election or nonce generation.
 
-### 2.1 Algorithm : how to perform an attack ?
+### 2.1 Objectives
 Now that we have established the fundamentals, let's explore the concept of a grinding attack on Cardano. 
 
 In its current version, Praos has a vulnerability where an adversary can exploit the nonce $`\eta_\text{e}`$, the random value used for selecting block producers. This allows the adversary to incrementally and iteratively undermine the uniform distribution of slot leaders, threatening the fairness and unpredictability of the leader selection process.
@@ -486,15 +486,18 @@ At the conclusion of phase 2, when the $\eta^\text{candidate}_{e}$ nonce is dete
 
 The window of opportunity opens just before the conclusion of phase 2. 
 
-For example, if the adversary serves as the slot leader immediately before this phase transition, they gain the ability to test and compare two different slot leader distributions for the upcoming epoch. 
+For example, if the adversary acts as the slot leader immediately before this phase transition, they can choose whether to produce a block or not. This decision grants them the ability to test and compare two different slot leader distributions for the upcoming epoch.  
 
-This marks the initiation of a grinding attack, where the adversary's primary objective is to maximize the size of adversarial trailing blocks at at this critical moment, thereby increasing the range of possible slot leader distributions and enhancing their influence over the protocol.
+This marks the beginning of a grinding attack, where the adversary's primary goal is to maximize the number of adversarial trailing blocks at this critical juncture. By doing so, they expand the range of potential slot leader distributions, significantly enhancing their influence over the protocol. In essence, the adversary gains access to $2^x$ possible combinations of slot leader distributions, where $x$ denotes the number of trailing leader slots at this particular stage of the protocol.
 
 ![alt text](grinding-opportunity-window.png)
 
-### 2.2 Stake-based attack powered by CPU-based attack
+### 2.2 Stake-based Attack Amplified by Computational Power
 
-The greater the adversarial stake, the more easily this goal can be achieved. Consequently, a grinding attack can be considered, at its core, a stake-based attack, as the adversary's success heavily depends on their ability to accumulate sufficient stake to influence the process effectively, but to better understand the implications, let’s quantify the impact as the adversary amasses these trailing blocks :
+![alt text](image.png)
+The greater the adversarial stake, the more easily this goal can be achieved. Consequently, a grinding attack can be considered, at its core, a stake-based attack, 
+as the adversary's success heavily depends on their ability to accumulate sufficient stake to influence the process effectively, but to better understand the implications, 
+let’s quantify the accumulated complexity as the adversary amasses these trailing blocks :
 
 | **Exponent $`x`$**| **Number of possible distributions**        | **Complexity**                                            |
 |-------------------|------------------------|-------------------------------------------------------|
