@@ -17,7 +17,7 @@
 - [Abstract](#abstract)
 - [Motivation: why is this CIP necessary?](#motivation-why-is-this-cip-necessary)
 - [Specifications](#specifications)
-  - [1. Ouroboros Fundamentals and Grinding Attacks](#1-ouroboros-fundamentals-and-grinding-attacks)
+  - [1. Ouroboros Fundamentals for Executing Grinding Attacks](#1-ouroboros-fundamentals-and-grinding-attacks)
     - [1.1 Protocol Properties](#11-protocol-properties)
       - [1.1.1 Transaction Ledger Properties](#111-transaction-ledger-properties)
         - [1.1.1.1 Persistence with Security Parameter &#x006B;](#1111-persistence-with-security-parameter-&#x006B;)
@@ -95,7 +95,7 @@ This CIP partially addresses the [Settlement Speed CPS-0017](https://github.com/
 
 ## Specification
 
-## 1. Essential Ouroboros Fundamentals for Understanding How a Grinding Attack Could Be Executed 
+## 1. Ouroboros Fundamentals for Executing Grinding Attacks 
 
 ## 1.1 Properties
 
