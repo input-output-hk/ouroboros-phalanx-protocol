@@ -1,6 +1,6 @@
 
 - CIP: `??`
-- Title: `Ouroboros Enhancement Phalanx - (CPS Faster Settlement)`
+- Title: `Ouroboros Randomess Manipulation - (CPS Faster Settlement)`
 - Category: Consensus
 - Status: Proposed
 - Authors:
@@ -472,7 +472,7 @@ For example, the following plot illustrates settlement time bounds for 10% and 2
 
 However, these settlement times do not account for environments under grinding attacks, where results are expected to be significantly worse. Before exploring the impact of grinding attacks on settlement times, let us first explain what a grinding attack entails.
 
-## 2. Quantified Grinding Algorithm 
+## 2. Randomness Manipulation  
 
 Grinding, in the context of cryptography and blockchain protocols, refers to a specific type of attack where an adversary systematically tests or manipulates a large number of possible inputs to maximize their chances of achieving a desired outcome. This approach leverages computational resources to exploit randomness or probabilistic processes, such as those used in leader election or nonce generation.
 
@@ -497,27 +497,17 @@ To achieve the goal of maximizing $x$ trailing blocks at this critical juncture,
   <img src="grinding-opportunity.png" alt="Grinding Opportunity" width="600">
 </div>
 
+The probability of adversarial blocks within the interval is given by:
+
+$$
+P(|A| - |H| = N) = (stake_\text{adversarial})^N (1 - stake_\text{adversarial})^{(2N - 1) - N}
+$$
+
 The greater the adversarial stake, the more the adversary exposes themselves to the possibility of executing a grinding attack. Consequently, a grinding attack can fundamentally be considered a stake-based attack, as the adversary's success heavily relies on their ability to accumulate sufficient stake to influence the process effectively.
 
 We use the term "exposure" because the adversary cannot directly control their positioning for a grinding attack; it depends on the random distribution of leader slots. The likelihood of securing x trailing leader slots at the critical juncture decreases significantly as x increases. 
 
-The following table illustrates this phenomenon by showing the average number of years required to obtain the last x trailing leader block positions:
-
-
-| **Adversarial Stake (%)** | **1 Block**                | **2 Blocks**                | **5 Blocks**                | **10 Blocks**               | **20 Blocks**               | **30 Blocks**               | **40 Blocks**               | **50 Blocks**               | **100 Blocks**              | **200 Blocks**              |
-|----------------------------|----------------------------|----------------------------|----------------------------|----------------------------|----------------------------|----------------------------|----------------------------|----------------------------|----------------------------|----------------------------|
-| 0.5                        | <span style="color:green">2.74</span>          | <span style="color:red">547.95</span>          | <span style="color:red">5,289,046,384.94</span> | <span style="color:red">19,266,709,053,426.6</span> | <span style="color:red">2.51e+30</span>          | <span style="color:red">3.05e+47</span>          | <span style="color:red">4.03e+64</span>          | <span style="color:red">6.37e+81</span>          | <span style="color:red">Too Big</span>          | <span style="color:red">Too Big</span>          |
-| 1                          | <span style="color:green">1.37</span>          | <span style="color:yellow">136.99</span>       | <span style="color:red">1.67e+6</span>         | <span style="color:red">6.51e+12</span>         | <span style="color:red">2.61e+30</span>          | <span style="color:red">3.25e+47</span>          | <span style="color:red">4.54e+64</span>          | <span style="color:red">8.19e+81</span>          | <span style="color:red">Too Big</span>          | <span style="color:red">Too Big</span>          |
-| 2                          | <span style="color:green">0.68</span>          | <span style="color:yellow">34.25</span>        | <span style="color:yellow">53,720.12</span>    | <span style="color:red">2.05e+10</span>         | <span style="color:red">2.97e+27</span>          | <span style="color:red">3.99e+44</span>          | <span style="color:red">5.15e+61</span>          | <span style="color:red">1.73e+79</span>          | <span style="color:red">Too Big</span>          | <span style="color:red">Too Big</span>          |
-| 5                          | <span style="color:green">0.27</span>          | <span style="color:green">5.48</span>          | <span style="color:yellow">595.59</span>       | <span style="color:red">2.70e+6</span>          | <span style="color:red">5.55e+13</span>          | <span style="color:red">1.07e+31</span>          | <span style="color:red">3.55e+48</span>          | <span style="color:red">5.67e+65</span>          | <span style="color:red">1.05e+83</span>          | <span style="color:red">1.05e+101</span>        |
-| 10                         | <span style="color:green">0.14</span>          | <span style="color:green">1.37</span>          | <span style="color:green">21.34</span>         | <span style="color:yellow">3,902.74</span>      | <span style="color:red">1.34e+8</span>           | <span style="color:red">4.28e+12</span>          | <span style="color:red">1.32e+17</span>          | <span style="color:red">3.99e+21</span>          | <span style="color:red">8.41e+36</span>          | <span style="color:red">2.75e+52</span>         |
-| 20                         | <span style="color:green">0.07</span>          | <span style="color:green">0.34</span>          | <span style="color:green">0.90</span>          | <span style="color:green">8.85</span>           | <span style="color:yellow">931.88</span>         | <span style="color:yellow">93,826.23</span>      | <span style="color:red">9.12e+6</span>           | <span style="color:red">8.69e+8</span>           | <span style="color:red">5.85e+15</span>          | <span style="color:red">1.95e+31</span>         |
-| 25                         | <span style="color:green">0.05</span>          | <span style="color:green">0.22</span>          | <span style="color:green">0.34</span>          | <span style="color:green">1.50</span>           | <span style="color:green">31.54</span>           | <span style="color:yellow">643.43</span>         | <span style="color:yellow">12,766.66</span>      | <span style="color:red">248,208.55</span>        | <span style="color:red">5.94e+11</span>          | <span style="color:red">2.56e+27</span>         |
-| 30                         | <span style="color:green">0.05</span>          | <span style="color:green">0.15</span>          | <span style="color:green">0.16</span>          | <span style="color:green">0.39</span>           | <span style="color:green">2.57</span>            | <span style="color:green">16.69</span>           | <span style="color:yellow">105.70</span>         | <span style="color:yellow">658.27</span>         | <span style="color:red">5,386,799.11</span>      | <span style="color:red">2.76e+14</span>         |
-| 33                         | <span style="color:green">0.04</span>          | <span style="color:green">0.13</span>          | <span style="color:green">0.11</span>          | <span style="color:green">0.20</span>           | <span style="color:green">0.78</span>            | <span style="color:green">3.00</span>            | <span style="color:green">11.32</span>           | <span style="color:green">4.18</span>            | <span style="color:yellow">25,751.67</span>      | <span style="color:red">7.60e+9</span>          |
-| 40                         | <span style="color:green">0.03</span>          | <span style="color:green">0.09</span>          | <span style="color:green">0.06</span>          | <span style="color:green">0.06</span>           | <span style="color:green">0.10</span>            | <span style="color:green">0.02</span>            | <span style="color:green">0.26</span>            | <span style="color:green">0.41</span>            | <span style="color:green">4.01</span>            | <span style="color:yellow">255.39</span>        |
-| 49                         | <span style="color:green">0.03</span>          | <span style="color:green">0.06</span>          | <span style="color:green">0.03</span>          | <span style="color:green">0.02</span>           | <span style="color:green">0.02</span>            | <span style="color:green">0.02</span>            | <span style="color:green">0.02</span>            | <span style="color:green">0.02</span>            | <span style="color:green">0.02</span>            | <span style="color:green">0.02</span>           |
-| 50                         | <span style="color:green">0.03</span>          | <span style="color:green">0.05</span>          | <span style="color:green">0.03</span>          | <span style="color:green">0.02</span>           | <span style="color:green">0.02</span>            | <span style="color:green">0.02</span>            | <span style="color:green">0.02</span>            | <span style="color:green">0.02</span>            | <span style="color:green">0.02</span>            | <span style="color:green">0.01</span>           |
+![alt text](image-3.png)
 
 The details of the calculations underlying this table can be found in the following Google Spreadsheet: [Details of Calculations](https://docs.google.com/spreadsheets/d/1DGG4tXTngc2Zu5_IMlWsPoARksgBEMbTCyqBAgKHe7E/edit?gid=0#gid=0).
 
@@ -546,13 +536,26 @@ As the adversary accumulates trailing blocks, the limiting factor swiftly shifts
 
 The impact of such attacks can vary widely, ranging from minor disruptions in system throughput to severe breaches that compromise the entire protocol’s integrity and structure.
 
-- Economic Exploitation
-- Censorship Attacks
-- Minority Stake Exploitation
-- Fork Manipulation
-- Settlement Delays
-- Double-Spend Attacks
-- Chain-Freezing Attacks
+#### Economic Exploitation
+Manipulating slot leader distributions to prioritize transactions that benefit the adversary or to extract higher fees.
+
+#### Censorship Attacks
+Selectively excluding transactions from specific stakeholders to suppress competition or dissent.
+
+#### Minority Stake Exploitation
+Amplifying the influence of a small adversarial stake by targeting specific epoch transitions.
+
+#### Fork Manipulation
+Creating and maintaining malicious forks to destabilize consensus or execute double-spend attacks.
+
+#### Settlement Delays
+Strategically delaying block confirmation to undermine trust in the protocol's settlement guarantees.
+
+#### Double-Spend Attacks
+Exploiting control over slot leader distributions to reverse confirmed transactions and execute double-spends.
+
+#### Chain-Freezing Attacks
+Using nonce selection to stall block production entirely, halting the protocol and causing network paralysis.
 
 
 ### 2.4 Impacts on settlement times
