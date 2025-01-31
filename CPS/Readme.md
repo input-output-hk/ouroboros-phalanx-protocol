@@ -354,7 +354,7 @@ The structure of an epoch is often described by the ratio `3:3:4`:
 <summary>in Progress</summary> 
 This argument, known as "CG from CP," proceeds as follows:
 
-Within these $3k/f$ slots, there are expected to be approximately $3k/2$ adversarial slots, assuming an adversary of strength close to $1/2$. Consequently, with overwhelming probability, there will be at least $k$ adversarial slots in this period.
+Within these $3k/f$ slots, there are expected to be approximately $3k/2$ adversarial slots, assuming an adversary of strength close to $`1/2`$. Consequently, with overwhelming probability, there will be at least $k$ adversarial slots in this period.
 
 
 Now, if the honest chain were to grow by fewer than $k$ blocks during this interval, it would signal an imminent $k$-common-prefix (k-CP) violation. The adversary could, at that point, maintain a private chain of length $k$ starting from the beginning of this interval. By simply waiting for the honest chain to reach a length of $k$ blocks, the adversary could present two disjoint chains of $k$ blocks each within the same epoch, thereby violating the k-CP property.
@@ -403,8 +403,10 @@ it creates a risk of fraud.
 
 Grinding, in the context of cryptography and blockchain protocols, refers to a specific type of attack where an adversary systematically tests or manipulates a large number of possible inputs to maximize their chances of achieving a desired outcome. This approach leverages computational resources to exploit randomness or probabilistic processes, such as those used in leader election or nonce generation.
 
-### 2.1 Exposition : Adversarial Stake Accumulation
+### Manipulation Objectives
 Now that we have established the fundamentals, let's explore the concept of a grinding attack on Cardano. 
+
+#### 2.1.1 Exposure 
 
 In its current version, Praos has a vulnerability where an adversary can exploit the nonce $`\eta_\text{e}`$, the random value used for selecting block producers. This allows the adversary to incrementally and iteratively undermine the uniform distribution of slot leaders, threatening the fairness and unpredictability of the leader selection process.
 
@@ -424,21 +426,11 @@ To achieve the goal of maximizing $x$ trailing blocks at this critical juncture,
   <img src="grinding-opportunity.png" alt="Grinding Opportunity" width="600">
 </div>
 
-The probability of adversarial blocks within the interval is given by:
-
-$$
-P(|A| - |H| = N) = (stake_\text{adversarial})^N (1 - stake_\text{adversarial})^{(2N - 1) - N}
-$$
-
 The greater the adversarial stake, the more the adversary exposes themselves to the possibility of executing a grinding attack. Consequently, a grinding attack can fundamentally be considered a stake-based attack, as the adversary's success heavily relies on their ability to accumulate sufficient stake to influence the process effectively.
 
 We use the term "exposure" because the adversary cannot directly control their positioning for a grinding attack; it depends on the random distribution of leader slots. The likelihood of securing x trailing leader slots at the critical juncture decreases significantly as x increases. 
 
-![alt text](image-3.png)
-
-The details of the calculations underlying this table can be found in the following Google Spreadsheet: [Details of Calculations](https://docs.google.com/spreadsheets/d/1DGG4tXTngc2Zu5_IMlWsPoARksgBEMbTCyqBAgKHe7E/edit?gid=0#gid=0).
-
-### 2.2 Slot Leader Distribution Selection
+#### 2.1.2 Slot Leader Distribution Selection
 
 This is the pivotal moment where the adversary's prior efforts pay off. She is now in a position with *x* trailing blocks at the critical juncture. At this stage, the adversary can generate the `2^x` possible `η` nonces, compute the next epoch's slot leader distribution for each nonce, and strategically select the distribution that best aligns with her attack strategy. This positioning enables her to deploy the attack effectively in the subsequent epoch.
 
@@ -457,11 +449,9 @@ As the adversary accumulates trailing blocks, the limiting factor swiftly shifts
 | 32                | $`2^{32} = 4,294,967,296`$ | Massive brute-force or exhaustive attack scale.      |
 | 40                | $`2^{40} = 1,099,511,627,776`$ | Beyond realistic limits for most adversaries.        |
 
-**TODO** : quantify one grinding attempt 
+Accumulating x trailing leader positions is not just a statistical anomaly—it necessitates an underlying intent to exploit or destabilize the protocol. Achieving such a level of control requires significant coordination, making it highly unlikely to occur without deliberate adversarial motives. 
 
-### 2.3 Non Exhaustive Attack Stragegies
-
-The impact of such attacks can vary widely, ranging from minor disruptions in system throughput to severe breaches that compromise the entire protocol’s integrity and structure.
+Once an attacker reaches this threshold, their objectives extend beyond a single exploit and diversify into various strategic threats. Below is a non-exhaustive list of potential attack vectors, ranging from minor disruptions in system throughput to severe breaches that compromise the protocol’s integrity and structure:
 
 #### Economic Exploitation
 Manipulating slot leader distributions to prioritize transactions that benefit the adversary or to extract higher fees.
@@ -484,6 +474,8 @@ Exploiting control over slot leader distributions to reverse confirmed transacti
 #### Chain-Freezing Attacks
 Using nonce selection to stall block production entirely, halting the protocol and causing network paralysis.
 
+## 2.1 System Model and Manipulation Stategies
+ 
 
 <!-- OPTIONAL SECTIONS: see CIP-0001 > Document > Structure table -->
 # References 
