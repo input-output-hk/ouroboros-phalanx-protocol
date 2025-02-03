@@ -70,7 +70,7 @@ Finally, it is crucial to recognize that **adversarial capabilities continuously
 
 To fully grasp the context and accurately assess the level of vulnerability, it is crucial to **clearly define how the Praos protocol handles randomness** and eliminate any ambiguity in its implementation. This precise understanding will then serve as a foundation for **identifying and defining these potential attack vectors**. We will refer to these types of attacks as Grinding Attacks throughout this document.
 
-# 1. Preliminaries
+## 1. Preliminaries
 
 This section introduces the pertinent parts of the Cardano proof- of-stake consensus protocol. We focus on randomness generation and leader selection and omit irrelevant protocol details.
 
@@ -400,7 +400,7 @@ However, longer forks can have harmful consequences.
 For example, if an end-user (the recipient of funds) makes a decision—such as accepting payment and delivering goods to another user (the sender of the transaction)—based on a transaction that is later rolled back and does not reappear because it was invalid (e.g., due to double-spending a UTxO), 
 it creates a risk of fraud.
 
-# 2. Randomness Manipulation Objectives  
+## 2. Randomness Manipulation Objectives  
 
 ## 2.1 Exposure 
 
@@ -462,7 +462,7 @@ Exploiting control over slot leader distributions to reverse confirmed transacti
 ### Chain-Freezing Attacks
 Using nonce selection to stall block production entirely, halting the protocol and causing network paralysis.
 
-# 3. Non-Exaustive Manipulation Stategy List
+## 3. Non-Exaustive Manipulation Stategy List
 
 The Ethereum community recently published an insightful paper titled [*Forking the RANDAO: Manipulating Ethereum's Distributed Randomness Beacon*](https://eprint.iacr.org/2025/037). Since the system model used to analyze randomness manipulation in Ethereum is also applicable to Cardano, we will extensively reference their work to explore various manipulation strategies within the Cardano ecosystem. 
 
