@@ -37,7 +37,38 @@ Finally, it is crucial to recognize that **adversarial capabilities continuously
 
 <!-- A more elaborate description of the problem and its context. This section should explain what motivates the writing of the CPS document. -->
 
-To fully grasp the context and accurately assess the level of vulnerability, it is crucial to **clearly define how the Praos protocol handles randomness** and eliminate any ambiguity in its implementation. This precise understanding will then serve as a foundation for **identifying potential attack vectors**, quantifying their impact, assessing their feasibility, and estimating the probability of successful exploitation. We will refer to these types of attacks as Grinding Attacks throughout this document.
+- <a href="#1-preliminaries">1. Preliminaries</a>
+  - <a href="#11-fundamental-properties">1.1 Fundamental Properties</a>
+    - <a href="#111-transaction-ledger-properties">1.1.1 Transaction Ledger Properties</a>
+      - <a href="#1111-persistence-with-the-security-parameter-k">1.1.1.1 Persistence with the security parameter $`k`$</a>
+      - <a href="#1112-liveness-with-the-transaction-confirmation-time-parameter-u">1.1.1.2 Liveness with the transaction confirmation time parameter $`u`$</a>
+    - <a href="#112-chains-properties">1.1.2 Chain Properties</a>
+      - <a href="#1121-common-prefix-cp">1.1.2.1 Common Prefix (CP)</a>
+      - <a href="#1122-honest-bounded-chain-growth-hcg">1.1.2.2 Honest-Bounded Chain Growth (HCG)</a>
+      - <a href="#1123-existential-chain-quality-cq">1.1.2.3 Existential Chain Quality (∃CQ)</a>
+      - <a href="#1124-chain-growth-cg">1.1.2.4 Chain Growth (CG)</a>
+  - <a href="#12-leader-election-in-praos">1.2 Leader Election in Praos</a>
+    - <a href="#121-oblivious-leader-selection">1.2.1 Oblivious Leader Selection</a>
+    - <a href="#122-application-of-verifiable-random-function-vrf">1.2.2 Application of Verifiable Random Function (VRF)</a>
+    - <a href="#123-eligibility-check-input-variables">1.2.3 Eligibility Check Input Variables</a>
+    - <a href="#124-epoch-structure">1.2.4 Epoch Structure</a>
+    - <a href="#125-epoch-phases-length">1.2.5 Epoch & Phases Length</a>
+  - <a href="#13-forks-rollbacks-finality-and-settlement-times">1.3 Forks, Rollbacks, Finality, and Settlement Times</a>
+
+- <a href="#2-randomness-manipulation-objectives">2. Randomness Manipulation Objectives</a>
+  - <a href="#21-exposure">2.1 Exposure</a>
+  - <a href="#22-slot-leader-distribution-selection">2.2 Slot Leader Distribution Selection</a>
+
+- <a href="#3-non-exhaustive-manipulation-strategy-list">3. Non-Exhaustive Manipulation Strategy List</a>
+  - <a href="#31-system-model">3.1 System Model</a>
+  - <a href="#32-self-mixing-strategy">3.2 Self-Mixing Strategy</a>
+  - <a href="#33-forking-strategies">3.3 Forking Strategies</a>
+
+- <a href="#4-the-quantification-challenge">4. The Quantification Challenge</a>
+##
+
+
+To fully grasp the context and accurately assess the level of vulnerability, it is crucial to **clearly define how the Praos protocol handles randomness** and eliminate any ambiguity in its implementation. This precise understanding will then serve as a foundation for **identifying and defining these potential attack vectors**. We will refer to these types of attacks as Grinding Attacks throughout this document.
 
 # 1. Preliminaries
 
@@ -463,8 +494,7 @@ The manipulative power for $`t = 2`$ is the following decision tree
 
 ![alt text](image-5.png)
 
-e.g : The adversary chooses option $`\{H^e_{30}, M^e_{31}\}`$ if the calculated $`\eta_e`$ eventually leads to the highest number  
-of blocks. In this case, sacrificing Slot 30 and 31 is worthwhile, as it results in a significantly higher number of blocks in epoch $`e + 2`$.  
+e.g : The adversary chooses option $`\{H^e_{30}, M^e_{31}\}`$ if the calculated $`\eta_e`$ eventually leads to the highest number of blocks. In this case, sacrificing Slot 30 and 31 is worthwhile, as it results in a significantly higher number of blocks in epoch $`e + 2`$.  
 
 ## 3.3 Forking Strategies
 
@@ -484,34 +514,46 @@ The adversary can choose between **two forking strategies** depending on when th
 Both strategies undermine fairness in leader election, with **Preemptive Forking** favoring proactive randomness manipulation and **Reactive Forking** enabling selective, informed chain reorganizations.
 
 
-----
-The greater the adversarial stake, the more the adversary exposes themselves to the possibility of executing a grinding attack. Consequently, a grinding attack can fundamentally be considered a stake-based attack, as the adversary's success heavily relies on their ability to accumulate sufficient stake to influence the process effectively.
+## 4. The Quantification Challenge 
 
-However, there are notable differences between the two systems, such as Cardano’s smaller epoch size of 32 slots and a lower number of validators, which influence the feasibility and dynamics of these attacks. Ethereum does not follow the longest chain rule in its Proof-of-Stake (PoS) consensus. Instead, Ethereum uses LMD-GHOST (Latest Message-Driven Greedy Heaviest Observed SubTree) combined with Casper FFG (Friendly Finality Gadget) for finality.
-
-## Use cases
-<!-- A concrete set of examples written from a user's perspective, describing what and why they are trying to do. When they exist, this section should give a sense of the current alternatives and highlight why they are not suitable. -->
+TODO
 
 ## Goals
+
 <!-- A list of goals and non-goals a project is pursuing, ranked by importance. These goals should help understand the design space for the solution and what the underlying project is ultimately trying to achieve.
 
 Goals may also contain requirements for the project. For example, they may include anything from a deadline to a budget (in terms of complexity or time) to security concerns.
 
 Finally, goals may also serve as evaluation metrics to assess how good a proposed solution is. -->
 
+    
+The goal is to **mitigate or completely eliminate grinding attacks** on the protocol by introducing **targeted protocol enhancements** to address this issue. Two approaches are actively being explored to address the **Randomness Manipulation Problem**:  
+
+- **Complete Elimination of Grinding Attacks** – Ongoing research aims to make the protocol fully resistant to such attacks. One notable example is *[Efficient Random Beacons with Adaptive Security for Ungrindable Blockchains](https://eprint.iacr.org/2021/1698.pdf).*  
+- **Partial Mitigation by Increasing Attack Complexity** – While full protection may not yet be feasible, making such attacks **computationally and economically prohibitive** can significantly reduce their viability. This approach is the basis of the [**Phalanx CIP**](../CIP/Readme.md).   
+
+However, while **fully protecting the protocol from Randomness Manipulation attacks** may not yet be feasible, it is crucial to advance in the following areas:  
+
+- **Risk Quantification** : Assessing the **profitability and feasibility of attacks**, along with **refining risk assessment models**, will provide deeper insights into vulnerabilities and their potential impact on the protocol's security and stability.  
+
+- **Transparency on Manipulations** : **Enhancing detection mechanisms**, such as **self-mixing analysis** and **forking manipulation detection**, can help identify potential exploits and assess ongoing threats in real time.  
+
+- **Game Theory & Economic Disincentives** –   
+  **Promoting stake operator diversity** and **strengthening decentralization incentives** will reduce the economic viability of manipulation, fostering a more **resilient and distributed** stake pool ecosystem.  
+
 ## Open Questions
 <!-- A set of questions to which any proposed solution should find an answer. Questions should help guide solutions design by highlighting some foreseen vulnerabilities or design flaws. Solutions in the form of CIP should thereby include these questions as part of their 'Rationale' section and provide an argued answer to each. -->
 
 <!-- OPTIONAL SECTIONS: see CIP-9999 > Specification > CPS > Structure table -->
 
+- *How vulnerable is Cardano to Randomness Manipulation, and what are the potential consequences?* 
+- *Is Cardano currently being manipulated?* 
+- *Are we sufficiently discouraging randomness manipulation?* 
+- How does handling the worst-case scenario of a grinding attack impact the security parameter $`K`$ in the Ouroboros Consensus Protocol
 
-<!-- OPTIONAL SECTIONS: see CIP-0001 > Document > Structure table -->
-# References 
 
-## CPS/CIPs
-- [Faster Settlement CPS](https://github.com/cardano-scaling/CIPs/blob/053a1c3a428d8f2270d6e961feeac5a44a3c8be3/CPS-0STL/README.md)
-- [Peras' CIP](https://github.com/cardano-foundation/CIPs/pull/872)
-## Publications 
+## References 
+ 
 - [KRD017 - Ouroboros- A provably secure proof-of-stake blockchain protocol](https://eprint.iacr.org/2016/889.pdf)
 - [DGKR18 -  Ouroboros Praos/ An adaptively-secure, semi-synchronous proof-of-stake blockchain](https://eprint.iacr.org/2017/573.pdf)
 - [Practical Settlement Bounds For Longest Chain Consensus](https://eprint.iacr.org/2022/1571.pdf) 
@@ -519,8 +561,10 @@ Finally, goals may also serve as evaluation metrics to assess how good a propose
 - [Efficient Random Beacons with Adaptive Securityfor Ungrindable Blockchains](https://eprint.iacr.org/2021/1698.pdf)
 - [Forking the RANDAO: Manipulating Ethereum's Distributed Randomness Beacon](https://eprint.iacr.org/2025/037)
 
+
+
 ## Copyright
 <!-- The CIP must be explicitly licensed under acceptable copyright terms.  Uncomment the one you wish to use (delete the other one) and ensure it matches the License field in the header: -->
 
-<!-- This CIP is licensed under [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/legalcode). -->
+This CIP is licensed under [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/legalcode).
 <!-- This CIP is licensed under [Apache-2.0](http://www.apache.org/licenses/LICENSE-2.0). -->
