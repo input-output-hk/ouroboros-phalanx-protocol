@@ -39,7 +39,7 @@ Finally, it is crucial to recognize that **adversarial capabilities continuously
 
 To fully grasp the context and accurately assess the level of vulnerability, it is crucial to **clearly define how the Praos protocol handles randomness** and eliminate any ambiguity in its implementation. This precise understanding will then serve as a foundation for **identifying potential attack vectors**, quantifying their impact, assessing their feasibility, and estimating the probability of successful exploitation. We will refer to these types of attacks as Grinding Attacks throughout this document.
 
-## 1. Preliminaries and System Model 
+# 1. Preliminaries
 
 This section introduces the pertinent parts of the Cardano proof- of-stake consensus protocol. We focus on randomness generation and leader selection and omit irrelevant protocol details.
 
@@ -98,11 +98,11 @@ If $`sl_2 \geq sl_1 + s`$, this means that the honest chain has passed through a
 
 Together, $`\tau`$ and $`s`$ ensure that the chain grows at a steady pace, with a balance between how frequently blocks must be produced and how much time is allowed between honest block generations. The $`s`$ parameter plays a critical role in ensuring that honest contributions remain frequent enough to maintain chain security, while $`\tau`$ governs the actual rate of block production within those intervals.
 
-### 1.1.2.3 **Existential Chain Quality (∃CQ)**: With parameter $`s \in \mathbb{N}`$ (Minimum Honest Block Inclusion Interval). 
+#### 1.1.2.3 **Existential Chain Quality (∃CQ)**: With parameter $`s \in \mathbb{N}`$ (Minimum Honest Block Inclusion Interval). 
 
 Consider a chain $`C`$ adopted by an honest party at the onset of a slot. For any portion of $`C`$ spanning $`s`$ prior slots, there must be at least one honestly-generated block within this portion. This ensures that the chain includes contributions from honest participants. In practical terms, $`s`$ defines the length of a "safety window" where honest contributions are guaranteed.
 
-### 1.1.2.4 **Chain Growth (CG)**: With parameters $`\tau \in (0, 1]`$ (speed coefficient) and $`s \in \mathbb{N}`$ (Minimum Honest Block Inclusion Interval).
+#### 1.1.2.4 **Chain Growth (CG)**: With parameters $`\tau \in (0, 1]`$ (speed coefficient) and $`s \in \mathbb{N}`$ (Minimum Honest Block Inclusion Interval).
 
 The Chain Growth (CG) property is a more general concept that combines both the **speed of block production** and the **frequency of honest contributions**. It uses two parameters: $`\tau`$, the **speed coefficient**, which governs how fast the chain grows, and $`s`$, the **Minimum Honest Block Inclusion Interval**, which ensures that honest blocks are consistently produced within a given interval of slots.
 
@@ -338,7 +338,7 @@ The sequential flow of these 3 phases is deliberately structured by designed :
 | **2.**| Honest Randomness in $`\eta_\text{e}`$     | **Existential Chain Quality (∃CQ)** | After the Active Stake Distribution being stabilized to prevent adversaries from adjusting their stake in their favor, this phase must be sufficiently long to satisfy the Existential Chain Quality (∃CQ) property, which is parameterized by $`s \in \mathbb{N}`$, ensuring that at least one honestly-generated block is included within any span of $s$ slots. The presence of such a block guarantees that honest contributions to the randomness used in the leader election process are incorporated. This phase directly improves the quality of the randomness $` \eta_\text{e} `$ by ensuring that adversarial attempts to manipulate the randomness beacon are mitigated. The honest block serves as a critical input, strengthening the unpredictability and fairness of the leader election mechanism.   | 
 | **3.**| $`\eta_\text{e}`$ Stabilization   | **Chain Growth (CG)**          | This phase must again be long enough to satisfy the **Chain Growth (CG)** property, ensuring that each honest party's chain grows by at least $`k`$ blocks, allowing all honest parties to agree on the randomness contributions from the second phase. | 
 
-#### 1.2.5 Epoch & Phases Length 
+### 1.2.5 Epoch & Phases Length 
 
 While there is no theoretical upper bound on the epoch size—since it is defined by social and practical considerations (e.g., $`10 \, \text{k}/f`$ slots, approximately 5 days)—the epoch does have a defined lower bound. Phases 1 and 3 have fixed sizes of $`3 \, \text{k}/f`$ and $`4 \, \text{k}/f`$, respectively. The size of Phase 2, "Honest Randomness in $`\eta_\text{e}`$," is adjustable with a minimum size of $`1 \, \text{k}/f`$. 
 
@@ -346,36 +346,6 @@ The structure of an epoch is often described by the ratio `3:3:4`:
 - **Phase 1** occupies **3** parts of the total epoch.
 - **Phase 2** also occupies **3** parts of the epoch (adjusted slightly to ensure the total reaches **10** parts in total.). 
 - **Phase 3** takes up the remaining **4** parts of the epoch.
-
-
-#### 1.2.5.1 Stabilization of a ledger value in $`3k/f`$
-
-<details>
-<summary>in Progress</summary> 
-This argument, known as "CG from CP," proceeds as follows:
-
-Within these $3k/f$ slots, there are expected to be approximately $3k/2$ adversarial slots, assuming an adversary of strength close to $`1/2`$. Consequently, with overwhelming probability, there will be at least $k$ adversarial slots in this period.
-
-
-Now, if the honest chain were to grow by fewer than $k$ blocks during this interval, it would signal an imminent $k$-common-prefix (k-CP) violation. The adversary could, at that point, maintain a private chain of length $k$ starting from the beginning of this interval. By simply waiting for the honest chain to reach a length of $k$ blocks, the adversary could present two disjoint chains of $k$ blocks each within the same epoch, thereby violating the k-CP property.
-
-This reasoning assumes an adversary strength near $1/2$, but it is worth noting that the weaker the adversary, the better the chain growth (CG) properties.
-</details>
-
-
-#### 1.2.5.2 Lower Bound of the "Honest Randomness in $`\eta_\text{e}`$" phase in $`k/f`$ slots
-
-<details>
-<summary>in Progress</summary> 
-TBD
-</details>
-
-#### 1.2.5.4 Additional $`k/f`$ flots for the $`\eta_\text{e}`$ Stabilization phase (Genesis Specific Constraints)
-
-<details>
-<summary>in Progress</summary> 
-TBD
-</details>
 
 ## 1.3 Forks, Rollbacks, Finality and Settlement Times
 
@@ -399,14 +369,9 @@ However, longer forks can have harmful consequences.
 For example, if an end-user (the recipient of funds) makes a decision—such as accepting payment and delivering goods to another user (the sender of the transaction)—based on a transaction that is later rolled back and does not reappear because it was invalid (e.g., due to double-spending a UTxO), 
 it creates a risk of fraud.
 
-## 2. Randomness Manipulation  
+# 2. Randomness Manipulation Objectives  
 
-Grinding, in the context of cryptography and blockchain protocols, refers to a specific type of attack where an adversary systematically tests or manipulates a large number of possible inputs to maximize their chances of achieving a desired outcome. This approach leverages computational resources to exploit randomness or probabilistic processes, such as those used in leader election or nonce generation.
-
-### Manipulation Objectives
-Now that we have established the fundamentals, let's explore the concept of a grinding attack on Cardano. 
-
-#### 2.1.1 Exposure 
+## 2.1 Exposure 
 
 In its current version, Praos has a vulnerability where an adversary can exploit the nonce $`\eta_\text{e}`$, the random value used for selecting block producers. This allows the adversary to incrementally and iteratively undermine the uniform distribution of slot leaders, threatening the fairness and unpredictability of the leader selection process.
 
@@ -420,17 +385,9 @@ This marks the beginning of a grinding attack, where the adversary's primary goa
 
 ![alt text](grinding-opportunity-window.png)
 
-To achieve the goal of maximizing $x$ trailing blocks at this critical juncture, the adversary leverages the forking nature of the consensus protocol by introducing a private chain. By strategically applying the Longest-Chain Rule to their advantage, the adversary ensures that the last honest trailing blocks are excluded at this pivotal moment. With this added dimension, gaining access to $2^x$ possible combinations of slot leader distributions becomes equivalent to $x = |A| - |H|$, where $|A|$ and $|H|$ represent the number of adversarial and honest blocks, respectively, within this specific interval of the protocol : 
-
-<div align="center">
-  <img src="grinding-opportunity.png" alt="Grinding Opportunity" width="600">
-</div>
-
-The greater the adversarial stake, the more the adversary exposes themselves to the possibility of executing a grinding attack. Consequently, a grinding attack can fundamentally be considered a stake-based attack, as the adversary's success heavily relies on their ability to accumulate sufficient stake to influence the process effectively.
-
 We use the term "exposure" because the adversary cannot directly control their positioning for a grinding attack; it depends on the random distribution of leader slots. The likelihood of securing x trailing leader slots at the critical juncture decreases significantly as x increases. 
 
-#### 2.1.2 Slot Leader Distribution Selection
+## 2.2 Slot Leader Distribution Selection
 
 This is the pivotal moment where the adversary's prior efforts pay off. She is now in a position with *x* trailing blocks at the critical juncture. At this stage, the adversary can generate the `2^x` possible `η` nonces, compute the next epoch's slot leader distribution for each nonce, and strategically select the distribution that best aligns with her attack strategy. This positioning enables her to deploy the attack effectively in the subsequent epoch.
 
@@ -453,29 +410,100 @@ Accumulating x trailing leader positions is not just a statistical anomaly—it 
 
 Once an attacker reaches this threshold, their objectives extend beyond a single exploit and diversify into various strategic threats. Below is a non-exhaustive list of potential attack vectors, ranging from minor disruptions in system throughput to severe breaches that compromise the protocol’s integrity and structure:
 
-#### Economic Exploitation
+### Economic Exploitation
 Manipulating slot leader distributions to prioritize transactions that benefit the adversary or to extract higher fees.
 
-#### Censorship Attacks
+### Censorship Attacks
 Selectively excluding transactions from specific stakeholders to suppress competition or dissent.
 
-#### Minority Stake Exploitation
+### Minority Stake Exploitation
 Amplifying the influence of a small adversarial stake by targeting specific epoch transitions.
 
-#### Fork Manipulation
+### Fork Manipulation
 Creating and maintaining malicious forks to destabilize consensus or execute double-spend attacks.
 
-#### Settlement Delays
+### Settlement Delays
 Strategically delaying block confirmation to undermine trust in the protocol's settlement guarantees.
 
-#### Double-Spend Attacks
+### Double-Spend Attacks
 Exploiting control over slot leader distributions to reverse confirmed transactions and execute double-spends.
 
-#### Chain-Freezing Attacks
+### Chain-Freezing Attacks
 Using nonce selection to stall block production entirely, halting the protocol and causing network paralysis.
 
-## 2.1 System Model and Manipulation Stategies
- 
+# 3. Non-Exaustive Manipulation Stategy List
+
+The Ethereum community recently published an insightful paper titled [*Forking the RANDAO: Manipulating Ethereum's Distributed Randomness Beacon*](https://eprint.iacr.org/2025/037). Since the system model used to analyze randomness manipulation in Ethereum is also applicable to Cardano, we will extensively reference their work to explore various manipulation strategies within the Cardano ecosystem. 
+
+
+## 3.1 System Model
+
+A block can exist in one of four states:  
+
+- **H / Proposed** – The validator successfully proposes a valid block, which is accepted by the supermajority of validators and included in the canonical chain. Honest validators always follow this behavior in our analysis, while adversarial validators may consider alternative strategies, such as withholding blocks.  
+
+- **R / Reorged** – The validator proposes a valid block, but it ends up on a non-canonical branch of the blockchain. This block is no longer considered part of the main chain by the supermajority of the stake.  
+
+- **M / Missed** – The validator fails to publish a block during its designated slot. For an honest validator, this typically results from connectivity issues or other operational failures.  
+
+- **P / Private** – The validator constructs a block but does not immediately publish it during its assigned slot. Instead, an adversarial validator selectively shares the block with validators within its staking pool. Later, the private block may be introduced into the canonical chain by **forking** the next block—a strategy known as an **ex-ante reorg attack**. Alternatively, depending on the evolving chain state, the attacker may decide to withhold the block entirely, a tactic we refer to as **regret**.  
+
+
+![alt text](image-4.png)
+
+
+Block statuses are denoted as $` H^e_i, R^e_i, M^e_i, P^e_i `$ indicating that the 
+block in the $`i`$ th slot in epoch $`e`$ was proposed, reorged, missed, or built privately, respectively. Reorged and missed blocks do not contribute to the generation of $`\eta_e`$ since they are not part of the canonical chain. 
+
+## 3.2 Self Mixing Strategy
+
+The adversary can selectively propose or miss blocks to manipulate $`\eta_e`$. Assume that $`\mathcal{A}`$ is assigned with $`t`$ consecutive tail blocks, formally $`\mathcal{A}^{t}`$ of epoch $`e`$, then $`\mathcal{A}`$ can choose arbitrarily between $`2^t`$ $`\eta_e`$ by missing or proposing each tail block. Thus, it is trivial that $`\mathcal{A}^{t} \in AS_{\alpha}(m,n)`$ for $`0 \leq t \leq m`$, as $`\mathcal{A}`$ can compute $`\eta_e`$ corresponding to $`C^t`$.  
+
+The manipulative power for $`t = 2`$ is the following decision tree 
+
+![alt text](image-5.png)
+
+e.g : The adversary chooses option $`\{H^e_{30}, M^e_{31}\}`$ if the calculated $`\eta_e`$ eventually leads to the highest number  
+of blocks. In this case, sacrificing Slot 30 and 31 is worthwhile, as it results in a significantly higher number of blocks in epoch $`e + 2`$.  
+
+## 3.3 Forking Strategies
+
+
+To achieve the goal of maximizing $x$ trailing blocks at this critical juncture, the adversary leverages the forking nature of the consensus protocol by introducing a private chain. By strategically applying the Longest-Chain Rule to their advantage, the adversary ensures that the last honest trailing blocks are excluded at this pivotal moment. With this added dimension, gaining access to $2^x$ possible combinations of slot leader distributions becomes equivalent to $x = |A| - |H|$, where $|A|$ and $|H|$ represent the number of adversarial and honest blocks, respectively, within this specific interval of the protocol : 
+
+<div align="center">
+  <img src="grinding-opportunity.png" alt="Grinding Opportunity" width="600">
+</div>
+
+The adversary can choose between **two forking strategies** depending on when they act:
+
+- **Preemptive Forking (Ex-Ante Reorging):** The adversary **forks before** the randomness update, ensuring that only adversarial VRF contributions are included while honest ones are discarded. This allows them to manipulate $`\eta_e`$ **before it is finalized**, biasing leader selection for the next epoch.
+
+- **Reactive Forking (Ex-Post Reorging):** Instead of acting in advance, the adversary **waits until all honest VRF contributions are revealed** before deciding whether to fork. If the observed $`\eta_e`$ is unfavorable, they **publish an alternative chain**, replacing the honest blocks and modifying the randomness post-facto.
+
+Both strategies undermine fairness in leader election, with **Preemptive Forking** favoring proactive randomness manipulation and **Reactive Forking** enabling selective, informed chain reorganizations.
+
+
+----
+The greater the adversarial stake, the more the adversary exposes themselves to the possibility of executing a grinding attack. Consequently, a grinding attack can fundamentally be considered a stake-based attack, as the adversary's success heavily relies on their ability to accumulate sufficient stake to influence the process effectively.
+
+However, there are notable differences between the two systems, such as Cardano’s smaller epoch size of 32 slots and a lower number of validators, which influence the feasibility and dynamics of these attacks. Ethereum does not follow the longest chain rule in its Proof-of-Stake (PoS) consensus. Instead, Ethereum uses LMD-GHOST (Latest Message-Driven Greedy Heaviest Observed SubTree) combined with Casper FFG (Friendly Finality Gadget) for finality.
+
+## Use cases
+<!-- A concrete set of examples written from a user's perspective, describing what and why they are trying to do. When they exist, this section should give a sense of the current alternatives and highlight why they are not suitable. -->
+
+## Goals
+<!-- A list of goals and non-goals a project is pursuing, ranked by importance. These goals should help understand the design space for the solution and what the underlying project is ultimately trying to achieve.
+
+Goals may also contain requirements for the project. For example, they may include anything from a deadline to a budget (in terms of complexity or time) to security concerns.
+
+Finally, goals may also serve as evaluation metrics to assess how good a proposed solution is. -->
+
+## Open Questions
+<!-- A set of questions to which any proposed solution should find an answer. Questions should help guide solutions design by highlighting some foreseen vulnerabilities or design flaws. Solutions in the form of CIP should thereby include these questions as part of their 'Rationale' section and provide an argued answer to each. -->
+
+<!-- OPTIONAL SECTIONS: see CIP-9999 > Specification > CPS > Structure table -->
+
 
 <!-- OPTIONAL SECTIONS: see CIP-0001 > Document > Structure table -->
 # References 
@@ -489,8 +517,7 @@ Using nonce selection to stall block production entirely, halting the protocol a
 - [Practical Settlement Bounds For Longest Chain Consensus](https://eprint.iacr.org/2022/1571.pdf) 
 - [The combinatorics of the longest-chain rule: Linear consistency for proof-of-stake blockchains](https://eprint.iacr.org/2017/241.pdf)
 - [Efficient Random Beacons with Adaptive Securityfor Ungrindable Blockchains](https://eprint.iacr.org/2021/1698.pdf)
-
-## Definitions
+- [Forking the RANDAO: Manipulating Ethereum's Distributed Randomness Beacon](https://eprint.iacr.org/2025/037)
 
 ## Copyright
 <!-- The CIP must be explicitly licensed under acceptable copyright terms.  Uncomment the one you wish to use (delete the other one) and ensure it matches the License field in the header: -->
