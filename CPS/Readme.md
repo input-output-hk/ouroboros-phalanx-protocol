@@ -516,7 +516,50 @@ Both strategies undermine fairness in leader election, with **Preemptive Forking
 
 ## 4. The Quantification Challenge 
 
-TODO
+As of February 2nd, 2025, no known efforts have quantified Randomness Manipulation on Cardano with the same level of granularity as presented in  
+[*Forking the RANDAO: Manipulating Ethereum's Distributed Randomness Beacon*](https://eprint.iacr.org/2025/037). The Cardano community should undertake a similar study,  
+defining an optimal Randomness Manipulation algorithm and leveraging techniques such as Markov Decision Processes to derive insights comparable to those in Ethereum:  
+
+<div align="center">
+  <img src="image-6.png" alt="Analysis 1" width="300">
+  <img src="image-7.png" alt="Analysis 2" width="300">
+  <img src="image-8.png" alt="Analysis 3" width="300">
+</div>  
+
+While Ethereum's research provides a deeper quantification of randomness manipulation within their protocol, it still relies on approximations due to the inherent  
+complexity of the subject. We will likely face similar challenges in our own quantification efforts. The more precise the grinding algorithms, the better we can  
+estimate a reliable lower bound for the problem. Additionally, an upper bound can be established by reasoning purely in terms of computational power.  
+
+That being said, to establish an initial sense of scale, where we are going to try to evaluate how many N trailing blocks an adversary can accumulate at the critical juncture.
+
+A key difference between Cardano and Ethereum is the **epoch size**.  
+
+- In **Ethereum**, an adversary can attempt to manipulate the protocol's randomness **every 32 slots** (**384 seconds**).  
+- In **Ouroboros Praos**, the opportunity arises only **once per epoch**, which consists of:  
+
+  $$
+  \frac{10k}{f} \text{ slots}
+  $$  
+
+  On **Cardano mainnet**, this evaluates to:  
+
+  $$
+  \frac{10 \times 2160}{0.05} = 432,000 \text{ slots per epoch}
+  $$  
+
+  Given that each slot lasts **1 second**, this translates to approximately **5 days per epoch**.  
+
+We previously also explained that gaining access to $2^x$ possible combinations of slot leader distributions becomes equivalent to $x = |A| - |H|$, where $|A|$ and $|H|$ represent the number of adversarial and honest blocks, respectively. Therefore the probability of adversarial blocks within the interval is given by:
+
+$$
+P(|A| - |H| = N) = (stake_\text{adversarial})^N (1 - stake_\text{adversarial})^{(2N - 1) - N}
+$$  
+With this reasoning we can produce the following insights :  
+![alt text](image-9.png)
+![alt text](image-10.png)
+
+The details of the calculations underlying this table can be found in the following Google Spreadsheet: [Details of Calculations](https://docs.google.com/spreadsheets/d/1DGG4tXTngc2Zu5_IMlWsPoARksgBEMbTCyqBAgKHe7E/edit?gid=0#gid=0).
+
 
 ## Goals
 
@@ -546,10 +589,13 @@ However, while **fully protecting the protocol from Randomness Manipulation atta
 
 <!-- OPTIONAL SECTIONS: see CIP-9999 > Specification > CPS > Structure table -->
 
-- *How vulnerable is Cardano to Randomness Manipulation, and what are the potential consequences?* 
-- *Is Cardano currently being manipulated?* 
-- *Are we sufficiently discouraging randomness manipulation?* 
-- How does handling the worst-case scenario of a grinding attack impact the security parameter $`K`$ in the Ouroboros Consensus Protocol
+- *How vulnerable is Cardano to randomness manipulation, and what are the potential consequences?*  
+- *Is Cardano currently being manipulated?*  
+- *Are we effectively discouraging randomness manipulation?*  
+- *How does handling the worst-case scenario of a grinding attack impact the security parameter $`K`$ in the Ouroboros consensus protocol?*  
+- *Who stands to benefit from a grinding attack?*  
+- *What are the practical limits of a grinding attack given the current computational power available on the market?*  
+- *Are these randomness manipulation strategies economically viable?*  
 
 
 ## References 
