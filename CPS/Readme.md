@@ -554,9 +554,18 @@ We previously also explained that gaining access to $2^x$ possible combinations 
 $$
 P(|A| - |H| = N) = (stake_\text{adversarial})^N (1 - stake_\text{adversarial})^{(2N - 1) - N}
 $$  
-With this reasoning we can produce the following insights :  
+Based on this reasoning, we can derive the following insights:  
 ![alt text](image-9.png)
 ![alt text](image-10.png)
+
+For example, with **5% adversarial stake**, it would take **184 years** for an adversary to obtain a single adversarial block at the critical juncture—an extremely unlikely event.  
+
+Assuming that having **less than one chance over a 5-year period** is discouraging enough, we have plotted the following graph:
+
+<iframe width="600" height="400"
+    src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSTJQJXYNTDBiXuoJhXLOVZcLBjqW71HuU0TnaCDz2JWUCM40Tigwm_tnEEXv0i7U3vbq6dXkgmv9Q8/pubchart?oid=12848731&format=interactive">
+</iframe>
+
 
 The details of the calculations underlying this table can be found in the following Google Spreadsheet: [Details of Calculations](https://docs.google.com/spreadsheets/d/1DGG4tXTngc2Zu5_IMlWsPoARksgBEMbTCyqBAgKHe7E/edit?gid=0#gid=0).
 

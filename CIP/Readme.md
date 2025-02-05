@@ -530,7 +530,6 @@ As the adversary accumulates trailing blocks, the limiting factor swiftly shifts
 | 32                | $`2^{32} = 4,294,967,296`$ | Massive brute-force or exhaustive attack scale.      |
 | 40                | $`2^{40} = 1,099,511,627,776`$ | Beyond realistic limits for most adversaries.        |
 
-**TODO** : quantify one grinding attempt 
 
 ### 2.3 Non Exhaustive Attack Stragegies
 
