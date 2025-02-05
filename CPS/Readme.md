@@ -560,7 +560,7 @@ Based on this reasoning, we can derive the following insights:
 
 For example, with **5% adversarial stake**, it would take **184 years** for an adversary to obtain a single adversarial block at the critical juncture—an extremely unlikely event.  
 
-Assuming that having **less than one chance over a 5-year period** is discouraging enough, we have plotted the following graph:
+Assuming that having a probability of less than one occurrence in a **5-year period** is discouraging enough—such as when there are more than 20 trailing blocks at a 30% adversarial stake—we have plotted the following graph:
 
 <div align="center">
   <img src="graph-forking-mixing.png" alt="Expected number of trailing blocks per epoch, Self Mixing and Forking" width="600">
@@ -568,9 +568,7 @@ Assuming that having **less than one chance over a 5-year period** is discouragi
 
 The details of the calculations underlying this table can be found in the following Google Spreadsheet: [Details of Calculations](https://docs.google.com/spreadsheets/d/1DGG4tXTngc2Zu5_IMlWsPoARksgBEMbTCyqBAgKHe7E/edit?gid=0#gid=0).
 
-This analysis does not account for recursion in addition to the forking and self-mixing strategy, so the curve should actually be even steeper than in the graph above. 
-
-We can conclude that randomness manipulation within Ouroboros becomes critical above **30% adversarial stake** and is increasingly influenced by the adversary’s computational power to compute a $2^n$ leader election distribution. This is the specific issue we aim to highlight in this CPS.
+We conclude that randomness manipulation within Ouroboros seems to become critical above a **33% adversarial stake**, with its impact increasingly dictated by the adversary’s computational ability to compute a $`2^n`$ leader election distribution set. This is the specific issue we aim to highlight in this CPS.  
 
 ## Goals
 
