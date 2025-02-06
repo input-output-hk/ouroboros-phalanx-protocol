@@ -1,6 +1,6 @@
 
 - CIP: `??`
-- Title: `Ouroboros Randomess Manipulation - (CPS Faster Settlement)`
+- Title: `Phalanx: Increasing the Computational Cost of Grinding Attacks`
 - Category: Consensus
 - Status: Proposed
 - Authors:
@@ -11,60 +11,16 @@
 - Created: `2024-10-03`
 - License: `CC-BY-4.0`
 
-<details>
-  <summary><h2>Table of Contents</h2></summary>
 
-- [Abstract](#abstract)
-- [Motivation: why is this CIP necessary?](#motivation-why-is-this-cip-necessary)
-- [Specifications](#specifications)
-  - [1. Ouroboros Fundamentals for Executing Grinding Attacks](#1-ouroboros-fundamentals-and-grinding-attacks)
-    - [1.1 Protocol Properties](#11-protocol-properties)
-      - [1.1.1 Transaction Ledger Properties](#111-transaction-ledger-properties)
-        - [1.1.1.1 Persistence with Security Parameter &#x006B;](#1111-persistence-with-security-parameter-&#x006B;)
-        - [1.1.1.2 Liveness with Transaction Confirmation Time &#x0075;](#1112-liveness-with-transaction-confirmation-time-&#x0075;)
-      - [1.1.2 Chain Properties](#112-chain-properties)
-        - [1.1.2.1 Common Prefix (CP) with Parameter &#x006B;](#1121-common-prefix-cp-with-parameter-&#x006B;)
-        - [1.1.2.2 Chain Growth (CG) with Speed Coefficient &#x3C4; and Interval &#x0073;](#1122-chain-growth-cg-with-speed-coefficient-&#x3C4;-and-interval-&#x0073;)
-        - [1.1.2.3 Existential Chain Quality (&#x2203;CQ) with Interval &#x0073;](#1123-existential-chain-quality-∃cq-with-interval-&#x0073;)
-    - [1.2 Leader Election in Praos](#12-leader-election-in-praos)
-      - [1.2.1 Oblivious Leader Selection](#121-oblivious-leader-selection)
-      - [1.2.2 Verifiable Random Function (VRF) Application](#122-verifiable-random-function-vrf-application)
-      - [1.2.3 Eligibility Check Variables](#123-eligibility-check-variables)
-      - [1.2.4 Epoch Structure](#124-epoch-structure)
-      - [1.2.5 Epoch & Phase Length](#125-epoch--phase-length)
-        - [1.2.5.1 Stabilization of Ledger Value in &#x0033;&#x006B;&#x002F;&#x0066;](#1251-stabilization-of-ledger-value-in-3kf)
-        - [1.2.5.2 Lower Bound of Honest Randomness Phase in &#x006B;&#x002F;&#x0066; slots](#1252-lower-bound-of-honest-randomness-phase-in-kf-slots)
-        - [1.2.5.3 Additional &#x006B;&#x002F;&#x0066; Slots for &#x03B7;<sub>&#x1D07;</sub> Stabilization](#1253-additional-kf-slots-for-η<sub>e</sub>-stabilization)
-    - [1.3 Forks, Rollbacks, Finality and Settlement Times](#13-forks-rollbacks-finality-and-settlement-times)
-  - [2. Grinding Attack](#2-grinding-attack)
-    - [2.1 Algorithm: How to Perform an Attack?](#21-algorithm-how-to-perform-an-attack)
-    - [2.2 Impact on Security Parameter &#x006B;](#22-impact-on-security-parameter-&#x006B;)
-  - [3. New Anti-grinding Measure (Phalanx)](#3-new-anti-grinding-measure-phalanx)
-  - [4. The Security Parameter &#x006B;](#4-the-security-parameter-&#x006B;)
-- [Rationale: how does this CIP achieve its goals?](#rationale-how-does-this-cip-achieve-its-goals)
-  - [1. Path to Active](#1-path-to-active)
-  - [2. Acceptance Criteria](#2-acceptance-criteria)
-  - [3. Implementation Plan](#3-implementation-plan)
-- [References](#references)
-- [Copyright](#copyright)
-
-</details>
 
 
 ## Abstract
 
 <!-- A short (\~200 word) description of the proposed solution and the technical issue being addressed. --> 
 
-We propose the **Ourboros Phalanx** Enhancement to the Ouroboros Praos Protocol as one of three approaches ([Peras](), [Phalanx]() and [the active slot coefficient f increase]()) to improve its settlement times (see [Settlement Speed CPS-0017](https://github.com/cardano-foundation/CIPs/pull/922)): 
+We propose the Ouroboros Phalanx enhancement to the Ouroboros Praos protocol as a targeted approach to mitigating randomness manipulation on Cardano. This modification introduces changes that significantly increase the computational cost of grinding attacks for adversaries while imposing only a negligible overhead on honest participants. By raising the cost of such attacks, the protocol effectively constrains adversaries with finite computational resources, forcing them to resort to considerably weaker forms of manipulation.
 
-![alt text](program.png)
-
-The theoretical estimates for Cardano mainchain settlement times are significantly influenced by the potential impact of a **"grinding attack"**. 
-In particular, the **security parameter k** has been substantially increased to secure the Praos Protocol against these attacks. 
-
-To reduce this effect and achieve faster settlement times, this CIP proposes some modifications to the Praos Protocol that would make such attacks considerably more expensive for adversaries, with a negligible additional cost to honest participants. 
-
-By increasing the cost of a grinding attack, the protocol limits adversaries, who possess a certain amount of computational power, forcing them to carry out a much weaker form of the attack.
+As adversarial capabilities continuously evolve, making this an ongoing challenge, we aim to provide a parametrized solution that dynamically adapts to emerging threats, ensuring long-term resilience against evolving attack strategies. 
 
 ## Motivation: why is this CIP necessary?
 

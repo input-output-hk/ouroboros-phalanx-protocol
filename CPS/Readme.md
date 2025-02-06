@@ -11,6 +11,16 @@
 - Created: `2024-10-03`
 - License: `CC-BY-4.0`
 
+## Table of Contents
+
+- [Abstract](#abstract)
+- [Problem](#problem)
+- [Goals](#goals)
+- [Open Questions](#open-questions)
+- [References](#references)
+- [Copyright](#copyright)
+
+
 ## Abstract
 
 <!-- A short (\~200 word) description of the target goals and the technical obstacles to those goals. -->
@@ -40,8 +50,8 @@ Finally, it is crucial to recognize that **adversarial capabilities continuously
 - <a href="#1-preliminaries">1. Preliminaries</a>
   - <a href="#11-fundamental-properties">1.1 Fundamental Properties</a>
     - <a href="#111-transaction-ledger-properties">1.1.1 Transaction Ledger Properties</a>
-      - <a href="#1111-persistence-with-the-security-parameter-k">1.1.1.1 Persistence with the security parameter $`k`$</a>
-      - <a href="#1112-liveness-with-the-transaction-confirmation-time-parameter-u">1.1.1.2 Liveness with the transaction confirmation time parameter $`u`$</a>
+      - <a href="#1111-persistence-with-the-security-parameter-k">1.1.1.1 Persistence with the security parameter k</a>
+      - <a href="#1112-liveness-with-the-transaction-confirmation-time-parameter-u">1.1.1.2 Liveness with the transaction confirmation time parameter u</a>
     - <a href="#112-chains-properties">1.1.2 Chain Properties</a>
       - <a href="#1121-common-prefix-cp">1.1.2.1 Common Prefix (CP)</a>
       - <a href="#1122-honest-bounded-chain-growth-hcg">1.1.2.2 Honest-Bounded Chain Growth (HCG)</a>
@@ -554,6 +564,7 @@ We previously also explained that gaining access to $`2^x`$ possible combination
 $$`
 P(|A| - |H| = N) = (stake_\text{adversarial})^N (1 - stake_\text{adversarial})^{(2N - 1) - N}
 `$$  
+
 Based on this reasoning, we can derive the following insights:  
 ![alt text](image-9.png)
 ![alt text](image-10.png)
@@ -565,6 +576,8 @@ Assuming that having a probability of less than one occurrence in a **5-year per
 <div align="center">
   <img src="graph-forking-mixing.png" alt="Expected number of trailing blocks per epoch, Self Mixing and Forking" width="600">
 </div> 
+
+**N.B** : This analysis does not account for recursion in addition to the forking and self-mixing strategy, so the curve should actually be even steeper than in the graph above. 
 
 The details of the calculations underlying this table can be found in the following Google Spreadsheet: [Details of Calculations](https://docs.google.com/spreadsheets/d/1DGG4tXTngc2Zu5_IMlWsPoARksgBEMbTCyqBAgKHe7E/edit?gid=0#gid=0).
 
@@ -592,6 +605,8 @@ However, while **fully protecting the protocol from Randomness Manipulation atta
 
 - **Game Theory & Economic Disincentives** –   
   **Promoting stake operator diversity** and **strengthening decentralization incentives** will reduce the economic viability of manipulation, fostering a more **resilient and distributed** stake pool ecosystem.  
+
+We strongly encourage the community to actively engage in addressing this challenge by contributing research, proposing solutions, and participating in discussions. Collaborative efforts will be crucial in refining detection mechanisms, strengthening protocol resilience, and ensuring the long-term security and fairness of Ouroboros.
 
 ## Open Questions
 <!-- A set of questions to which any proposed solution should find an answer. Questions should help guide solutions design by highlighting some foreseen vulnerabilities or design flaws. Solutions in the form of CIP should thereby include these questions as part of their 'Rationale' section and provide an argued answer to each. -->
