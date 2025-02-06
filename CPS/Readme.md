@@ -562,7 +562,7 @@ A key difference between Cardano and Ethereum is the **epoch size**.
 We previously also explained that gaining access to $`2^x`$ possible combinations of slot leader distributions becomes equivalent to $`x = |A| - |H|`$, where $`|A|`$ and $`|H|`$ represent the number of adversarial and honest blocks, respectively. Therefore the probability of adversarial blocks within the interval is given by:
 
 ```math 
-P(|A| - |H| = N) = (stake_\text{adversarial})^N (1 - stake_\text{adversarial})^{(2N - 1) - N}
+P(|A| - |H| = N) = \binom{2N-1}{N} (\text{stake}_{\text{adversarial}})^N (1 - \text{stake}_{\text{adversarial}})^{N-1}
 ``` 
 
 Based on this reasoning, we can derive the following insights:  
