@@ -547,23 +547,23 @@ A key difference between Cardano and Ethereum is the **epoch size**.
 - In **Ethereum**, an adversary can attempt to manipulate the protocol's randomness **every 32 slots** (**384 seconds**).  
 - In **Ouroboros Praos**, the opportunity arises only **once per epoch**, which consists of:  
 
-  $$`
+ ```math 
   \frac{10k}{f} \text{ slots}
-  `$$  
+```  
 
   On **Cardano mainnet**, this evaluates to:  
 
-  $$`
+```math 
   \frac{10 \times 2160}{0.05} = 432,000 \text{ slots per epoch}
-  `$$  
+``` 
 
   Given that each slot lasts **1 second**, this translates to approximately **5 days per epoch**.  
 
 We previously also explained that gaining access to $`2^x`$ possible combinations of slot leader distributions becomes equivalent to $`x = |A| - |H|`$, where $`|A|`$ and $`|H|`$ represent the number of adversarial and honest blocks, respectively. Therefore the probability of adversarial blocks within the interval is given by:
 
-$$`
+```math 
 P(|A| - |H| = N) = (stake_\text{adversarial})^N (1 - stake_\text{adversarial})^{(2N - 1) - N}
-`$$  
+``` 
 
 Based on this reasoning, we can derive the following insights:  
 ![alt text](image-9.png)
