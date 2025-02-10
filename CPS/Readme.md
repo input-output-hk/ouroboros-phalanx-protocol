@@ -1,6 +1,6 @@
 
 - CPS: 18
-- Title: `Ouroboros Randomness Manipulation`
+- Title: `Ouroboros Randomness Generation Sub-Protocol - The coin-flipping Problem`
 - Category: Consensus/Security
 - Status: Proposed
 - Authors:
@@ -23,9 +23,12 @@
 
 ## Abstract
 
+
 <!-- A short (\~200 word) description of the target goals and the technical obstacles to those goals. -->
 
-The security and fairness of Ouroboros, Cardano’s consensus protocol, hinge on the integrity of its Verifiable Random Function (VRF)-based leader election process. This document aims to demonstrate that the randomness in this process can be **manipulated** and the risks associated to it, albeit at the cost of significant computational effort and adversarial stake.  
+A well-architected consensus protocol is inherently modular, comprising multiple sub-protocols that together uphold security, efficiency, and decentralization. This CPS addresses one of the most fundamental and critical components: the **Randomness Generation Sub-Protocol**, also known as the **Coin-Flipping Protocol**.  
+
+Currently, the **Ouroboros Praos** protocol employs a **VRF-based eventual consensus Proof-of-Stake** mechanism for randomness generation. However, this design allows for potential manipulation of the randomness output. The objective of this CPS is to formally document the issue and coordinate the development of CIPs aimed at mitigating or fully resolving this vulnerability.
 
 To uphold Cardano’s decentralized ethos, the community must proactively mitigate these risks and **reduce the feasibility of biasing strategies**. Addressing this challenge requires answering key questions:  
 
