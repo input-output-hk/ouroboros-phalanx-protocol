@@ -26,26 +26,29 @@
 
 <!-- A short (\~200 word) description of the target goals and the technical obstacles to those goals. -->
 
-A well-architected consensus protocol is inherently modular, comprising multiple sub-protocols that together uphold security, efficiency, and decentralization. This CPS addresses one of the most fundamental and critical components: the **Randomness Generation Sub-Protocol**, also known as the **Coin-Flipping Protocol**.  
+## Randomness Generation and the Coin-Flipping Problem
 
-Currently, the **Ouroboros Praos** protocol employs a **VRF-based eventual consensus Proof-of-Stake** mechanism for randomness generation. However, this design allows for potential manipulation of the randomness output. The objective of this CPS is to formally document the issue and coordinate the development of CIPs aimed at mitigating or fully resolving this vulnerability.
+A well-designed consensus protocol is inherently modular, consisting of multiple sub-protocols that collectively ensure security, efficiency, and decentralization. Among these, the Randomness Generation Sub-Protocol is crucial in addressing the Coin-Flipping Problem—the challenge of generating fair, unbiased, and unpredictable randomness in a distributed setting.
 
-To uphold Cardano’s decentralized ethos, the community must proactively mitigate these risks and **reduce the feasibility of biasing strategies**. Addressing this challenge requires answering key questions:  
+The objective of this CPS is to formally document the Coin-Flipping Problem and coordinate the development of CIPs aimed at mitigating or fully resolving this vulnerability within the Ouroboros protocol.
+
+This problem is particularly critical in **Ouroboros**, where randomness serves as a foundation for key sub-protocols such as **leader election and committee selection**. Ensuring a **robust and tamper-resistant** randomness mechanism is essential to preserving the **security, fairness, and integrity** of the protocol.
+
+To uphold Cardano’s **decentralized ethos**, the community must proactively mitigate these risks and **reduce the feasibility of biasing strategies**. Addressing this challenge requires answering key questions:
 
 - **Is Cardano currently being manipulated?**  
-  Strengthening **detection mechanisms**, such as **self-mixing analysis** and **forking manipulation detection**, can help monitor potential exploits and assess ongoing threats.  
+  Strengthening **detection mechanisms**, such as **self-mixing analysis** and **forking manipulation detection**, can help **identify potential exploits** and assess ongoing threats.
 
 - **Are we sufficiently disincentivizing randomness manipulation?**  
-  Promoting **stake operator diversity** and enhancing incentives for decentralization will make manipulation economically unviable, fostering a more **resilient and distributed** stake pool ecosystem.  
+  Enhancing **stake operator diversity** and reinforcing incentives for **decentralization** will make manipulation **economically unviable**, fostering a **resilient and distributed** stake pool ecosystem.
 
 - **How vulnerable is Cardano to these attacks, and what are the potential consequences?**  
-  Refining **risk quantification** will provide a clearer understanding of vulnerabilities, attack feasibility, and potential security gaps within the protocol.  
+  Improving **risk quantification** will provide deeper insight into **attack feasibility, vulnerabilities, and potential security gaps** within the protocol.
 
-Beyond **detection, assessment, and quantification**, **protocol-level adjustments** must be explored to directly **curb manipulation opportunities** and strengthen incentives for honest participation.  
+Beyond **detection, assessment, and quantification**, **protocol-level enhancements** must be explored to directly **reduce manipulation opportunities** and strengthen incentives for honest participation.
 
-Finally, it is crucial to recognize that **adversarial capabilities continuously evolve**, making this an **ongoing challenge** that requires sustained research, adaptation, and community-driven innovation.  
-
-
+Finally, it is essential to recognize that **adversarial capabilities continually evolve**, making this an **ongoing challenge** that demands sustained **research, adaptation, and community-driven innovation**.
+  
 ## Problem
 
 <!-- A more elaborate description of the problem and its context. This section should explain what motivates the writing of the CPS document. -->
