@@ -26,8 +26,6 @@
 
 <!-- A short (\~200 word) description of the target goals and the technical obstacles to those goals. -->
 
-## Randomness Generation and the Coin-Flipping Problem
-
 A well-designed consensus protocol is inherently modular, consisting of multiple sub-protocols that collectively ensure security, efficiency, and decentralization. Among these, the Randomness Generation Sub-Protocol is crucial in addressing the Coin-Flipping Problem—the challenge of generating fair, unbiased, and unpredictable randomness in a distributed setting.
 
 The objective of this CPS is to formally document the Coin-Flipping Problem and coordinate the development of CIPs aimed at mitigating or fully resolving this vulnerability within the Ouroboros protocol.
@@ -51,38 +49,42 @@ Finally, it is essential to recognize that **adversarial capabilities continuall
   
 ## Problem
 
-<!-- A more elaborate description of the problem and its context. This section should explain what motivates the writing of the CPS document. -->
+- [**1. Preliminaries**](#1-preliminaries)
+  - [**1.1 Fundamental Properties**](#11-fundamental-properties)
+    - [**1.1.1 Transaction Ledger Properties**](#111-transaction-ledger-properties)
+      - [1.1.1.1 Persistence with the security parameter k](#1111-persistence-with-the-security-parameter-k)
+      - [1.1.1.2 Liveness with the transaction confirmation time parameter u](#1112-liveness-with-the-transaction-confirmation-time-parameter-u)
+    - [**1.1.2 Chains properties**](#112-chains-properties)
+      - [1.1.2.1 Common Prefix (CP)](#1121-common-prefix-cp)
+      - [1.1.2.2 Honest-Bounded Chain Growth (HCG)](#1122-honest-bounded-chain-growth-hcg)
+      - [1.1.2.3 Existential Chain Quality (∃CQ)](#1123-existential-chain-quality-cq)
+      - [1.1.2.4 Chain Growth (CG)](#1124-chain-growth-cg)
+- [**1.2 The Coin-Flipping Problem**](#12-the-coin-flipping-problem)
+  - [1.2.1 Defining the Problem](#121-defining-the-problem)
+  - [1.2.2 Strategies for Randomness Generation](#122-strategies-for-randomness-generation)
+  - [**1.2.3 Why Ouroboros Praos Chose VRFs Over PVSS and VDFs**](#123-why-ouroboros-praos-chose-vrfs-over-pvss-and-vdfs)
+    - [1.2.3.1 Key Design Considerations](#1231-key-design-considerations)
+    - [1.2.3.2 Why VRFs?](#1232-why-vrfs)
+    - [1.2.3.3 Trade-offs and Limitations](#1233-trade-offs-and-limitations)
+- [**1.3 Leader Election in Praos**](#13-leader-election-in-praos)
+  - [1.3.1 Oblivious Leader Selection](#131-oblivious-leader-selection)
+  - [1.3.2 Application of Verifiable Random Function (VRF)](#132-application-of-verifiable-random-function-vrf)
+  - [**1.3.3 Eligibility Check Input Variables**](#133-eligibility-check-input-variables)
+    - [1.3.3.1 Active Stake Distribution](#1331-active-stake-distribution)
+    - [1.3.3.2 The Randomness Nonces](#1332-the-randomness-nonces)
+  - [1.3.4 Epoch Structure](#134-epoch-structure)
+  - [1.3.5 Epoch & Phases Length](#135-epoch-phases-length)
+- [**1.4 Forks, Rollbacks, Finality and Settlement Times**](#14-forks-rollbacks-finality-and-settlement-times)
+- [**2. Randomness Manipulation Objectives**](#2-randomness-manipulation-objectives)
+  - [2.1 Exposure](#21-exposure)
+  - [2.2 Slot Leader Distribution Selection](#22-slot-leader-distribution-selection)
+- [**3. Non-Exhaustive Manipulation Strategy List**](#3-non-exhaustive-manipulation-strategy-list)
+  - [3.1 System Model](#31-system-model)
+  - [3.2 Self Mixing Strategy](#32-self-mixing-strategy)
+  - [3.3 Forking Strategies](#33-forking-strategies)
+- [**4. The Quantification Challenge**](#4-the-quantification-challenge)
 
-- <a href="#1-preliminaries">1. Preliminaries</a>
-  - <a href="#11-fundamental-properties">1.1 Fundamental Properties</a>
-    - <a href="#111-transaction-ledger-properties">1.1.1 Transaction Ledger Properties</a>
-      - <a href="#1111-persistence-with-the-security-parameter-k">1.1.1.1 Persistence with the security parameter k</a>
-      - <a href="#1112-liveness-with-the-transaction-confirmation-time-parameter-u">1.1.1.2 Liveness with the transaction confirmation time parameter u</a>
-    - <a href="#112-chains-properties">1.1.2 Chain Properties</a>
-      - <a href="#1121-common-prefix-cp">1.1.2.1 Common Prefix (CP)</a>
-      - <a href="#1122-honest-bounded-chain-growth-hcg">1.1.2.2 Honest-Bounded Chain Growth (HCG)</a>
-      - <a href="#1123-existential-chain-quality-cq">1.1.2.3 Existential Chain Quality (∃CQ)</a>
-      - <a href="#1124-chain-growth-cg">1.1.2.4 Chain Growth (CG)</a>
-  - <a href="#12-leader-election-in-praos">1.2 Leader Election in Praos</a>
-    - <a href="#121-oblivious-leader-selection">1.2.1 Oblivious Leader Selection</a>
-    - <a href="#122-application-of-verifiable-random-function-vrf">1.2.2 Application of Verifiable Random Function (VRF)</a>
-    - <a href="#123-eligibility-check-input-variables">1.2.3 Eligibility Check Input Variables</a>
-    - <a href="#124-epoch-structure">1.2.4 Epoch Structure</a>
-    - <a href="#125-epoch-phases-length">1.2.5 Epoch & Phases Length</a>
-  - <a href="#13-forks-rollbacks-finality-and-settlement-times">1.3 Forks, Rollbacks, Finality, and Settlement Times</a>
-
-- <a href="#2-randomness-manipulation-objectives">2. Randomness Manipulation Objectives</a>
-  - <a href="#21-exposure">2.1 Exposure</a>
-  - <a href="#22-slot-leader-distribution-selection">2.2 Slot Leader Distribution Selection</a>
-
-- <a href="#3-non-exhaustive-manipulation-strategy-list">3. Non-Exhaustive Manipulation Strategy List</a>
-  - <a href="#31-system-model">3.1 System Model</a>
-  - <a href="#32-self-mixing-strategy">3.2 Self-Mixing Strategy</a>
-  - <a href="#33-forking-strategies">3.3 Forking Strategies</a>
-
-- <a href="#4-the-quantification-challenge">4. The Quantification Challenge</a>
-##
-
+---
 
 To fully grasp the context and accurately assess the level of vulnerability, it is crucial to **clearly define how the Praos protocol handles randomness** and eliminate any ambiguity in its implementation. This precise understanding will then serve as a foundation for **identifying and defining these potential attack vectors**. We will refer to these types of attacks as Grinding Attacks throughout this document.
 
@@ -160,10 +162,61 @@ For example, if $`\tau = 0.5`$ and $`s = 10`$, then at least $`\tau s = 0.5 \tim
 
 **Note**: **∃CQ** and **HCG** are combined to provide this more general notion of chain growth (CG) 
 
+## 1.2 The Coin-Flipping Problem  
 
-## 1.2 Leader Election in Praos
+The **Coin-Flipping Problem** is a fundamental challenge in distributed systems that require a **fair, unbiased, and unpredictable** source of randomness—without allowing any single participant to manipulate the outcome.  
 
-### 1.2.1 Oblivious Leader Selection
+### **1.2.1 Defining the Problem**  
+Consider a scenario where multiple untrusted parties must **flip a coin** to reach a decision. The challenge is ensuring that:  
+
+1. 🎲 The outcome remains **random and unpredictable**.  
+2. 🔒 No participant can **bias or influence** the result in their favor.  
+3. ⚖️ The process is **fair and secure**, even in the presence of dishonest or colluding actors.  
+
+In **blockchain consensus protocols**, randomness is crucial for **leader election, committee selection, and cryptographic lotteries**. If an adversary can bias the randomness, they can **increase their influence over block production**, **delay finality**, or **disrupt network security**.  
+
+---
+
+### **1.2.2 Strategies for Randomness Generation**  
+Various cryptographic techniques exist to address the **coin-flipping problem** in decentralized settings. These methods differ in **security, efficiency, and resistance to adversarial manipulation**.  
+
+| **Approach**              | **Pros** | **Cons** |
+|---------------------------|---------|---------|
+| **PVSS-Based Beacons** <br> _(Ouroboros Classic, RandHound, Scrape, HydRand)_ | ✔ Strong randomness guarantees—output is indistinguishable from uniform.<br> ✔ Resistant to last-mover bias—commitments prevent selective reveals. | ❌ High communication complexity—requires O(n²) messages.<br> ❌ Vulnerable to adaptive adversaries—who may corrupt committee members. |
+| **VRF-Based Randomness** <br> _(Ouroboros Praos, Genesis, Snow White)_ | ✔ Efficient and scalable—no multi-round commit-reveal process.<br> ✔ Publicly verifiable—VRF proofs can be checked by anyone.<br> ✔ Resistant to last-mover bias—adversaries cannot selectively reveal values. | ❌ Min-entropy loss—adversaries controlling ≥10% of stake can slightly bias randomness.<br> ❌ Grinding attacks possible—attackers can compute multiple VRF outputs and selectively reveal the most favorable one. |
+| **VDF-Based Beacons** <br> _(Ethereum’s RANDAO + VDF)_ | ✔ Reduces grinding attacks—prevents early randomness revelation.<br> ✔ Predictable computation time—ensures fairness. | ❌ Computational overhead—VDFs must be tuned for security vs. efficiency.<br> ❌ Liveness concerns—if VDFs take too long, block production can be delayed. |
+| **Threshold Signature-Based Beacons** <br> _(DFINITY)_ | ✔ Fast and non-interactive—requires only one round of communication.<br> ✔ Resistant to last-mover bias—output is deterministic. | ❌ Group setup complexity—requires distributed key generation (DKG).<br> ❌ Security relies on assumptions—threshold parameters affect robustness. |
+| **Byzantine Agreement-Based Beacons** <br> _(Algorand)_ | ✔ Finality guarantees—randomness is confirmed before the next epoch.<br> ✔ Less entropy loss than Praos. | ❌ Requires multi-round communication—higher latency.<br> ❌ Not designed for eventual consensus—better suited for BA-based protocols. |
+
+### **1.2.3 Why Ouroboros Praos Chose VRFs Over PVSS and VDFs**  
+
+Ouroboros Praos opted for **Verifiable Random Functions (VRFs)** as its randomness beacon, prioritizing **simplicity, scalability, and efficiency** over the maximal security guarantees provided by **PVSS-based and VDF-based beacons**. The decision was driven by the need for a **lightweight, decentralized, and non-interactive** randomness generation mechanism that integrates seamlessly into a **Proof-of-Stake (PoS) consensus model**.
+
+#### **1.2.3.1 Key Design Considerations**  
+The selection of VRFs was based on the following **practical and security trade-offs**:
+
+| **Requirement**                     | **PVSS-Based Beacons** | **VDF-Based Beacons** | **VRF-Based Beacons (Praos)** |
+|--------------------------------------|------------------------|------------------------|------------------------------|
+| **Efficiency** ⚡                     | ❌ High overhead (O(n²) complexity) | ❌ Computationally expensive | ✅ Lightweight and scalable |
+| **Non-Interactive Design** 🔄        | ❌ Requires multi-round commit-reveal | ✅ Single-round delay | ✅ Fully non-interactive |
+| **Decentralization** 🌍              | ⚠ Requires committee election (centralized risk) | ✅ Any node can compute | ✅ Stakeholders independently contribute |
+| **Resistance to Grinding** 🔄        | ✅ Commitment phase prevents grinding | ✅ Time delay limits grinding | ⚠ Stake grinding is possible |
+| **Security Assumptions** 🔒          | ✅ Strong cryptographic guarantees | ✅ Strong cryptographic guarantees | ⚠ Min-entropy loss under adversarial control |
+| **Integration with PoS Consensus** 🔗 | ❌ Requires committee agreement | ❌ Requires additional computation overhead | ✅ Designed for stake-weighted randomness |
+
+#### **1.2.3.2 Why VRFs?**
+VRFs were selected due to their ability to balance **security and efficiency** while aligning with the **PoS-based eventual consensus model** of Ouroboros.  
+
+- **Lightweight & Scalable** – Unlike **PVSS-based approaches**, VRFs do not require a **multi-party commit-reveal process** or **O(n²) communication overhead**, making them well-suited for a decentralized blockchain network.  
+- **Non-Interactive & Decentralized** – In contrast to **VDF-based approaches**, VRF-based randomness does not depend on a **centralized delay function** or specialized computational assumptions (e.g., sequential verifiability).  
+- **Stake-Weighted Fairness** – VRFs naturally fit into **PoS consensus**, ensuring that randomness generation remains **stake-proportional** while keeping **grinding attacks economically expensive** for adversaries.  
+
+#### **1.2.3.3 Trade-offs and Limitations**
+While VRFs provide a practical solution, they introduce **some entropy loss**, meaning that an adversary controlling a **sufficient portion of stake (≥10%)** can bias the randomness output to a limited degree. This is a known limitation and an area for **future protocol enhancements**.
+
+## 1.3 Leader Election in Praos
+
+### 1.3.1 Oblivious Leader Selection
 
 As Explained into [KRD017 - Ouroboros- A provably secure proof-of-stake blockchain protocol](https://eprint.iacr.org/2016/889.pdf), Praos protocol possesses the following basic characteristics : 
 - **Privacy**: Only the selected leader knows they have been chosen until they reveal themselves, often by publishing a proof. This minimizes the risk of targeted attacks against the leader since other network participants are unaware of the leader's identity during the selection process.
@@ -178,15 +231,13 @@ Based on her local view, a party is capable of deciding, in a publicly verifiabl
 3. a priori, only a slot leader is aware that it is indeed a leader for a given slot; this assignment is unknown to all the other stakeholders—including other slot leaders of the same slot—until the other stakeholders receive a valid block from this slot leader.
 
 
-### 1.2.2 Application of Verifiable Random Function (VRF)
+### 1.3.2 Application of Verifiable Random Function (VRF)
 
 The VRF is used to introduce randomness into the protocol, making the leader election process unpredictable. It ensures that:
 - A participant is privately and verifiably selected to create a block for a given slot.
 - The VRF output is both secret (only known to the selected leader) and verifiable (publicly checkable).
 
 If $`VRF^\text{Output}_\text{(participant,t)} `$ is less than her private $` \text{epoch}_e `$ threshold, the participant is eligible to produce a block, she becomes a Slot Leader for that particular $` \text{slot}_t `$. Her $` \text{SlotLeaderProof}_\text{t} `$ is added in the $` \text{BlockHeader}_\text{t} `$ and others participants have the ability to verify the proof.
-
-
 
 | **Features** | **Mathematical Form** | **Description**  | 
 |--------------|------------------|-----------------------|
@@ -301,7 +352,7 @@ checkLeaderNatValue bn σ f =
   ```
 </details>
 
-### 1.2.3 Eligibility Check Input Variables   
+### 1.3.3 Eligibility Check Input Variables   
 
 For a participant to determine if they are eligible to be a slot leader, 2 key variable inputs are required:
 
@@ -309,11 +360,11 @@ For a participant to determine if they are eligible to be a slot leader, 2 key v
 isEligible\left (t,participant ,\text{ActivesStake}^\text{e},\eta_\text{e}\right) = \frac{ toBoundedNatural  \circ  VRF^\text{Output}_\text{(participant,t)}}{\text{MaxBoundedNatural}} < \text{Threshold}^\text{participant}_\text{e}
 ```
 
-#### 1.2.3.1 Active Stake Distribution  
+#### 1.3.3.1 Active Stake Distribution  
    - $`\text{ActivesStake}^\text{e}_\text{participant}`$: The participant's stake during epoch $`e`$.
    - $`\text{ActiveStake}^\text{e}_\text{total}`$: The total stake in the system during epoch $`e`$.
 
-#### 1.2.3.2 The Randomness Nonces
+#### 1.3.3.2 The Randomness Nonces
 
 The protocol operates with three distinct nonces, each serving a critical role in determining the eligibility of participants and maintaining security and randomness within the system:
 
@@ -371,7 +422,7 @@ false & \text{otherwise.}
 
 An epoch is structured to ensure that these two key input variables are distributively available to each participant, allowing for decentralized and secure leader election across the network.
 
-### 1.2.4 Epoch Structure 
+### 1.3.4 Epoch Structure 
 
 In Praos and Genesis, An epoch consists of 3 logical phases to compute these 2 key variables—**active stake distribution** and **randomness beacon**—by going through the following phases:
 
@@ -385,7 +436,7 @@ The sequential flow of these 3 phases is deliberately structured by designed :
 | **2.**| Honest Randomness in $`\eta_\text{e}`$     | **Existential Chain Quality (∃CQ)** | After the Active Stake Distribution being stabilized to prevent adversaries from adjusting their stake in their favor, this phase must be sufficiently long to satisfy the Existential Chain Quality (∃CQ) property, which is parameterized by $`s \in \mathbb{N}`$, ensuring that at least one honestly-generated block is included within any span of $s$ slots. The presence of such a block guarantees that honest contributions to the randomness used in the leader election process are incorporated. This phase directly improves the quality of the randomness $` \eta_\text{e} `$ by ensuring that adversarial attempts to manipulate the randomness beacon are mitigated. The honest block serves as a critical input, strengthening the unpredictability and fairness of the leader election mechanism.   | 
 | **3.**| $`\eta_\text{e}`$ Stabilization   | **Chain Growth (CG)**          | This phase must again be long enough to satisfy the **Chain Growth (CG)** property, ensuring that each honest party's chain grows by at least $`k`$ blocks, allowing all honest parties to agree on the randomness contributions from the second phase. | 
 
-### 1.2.5 Epoch & Phases Length 
+### 1.3.5 Epoch & Phases Length 
 
 While there is no theoretical upper bound on the epoch size—since it is defined by social and practical considerations (e.g., $`10 \, \text{k}/f`$ slots, approximately 5 days)—the epoch does have a defined lower bound. Phases 1 and 3 have fixed sizes of $`3 \, \text{k}/f`$ and $`4 \, \text{k}/f`$, respectively. The size of Phase 2, "Honest Randomness in $`\eta_\text{e}`$," is adjustable with a minimum size of $`1 \, \text{k}/f`$. 
 
@@ -394,7 +445,7 @@ The structure of an epoch is often described by the ratio `3:3:4`:
 - **Phase 2** also occupies **3** parts of the epoch (adjusted slightly to ensure the total reaches **10** parts in total.). 
 - **Phase 3** takes up the remaining **4** parts of the epoch.
 
-## 1.3 Forks, Rollbacks, Finality and Settlement Times
+## 1.4 Forks, Rollbacks, Finality and Settlement Times
 
 With Ouroboros Praos, as with [Nakamoto consensus](https://coinmarketcap.com/academy/article/what-is-the-nakamoto-consensus) in general, transaction finality is probabilistic rather than immediate. This means a transaction isn't guaranteed being permanently stored in the ledger when it's first included in a block. Instead, each additional block added on top strengthens its permanence, gradually decreasing the likelihood of rollback. 
 
