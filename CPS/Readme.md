@@ -71,11 +71,9 @@ Finally, it is essential to recognize that **adversarial capabilities continuall
 - [1.3 Leader Election in Praos](#13-leader-election-in-praos)
   - [1.3.1 Oblivious Leader Selection](#131-oblivious-leader-selection)
   - [1.3.2 Application of Verifiable Random Function (VRF)](#132-application-of-verifiable-random-function-vrf)
-  - [1.3.3 Eligibility Check Input Variables](#133-eligibility-check-input-variables)
-    - [1.3.3.1 Active Stake Distribution](#1331-active-stake-distribution)
-    - [1.3.3.2 The Randomness Nonces](#1332-the-randomness-nonces)
-  - [1.3.4 Epoch Structure](#134-epoch-structure)
-  - [1.3.5 Epoch & Phases Length](#135-epoch-phases-length)
+  - [1.3.3 Epoch Structure](#133-epoch-structure)
+  - [1.3.4 Epoch & Phases Length](#134-epoch-phases-length)
+  - [1.3.5 The Randomness Generation Sub-Protocol](#135-the-randomness-generation-sub-protocol)
 - [1.4 Forks, Rollbacks, Finality and Settlement Times](#14-forks-rollbacks-finality-and-settlement-times)
 - [2. Randomness Manipulation Objectives](#2-randomness-manipulation-objectives)
   - [2.1 Exposure](#21-exposure)
@@ -374,58 +372,44 @@ checkLeaderNatValue bn σ f =
   ```
 </details>
 
-### 1.3.3 Eligibility Check Input Variables   
+### 1.3.3 Epoch Structure 
 
-For a participant to determine if they are eligible to be a slot leader, 2 key variable inputs are required:
+In Praos and Genesis, An epoch consists of 3 logical phases to compute these 2 key variables—**active stake distribution** and **randomness beacon**—by going through the following phases:
 
-```math 
-isEligible\left (t,participant ,\text{ActivesStake}^\text{e},\eta_\text{e}\right) = \frac{ toBoundedNatural  \circ  VRF^\text{Output}_\text{(participant,t)}}{\text{MaxBoundedNatural}} < \text{Threshold}^\text{participant}_\text{e}
-```
+![Epoch Structure](epoch-structure-praos.png)
 
-#### 1.3.3.1 Active Stake Distribution  
-   - $`\text{ActivesStake}^\text{e}_\text{participant}`$: The participant's stake during epoch $`e`$.
-   - $`\text{ActiveStake}^\text{e}_\text{total}`$: The total stake in the system during epoch $`e`$.
+The sequential flow of these 3 phases is deliberately structured by designed : 
 
-#### 1.3.3.2 The Randomness Nonces
+| Id | **Phase**                                                  | **Key Property**                 | **Description**| 
+|----|-------------------------------|---------------------------|-------------------------------|
+| **1.**| $`\text{ActiveStakeDistribution}_e `$ Stabilization | **Chain Growth (CG)**  | This phase must be long enough to satisfy the **Chain Growth (CG)** property, ensuring that each honest party's chain grows by at least $`k`$ blocks. This guarantees that all honest parties agree on the stake distribution from the previous epoch. | 
+| **2.**| Honest Randomness in $`\eta_\text{e}`$     | **Existential Chain Quality (∃CQ)** | After the Active Stake Distribution being stabilized to prevent adversaries from adjusting their stake in their favor, this phase must be sufficiently long to satisfy the Existential Chain Quality (∃CQ) property, which is parameterized by $`s \in \mathbb{N}`$, ensuring that at least one honestly-generated block is included within any span of $s$ slots. The presence of such a block guarantees that honest contributions to the randomness used in the leader election process are incorporated. This phase directly improves the quality of the randomness $` \eta_\text{e} `$ by ensuring that adversarial attempts to manipulate the randomness beacon are mitigated. The honest block serves as a critical input, strengthening the unpredictability and fairness of the leader election mechanism.   | 
+| **3.**| $`\eta_\text{e}`$ Stabilization   | **Chain Growth (CG)**          | This phase must again be long enough to satisfy the **Chain Growth (CG)** property, ensuring that each honest party's chain grows by at least $`k`$ blocks, allowing all honest parties to agree on the randomness contributions from the second phase. | 
+
+### 1.3.4 Epoch & Phases Length 
+
+While there is no theoretical upper bound on the epoch size—since it is defined by social and practical considerations (e.g., $`10 \, \text{k}/f`$ slots, approximately 5 days)—the epoch does have a defined lower bound. Phases 1 and 3 have fixed sizes of $`3 \, \text{k}/f`$ and $`4 \, \text{k}/f`$, respectively. The size of Phase 2, "Honest Randomness in $`\eta_\text{e}`$," is adjustable with a minimum size of $`1 \, \text{k}/f`$. 
+
+The structure of an epoch is often described by the ratio `3:3:4`:
+- **Phase 1** occupies **3** parts of the total epoch.
+- **Phase 2** also occupies **3** parts of the epoch (adjusted slightly to ensure the total reaches **10** parts in total.). 
+- **Phase 3** takes up the remaining **4** parts of the epoch.
+
+
+### 1.3.5 The Randomness Generation Sub-Protocol 
 
 The protocol operates with three distinct nonces, each serving a critical role in determining the eligibility of participants and maintaining security and randomness within the system:
 
-1. **The Epoch eta nonce $`\eta_\text{e}`$**
-   - This is the final nonce used to determine participant eligibility during epoch $`e`$.  
-   - It originates from $`\eta_e^\text{candidate}`$ XOR with $`\eta_\text{evolving}`$ of the last block of the previous epoch , which becomes stabilized at the conclusion of $`\text{epoch}_{e-1}`$ and transitions into $`\text{epoch}_e`$  
-
-```math
-\eta_\text{e} = \eta^\text{candidate}_{e} \oplus \eta_\text{evolving}^{T_{\text{end}}^{\text{epoch}_{e-2}}} , \quad \text{when } t = T_{\text{start}}^{\text{epoch}_e} 
-```
-<details>
-  <summary>**N.B** : divergence with academic papers </summary> 
-  <p>it is :
-
-```math
-      \eta_\text{e} = \eta_\text{candidate}^{t^*} , \quad \text{when } t = T_{\text{start}}^{\text{epoch}_e} 
-```
-  Explain why : ...
-  </p>
-</details>
-
-2. **The Epoch eta candidate nonce $`\eta_e^\text{candidate}`$**:  
-   - It represents a candidate nonce for epoch $`e`$ and is the last derived  $`\eta_\text{evolving}^{t}`$ at the end of phase 2 $`\text{epoch}_{e-1}`$.   
-   - The value of $`\eta_\text{e}`$ is derived from the $`\eta_e^\text{candidate}`$ contained within the fork that is ultimately selected as the **canonical chain** at the conclusion of $`\text{epoch}_{e-1}`$.  
-   
-```math
-\eta_\text{e}^\text{candidate} = \eta_\text{evolving}^{t}, \quad \text{when } t = T_{\text{phase2}_\text{end}}^{\text{epoch}_{e-1}}  
-```
-
-3. **The Eta evolving nonce $`\eta_\text{evolving}`$**:  
+###### - **The $`\eta^\text{evolving}`$ Stream Definition**  
    - This nonce evolves dynamically as the blockchain grows.  
-   - For every block produced within the blockchain tree, a unique $`\eta_\text{evolving}`$ is computed :
+   - **Sampling Rate**  : For every block produced within the blockchain tree, a unique $`\eta_\text{evolving}`$ is computed :
 
 ```math
-   \eta_{\text{evolving}}^{t+1} =
+   \eta^{\text{evolving}}_{t+1} =
    \begin{cases}
-   \text{ProtocolParameter}_\text{extraEntropy} & \text{if } t = 0, \\
-   \eta_{\text{evolving}}^{t} \oplus VRF^\text{Output}_\text{t+1} & \text{else if BlockProduced}(t) \\
-   \eta_{\text{evolving}}^{t}  & \text{otherwise.}
+   \text{ProtocolParameter}_\text{extraEntropy} & \text{when } t = 0, \\
+   \eta^{\text{evolving}}_{t} \oplus VRF^\text{Output}_\text{t+1} & \text{when BlockProduced}(t) \\
+   \eta^{\text{evolving}}_{t}  & \text{otherwise.}
    \end{cases}
    
 ````
@@ -442,30 +426,34 @@ false & \text{otherwise.}
 | $`\text{ProtocolParameter}_\text{extraEntropy} `$ | The evolving nonce is initialized using the extraEntropy field defined in the protocol parameters.|
 | $` VRF^\text{Output}_\text{i} `$ | The **VRF output** generated by the $` \text{slot}_\text{i} `$ Leader and included in the block header |
 
-An epoch is structured to ensure that these two key input variables are distributively available to each participant, allowing for decentralized and secure leader election across the network.
+##### - **The $`\eta^\text{candidates}`$**  
 
-### 1.3.4 Epoch Structure 
+   - It represents a candidate nonce for epoch $`e`$ and is the last derived  $`\eta^{evolving}_\text{t}`$ at the end of phase 2 $`\text{epoch}_{e-1}`$.   
+   - The value of $`\eta_\text{e}`$ is derived from the $`\eta_e^\text{candidate}`$ contained within the fork that is ultimately selected as the **canonical chain** at the conclusion of $`\text{epoch}_{e-1}`$.  
+   
+```math
+\eta_\text{e}^\text{candidate} = \eta^\text{evolving}_{t}, \quad \text{when } t = T_{\text{phase2}_\text{end}}^{\text{epoch}_{e-1}}  
+```
 
-In Praos and Genesis, An epoch consists of 3 logical phases to compute these 2 key variables—**active stake distribution** and **randomness beacon**—by going through the following phases:
 
-![Epoch Structure](epoch-structure-praos.png)
 
-The sequential flow of these 3 phases is deliberately structured by designed : 
+###### - **The $`\eta`$** Generations
+   - This is the final nonce used to determine participant eligibility during epoch $`e`$.  
+   - It originates from $`\eta_e^\text{candidate}`$ XOR with $`\eta^\text{evolving}`$ of the last block of the previous epoch, which becomes stabilized at the conclusion of $`\text{epoch}_{e-1}`$ and transitions into $`\text{epoch}_e`$.  
 
-| Id | **Phase**                                                  | **Key Property**                 | **Description**| 
-|----|-------------------------------|---------------------------|-------------------------------|
-| **1.**| $`\text{ActiveStakeDistribution}_e `$ Stabilization | **Chain Growth (CG)**  | This phase must be long enough to satisfy the **Chain Growth (CG)** property, ensuring that each honest party's chain grows by at least $`k`$ blocks. This guarantees that all honest parties agree on the stake distribution from the previous epoch. | 
-| **2.**| Honest Randomness in $`\eta_\text{e}`$     | **Existential Chain Quality (∃CQ)** | After the Active Stake Distribution being stabilized to prevent adversaries from adjusting their stake in their favor, this phase must be sufficiently long to satisfy the Existential Chain Quality (∃CQ) property, which is parameterized by $`s \in \mathbb{N}`$, ensuring that at least one honestly-generated block is included within any span of $s$ slots. The presence of such a block guarantees that honest contributions to the randomness used in the leader election process are incorporated. This phase directly improves the quality of the randomness $` \eta_\text{e} `$ by ensuring that adversarial attempts to manipulate the randomness beacon are mitigated. The honest block serves as a critical input, strengthening the unpredictability and fairness of the leader election mechanism.   | 
-| **3.**| $`\eta_\text{e}`$ Stabilization   | **Chain Growth (CG)**          | This phase must again be long enough to satisfy the **Chain Growth (CG)** property, ensuring that each honest party's chain grows by at least $`k`$ blocks, allowing all honest parties to agree on the randomness contributions from the second phase. | 
+```math
+\eta_\text{e} = \eta^\text{candidate}_{e} \oplus \eta^\text{evolving}_{T_{\text{end}}^{\text{epoch}_{e-2}}} , \quad \text{when } {\text{epoch}_e\text{ start}} 
+```
+<details>
+  <summary>**N.B** : divergence with academic papers </summary> 
+  <p>it is :
 
-### 1.3.5 Epoch & Phases Length 
-
-While there is no theoretical upper bound on the epoch size—since it is defined by social and practical considerations (e.g., $`10 \, \text{k}/f`$ slots, approximately 5 days)—the epoch does have a defined lower bound. Phases 1 and 3 have fixed sizes of $`3 \, \text{k}/f`$ and $`4 \, \text{k}/f`$, respectively. The size of Phase 2, "Honest Randomness in $`\eta_\text{e}`$," is adjustable with a minimum size of $`1 \, \text{k}/f`$. 
-
-The structure of an epoch is often described by the ratio `3:3:4`:
-- **Phase 1** occupies **3** parts of the total epoch.
-- **Phase 2** also occupies **3** parts of the epoch (adjusted slightly to ensure the total reaches **10** parts in total.). 
-- **Phase 3** takes up the remaining **4** parts of the epoch.
+```math
+      \eta_\text{e} = \eta^\text{candidate}_{e} , \quad \text{when } {\text{epoch}_e\text{ start}} 
+```
+  Explain why : ...
+  </p>
+</details>
 
 ## 1.4 Forks, Rollbacks, Finality and Settlement Times
 
