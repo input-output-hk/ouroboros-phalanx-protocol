@@ -435,8 +435,6 @@ false & \text{otherwise.}
 \eta_\text{e}^\text{candidate} = \eta^\text{evolving}_{t}, \quad \text{when } t = T_{\text{phase2}_\text{end}}^{\text{epoch}_{e-1}}  
 ```
 
-
-
 ###### - **The $`\eta`$** Generations
    - This is the final nonce used to determine participant eligibility during epoch $`e`$.  
    - It originates from $`\eta_e^\text{candidate}`$ XOR with $`\eta^\text{evolving}`$ of the last block of the previous epoch, which becomes stabilized at the conclusion of $`\text{epoch}_{e-1}`$ and transitions into $`\text{epoch}_e`$.  
@@ -591,7 +589,9 @@ The adversary can choose between **two forking strategies** depending on when th
 Both strategies undermine fairness in leader election, with **Preemptive Forking** favoring proactive randomness manipulation and **Reactive Forking** enabling selective, informed chain reorganizations.
 
 
-## 4. The Quantification Challenge 
+## 4. Adversarial Resistance 
+
+### 4.1 Quantification Gaps Compared to Ethereum
 
 As of February 2nd, 2025, no known efforts have quantified Randomness Manipulation on Cardano with the same level of granularity as presented in  
 [*Forking the RANDAO: Manipulating Ethereum's Distributed Randomness Beacon*](https://eprint.iacr.org/2025/037). The Cardano community should undertake a similar study,  
@@ -603,13 +603,11 @@ defining an optimal Randomness Manipulation algorithm and leveraging techniques 
   <img src="image-8.png" alt="Analysis 3" width="300">
 </div>  
 
-While Ethereum's research provides a deeper quantification of randomness manipulation within their protocol, it still relies on approximations due to the inherent  
-complexity of the subject. We will likely face similar challenges in our own quantification efforts. The more precise the grinding algorithms, the better we can  
-estimate a reliable lower bound for the problem. Additionally, an upper bound can be established by reasoning purely in terms of computational power.  
+While Ethereum's research provides a deeper quantification of randomness manipulation within their protocol, it still relies on approximations due to the inherent complexity of the subject. We will likely face similar challenges in our own quantification efforts. 
+The more precise the grinding algorithms, the better we can estimate a reliable lower bound for the problem. 
+Additionally, an upper bound can be established by reasoning purely in terms of computational power.  
 
-That being said, to establish an initial sense of scale, where we are going to try to evaluate how many N trailing blocks an adversary can accumulate at the critical juncture.
-
-A key difference between Cardano and Ethereum is the **epoch size**.  
+There are many key differences between **Cardano** and **Ethereum**, one of the most notable being the **epoch size**.
 
 - In **Ethereum**, an adversary can attempt to manipulate the protocol's randomness **every 32 slots** (**384 seconds**).  
 - In **Ouroboros Praos**, the opportunity arises only **once per epoch**, which consists of:  
@@ -626,29 +624,110 @@ A key difference between Cardano and Ethereum is the **epoch size**.
 
   Given that each slot lasts **1 second**, this translates to approximately **5 days per epoch**.  
 
-We previously also explained that gaining access to $`2^x`$ possible combinations of slot leader distributions becomes equivalent to $`x = |A| - |H|`$, where $`|A|`$ and $`|H|`$ represent the number of adversarial and honest blocks, respectively. Therefore the probability of adversarial blocks within the interval is given by:
+
+That being said, to establish an initial sense of scale, where we are going to try to evaluate how many N trailing blocks an adversary can accumulate at the critical juncture.
+
+
+### 4.2 Definitions
+
+#### 4.2.1 A-Heavy and Heaviness
+An **A-heavy suffix** refers to a blockchain segment where **adversarial slots dominate** over a specific interval.
+
+- Let $`X_A(w)`$ be the **number of adversarial slots** in the last $`w`$ slots.
+- Let $`X_H(w)`$ be the **number of honest slots** in the last $`w`$ slots.
+- The suffix is **A-heavy** if:
+
+  $`\frac{X_A(w)}{w} > \alpha`$
+
+  where $`\alpha`$ is a predefined threshold related to adversarial stake.
+
+- **A-heaviness factor $`\lambda(w)`$**:
+
+  $`\lambda(w) = \frac{X_A(w)}{w}`$
+
+  - **$`\lambda(w) = 0`$** → Fully honest suffix.
+  - **$`\lambda(w) > \alpha`$** → Private chain attacks become more potent as $`\alpha`$ increases, enhancing the adversary's ability to manipulate fork selection.
+  - **$`\lambda(w) = 1`$** → Fully adversarial suffix.
+
+
+#### 4.2.2 Grinding Power
+
+An **An-heavy suffix** must be present around the critical juncture for a grinding attack to be considered. The **heavier** `w` is, the **higher** the grinding power becomes.
+
+The **grinding power** $`g`$ of an adversary $`A`$ for a beacon output $`\eta`$ is the number of distinct values that $`A`$ can choose from for $`\eta`$. This quantifies the adversary's ability to manipulate randomness by selectively withholding, recomputing, or biasing values. 
+
+The grinding power is bounded by:
+
+```math
+0 \leq g \leq 2^\rho
+```
+
+where:
+- $`\rho`$ is the number of bits in the beacon output $`\eta`$.
+- The lower bound $`g = 0`$ represents no grinding capability (i.e., perfect entropy with no adversarial influence).
+- The upper bound $`g = 2^ρ`$ corresponds to an adversary being able to select from all possible nonce values.
+
+In **Cardano mainnet**, the nonce size $`\rho`$ used in the randomness beacon is **256 bits**, meaning the theoretical maximum grinding power is:
+
+```math
+g_{\max} = 2^{256}
+```
+
+However, practical grinding power is typically limited by computational constraints and stake distribution dynamics.
+
+#### 4.2.3 Grinding Window
+
+The simplest and most naive grinding attack occurs when an adversary controls the last ρ blocks of an epoch. 
+In this scenario, the adversary can decide whether or not to publish a block and its associated VRF value, leading to $`2^ρ`$ potential seed values. 
+At first glance, this seems impractical, as the adversary only has polynomial time—ρ blocks—to compute an exponential number of values. 
+However, a more refined analysis reveals that the window of opportunity is even more restricted.
+
+Since blocks must be published within a specific slot, the adversary has, on average, a single block duration—currently 20 seconds—to compute the $`2^ρ`$ possible seed values.
+After this period, the first block they control is effectively "set"—it is either published or not. 
+This means that after this decision, they only have $`2^{ρ-1}`$ values to compute and choose from. 
+Consequently, the window of opportunity follows a funnel-like structure: the number of potential seed values decreases as time progresses.
+
+A more sophisticated attack arises when the adversary controls a majority of the last blocks, say ρ out of the last $`2ρ-1`$ blocks. 
+In this case, the adversary can refrain from publishing any block on the main chain and instead construct a private fork of their ρ blocks. 
+Since they control more blocks, their fork will be adopted as the main chain due to the longest-chain rule. This gives the adversary significantly more time—$`2ρ-1`$ block durations—to compute the same number of seed values, $`2^ρ`$. 
+
+Moreover, because this fork remains private until revealed, the adversary is not constrained by slot timing and can utilize the entire duration to optimize their choice.
+ As a result, the window of opportunity is both larger and constant. This scenario is also more likely to occur than controlling the last consecutive ρ blocks.
+
+### 4.3 Grinding Power vs Window 
+
+The cost for an adversary to execute a single grinding attempt in the current deployment of Ouroboros Praos is estimated to be around $`10^2`$ single-block hashes, 
+which takes approximately $`10^{-6}`$ seconds on a single commodity-hardware CPU.
+
+### 4.4 Praos’ Resistance to Grinding Attacks 
+
+We previously established that obtaining access to $`2^\rho`$ possible slot leader distributions is equivalent to $`\rho = |A| - |H|`$, where $`|A|`$ and $`|H|`$ denote the number of adversarial and honest blocks, respectively, 
+within a grinding window $`w`$ spanning $`2\rho - 1`$ block durations :
+
+![alt text](image-13.png)
+
+Therefore the probability of adversarial blocks within the interval is given by:
 
 ```math 
-P(|A| - |H| = N) = \binom{2N-1}{N} (\text{stake}_{\text{adversarial}})^N (1 - \text{stake}_{\text{adversarial}})^{N-1}
+P(|A| - |H| = ρ) = \binom{2ρ-1}{ρ} (\text{stake}_{\text{adversarial}})^ρ (1 - \text{stake}_{\text{adversarial}})^{ρ-1}
 ``` 
+**N.B.**: In a simplified model where the multi-slot leader feature is not considered.
 
 Based on this reasoning, we can derive the following insights:  
 ![alt text](image-9.png)
 ![alt text](image-10.png)
 
+The details of the calculations underlying this table can be found in the following Google Spreadsheet: [Details of Calculations](https://docs.google.com/spreadsheets/d/1DGG4tXTngc2Zu5_IMlWsPoARksgBEMbTCyqBAgKHe7E/edit?gid=0#gid=0).
+
 For example, with **5% adversarial stake**, it would take **184 years** for an adversary to obtain a single adversarial block at the critical juncture—an extremely unlikely event.  
 
 Assuming that having a probability of less than one occurrence in a **5-year period** is discouraging enough—such as when there are more than 20 trailing blocks at a 30% adversarial stake—we have plotted the following graph:
 
-<div align="center">
-  <img src="graph-forking-mixing.png" alt="Expected number of trailing blocks per epoch, Self Mixing and Forking" width="600">
-</div> 
+![alt text](image-14.png)
 
 **N.B** : This analysis does not account for recursion in addition to the forking and self-mixing strategy, so the curve should actually be even steeper than in the graph above. 
 
-The details of the calculations underlying this table can be found in the following Google Spreadsheet: [Details of Calculations](https://docs.google.com/spreadsheets/d/1DGG4tXTngc2Zu5_IMlWsPoARksgBEMbTCyqBAgKHe7E/edit?gid=0#gid=0).
-
-We conclude that randomness manipulation within Ouroboros seems to become critical above a **33% adversarial stake**, with its impact increasingly dictated by the adversary’s computational ability to compute a $`2^n`$ leader election distribution set. This is the specific issue we aim to highlight in this CPS.  
+We conclude that randomness manipulation within Ouroboros seems to become critical above a **33% adversarial stake**, with its impact increasingly dictated by the adversary’s computational ability to compute a $`2^ρ`$ leader election distribution set. This is the specific issue we aim to highlight in this CPS.  
 
 ## Goals
 
