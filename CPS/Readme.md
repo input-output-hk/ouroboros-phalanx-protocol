@@ -694,12 +694,70 @@ Since they control more blocks, their fork will be adopted as the main chain due
 Moreover, because this fork remains private until revealed, the adversary is not constrained by slot timing and can utilize the entire duration to optimize their choice.
  As a result, the window of opportunity is both larger and constant. This scenario is also more likely to occur than controlling the last consecutive ρ blocks.
 
-### 4.3 Grinding Power vs Window 
+### Grinding Window vs. $`\rho`$ (log₂ g) – Computational Feasibility
 
-The cost for an adversary to execute a single grinding attempt in the current deployment of Ouroboros Praos is estimated to be around $`10^2`$ single-block hashes, 
-which takes approximately $`10^{-6}`$ seconds on a single commodity-hardware CPU.
+![alt text](image-16.png)
 
-### 4.4 Praos’ Resistance to Grinding Attacks 
+This graph illustrates the relationship between the **grinding window duration** (in hours) and **$`\rho`$ (log₂ g), the number of controlled blocks** in an adversarial setting.
+
+- **X-Axis**: Represents the **grinding window duration**—the time available for an adversary to bias the randomness beacon.
+- **Y-Axis**: Represents **$`\rho`$ (log₂ g)**, the number of blocks an adversary controls at the end of an epoch.
+- **Red Labels**: Indicate the estimated **number of CPUs required** to fully exploit the grinding window, shown in **log₁₀ scale** to highlight the exponential growth in computational demand.
+
+#### **CPU Requirement Calculation**
+The CPU requirements were calculated based on the **cost of a single grinding attempt in Ouroboros Praos**, which is estimated to be:
+
+- $`10^2`$ single-block hashes per attempt.
+- $`10^{-6}`$ seconds per attempt on a single commodity CPU.
+
+Given that the adversary needs to compute **$`2^\rho`$** nonce possibilities, we determine the number of CPUs required to compute all possibilities **within the available grinding window**.
+
+##### **Step 1: Total Number of Attempts Required**
+The total number of nonce computations needed is:
+
+$`N_{\text{total}} = 2^{\rho}`$
+
+##### **Step 2: Number of Attempts a Single CPU Can Perform**
+A single CPU performs **$`10^6`$ attempts per second**, meaning in a grinding window of duration $`T`$ (in seconds), it can execute:
+
+$`N_{\text{CPU}} = 10^6 \times T`$
+
+##### **Step 3: Computing the Required Number of CPUs**
+To determine the number of CPUs needed to explore all nonce possibilities within the grinding window, we use:
+
+$`\text{CPUs needed} = \frac{2^{\rho}}{N_{\text{CPU}}} = \frac{2^{\rho}}{10^6 \times T}`$
+
+where $`T`$ is the grinding window duration in seconds.
+
+#### **Thresholds of Feasibility vs. Infeasibility**
+| $`\rho`$  | CPUs Required (Log₁₀ Scale) | Estimated Cost (USD) | Feasibility |
+|-----------|--------------------------|----------------------|-------------|
+| **16**    | $`10^3`$ CPUs            | $`10^4`$ for 1-hour run  | Achievable for well-funded adversaries |
+| **32**    | $`10^6`$ CPUs            | $`10^6`$ for 1-hour run   | Possible with specialized hardware (ASICs, clusters) |
+| **40**    | $`10^8`$ CPUs            | $`10^8`$ for 1-hour run   | Expensive but feasible for advanced mining setups |
+| **48**    | $`10^9`$ CPUs            | $`10^9`$ for 1-hour run   | Borderline infeasible, requires massive infrastructure |
+| **56**    | $`10^{11}`$ CPUs         | $`10^{11}`$ for 1-hour run  | Requires data center-scale resources |
+| **64**    | $`10^{13}`$ CPUs         | $`10^{12}`$ for 1-hour run  | Practically infeasible |
+| **80**    | $`10^{16}`$ CPUs         | Global-scale energy budget | Infeasible |
+| **96**    | $`10^{19}`$ CPUs         | Exceeds entire planet's energy output | Impossible |
+| **128**   | $`10^{26}`$ CPUs         | More than Earth's energy budget | Impossible |
+| **192**   | $`10^{39}`$ CPUs         | Impossible even with galactic-scale computing | Beyond physics |
+| **256**   | $`10^{66}`$ CPUs         | Far beyond universal computing limits | Beyond physics |
+
+#### **Analysis of Feasibility**
+- **For $`\rho < 32`$**: **Feasible** with well-funded adversaries using **ASICs or clusters**.
+- **For $`\rho = 32 - 40`$**: **Expensive but possible** with large-scale mining operations.
+- **For $`\rho = 40 - 48`$**: **Requires specialized data centers**—feasibility is borderline.
+- **For $`\rho = 48 - 64`$**: **Technically possible but impractical**—needs **nation-state-level funding**.
+- **For $`\rho > 64`$**: **Beyond reach of all realistic computing setups**.
+- **For $`\rho > 80`$**: **Infeasible**, requiring more power than Earth's global energy supply.
+- **For $`\rho > 128`$**: **Physically impossible**, even with the entire **Earth's computational capacity**.
+- **For $`\rho > 192`$**: **Beyond the limits of galactic-scale computation**.
+
+This highlights the importance of **cryptographic constraints** in securing **lower values** of $`\rho`$, as **$`\rho < 48`$** is still **within reach of well-funded adversaries**.
+
+
+### 4.4 Exposition probabilities in Praos 
 
 We previously established that obtaining access to $`2^\rho`$ possible slot leader distributions is equivalent to $`\rho = |A| - |H|`$, where $`|A|`$ and $`|H|`$ denote the number of adversarial and honest blocks, respectively, 
 within a grinding window $`w`$ spanning $`2\rho - 1`$ block durations :
