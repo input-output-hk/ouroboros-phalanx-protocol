@@ -754,6 +754,8 @@ where $`T`$ is the grinding window duration in seconds.
 - **For $`\rho > 128`$**: **Physically impossible**, even with the entire **Earth's computational capacity**.
 - **For $`\rho > 192`$**: **Beyond the limits of galactic-scale computation**.
 
+![alt text](image-17.png)
+
 This highlights the importance of **cryptographic constraints** in securing **lower values** of $`\rho`$, as **$`\rho < 48`$** is still **within reach of well-funded adversaries**.
 
 
