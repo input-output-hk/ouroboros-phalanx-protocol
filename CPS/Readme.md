@@ -704,7 +704,7 @@ Moreover, because this fork remains private until revealed, the adversary is not
 
 ### 4.3 Grinding Power Computational Feasibility
 
-![alt text](image-16.png)
+![alt text](image-14.png)
 
 This graph illustrates the relationship between the **grinding window duration** (in hours) and **$`\rho`$ (log₂ g), the number of controlled blocks** in an adversarial setting.
 
@@ -712,57 +712,127 @@ This graph illustrates the relationship between the **grinding window duration**
 - **Y-Axis**: Represents **$`\rho`$ (log₂ g)**, the number of blocks an adversary controls at the end of an epoch.
 - **Red Labels**: Indicate the estimated **number of CPUs required** to fully exploit the grinding window, shown in **log₁₀ scale** to highlight the exponential growth in computational demand.
 
-#### 4.3.1 CPU Requirement Calculation
-The CPU requirements were calculated based on the **cost of a single grinding attempt in Ouroboros Praos**, which is estimated to be:
 
-- $`10^2`$ single-block hashes per attempt.
-- $`10^{-6}`$ seconds per attempt on a single commodity CPU.
+### 4.3.1 CPU Requirement Calculation
 
-Given that the adversary needs to compute **$`2^\rho`$** nonce possibilities, we determine the number of CPUs required to compute all possibilities **within the available grinding window**.
+### **4.3.1 CPU Requirement Calculation**
 
-1. **Total Number of Attempts Required** : The total number of nonce computations needed is given by : 
-```math 
-N_{\text{total}} = 2^{\rho}
-```
-2. **Number of Attempts a Single CPU Can Perform** : (N.B : Need to dig into these numbers) A single CPU performs **$`10^6`$ attempts per second**, meaning in a grinding window of duration $`T`$ (in seconds), it can execute: 
+The CPU requirements were calculated based on the **cost of a single grinding attempt in Ouroboros Praos**, which uses the formulas:
+
+#### **Formulas**
+
+- $`C_g`$ (Computational Cost Per Attempt): The number of instructions required per grinding attempt.
+- $`\tau_g`$ (Time Per Attempt on One CPU): The execution time for one grinding attempt, given by:
+  
+  ```math
+  \tau_g = \frac{C_g}{P_{\text{CPU}}}
+  ```
+
+- $`P_{\text{CPU}}`$ (Processing Power Per CPU): The number of instructions per second (IPS) a single CPU can execute.
+
+Given that the adversary needs to compute **$`2^\rho`$** nonce possibilities, we determine the number of CPUs required to compute all possibilities **within the available grinding window**:
+
 ```math
-N_{\text{CPU}} = 10^6 \times T
+\text{CPUs needed} = \frac{2^{\rho} \times C_g}{P_{\text{CPU}} \times T}
 ```
-3. **Computing the Required Number of CPUs** : where $`T`$ is the grinding window duration in seconds, to determine the number of CPUs needed to explore all nonce possibilities within the grinding window, we use: 
+
+#### **Example with Estimations: CPU Requirement for $`\rho = 256`$**
+
+As a concrete example, previous estimates for Ouroboros Praos assume:
 ```math
-\text{CPUs needed} = \frac{2^{\rho}}{N_{\text{CPU}}} = \frac{2^{\rho}}{10^6 \times T}
+C_g = 10^2, \quad P_{\text{CPU}} = 10^8
 ```
+This results in:
+```math
+\tau_g = \frac{10^2}{10^8} = 10^{-6} \text{ seconds per attempt.}
+```
+
+For $`\rho = 256`$, the total number of attempts required is:
+```math
+N_{\text{total}} = 2^{256} \approx 10^{77}
+```
+Thus, the number of CPUs required becomes:
+```math
+\text{CPUs needed} = \frac{10^{77} \times 10^2}{10^8 \times T} = \frac{10^{79}}{10^8 \times T}
+```
+For a grinding window of **2.8 hours (10,200 seconds)**:
+```math
+\text{CPUs needed} = \frac{10^{79}}{10^8 \times 10^4} = 10^{67}
+```
+This shows that even with **trillions of CPUs**, grinding for $`\rho = 256`$ is computationally infeasible.
+
+#### **CPU Requirement Table for Different $`\rho`$ Values**
+| $`\rho`$ | $`N_{\text{total}} = 2^{\rho}`$ | CPUs Needed ($`\log_{10}`$ scale) |
+|----------|---------------------------------|----------------------------|
+| 8        | $`2^8 = 256`$                   | $`10^{-4}`$                 |
+| 16       | $`2^{16} = 65,536`$              | $`10^{-2}`$                 |
+| 32       | $`2^{32} = 4.3 \times 10^9`$     | $`10^{3}`$                  |
+| 64       | $`2^{64} = 1.8 \times 10^{19}`$  | $`10^{13}`$                 |
+| 128      | $`2^{128} = 3.4 \times 10^{38}`$ | $`10^{32}`$                 |
+| 192      | $`2^{192} \approx 6.3 \times 10^{57}`$ | $`10^{51}`$        |
+| 256      | $`2^{256} \approx 1.2 \times 10^{77}`$ | $`10^{67}`$        |
+
+This table demonstrates the exponential increase in **required CPUs** as $`\rho`$ increases, quickly reaching infeasible levels.
+
 
 #### 4.3.2 Thresholds of Feasibility vs. Infeasibility
 
+### **4.3.2 Thresholds of Feasibility vs. Infeasibility**
+
 | $`\rho`$  | CPUs Required (Log₁₀ Scale) | Estimated Cost (USD) | Feasibility |
 |-----------|--------------------------|----------------------|-------------|
-| **16**    | $`10^3`$ CPUs            | $`10^4`$ for 1-hour run  | Achievable for well-funded adversaries |
-| **32**    | $`10^6`$ CPUs            | $`10^6`$ for 1-hour run   | Possible with specialized hardware (ASICs, clusters) |
-| **40**    | $`10^8`$ CPUs            | $`10^8`$ for 1-hour run   | Expensive but feasible for advanced mining setups |
-| **48**    | $`10^9`$ CPUs            | $`10^9`$ for 1-hour run   | Borderline infeasible, requires massive infrastructure |
-| **56**    | $`10^{11}`$ CPUs         | $`10^{11}`$ for 1-hour run  | Requires data center-scale resources |
-| **64**    | $`10^{13}`$ CPUs         | $`10^{12}`$ for 1-hour run  | Practically infeasible |
-| **80**    | $`10^{16}`$ CPUs         | Global-scale energy budget | Infeasible |
-| **96**    | $`10^{19}`$ CPUs         | Exceeds entire planet's energy output | Impossible |
-| **128**   | $`10^{26}`$ CPUs         | More than Earth's energy budget | Impossible |
-| **192**   | $`10^{39}`$ CPUs         | Impossible even with galactic-scale computing | Beyond physics |
-| **256**   | $`10^{66}`$ CPUs         | Far beyond universal computing limits | Beyond physics |
+| **16**    | $`10^2`$ CPUs            | $`10^3`$ for 1-hour run  | Achievable for well-funded adversaries |
+| **32**    | $`10^5`$ CPUs            | $`10^5`$ for 1-hour run   | Possible with specialized hardware (ASICs, clusters) |
+| **40**    | $`10^7`$ CPUs            | $`10^7`$ for 1-hour run   | Expensive but feasible for advanced mining setups |
+| **48**    | $`10^8`$ CPUs            | $`10^8`$ for 1-hour run   | Borderline infeasible, requires massive infrastructure |
+| **56**    | $`10^{10}`$ CPUs         | $`10^{10}`$ for 1-hour run  | Requires data center-scale resources |
+| **64**    | $`10^{12}`$ CPUs         | $`10^{11}`$ for 1-hour run  | Practically infeasible |
+| **80**    | $`10^{15}`$ CPUs         | Global-scale energy budget | Infeasible |
+| **96**    | $`10^{18}`$ CPUs         | Exceeds entire planet's energy output | Impossible |
+| **128**   | $`10^{25}`$ CPUs         | More than Earth's energy budget | Impossible |
+| **192**   | $`10^{38}`$ CPUs         | Impossible even with galactic-scale computing | Beyond physics |
+| **256**   | $`10^{67}`$ CPUs         | Far beyond universal computing limits | Beyond physics |
+
+### **4.3.3 Interpretation of Feasibility Ranges**
+
+![alt text](image-16.png)
+
+The following describes the feasibility of grinding attacks based on the required computational power for different values of $`\rho`$.
+
+- **For $`\rho < 32`$ (Green - Feasible with ASICs/Clusters):**  
+  - Adversaries with **high-performance computing clusters** or **specialized ASIC miners** can feasibly execute grinding attacks.  
+  - The required CPU resources are within the reach of **well-funded organizations** or **state-sponsored actors**.
+
+- **For $`32 \leq \rho < 40`$ (Light Green - Expensive but Possible):**  
+  - The required CPU resources **exceed the capacity of standard commercial mining farms**.  
+  - Large-scale adversaries with **dedicated data centers** and **customized hardware architectures** could still attempt grinding, but it becomes costly.
+
+- **For $`40 \leq \rho < 48`$ (Yellow-Green - Specialized Data Centers Required):**  
+  - **High-budget operations** would be necessary, involving **$`10^7 - 10^8`$ CPUs** running in parallel.  
+  - The attack might still be feasible for **government-backed entities** or **large-scale industrial computing efforts**.
+
+- **For $`48 \leq \rho < 64`$ (Gold - Technically Possible but Impractical):**  
+  - This range demands **nation-state-level resources**, such as **supercomputers or globally distributed networks of machines**.  
+  - Even if an adversary had access to such computing power, the **logistics and cost would likely make the attack impractical**.
+
+- **For $`64 \leq \rho < 80`$ (Orange - Beyond Realistic Computing):**  
+  - Computing power requirements start to surpass what is **realistically deployable**, even for nation-states.  
+  - The cost in electricity and hardware alone would exceed **most national budgets**.
+
+- **For $`80 \leq \rho < 128`$ (Red - Infeasible, More Power than Earth's Energy Supply):**  
+  - At this stage, the attack requires **more computational energy than is available on the entire planet**.  
+  - Even if every data center on Earth were dedicated to grinding, it would **not be enough**.
+
+- **For $`128 \leq \rho < 192`$ (Brown - Physically Impossible, Beyond Earth's Capacity):**  
+  - This level of computing power is completely out of reach, even with **hypothetical advancements in quantum computing**.  
+  - It would require utilizing **all computational power available on Earth for thousands of years**.
+
+- **For $`\rho > 192`$ (Black - Beyond Galactic Computing Limits):**  
+  - The computational cost exceeds **the total energy output of the Milky Way galaxy** over reasonable timeframes.  
+  - Even a civilization with **galactic-scale infrastructure** would find this infeasible.
 
 
-![alt text](image-17.png)
-
-- **For $`\rho < 32`$**: **Feasible** with well-funded adversaries using **ASICs or clusters**.
-- **For $`\rho = 32 - 40`$**: **Expensive but possible** with large-scale mining operations.
-- **For $`\rho = 40 - 48`$**: **Requires specialized data centers**—feasibility is borderline.
-- **For $`\rho = 48 - 64`$**: **Technically possible but impractical**—needs **nation-state-level funding**.
-- **For $`\rho > 64`$**: **Beyond reach of all realistic computing setups**.
-- **For $`\rho > 80`$**: **Infeasible**, requiring more power than Earth's global energy supply.
-- **For $`\rho > 128`$**: **Physically impossible**, even with the entire **Earth's computational capacity**.
-- **For $`\rho > 192`$**: **Beyond the limits of galactic-scale computation**.
-
-This highlights the importance of **cryptographic constraints** in securing **lower values** of $`\rho`$, as **$`\rho < 48`$** is still **within reach of well-funded adversaries**.
-
+This highlights the importance of **cryptographic constraints** in securing **lower values** of $`\rho`$, as **$`\rho < 64`$** is still **within reach of well-funded adversaries**.
 
 ### 4.4 Adversarial Exposure to ρ in Praos
 
