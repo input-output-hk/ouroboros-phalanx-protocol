@@ -89,7 +89,7 @@ Finally, it is essential to recognize that **adversarial capabilities continuall
     - [4.2.2 Grinding Power](#422-grinding-power)  
     - [4.2.3 Grinding Window](#423-grinding-window)  
   - [4.3 Grinding Power Computational Feasibility](#43-grinding-power-computational-feasibility)  
-  - [4.4 Adversarial Exposure to ρ in Praos](#44-adversarial-exposure-to--rho--in-praos)  
+  - [4.4 Adversarial Exposure to ρ in Praos](#44-adversarial-exposure-to-ρ-in-praos)  
 
 
 
