@@ -82,7 +82,18 @@ Finally, it is essential to recognize that **adversarial capabilities continuall
   - [3.1 System Model](#31-system-model)
   - [3.2 Self Mixing Strategy](#32-self-mixing-strategy)
   - [3.3 Forking Strategies](#33-forking-strategies)
-- [4. The Quantification Challenge](#4-the-quantification-challenge)
+- [4.1 Quantification Gaps Compared to Ethereum](#41-quantification-gaps-compared-to-ethereum)  
+- [4.2 Definitions](#42-definitions)  
+  - [4.2.1 A-Heavy and Heaviness](#421-a-heavy-and-heaviness)  
+  - [4.2.2 Grinding Power](#422-grinding-power)  
+  - [4.2.3 Grinding Window](#423-grinding-window)  
+- [4.3 Grinding Power Computational Feasibility](#43-grinding-power-computational-feasibility)  
+  - [4.3.1 CPU Requirement Calculation](#431-cpu-requirement-calculation)  
+  - [4.3.2 Thresholds of Feasibility vs. Infeasibility](#432-thresholds-of-feasibility-vs-infeasibility)  
+- [4.4 Adversarial Exposure to ρ in Praos](#44-adversarial-exposure-to--rho--in-praos)  
+  - [Years to Obtain Opportunity for Grinding Attack of Scale ρ vs. Adversarial Stake (%)](#years-to-obtain-opportunity-for-grinding-attack-of-scale--rho--vs-adversarial-stake-)  
+  - [Grinding Power vs. Adversarial Stake in Praos](#grinding-power-vs-adversarial-stake-in-praos)  
+
 
 
 ---
@@ -694,7 +705,7 @@ Since they control more blocks, their fork will be adopted as the main chain due
 Moreover, because this fork remains private until revealed, the adversary is not constrained by slot timing and can utilize the entire duration to optimize their choice.
  As a result, the window of opportunity is both larger and constant. This scenario is also more likely to occur than controlling the last consecutive ρ blocks.
 
-### Grinding Window vs. $`\rho`$ (log₂ g) – Computational Feasibility
+### 4.3 Grinding Power Computational Feasibility
 
 ![alt text](image-16.png)
 
@@ -704,7 +715,7 @@ This graph illustrates the relationship between the **grinding window duration**
 - **Y-Axis**: Represents **$`\rho`$ (log₂ g)**, the number of blocks an adversary controls at the end of an epoch.
 - **Red Labels**: Indicate the estimated **number of CPUs required** to fully exploit the grinding window, shown in **log₁₀ scale** to highlight the exponential growth in computational demand.
 
-#### **CPU Requirement Calculation**
+#### 4.3.1 CPU Requirement Calculation
 The CPU requirements were calculated based on the **cost of a single grinding attempt in Ouroboros Praos**, which is estimated to be:
 
 - $`10^2`$ single-block hashes per attempt.
@@ -712,24 +723,21 @@ The CPU requirements were calculated based on the **cost of a single grinding at
 
 Given that the adversary needs to compute **$`2^\rho`$** nonce possibilities, we determine the number of CPUs required to compute all possibilities **within the available grinding window**.
 
-##### **Step 1: Total Number of Attempts Required**
-The total number of nonce computations needed is:
+1. **Total Number of Attempts Required** : The total number of nonce computations needed is given by : 
+```math 
+N_{\text{total}} = 2^{\rho}
+```
+2. **Number of Attempts a Single CPU Can Perform** : (N.B : Need to dig into these numbers) A single CPU performs **$`10^6`$ attempts per second**, meaning in a grinding window of duration $`T`$ (in seconds), it can execute: 
+```math
+N_{\text{CPU}} = 10^6 \times T
+```
+3. **Computing the Required Number of CPUs** : where $`T`$ is the grinding window duration in seconds, to determine the number of CPUs needed to explore all nonce possibilities within the grinding window, we use: 
+```math
+\text{CPUs needed} = \frac{2^{\rho}}{N_{\text{CPU}}} = \frac{2^{\rho}}{10^6 \times T}
+```
 
-$`N_{\text{total}} = 2^{\rho}`$
+#### 4.3.2 Thresholds of Feasibility vs. Infeasibility
 
-##### **Step 2: Number of Attempts a Single CPU Can Perform**
-A single CPU performs **$`10^6`$ attempts per second**, meaning in a grinding window of duration $`T`$ (in seconds), it can execute:
-
-$`N_{\text{CPU}} = 10^6 \times T`$
-
-##### **Step 3: Computing the Required Number of CPUs**
-To determine the number of CPUs needed to explore all nonce possibilities within the grinding window, we use:
-
-$`\text{CPUs needed} = \frac{2^{\rho}}{N_{\text{CPU}}} = \frac{2^{\rho}}{10^6 \times T}`$
-
-where $`T`$ is the grinding window duration in seconds.
-
-#### **Thresholds of Feasibility vs. Infeasibility**
 | $`\rho`$  | CPUs Required (Log₁₀ Scale) | Estimated Cost (USD) | Feasibility |
 |-----------|--------------------------|----------------------|-------------|
 | **16**    | $`10^3`$ CPUs            | $`10^4`$ for 1-hour run  | Achievable for well-funded adversaries |
@@ -744,7 +752,9 @@ where $`T`$ is the grinding window duration in seconds.
 | **192**   | $`10^{39}`$ CPUs         | Impossible even with galactic-scale computing | Beyond physics |
 | **256**   | $`10^{66}`$ CPUs         | Far beyond universal computing limits | Beyond physics |
 
-#### **Analysis of Feasibility**
+
+![alt text](image-17.png)
+
 - **For $`\rho < 32`$**: **Feasible** with well-funded adversaries using **ASICs or clusters**.
 - **For $`\rho = 32 - 40`$**: **Expensive but possible** with large-scale mining operations.
 - **For $`\rho = 40 - 48`$**: **Requires specialized data centers**—feasibility is borderline.
@@ -754,26 +764,24 @@ where $`T`$ is the grinding window duration in seconds.
 - **For $`\rho > 128`$**: **Physically impossible**, even with the entire **Earth's computational capacity**.
 - **For $`\rho > 192`$**: **Beyond the limits of galactic-scale computation**.
 
-![alt text](image-17.png)
-
 This highlights the importance of **cryptographic constraints** in securing **lower values** of $`\rho`$, as **$`\rho < 48`$** is still **within reach of well-funded adversaries**.
 
 
-### 4.4 Exposition probabilities in Praos 
+### 4.4 Adversarial Exposure to ρ in Praos
 
-We previously established that obtaining access to $`2^\rho`$ possible slot leader distributions is equivalent to $`\rho = |A| - |H|`$, where $`|A|`$ and $`|H|`$ denote the number of adversarial and honest blocks, respectively, 
-within a grinding window $`w`$ spanning $`2\rho - 1`$ block durations :
+We previously established that obtaining access to $`2^\rho`$ possible slot leader distributions is equivalent to having an **A-heavy segment** $`w`$, where the **heaviness** is given by $`\rho = |A| - |H|`$, with $`|A|`$ and $`|H|`$ denoting the number of adversarial and honest blocks, respectively.  
 
+This segment $`w`$ also corresponds to the **grinding window**, spanning $`2\rho - 1`$ block durations :
 ![alt text](image-13.png)
 
-Therefore the probability of adversarial blocks within the interval is given by:
+In a simplified model where the multi-slot leader feature is not considered, the probability of adversarial blocks within the interval is given by:
 
 ```math 
 P(|A| - |H| = ρ) = \binom{2ρ-1}{ρ} (\text{stake}_{\text{adversarial}})^ρ (1 - \text{stake}_{\text{adversarial}})^{ρ-1}
 ``` 
-**N.B.**: In a simplified model where the multi-slot leader feature is not considered.
 
-Based on this reasoning, we can derive the following insights:  
+#### Years to Obtain Opportunity for Grinding Attack of Scale 𝜌 vs. Adversarial Stake (%)
+
 ![alt text](image-9.png)
 ![alt text](image-10.png)
 
@@ -783,7 +791,9 @@ For example, with **5% adversarial stake**, it would take **184 years** for an a
 
 Assuming that having a probability of less than one occurrence in a **5-year period** is discouraging enough—such as when there are more than 20 trailing blocks at a 30% adversarial stake—we have plotted the following graph:
 
-![alt text](image-14.png)
+#### Grinding Power vs Adversarial Stake in Praos
+
+![alt text](image-18.png)
 
 **N.B** : This analysis does not account for recursion in addition to the forking and self-mixing strategy, so the curve should actually be even steeper than in the graph above. 
 
