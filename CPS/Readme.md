@@ -685,22 +685,24 @@ However, practical grinding power is typically limited by computational constrai
 
 #### 4.2.3 Grinding Window
 
-The simplest and most naive grinding attack occurs when an adversary controls the last ρ blocks of an epoch. 
-In this scenario, the adversary can decide whether or not to publish a block and its associated VRF value, leading to $`2^ρ`$ potential seed values. 
-At first glance, this seems impractical, as the adversary only has polynomial time—ρ blocks—to compute an exponential number of values. 
+The simplest and most naive grinding attack occurs when an adversary controls the last $`\rho`$ blocks of an epoch.  
+In this scenario, the adversary can decide whether or not to publish a block and its associated VRF value, leading to $`2^\rho`$ potential seed values.  
+At first glance, this seems impractical, as the adversary only has polynomial time—$`\rho`$ blocks—to compute an exponential number of values.  
 However, a more refined analysis reveals that the window of opportunity is even more restricted.
 
-Since blocks must be published within a specific slot, the adversary has, on average, a single block duration—currently 20 seconds—to compute the $`2^ρ`$ possible seed values.
-After this period, the first block they control is effectively "set"—it is either published or not. 
-This means that after this decision, they only have $`2^{ρ-1}`$ values to compute and choose from. 
+Since blocks must be published within a specific slot, the adversary has, on average, a **single slot duration**—which is $`\frac{1}{f}`$ seconds—to compute the $`2^\rho`$ possible seed values.  
+After this period, the first block they control is effectively "set"—it is either published or not.  
+This means that after this decision, they only have $`2^{\rho-1}`$ values to compute and choose from.  
 Consequently, the window of opportunity follows a funnel-like structure: the number of potential seed values decreases as time progresses.
 
-A more sophisticated attack arises when the adversary controls a majority of the last blocks, say ρ out of the last $`2ρ-1`$ blocks. 
-In this case, the adversary can refrain from publishing any block on the main chain and instead construct a private fork of their ρ blocks. 
-Since they control more blocks, their fork will be adopted as the main chain due to the longest-chain rule. This gives the adversary significantly more time—$`2ρ-1`$ block durations—to compute the same number of seed values, $`2^ρ`$. 
+A more sophisticated attack arises when the adversary controls a majority of the last blocks, say $`\rho`$ out of the last $`2\rho -1`$ blocks.  
+In this case, the adversary can refrain from publishing any block on the main chain and instead construct a private fork of their $`\rho`$ blocks.  
+Since they control more blocks, their fork will be adopted as the main chain due to the longest-chain rule.  
+This gives the adversary significantly more time—$`(2\rho -1) \times \frac{1}{f}`$ seconds—to compute the same number of seed values, $`2^\rho`$.  
 
-Moreover, because this fork remains private until revealed, the adversary is not constrained by slot timing and can utilize the entire duration to optimize their choice.
- As a result, the window of opportunity is both larger and constant. This scenario is also more likely to occur than controlling the last consecutive ρ blocks.
+Moreover, because this fork remains private until revealed, the adversary is not constrained by slot timing and can utilize the entire duration to optimize their choice.  
+As a result, the window of opportunity is both larger and constant.  
+This scenario is also more likely to occur than controlling the last consecutive $`\rho`$ blocks.
 
 ### 4.3 Grinding Power Computational Feasibility
 
@@ -715,49 +717,73 @@ This graph illustrates the relationship between the **grinding window duration**
 
 ### 4.3.1 CPU Requirement Calculation
 
-The CPU requirements were calculated based on the **cost of a single grinding attempt in Ouroboros Praos**, which uses the formulas:
+The CPU requirements were calculated based on the **cost of a single grinding attempt in Ouroboros Praos**, using the following formulas:
 
 #### **Formulas**
 
-- $`C_g`$ (Computational Cost Per Attempt): The number of instructions required per grinding attempt.
-- $`\tau_g`$ (Time Per Attempt on One CPU): The execution time for one grinding attempt, given by:
+- $`C_g`$ (**Computational Cost Per Attempt**): The number of instructions required per grinding attempt.
+- $`\tau_g`$ (**Time Per Attempt on One CPU**): The execution time for one grinding attempt, defined as:
+- $`P_{\text{CPU}}`$ (**Processing Power Per CPU**): The number of instructions per second (IPS) a single CPU can execute.
 
 ```math
 \tau_g = \frac{C_g}{P_{\text{CPU}}}
 ```
 
-- $`P_{\text{CPU}}`$ (Processing Power Per CPU): The number of instructions per second (IPS) a single CPU can execute.
-
 Given that the adversary needs to compute **$`2^\rho`$** nonce possibilities, we determine the number of CPUs required to compute all possibilities **within the available grinding window**:
 
 ```math
-\text{CPUs needed} = \frac{2^{\rho} \times C_g}{P_{\text{CPU}} \times T}
+\text{CPUs needed} = \frac{2^{\rho} \times \tau_g \times f}{2\rho-1}
 ```
 
-#### **Example with Estimations: CPU Requirement for $`\rho = 256`$**
+where:
+- $`f`$ is the **active slot coefficient**, which determines the probability of slot leader election per slot.
+- The grinding window **duration** is given by:
+
+```math
+T = (2\rho -1) \times \frac{1}{f}
+```
+
+---
+
+### **Example with Estimations: CPU Requirement for $`\rho = 256`$**
 
 As a concrete example, previous estimates for Ouroboros Praos assume:
+
 ```math
-C_g = 10^2, \quad P_{\text{CPU}} = 10^8
+C_g = 10^2, \quad P_{\text{CPU}} = 10^8, \quad f = \frac{1}{20}
 ```
+
 This results in:
+
 ```math
 \tau_g = \frac{10^2}{10^8} = 10^{-6} \text{ seconds per attempt.}
 ```
 
 For $`\rho = 256`$, the total number of attempts required is:
+
 ```math
 N_{\text{total}} = 2^{256} \approx 10^{77}
 ```
+
 Thus, the number of CPUs required becomes:
+
 ```math
-\text{CPUs needed} = \frac{10^{77} \times 10^2}{10^8 \times T} = \frac{10^{79}}{10^8 \times T}
+\text{CPUs needed} = \frac{10^{77} \times 10^2 \times f}{10^8 \times (2 \times 256 -1)}
 ```
-For a grinding window of **2.8 hours (10,200 seconds)**:
+
+For an **active slot coefficient** of $`f = \frac{1}{20}`$, the grinding window duration is:
+
 ```math
-\text{CPUs needed} = \frac{10^{79}}{10^8 \times 10^4} = 10^{67}
+T = (2 \times 256 -1) \times 20 = 10,200 \text{ seconds}
 ```
-This shows that even with **trillions of CPUs**, grinding for $`\rho = 256`$ is computationally infeasible.
+
+Substituting this back:
+
+```math
+\text{CPUs needed} = \frac{10^{79} \times \frac{1}{20}}{10^8 \times 10^4} = 10^{67}
+```
+
+This demonstrates that even with **trillions of CPUs**, grinding for $`\rho = 256`$ remains computationally infeasible.
 
 #### **CPU Requirement Table for Different $`\rho`$ Values**
 | $`\rho`$ | $`N_{\text{total}} = 2^{\rho}`$ | CPUs Needed ($`\log_{10}`$ scale) |
