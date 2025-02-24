@@ -715,18 +715,16 @@ This graph illustrates the relationship between the **grinding window duration**
 
 ### 4.3.1 CPU Requirement Calculation
 
-### **4.3.1 CPU Requirement Calculation**
-
 The CPU requirements were calculated based on the **cost of a single grinding attempt in Ouroboros Praos**, which uses the formulas:
 
 #### **Formulas**
 
 - $`C_g`$ (Computational Cost Per Attempt): The number of instructions required per grinding attempt.
 - $`\tau_g`$ (Time Per Attempt on One CPU): The execution time for one grinding attempt, given by:
-  
-  ```math
-  \tau_g = \frac{C_g}{P_{\text{CPU}}}
-  ```
+
+```math
+\tau_g = \frac{C_g}{P_{\text{CPU}}}
+```
 
 - $`P_{\text{CPU}}`$ (Processing Power Per CPU): The number of instructions per second (IPS) a single CPU can execute.
 
