@@ -45,6 +45,12 @@ In **Φalanx Protocol**, we apply this idea cryptographically by **enhancing the
 
 Please refer to the CPS "[Ouroboros Randomness Generation Sub-Protocol – The Coin-Flipping Problem](https://github.com/input-output-hk/ouroboros-anti-grinding-design/blob/main/CPS/Readme.md#4-the-quantification-challenge)" for a detailed understanding of **randomness generation, leader election in Praos, and the coin-flipping dilemma in consensus protocols**. Moving forward, we will **dive into the core details**, assuming you have the **relevant background** to understand the proposal.
 
+We have detailed in the CPS the computational cost of a grinding attempt and observed that, for an adversarial stake **greater than 10%**, the **Ouroboros Praos** protocol becomes vulnerable to grinding attacks within the **harmful range** $`I = 10 < \rho < 64`$. Beyond $`\rho = 64`$, however, grinding computations become **practically infeasible**. 
+
+The key question we explore in this CIP is:  
+**Can we increase the computational cost of a grinding attempt sufficiently to shrink the vulnerable interval** $`I`$, **thereby effectively discouraging adversaries?**  
+
+This CIP investigates that approach as a potential solution.
 
 
 # Specification
