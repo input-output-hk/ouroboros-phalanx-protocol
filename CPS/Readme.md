@@ -801,8 +801,6 @@ This table demonstrates the exponential increase in **required CPUs** as $`\rho`
 
 #### 4.3.2 Thresholds of Feasibility vs. Infeasibility
 
-### **4.3.2 Thresholds of Feasibility vs. Infeasibility**
-
 | $`\rho`$  | CPUs Required (Log₁₀ Scale) | Estimated Cost (USD) | Feasibility |
 |-----------|--------------------------|----------------------|-------------|
 | **16**    | $`10^2`$ CPUs            | $`10^3`$ for 1-hour run  | Achievable for well-funded adversaries |
