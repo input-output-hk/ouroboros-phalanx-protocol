@@ -579,43 +579,6 @@ Both strategies undermine fairness in leader election, with **Preemptive Forking
 
 ## 3. The Cost of Grinding: Adversarial Effort and Feasibility  
 
-### 3.1 Quantification Gaps Compared to Ethereum
-
-As of February 2nd, 2025, no known efforts have quantified Randomness Manipulation on Cardano with the same level of granularity as presented in  
-[*Forking the RANDAO: Manipulating Ethereum's Distributed Randomness Beacon*](https://eprint.iacr.org/2025/037). The Cardano community should undertake a similar study,  
-defining an optimal Randomness Manipulation algorithm and leveraging techniques such as Markov Decision Processes to derive insights comparable to those in Ethereum:  
-
-<div align="center">
-  <img src="image-6.png" alt="Analysis 1" width="300">
-  <img src="image-7.png" alt="Analysis 2" width="300">
-  <img src="image-8.png" alt="Analysis 3" width="300">
-</div>  
-
-While Ethereum's research provides a deeper quantification of randomness manipulation within their protocol, it still relies on approximations due to the inherent complexity of the subject. We will likely face similar challenges in our own quantification efforts. 
-The more precise the grinding algorithms, the better we can estimate a reliable lower bound for the problem. 
-Additionally, an upper bound can be established by reasoning purely in terms of computational power.  
-
-There are many key differences between **Cardano** and **Ethereum**, one of the most notable being the **epoch size**.
-
-- In **Ethereum**, an adversary can attempt to manipulate the protocol's randomness **every 32 slots** (**384 seconds**).  
-- In **Ouroboros Praos**, the opportunity arises only **once per epoch**, which consists of:  
-
- ```math 
-  \frac{10k}{f} \text{ slots}
-```  
-
-  On **Cardano mainnet**, this evaluates to:  
-
-```math 
-  \frac{10 \times 2160}{0.05} = 432,000 \text{ slots per epoch}
-``` 
-
-  Given that each slot lasts **1 second**, this translates to approximately **5 days per epoch**.  
-
-
-That being said, to establish an initial sense of scale, where we are going to try to evaluate how many N trailing blocks an adversary can accumulate at the critical juncture.
-
-
 ### 3.2 Definitions
 
 #### 3.2.1 A-Heavy and Heaviness
@@ -638,7 +601,7 @@ An **A-heavy suffix** refers to a blockchain segment where **adversarial slots d
   - **$`\lambda(w) = 1`$** → Fully adversarial suffix.
 
 
-#### 3.2.2 Grinding Power
+#### 3.2.2 Grinding Power g
 
 An **An-heavy suffix** must be present around the critical juncture for a grinding attack to be considered. The **heavier** `w` is, the **higher** the grinding power becomes.
 
@@ -651,7 +614,7 @@ The grinding power is bounded by:
 ```
 
 where:
-- $`\rho`$ is the number of bits in the beacon output $`\eta`$.
+- $`\rho`$ is the grinding depth, the number of bits of randomness the adversary can effectively manipulate.
 - The lower bound $`g = 0`$ represents no grinding capability (i.e., perfect entropy with no adversarial influence).
 - The upper bound $`g = 2^ρ`$ corresponds to an adversary being able to select from all possible nonce values.
 
@@ -663,26 +626,78 @@ g_{\max} = 2^{256}
 
 However, practical grinding power is typically limited by computational constraints and stake distribution dynamics.
 
-#### 3.2.3 Grinding Window
+#### 3.2.3 Grinding Depth ρ  
+ 
+The **grinding depth** $`\rho`$ quantifies the adversary's **effective search space**, determining the number of distinct nonce values that can be computed and selectively revealed.  
 
-The simplest and most naive grinding attack occurs when an adversary controls the last $`\rho`$ blocks of an epoch.  
-In this scenario, the adversary can decide whether or not to publish a block and its associated VRF value, leading to $`2^\rho`$ potential seed values.  
-At first glance, this seems impractical, as the adversary only has polynomial time—$`\rho`$ blocks—to compute an exponential number of values.  
-However, a more refined analysis reveals that the window of opportunity is even more restricted.
+It is defined as the **logarithm of the grinding power**:  
 
-Since blocks must be published within a specific slot, the adversary has, on average, a **single slot duration**—which is $`\frac{1}{f}`$ seconds—to compute the $`2^\rho`$ possible seed values.  
-After this period, the first block they control is effectively "set"—it is either published or not.  
-This means that after this decision, they only have $`2^{\rho-1}`$ values to compute and choose from.  
-Consequently, the window of opportunity follows a funnel-like structure: the number of potential seed values decreases as time progresses.
+```math
+\rho = \log_2 g, \quad 0 \leq \rho \leq 256
+```
+where **$`\rho`$** is the number of bits of randomness an adversary can manipulate, and **$`g`$** is the number of selectable beacon outputs in **Cardano mainnet**.
 
-A more sophisticated attack arises when the adversary controls a majority of the last blocks, say $`\rho`$ out of the last $`2\rho -1`$ blocks.  
-In this case, the adversary can refrain from publishing any block on the main chain and instead construct a private fork of their $`\rho`$ blocks.  
-Since they control more blocks, their fork will be adopted as the main chain due to the longest-chain rule.  
-This gives the adversary significantly more time—$`(2\rho -1) \times \frac{1}{f}`$ seconds—to compute the same number of seed values, $`2^\rho`$.  
+The grinding depth $`\rho`$ determines the **entropy reduction** caused by an adversary's nonce manipulation, directly impacting the protocol's resistance to randomness biasing.
 
-Moreover, because this fork remains private until revealed, the adversary is not constrained by slot timing and can utilize the entire duration to optimize their choice.  
-As a result, the window of opportunity is both larger and constant.  
-This scenario is also more likely to occur than controlling the last consecutive $`\rho`$ blocks.
+#### 3.2.4 Grinding Windows
+
+##### 3.2.4.1 Opportunity Windows $`w_O`$  
+
+The **grinding window** $`w_O`$ is the **time interval** during which an adversary can compute all **$`2^\rho`$ possible nonces**, execute the grinding attack algorithm, and strategically publish blocks to enforce their chosen $`\eta`$ nonce at the epoch’s end.  
+
+###### Approximation of $`w_O`$ when $`\rho`$ trailing blocks  
+
+The simplest grinding attack occurs when an adversary controls the last $`\rho`$ blocks of an epoch.  
+In this scenario, they can choose whether to publish each block and its associated VRF value, leading to **$`2^\rho`$ possible $`\eta`$ nonces**.  
+
+At first glance, this may seem impractical, as the adversary only has polynomial time—$`\rho`$ blocks—to compute an **exponential number of values**.  
+However, a closer analysis reveals that the **effective window of opportunity is even smaller**.  
+
+Since blocks must be published within a **fixed slot**, the adversary has, on average, **$`\frac{1}{f}`$ seconds per slot** to compute the **$`2^\rho`$ possible $`\eta`$ nonces**.  
+Once the first block is either published or omitted, their choices narrow.  
+After this decision, they only have **$`2^{\rho-1}`$ nonces** left to compute, and this reduction continues.  
+As a result, the **grinding window follows a funnel-like structure**, decreasing with each block decision.  
+
+###### Approximation of $`w_O`$ when $`\rho`$ out of the last $`2\rho -1`$ blocks  
+
+A more advanced attack arises when the adversary controls **$`\rho`$ out of the last $`2\rho -1`$ blocks**.  
+In this case, they can **withhold all their blocks** from the main chain and construct a **private fork** of their $`\rho`$ blocks.  
+Since they control more blocks, their **fork is eventually adopted** due to the longest-chain rule.  
+
+This grants the adversary significantly more time—$`(2\rho -1) \times \frac{1}{f}`$ seconds—to compute the same **$`2^\rho`$ $`\eta`$ nonces**.  
+
+Moreover, because this fork remains **private until revealed**, the adversary is not constrained by slot timing and can use the entire duration to optimize their choice.  
+
+As a result, this **fork-based grinding strategy** not only provides a **longer and more stable attack window** but is also **more feasible** than controlling the last $`\rho`$ consecutive blocks.
+
+##### 3.2.4.2 Attack Window $`w_A`$
+
+Once the adversary obtains a potential **candidate nonce** ($`\eta_e^{\text{candidate}}`$) for epoch $`e`$, they can compute their private **slot leader distribution** for the entire epoch, spanning:  
+
+```math
+\frac{10k}{f} = \frac{10 \times 2160}{0.05} = 432,000 \text{ slots} = 5 \text{ days}
+
+```
+
+We define the **grinding attack window** $`w_A`$ as the slot interval an adversary targets based on their attack strategy, where $`1 \leq w_A \leq 4.32 \times 10^5 \text{ slots}`$.
+
+#### 3.2.3 Grinding Attempt
+
+A **grinding attempt** is a single **evaluation of a possible $`\eta`$ nonce** by the adversary within the grinding attack window $`w_O`$.  
+Each attempt follows three key steps:  
+
+1. **Computing a candidate $`\eta`$ nonce** by selectively revealing or withholding VRF outputs.  
+2. **Simulating the resulting slot leader distribution** over the attack window $`w_A`$.  
+3. **Evaluating the strategic benefit** of choosing this $`\eta`$ nonce for their attack objectives.  
+
+The number of grinding attempts an adversary can make is constrained by their **grinding power** $`g`$, given by:  
+
+```math
+g = 2^\rho
+```
+where **$`\rho`$** represents the **grinding depth**, i.e., the number of distinct $`\eta`$ nonces they can evaluate within $`w_O`$.  
+
+### 3.3 Entry
 
 ### 3.3 Grinding Power Computational Feasibility
 
