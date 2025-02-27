@@ -63,10 +63,6 @@ Finally, it is essential to recognize that **adversarial capabilities continuall
     - [1.2.2 Strategies for Randomness Generation](#122-strategies-for-randomness-generation)
     - [1.2.3 The Historical Evolution of Ouroboros Randomness Generation](#123-the-historical-evolution-of-ouroboros-randomness-generation)
     - [1.2.4 Alternative Approaches to Randomness Generation](#124-alternative-approaches-to-randomness-generation)
-      - [1.2.4.1 RANDAO (Ethereum’s Approach)](#1241-randao-ethereums-approach)
-      - [1.2.4.2 VDFs (Verifiable Delay Functions)](#1242-vdfs-verifiable-delay-functions)
-      - [1.2.4.3 Comparing the Approaches](#1243-comparing-the-approaches)
-      - [1.2.4.4 Conclusion: Why VRFs Were Chosen for Ouroboros](#1244-conclusion-why-vrfs-were-chosen-for-ouroboros)
   - [1.3 Leader Election in Praos](#13-leader-election-in-praos)
     - [1.3.1 Oblivious Leader Selection](#131-oblivious-leader-selection)
     - [1.3.2 Application of Verifiable Random Function (VRF)](#132-application-of-verifiable-random-function-vrf)
@@ -170,11 +166,12 @@ Various cryptographic techniques exist to address the **coin-flipping problem** 
 | **Approach**              | **Pros** | **Cons** |
 |---------------------------|---------|---------|
 | **PVSS-Based Beacons** <br> _(Ouroboros Classic, RandHound, Scrape, HydRand)_ | ✔ Strong randomness guarantees—output is indistinguishable from uniform.<br> ✔ Resistant to last-mover bias—commitments prevent selective reveals. | ❌ High communication complexity—requires O(n²) messages.<br> ❌ Vulnerable to adaptive adversaries—who may corrupt committee members. |
-| **VRF-Based Randomness** <br> _(Ouroboros Praos, Genesis, Snow White)_ | ✔ Efficient and scalable—no multi-round commit-reveal process.<br> ✔ Publicly verifiable—VRF proofs can be checked by anyone.<br> ✔ Resistant to last-mover bias—adversaries cannot selectively reveal values. | ❌ Min-entropy loss—adversaries controlling ≥10% of stake can slightly bias randomness.<br> ❌ Grinding attacks possible—attackers can compute multiple VRF outputs and selectively reveal the most favorable one. |
-| **VDF-Based Beacons** <br> _(Ethereum’s RANDAO + VDF)_ | ✔ Reduces grinding attacks—prevents early randomness revelation.<br> ✔ Predictable computation time—ensures fairness. | ❌ Computational overhead—VDFs must be tuned for security vs. efficiency.<br> ❌ Liveness concerns—if VDFs take too long, block production can be delayed. |
+| **VRF-Based Randomness** <br> _(Ouroboros Praos, Genesis, Snow White)_ | ✔ Efficient and scalable—no multi-round commit-reveal process.<br> ✔ Publicly verifiable—VRF proofs can be checked by anyone.<br> ✔ Resistant to last-mover bias—adversaries cannot selectively reveal values. | ❌ Grinding attacks possible—attackers can compute multiple VRF outputs and selectively reveal the most favorable one. |
+| **VDF-Based Beacons** | ✔ Reduces grinding attacks—prevents early randomness revelation.<br> ✔ Predictable computation time—ensures fairness. | ❌ Computational overhead—VDFs must be tuned for security vs. efficiency.<br> ❌ Liveness concerns—if VDFs take too long, block production can be delayed. |
 | **Threshold Signature-Based Beacons** <br> _(DFINITY)_ | ✔ Fast and non-interactive—requires only one round of communication.<br> ✔ Resistant to last-mover bias—output is deterministic. | ❌ Group setup complexity—requires distributed key generation (DKG).<br> ❌ Security relies on assumptions—threshold parameters affect robustness. |
 | **Byzantine Agreement-Based Beacons** <br> _(Algorand)_ | ✔ Finality guarantees—randomness is confirmed before the next epoch.<br> ✔ Less entropy loss than Praos. | ❌ Requires multi-round communication—higher latency.<br> ❌ Not designed for eventual consensus—better suited for BA-based protocols. |
-| **RANDAO-Based Beacons** <br> _(Ethereum’s RANDAO)_ | ✔ Simple and efficient—low computational overhead.<br> ✔ Fully decentralized—any participant can contribute randomness. | ❌ Vulnerable to last-revealer bias—the last participant can manipulate the final output.<br> ❌ Requires additional mechanisms (e.g., VDFs) to prevent manipulation. |
+| **RANDAO-Based Beacons** <br> _(Ethereum’s RANDAO Post-Merge)_ | ✔ Simple and efficient—low computational overhead.<br> ✔ Fully decentralized—any participant can contribute randomness. | ❌ Vulnerable to last-revealer bias—the last participant can manipulate the final output.<br> ❌ Still susceptible to adversarial influence, last-mover bias remains, though mitigated by frequent reseeding and a large validator set. |
+
 
 ### **1.2.3 The Historical Evolution of Ouroboros Randomness Generation**
 
@@ -184,41 +181,27 @@ Recognizing these limitations, **Ouroboros Praos** moved to a **VRF-based random
 
 However, this efficiency gain comes at a cost: it introduces a **limited avenue for randomness manipulation**. Adversaries can attempt **grinding attacks**, evaluating multiple **potential nonces** and selectively influencing randomness outcomes. While constrained, this trade-off necessitates further countermeasures to **limit adversarial influence** while maintaining protocol scalability.
 
----
-
 ### **1.2.4 Alternative Approaches to Randomness Generation**  
 
 Beyond **PVSS and VRFs**, other blockchain networks have explored **alternative randomness beacons** such as **VDFs and RANDAO**.
 
-#### **1.2.4.1 RANDAO (Ethereum’s Approach)**
+#### **1.2.4.1 RANDAO (Ethereum’s Post-Merge Approach)**
 
-Ethereum initially adopted **RANDAO**, a simple **commit-reveal randomness beacon** where validators submit **random values** during the commit phase, which are then **revealed and aggregated** to determine a final output. While **decentralized and lightweight**, RANDAO is vulnerable to **last-revealer bias**, where the final participant can withhold their value to influence the outcome.
+Ethereum's **Post-Merge RANDAO** remains a **commit-reveal randomness beacon**, where **validators** contribute **random values** during block proposals. These values are sequentially aggregated using **XOR**, forming the final **randomness output** used in **validator shuffling** and **protocol randomness**.  
 
-To mitigate this, Ethereum considered **Verifiable Delay Functions (VDFs)** as an enhancement but ultimately decided against them due to **high computational requirements and validator overhead**.
+While **decentralized** and **computationally lightweight**, RANDAO still suffers from **last-revealer bias**, where the **final proposer** in an epoch can **withhold their reveal** to slightly manipulate randomness. Unlike earlier discussions, Ethereum decided **against integrating Verifiable Delay Functions (VDFs)**, opting instead for a **frequent reseeding mechanism** to mitigate biases. However, it does not fully eliminate **last-mover manipulation** concerns.  
 
 #### **1.2.4.2 VDFs (Verifiable Delay Functions)**
 
-VDFs are designed to provide **unpredictable, verifiable randomness** by requiring a **sequential computation delay** before revealing the output. This makes them **resistant to grinding attacks** since adversaries cannot efficiently evaluate multiple outcomes. However, they introduce **significant computational costs**, require specialized **hardware for efficient verification**, and demand **additional synchronization mechanisms**.
+VDFs are designed to provide **unpredictable, verifiable randomness** by requiring a **sequential computation delay** before revealing the output. This makes them **resistant to grinding attacks** since adversaries cannot efficiently evaluate multiple outcomes. However, they introduce **significant computational costs**, require specialized **hardware for efficient verification**, and demand **additional synchronization mechanisms**. 
 
-#### **1.2.4.3 Comparing the Approaches**
+Ethereum's **RANDAO Pre-Merge** explored integrating VDFs to strengthen its randomness beacon but ultimately **abandoned the approach** due to feasibility concerns, including the difficulty of practical deployment and the risk of centralization stemming from specialized hardware dependencies.
 
-| **Feature**                     | **PVSS-Based (Classic)** | **VRF-Based (Praos)** | **RANDAO (Ethereum)** | **VDFs (Ethereum Considered)** |
-|---------------------------------|------------------------|----------------------|----------------------|-------------------------|
-| **Efficiency** ⚡                | ❌ High overhead (O(n²)) | ✅ Lightweight (O(n)) | ✅ Low complexity | ❌ High computational cost |
-| **Non-Interactive Design** 🔄   | ❌ Requires multi-round commit-reveal | ✅ Fully non-interactive | ✅ Partially non-interactive | ❌ Requires sequential computation |
-| **Decentralization** 🌍         | ⚠ Centralized risk via committee | ✅ Fully decentralized | ✅ Fully decentralized | ⚠ Requires specialized hardware |
-| **Resistance to Grinding** 🔄   | ✅ Commitment prevents grinding | ⚠ Stake grinding possible | ❌ Last-revealer bias | ✅ Strong resistance |
-| **Security Assumptions** 🔒     | ✅ Strong cryptographic guarantees | ⚠ Min-entropy loss possible | ⚠ Vulnerable to manipulation | ✅ Strong cryptographic guarantees |
-| **Integration with PoS Consensus** 🔗 | ❌ Requires committee agreement | ✅ Stake-weighted randomness | ✅ Works with PoS | ❌ High integration complexity |
+### **1.2.4.3 Conclusion: Why VRFs Were Chosen for Ouroboros**
 
----
-
-### **1.2.4.4 Conclusion: Why VRFs Were Chosen for Ouroboros**
-
-Despite some **security trade-offs**, **VRFs** were selected for Ouroboros Praos due to their **balance between efficiency, scalability, and security**. Unlike **PVSS**, they do not require a **multi-party commit-reveal process** or **quadratic communication overhead**. Unlike **VDFs**, they are **computationally efficient** and do not require **specialized hardware**. Compared to **RANDAO**, they provide **stronger randomness guarantees**, reducing manipulation risks.
+Despite some **security trade-offs**, **VRFs** were selected for Ouroboros Praos due to their **balance between efficiency, scalability, and security**. Unlike **PVSS**, they do not require a **multi-party commit-reveal process** or **quadratic communication overhead**. Unlike **VDFs**, they are **computationally efficient** and do not require **specialized hardware**. 
 
 However, ongoing research continues to explore potential enhancements to **mitigate grinding risks**, including **hybrid randomness beacons** that combine **VRFs with cryptographic delay mechanisms**.
-
 
 ## 1.3 Leader Election in Praos
 
