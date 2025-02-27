@@ -49,42 +49,55 @@ Finally, it is essential to recognize that **adversarial capabilities continuall
   
 ## Problem
 
+## Table of Contents
+
 - [1. Preliminaries](#1-preliminaries)
   - [1.1 Fundamental Properties](#11-fundamental-properties)
     - [1.1.1 Transaction Ledger Properties](#111-transaction-ledger-properties)
-      - [1.1.1.1 Persistence with the security parameter k](#1111-persistence-with-the-security-parameter-k)
-      - [1.1.1.2 Liveness with the transaction confirmation time parameter u](#1112-liveness-with-the-transaction-confirmation-time-parameter-u)
-    - [1.1.2 Chains properties](#112-chains-properties)
+      - [1.1.1.1 Persistence with the **security parameter** $` \text{k} \in \mathbb{N} `$](#1111-persistence-with-the-security-parameter--textk-in-mathbbn-)
+      - [1.1.1.2 Liveness with the **transaction confirmation time parameter** $` u \in \mathbb{N} `$](#1112-liveness-with-the-transaction-confirmation-time-parameter--textu-in-mathbbn-)
+    - [1.1.2 Chain Properties](#112-chain-properties)
       - [1.1.2.1 Common Prefix (CP)](#1121-common-prefix-cp)
-      - [1.1.2.2 Existential Chain Quality (∃CQ)](#1123-existential-chain-quality-cq)
-      - [1.1.2.3 Chain Growth (CG)](#1124-chain-growth-cg)
+      - [1.1.2.2 Existential Chain Quality (∃CQ)](#1122-existential-chain-quality-cq)
+      - [1.1.2.3 Chain Growth (CG)](#1123-chain-growth-cg)
   - [1.2 The Coin-Flipping Problem](#12-the-coin-flipping-problem)
     - [1.2.1 Defining the Problem](#121-defining-the-problem)
     - [1.2.2 Strategies for Randomness Generation](#122-strategies-for-randomness-generation)
     - [1.2.3 The Historical Evolution of Ouroboros Randomness Generation](#123-the-historical-evolution-of-ouroboros-randomness-generation)
     - [1.2.4 Alternative Approaches to Randomness Generation](#124-alternative-approaches-to-randomness-generation)
+      - [1.2.4.1 RANDAO (Ethereum’s Post-Merge Approach)](#1241-randao-ethereums-post-merge-approach)
+      - [1.2.4.2 VDFs (Verifiable Delay Functions)](#1242-vdfs-verifiable-delay-functions)
+      - [1.2.4.3 Conclusion: Why VRFs Were Chosen for Ouroboros](#1243-conclusion-why-vrfs-were-chosen-for-ouroboros)
   - [1.3 Leader Election in Praos](#13-leader-election-in-praos)
     - [1.3.1 Oblivious Leader Selection](#131-oblivious-leader-selection)
     - [1.3.2 Application of Verifiable Random Function (VRF)](#132-application-of-verifiable-random-function-vrf)
     - [1.3.3 Epoch Structure](#133-epoch-structure)
-    - [1.3.4 Epoch & Phases Length](#134-epoch-phases-length)
+    - [1.3.4 Epoch & Phases Length](#134-epoch--phases-length)
     - [1.3.5 The Randomness Generation Sub-Protocol](#135-the-randomness-generation-sub-protocol)
   - [1.4 Forks, Rollbacks, Finality and Settlement Times](#14-forks-rollbacks-finality-and-settlement-times)
-- [2. Randomness Manipulation Objectives](#2-randomness-manipulation-objectives)
-  - [2.1 Exposure](#21-exposure)
-  - [2.2 Slot Leader Distribution Selection](#22-slot-leader-distribution-selection)
-- [3. Non-Exhaustive Manipulation Strategy List](#3-non-exhaustive-manipulation-strategy-list)
-  - [3.1 System Model](#31-system-model)
-  - [3.2 Self Mixing Strategy](#32-self-mixing-strategy)
-  - [3.3 Forking Strategies](#33-forking-strategies)
-- [4. Adversarial Resistance](#4-adversarial-resistance) 
-  - [4.1 Quantification Gaps Compared to Ethereum](#41-quantification-gaps-compared-to-ethereum)  
-  - [4.2 Definitions](#42-definitions)  
-    - [4.2.1 A-Heavy and Heaviness](#421-a-heavy-and-heaviness)  
-    - [4.2.2 Grinding Power](#422-grinding-power)  
-    - [4.2.3 Grinding Window](#423-grinding-window)  
-  - [4.3 Grinding Power Computational Feasibility](#43-grinding-power-computational-feasibility)  
-  - [4.4 Adversarial Exposure to ρ in Praos](#44-adversarial-exposure-to-ρ-in-praos)  
+
+- [2. The Grinding Attack Algorithm](#2-the-grinding-attack-algorithm)
+  - [2.1 Randomness Manipulation Objectives](#21-randomness-manipulation-objectives)
+    - [2.1.1 Exposure](#211-exposure)
+    - [2.1.2 Slot Leader Distribution Selection](#212-slot-leader-distribution-selection)
+    - [2.1.3 Potential Outcomes of Grinding Attacks](#213-potential-outcomes-of-grinding-attacks)
+
+  - [2.2 Non-Exhaustive Manipulation Strategy List](#22-non-exhaustive-manipulation-strategy-list)
+    - [2.2.1 System Model](#221-system-model)
+    - [2.2.2 Self Mixing Strategy](#222-self-mixing-strategy)
+    - [2.2.3 Forking Strategies](#223-forking-strategies)
+
+- [3. The Cost of Grinding: Adversarial Effort and Feasibility](#3-the-cost-of-grinding-adversarial-effort-and-feasibility)
+  - [3.1 Quantification Gaps Compared to Ethereum](#31-quantification-gaps-compared-to-ethereum)
+  - [3.2 Definitions](#32-definitions)
+    - [3.2.1 A-Heavy and Heaviness](#321-a-heavy-and-heaviness)
+    - [3.2.2 Grinding Power](#322-grinding-power)
+    - [3.2.3 Grinding Window](#323-grinding-window)
+  - [3.3 Grinding Power Computational Feasibility](#33-grinding-power-computational-feasibility)
+    - [3.3.1 CPU Requirement Calculation](#331-cpu-requirement-calculation)
+    - [3.3.2 Thresholds of Feasibility vs. Infeasibility](#332-thresholds-of-feasibility-vs-infeasibility)
+    - [3.3.3 Interpretation of Feasibility Ranges](#333-interpretation-of-feasibility-ranges)
+  - [3.4 Adversarial Exposure to ρ in Praos](#34-adversarial-exposure-to-ρ-in-praos)
 
 
 
@@ -207,7 +220,7 @@ However, ongoing research continues to explore potential enhancements to **mitig
 
 ### 1.3.1 Oblivious Leader Selection
 
-As Explained into [KRD017 - Ouroboros- A provably secure proof-of-stake blockchain protocol](https://eprint.iacr.org/2016/889.pdf), Praos protocol possesses the following basic characteristics : 
+As Explained into [DGKR18 -  Ouroboros Praos_ An adaptively-secure, semi-synchronous proof-of-stake blockchain](https://eprint.iacr.org/2017/573.pdf), Praos protocol possesses the following basic characteristics : 
 - **Privacy**: Only the selected leader knows they have been chosen until they reveal themselves, often by publishing a proof. This minimizes the risk of targeted attacks against the leader since other network participants are unaware of the leader's identity during the selection process.
 
 - **Verifiable Randomness**: The selection process uses verifiable randomness functions (VRFs) to ensure that the leader is chosen fairly and unpredictably. The VRF output acts as a cryptographic proof that the selection was both random and valid, meaning others can verify it without needing to know the leader in advance.
@@ -343,7 +356,7 @@ checkLeaderNatValue bn σ f =
 
 ### 1.3.3 Epoch Structure 
 
-In Praos and Genesis, An epoch consists of 3 logical phases to compute these 2 key variables—**active stake distribution** and **randomness beacon**—by going through the following phases:
+In Praos and Genesis, an epoch consists of 3 logical phases to compute these 2 key variables—**active stake distribution** and **randomness beacon**—by going through the following phases:
 
 ![Epoch Structure](epoch-structure-praos.png)
 
@@ -444,9 +457,11 @@ However, longer forks can have harmful consequences.
 For example, if an end-user (the recipient of funds) makes a decision—such as accepting payment and delivering goods to another user (the sender of the transaction)—based on a transaction that is later rolled back and does not reappear because it was invalid (e.g., due to double-spending a UTxO), 
 it creates a risk of fraud.
 
-## 2. Randomness Manipulation Objectives  
+## 2. The Grinding Attack Algorithm  
 
-## 2.1 Exposure 
+## 2.1 Randomness Manipulation Objectives  
+
+### 2.1.1 Exposure 
 
 In its current version, Praos has a vulnerability where an adversary can exploit the nonce $`\eta_\text{e}`$, the random value used for selecting block producers. This allows the adversary to incrementally and iteratively undermine the uniform distribution of slot leaders, threatening the fairness and unpredictability of the leader selection process.
 
@@ -462,7 +477,7 @@ This marks the beginning of a grinding attack, where the adversary's primary goa
 
 We use the term "exposure" because the adversary cannot directly control their positioning for a grinding attack; it depends on the random distribution of leader slots. The likelihood of securing x trailing leader slots at the critical juncture decreases significantly as x increases. 
 
-## 2.2 Slot Leader Distribution Selection
+### 2.1.2 Slot Leader Distribution Selection
 
 This is the pivotal moment where the adversary's prior efforts pay off. She is now in a position with *x* trailing blocks at the critical juncture. At this stage, the adversary can generate the `2^x` possible `η` nonces, compute the next epoch's slot leader distribution for each nonce, and strategically select the distribution that best aligns with her attack strategy. This positioning enables her to deploy the attack effectively in the subsequent epoch.
 
@@ -483,7 +498,11 @@ As the adversary accumulates trailing blocks, the limiting factor swiftly shifts
 
 Accumulating x trailing leader positions is not just a statistical anomaly—it necessitates an underlying intent to exploit or destabilize the protocol. Achieving such a level of control requires significant coordination, making it highly unlikely to occur without deliberate adversarial motives. 
 
-Once an attacker reaches this threshold, their objectives extend beyond a single exploit and diversify into various strategic threats. Below is a non-exhaustive list of potential attack vectors, ranging from minor disruptions in system throughput to severe breaches that compromise the protocol’s integrity and structure:
+Once an attacker reaches this threshold, their objectives extend beyond a single exploit and diversify into various strategic threats. 
+
+### 2.1.3 Potential Outcomes of Grinding Attacks
+
+Below is a non-exhaustive list of potential attack vectors, ranging from minor disruptions in system throughput to severe breaches that compromise the protocol’s integrity and structure.
 
 ### Economic Exploitation
 Manipulating slot leader distributions to prioritize transactions that benefit the adversary or to extract higher fees.
@@ -506,12 +525,12 @@ Exploiting control over slot leader distributions to reverse confirmed transacti
 ### Chain-Freezing Attacks
 Using nonce selection to stall block production entirely, halting the protocol and causing network paralysis.
 
-## 3. Non-Exaustive Manipulation Stategy List
+## 2.2. Non-Exaustive Manipulation Stategy List
 
 The Ethereum community recently published an insightful paper titled [*Forking the RANDAO: Manipulating Ethereum's Distributed Randomness Beacon*](https://eprint.iacr.org/2025/037). Since the system model used to analyze randomness manipulation in Ethereum is also applicable to Cardano, we will extensively reference their work to explore various manipulation strategies within the Cardano ecosystem. 
 
 
-## 3.1 System Model
+### 2.2.1 System Model
 
 A block can exist in one of four states:  
 
@@ -530,7 +549,7 @@ A block can exist in one of four states:
 Block statuses are denoted as $` H^e_i, R^e_i, M^e_i, P^e_i `$ indicating that the 
 block in the $`i`$ th slot in epoch $`e`$ was proposed, reorged, missed, or built privately, respectively. Reorged and missed blocks do not contribute to the generation of $`\eta_e`$ since they are not part of the canonical chain. 
 
-## 3.2 Self Mixing Strategy
+### 2.2.2 Self Mixing Strategy
 
 The adversary can selectively propose or miss blocks to manipulate $`\eta_e`$. Assume that $`\mathcal{A}`$ is assigned with $`t`$ consecutive tail blocks, formally $`\mathcal{A}^{t}`$ of epoch $`e`$, then $`\mathcal{A}`$ can choose arbitrarily between $`2^t`$ $`\eta_e`$ by missing or proposing each tail block. Thus, it is trivial that $`\mathcal{A}^{t} \in AS_{\alpha}(m,n)`$ for $`0 \leq t \leq m`$, as $`\mathcal{A}`$ can compute $`\eta_e`$ corresponding to $`C^t`$.  
 
@@ -540,7 +559,7 @@ The manipulative power for $`t = 2`$ is the following decision tree
 
 e.g : The adversary chooses option $`\{H^e_{30}, M^e_{31}\}`$ if the calculated $`\eta_e`$ eventually leads to the highest number of blocks. In this case, sacrificing Slot 30 and 31 is worthwhile, as it results in a significantly higher number of blocks in epoch $`e + 2`$.  
 
-## 3.3 Forking Strategies
+### 2.2.3 Forking Strategies
 
 
 To achieve the goal of maximizing $x$ trailing blocks at this critical juncture, the adversary leverages the forking nature of the consensus protocol by introducing a private chain. By strategically applying the Longest-Chain Rule to their advantage, the adversary ensures that the last honest trailing blocks are excluded at this pivotal moment. With this added dimension, gaining access to $2^x$ possible combinations of slot leader distributions becomes equivalent to $x = |A| - |H|$, where $|A|$ and $|H|$ represent the number of adversarial and honest blocks, respectively, within this specific interval of the protocol : 
@@ -558,9 +577,9 @@ The adversary can choose between **two forking strategies** depending on when th
 Both strategies undermine fairness in leader election, with **Preemptive Forking** favoring proactive randomness manipulation and **Reactive Forking** enabling selective, informed chain reorganizations.
 
 
-## 4. Adversarial Resistance 
+## 3. The Cost of Grinding: Adversarial Effort and Feasibility  
 
-### 4.1 Quantification Gaps Compared to Ethereum
+### 3.1 Quantification Gaps Compared to Ethereum
 
 As of February 2nd, 2025, no known efforts have quantified Randomness Manipulation on Cardano with the same level of granularity as presented in  
 [*Forking the RANDAO: Manipulating Ethereum's Distributed Randomness Beacon*](https://eprint.iacr.org/2025/037). The Cardano community should undertake a similar study,  
@@ -597,9 +616,9 @@ There are many key differences between **Cardano** and **Ethereum**, one of the 
 That being said, to establish an initial sense of scale, where we are going to try to evaluate how many N trailing blocks an adversary can accumulate at the critical juncture.
 
 
-### 4.2 Definitions
+### 3.2 Definitions
 
-#### 4.2.1 A-Heavy and Heaviness
+#### 3.2.1 A-Heavy and Heaviness
 An **A-heavy suffix** refers to a blockchain segment where **adversarial slots dominate** over a specific interval.
 
 - Let $`X_A(w)`$ be the **number of adversarial slots** in the last $`w`$ slots.
@@ -619,7 +638,7 @@ An **A-heavy suffix** refers to a blockchain segment where **adversarial slots d
   - **$`\lambda(w) = 1`$** → Fully adversarial suffix.
 
 
-#### 4.2.2 Grinding Power
+#### 3.2.2 Grinding Power
 
 An **An-heavy suffix** must be present around the critical juncture for a grinding attack to be considered. The **heavier** `w` is, the **higher** the grinding power becomes.
 
@@ -644,7 +663,7 @@ g_{\max} = 2^{256}
 
 However, practical grinding power is typically limited by computational constraints and stake distribution dynamics.
 
-#### 4.2.3 Grinding Window
+#### 3.2.3 Grinding Window
 
 The simplest and most naive grinding attack occurs when an adversary controls the last $`\rho`$ blocks of an epoch.  
 In this scenario, the adversary can decide whether or not to publish a block and its associated VRF value, leading to $`2^\rho`$ potential seed values.  
@@ -665,7 +684,7 @@ Moreover, because this fork remains private until revealed, the adversary is not
 As a result, the window of opportunity is both larger and constant.  
 This scenario is also more likely to occur than controlling the last consecutive $`\rho`$ blocks.
 
-### 4.3 Grinding Power Computational Feasibility
+### 3.3 Grinding Power Computational Feasibility
 
 ![alt text](image-14.png)
 
@@ -676,7 +695,7 @@ This graph illustrates the relationship between the **grinding window duration**
 - **Red Labels**: Indicate the estimated **number of CPUs required** to fully exploit the grinding window, shown in **log₁₀ scale** to highlight the exponential growth in computational demand.
 
 
-### 4.3.1 CPU Requirement Calculation
+### 3.3.1 CPU Requirement Calculation
 
 The CPU requirements were calculated based on the **cost of a single grinding attempt in Ouroboros Praos**, using the following formulas:
 
@@ -760,7 +779,7 @@ This demonstrates that even with **trillions of CPUs**, grinding for $`\rho = 25
 This table demonstrates the exponential increase in **required CPUs** as $`\rho`$ increases, quickly reaching infeasible levels.
 
 
-#### 4.3.2 Thresholds of Feasibility vs. Infeasibility
+#### 3.3.2 Thresholds of Feasibility vs. Infeasibility
 
 | $`\rho`$  | CPUs Required (Log₁₀ Scale) | Estimated Cost (USD) | Feasibility |
 |-----------|--------------------------|----------------------|-------------|
@@ -776,7 +795,7 @@ This table demonstrates the exponential increase in **required CPUs** as $`\rho`
 | **192**   | $`10^{38}`$ CPUs         | Impossible even with galactic-scale computing | Beyond physics |
 | **256**   | $`10^{67}`$ CPUs         | Far beyond universal computing limits | Beyond physics |
 
-### **4.3.3 Interpretation of Feasibility Ranges**
+### 3.3.3 Interpretation of Feasibility Ranges
 
 ![alt text](image-16.png)
 
@@ -817,7 +836,7 @@ The following describes the feasibility of grinding attacks based on the require
 
 This highlights the importance of **cryptographic constraints** in securing **lower values** of $`\rho`$, as **$`\rho < 64`$** is still **within reach of well-funded adversaries**.
 
-### 4.4 Adversarial Exposure to ρ in Praos
+### 3.4 Adversarial Exposure to ρ in Praos
 
 We previously established that obtaining access to $`2^\rho`$ possible slot leader distributions is equivalent to having an **A-heavy segment** $`w`$, where the **heaviness** is given by $`\rho = |A| - |H|`$, with $`|A|`$ and $`|H|`$ denoting the number of adversarial and honest blocks, respectively.  
 
