@@ -28,9 +28,9 @@
 
 A well-designed consensus protocol is inherently modular, consisting of multiple sub-protocols that collectively ensure security, efficiency, and decentralization. Among these, the Randomness Generation Sub-Protocol is crucial in addressing the Coin-Flipping Problem—the challenge of generating fair, unbiased, and unpredictable randomness in a distributed setting.
 
-The objective of this CPS is to formally document the Coin-Flipping Problem and coordinate the development of CIPs aimed at mitigating or fully resolving this vulnerability within the Ouroboros protocol.
+The objective of this CPS is to formally document the Coin-Flipping Problem and coordinate the development of CIPs aimed at mitigating or fully resolving this challenge within the Ouroboros protocol.
 
-This problem is particularly critical in **Ouroboros**, where randomness serves as a foundation for key sub-protocols such as **leader election and committee selection**. Ensuring a **robust and tamper-resistant** randomness mechanism is essential to preserving the **security, fairness, and integrity** of the protocol.
+This problem is particularly critical in **Ouroboros**, where randomness serves as a foundation for key sub-protocols such as **leader election**. Ensuring a **robust and tamper-resistant** randomness mechanism is essential to preserving the **security, fairness, and integrity** of the protocol.
 
 To uphold Cardano’s **decentralized ethos**, the community must proactively mitigate these risks and **reduce the feasibility of biasing strategies**. Addressing this challenge requires answering key questions:
 
@@ -56,25 +56,24 @@ Finally, it is essential to recognize that **adversarial capabilities continuall
       - [1.1.1.2 Liveness with the transaction confirmation time parameter u](#1112-liveness-with-the-transaction-confirmation-time-parameter-u)
     - [1.1.2 Chains properties](#112-chains-properties)
       - [1.1.2.1 Common Prefix (CP)](#1121-common-prefix-cp)
-      - [1.1.2.2 Honest-Bounded Chain Growth (HCG)](#1122-honest-bounded-chain-growth-hcg)
-      - [1.1.2.3 Existential Chain Quality (∃CQ)](#1123-existential-chain-quality-cq)
-      - [1.1.2.4 Chain Growth (CG)](#1124-chain-growth-cg)
-- [1.2 The Coin-Flipping Problem](#12-the-coin-flipping-problem)
-  - [1.2.1 Defining the Problem](#121-defining-the-problem)
-  - [1.2.2 Strategies for Randomness Generation](#122-strategies-for-randomness-generation)
-  - [1.2.3 The Historical Evolution of Ouroboros Randomness Generation](#123-the-historical-evolution-of-ouroboros-randomness-generation)
-  - [1.2.4 Alternative Approaches to Randomness Generation](#124-alternative-approaches-to-randomness-generation)
-    - [1.2.4.1 RANDAO (Ethereum’s Approach)](#1241-randao-ethereums-approach)
-    - [1.2.4.2 VDFs (Verifiable Delay Functions)](#1242-vdfs-verifiable-delay-functions)
-    - [1.2.4.3 Comparing the Approaches](#1243-comparing-the-approaches)
-    - [1.2.4.4 Conclusion: Why VRFs Were Chosen for Ouroboros](#1244-conclusion-why-vrfs-were-chosen-for-ouroboros)
-- [1.3 Leader Election in Praos](#13-leader-election-in-praos)
-  - [1.3.1 Oblivious Leader Selection](#131-oblivious-leader-selection)
-  - [1.3.2 Application of Verifiable Random Function (VRF)](#132-application-of-verifiable-random-function-vrf)
-  - [1.3.3 Epoch Structure](#133-epoch-structure)
-  - [1.3.4 Epoch & Phases Length](#134-epoch-phases-length)
-  - [1.3.5 The Randomness Generation Sub-Protocol](#135-the-randomness-generation-sub-protocol)
-- [1.4 Forks, Rollbacks, Finality and Settlement Times](#14-forks-rollbacks-finality-and-settlement-times)
+      - [1.1.2.2 Existential Chain Quality (∃CQ)](#1123-existential-chain-quality-cq)
+      - [1.1.2.3 Chain Growth (CG)](#1124-chain-growth-cg)
+  - [1.2 The Coin-Flipping Problem](#12-the-coin-flipping-problem)
+    - [1.2.1 Defining the Problem](#121-defining-the-problem)
+    - [1.2.2 Strategies for Randomness Generation](#122-strategies-for-randomness-generation)
+    - [1.2.3 The Historical Evolution of Ouroboros Randomness Generation](#123-the-historical-evolution-of-ouroboros-randomness-generation)
+    - [1.2.4 Alternative Approaches to Randomness Generation](#124-alternative-approaches-to-randomness-generation)
+      - [1.2.4.1 RANDAO (Ethereum’s Approach)](#1241-randao-ethereums-approach)
+      - [1.2.4.2 VDFs (Verifiable Delay Functions)](#1242-vdfs-verifiable-delay-functions)
+      - [1.2.4.3 Comparing the Approaches](#1243-comparing-the-approaches)
+      - [1.2.4.4 Conclusion: Why VRFs Were Chosen for Ouroboros](#1244-conclusion-why-vrfs-were-chosen-for-ouroboros)
+  - [1.3 Leader Election in Praos](#13-leader-election-in-praos)
+    - [1.3.1 Oblivious Leader Selection](#131-oblivious-leader-selection)
+    - [1.3.2 Application of Verifiable Random Function (VRF)](#132-application-of-verifiable-random-function-vrf)
+    - [1.3.3 Epoch Structure](#133-epoch-structure)
+    - [1.3.4 Epoch & Phases Length](#134-epoch-phases-length)
+    - [1.3.5 The Randomness Generation Sub-Protocol](#135-the-randomness-generation-sub-protocol)
+  - [1.4 Forks, Rollbacks, Finality and Settlement Times](#14-forks-rollbacks-finality-and-settlement-times)
 - [2. Randomness Manipulation Objectives](#2-randomness-manipulation-objectives)
   - [2.1 Exposure](#21-exposure)
   - [2.2 Slot Leader Distribution Selection](#22-slot-leader-distribution-selection)
@@ -103,21 +102,20 @@ This section introduces the pertinent parts of the Cardano proof- of-stake conse
 
 ## 1.1 Fundamental Properties
 
-A protocol implements a robust transaction ledger if it maintains the ledger as a sequence of blocks, where each block is associated with a specific slot. Each slot can contain at most one ledger block, and this strict association ensures a well-defined and immutable ordering of transactions within the ledger. This structure is critical for preventing manipulation of the transaction order, which is a key vector for grinding attacks. 
+A protocol implements a robust transaction ledger if it maintains the ledger as a sequence of blocks, where each block is associated with a specific slot. Each slot can contain at most one ledger block, and this strict association ensures a well-defined and immutable ordering of transactions within the ledger. 
 
-For the ledger to be resistant to such attacks, the protocol must satisfy the following two critical properties (Persistence & Liveness), which ensure that blocks and transactions are securely committed and cannot be easily manipulated by adversaries. Persistence and liveness, can be derived to fundamental **chain properties** which are *used to explain how and why the leader election mechanism has been designed in this manner*. 
+The protocol must satisfy the following two critical properties (Persistence & Liveness), which ensure that blocks and transactions are securely committed and cannot be easily manipulated by adversaries. Persistence and liveness, can be derived to fundamental **chain properties** which are *used to explain how and why the leader election mechanism has been designed in this manner*. 
 
 | **Chain Property**                      | **Description**                                                                                                                    |
 |-----------------------------------------|------------------------------------------------------------------------------------------------------------------------------|
 | **Common Prefix (CP)**                  | Ensures consistency across honest parties by requiring that chains adopted by different honest nodes share a common prefix.   |
-| **Honest-Bounded Chain Growth (HCG)**   | Governs the rate at which the blockchain grows, ensuring that the chain grows at a rate proportional to time.     |
-| **Existential Chain Quality (∃CQ)**     | Guarantees that at least one honestly-generated block appears in any given portion of the chain, ensuring honest contributions. |
-| **Chain Growth (CG)**                   | Provides a more general notion of growth by combining **HCG** and **∃CQ**, ensuring both the quality and rate of chain expansion. |
+| **Existential Chain Quality (∃CQ)**     | Guarantees that at least one honestly-generated block appears in a portion of a sufficient length of the chain, ensuring honest contributions. |
+| **Chain Growth (CG)**                   | Ensures that the blockchain extends at a minimum rate over time, preventing indefinite stalling by adversaries while maintaining progress based on the fraction of honest stakeholders producing blocks. |
 
 ### 1.1.1 Transaction Ledger Properties 
 #### 1.1.1.1 Persistence with the **security parameter $` \text{k} \in \mathbb{N} `$**
  
-Once a node of the system proclaims a certain transaction *tx* in the stable part of its ledger, the remaining nodes, if queried, will either report *tx* in the same position of that ledger or report a stable ledger which is a prefix of that ledger. Here the notion of stability is a predicate that is parameterized by a **security parameter $` \text{k} `$**. Specifically, a transaction is declared **stable** if and only if it is in a block that is more than $` \text{k} `$ blocks deep in the ledger.
+Once a node of the system proclaims a certain transaction *tx* in the stable part of its ledger, all nodes, if queried, will either report *tx* in the same position of that ledger or report a stable ledger which is a prefix of that ledger. Here the notion of stability is a predicate that is parameterized by a **security parameter $` \text{k} `$**. Specifically, a transaction is declared **stable** if and only if it is in a block that is more than $` \text{k} `$ blocks deep in the ledger.
 
 #### 1.1.1.2 Liveness with the **transaction confirmation time parameter $` u \in \mathbb{N} `$** 
 
@@ -127,7 +125,7 @@ If all honest nodes in the system attempt to include a certain transaction then,
 
 **Persistence** and **liveness** can be derived from basic **chain properties**, provided that the protocol structures the ledger as a **blockchain**—a sequential data structure. The following key chain properties ensure that the blockchain behaves securely and efficiently:
 
-#### 1.1.2.1 **Common Prefix (CP)**: With parameter the **security parameter $`k \in \mathbb{N}`$**. 
+#### 1.1.2.1 **Common Prefix (CP)**: With the **security parameter $`k \in \mathbb{N}`$**. 
 
 Consider 2 chains $`C_1`$ and $`C_2`$ adopted by 2 honest parties at the onset of slots $`sl_1`$ and $`sl_2`$, respectively, where $`sl_1 \leq sl_2`$. The chains must satisfy the condition:
 
@@ -140,27 +138,11 @@ Consider 2 chains $`C_1`$ and $`C_2`$ adopted by 2 honest parties at the onset o
 
   This ensures that the shorter chain is a prefix of the longer one, ensuring consistency across honest parties.
 
-#### 1.1.2.2 **Honest-Bounded Chain Growth (HCG)**: With parameters $`\tau \in (0, 1]`$ (speed coefficient) and $`s \in \mathbb{N}`$ (Minimum Honest Block Inclusion Interval). 
-
-The Honest-Bounded Chain Growth (HCG) property ensures that the blockchain grows steadily with honest participation. It uses two key parameters: $`\tau`$, the **speed coefficient**, which dictates how quickly blocks are produced relative to time, and $`s`$, the **Minimum Honest Block Inclusion Interval**, which defines the smallest span of consecutive slots in which at least one honest block must be produced.
-
-Consider a chain $`C`$ adopted by an honest party. Let:
-  - $`sl_2`$ be the slot associated with the **last block** of $`C`$,
-  - $`sl_1`$ be a prior slot where $`C`$ has an honestly-generated block.
-
-If $`sl_2 \geq sl_1 + s`$, this means that the honest chain has passed through an interval of $`s`$ slots. In such a case, the number of blocks produced in $`C`$ after $`sl_1`$ must be at least $`\tau s`$, where $`\tau`$ represents the fraction of slots that produce blocks.
-
-- **$`s`$ (Minimum Honest Block Inclusion Interval)**: This parameter guarantees that within any sequence of $`s`$ consecutive slots, at least one block must be generated by an honest party. The choice of $`s`$ ensures that the chain grows consistently and prevents adversaries from delaying block production for too long. A higher value of $`s`$ allows for longer intervals between honest block production, while a smaller $`s`$ increases the frequency at which blocks must be produced, tightening the chain growth requirements.
-
-- **$`\tau`$ (Speed Coefficient)**: The speed coefficient $`\tau`$ defines the proportion of slots in the interval $`s`$ that are expected to produce blocks. For instance, if $`\tau = 0.5`$ and $`s = 10`$, then at least $`\tau s = 5`$ blocks must be produced by honest participants within those 10 slots. 
-
-Together, $`\tau`$ and $`s`$ ensure that the chain grows at a steady pace, with a balance between how frequently blocks must be produced and how much time is allowed between honest block generations. The $`s`$ parameter plays a critical role in ensuring that honest contributions remain frequent enough to maintain chain security, while $`\tau`$ governs the actual rate of block production within those intervals.
-
-#### 1.1.2.3 **Existential Chain Quality (∃CQ)**: With parameter $`s \in \mathbb{N}`$ (Minimum Honest Block Inclusion Interval). 
+#### 1.1.2.2 **Existential Chain Quality (∃CQ)**: With parameter $`s \in \mathbb{N}`$ (Minimum Honest Block Inclusion Interval). 
 
 Consider a chain $`C`$ adopted by an honest party at the onset of a slot. For any portion of $`C`$ spanning $`s`$ prior slots, there must be at least one honestly-generated block within this portion. This ensures that the chain includes contributions from honest participants. In practical terms, $`s`$ defines the length of a "safety window" where honest contributions are guaranteed.
 
-#### 1.1.2.4 **Chain Growth (CG)**: With parameters $`\tau \in (0, 1]`$ (speed coefficient) and $`s \in \mathbb{N}`$ (Minimum Honest Block Inclusion Interval).
+#### 1.1.2.3 **Chain Growth (CG)**: With parameters $`\tau \in (0, 1]`$ (speed coefficient) and $`s \in \mathbb{N}`$ (Minimum Honest Block Inclusion Interval).
 
 The Chain Growth (CG) property is a more general concept that combines both the **speed of block production** and the **frequency of honest contributions**. It uses two parameters: $`\tau`$, the **speed coefficient**, which governs how fast the chain grows, and $`s`$, the **Minimum Honest Block Inclusion Interval**, which ensures that honest blocks are consistently produced within a given interval of slots.
 
@@ -168,8 +150,6 @@ Consider a chain $`C`$ held by an honest party at the onset of a slot. For any p
 The parameter $`\tau`$ determines the fraction of slots in which blocks are produced. For example, if $`\tau = 0.5`$ and $`s = 10`$, there should be at least 5 blocks produced within that span.
   
 For example, if $`\tau = 0.5`$ and $`s = 10`$, then at least $`\tau s = 0.5 \times 10 = 5`$ blocks must be produced over the span of those 10 slots. 
-
-**Note**: **∃CQ** and **HCG** are combined to provide this more general notion of chain growth (CG) 
 
 ## 1.2 The Coin-Flipping Problem  
 
@@ -182,9 +162,7 @@ Consider a scenario where multiple untrusted parties must **flip a coin** to rea
 2. 🔒 No participant can **bias or influence** the result in their favor.  
 3. ⚖️ The process is **fair and secure**, even in the presence of dishonest or colluding actors.  
 
-In **blockchain consensus protocols**, randomness is crucial for **leader election, committee selection, and cryptographic lotteries**. If an adversary can bias the randomness, they can **increase their influence over block production**, **delay finality**, or **disrupt network security**.  
-
----
+In **blockchain consensus protocols**, randomness is crucial for **leader election, committee selection, and cryptographic lotteries**. If an adversary can bias the randomness, they can **increase their influence over block production**, **delay settlements**, or **disrupt network security**.  
 
 ### **1.2.2 Strategies for Randomness Generation**  
 Various cryptographic techniques exist to address the **coin-flipping problem** in decentralized settings. These methods differ in **security, efficiency, and resistance to adversarial manipulation**.  
