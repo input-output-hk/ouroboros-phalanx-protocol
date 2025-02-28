@@ -697,7 +697,59 @@ g = 2^\rho
 ```
 where **$`\rho`$** represents the **grinding depth**, i.e., the number of distinct $`\eta`$ nonces they can evaluate within $`w_O`$.  
 
-### 3.3 Entry
+### 3.3 Entry Ticket Cost: Acquiring Stake to Play the Lottery  
+
+Before an adversary can execute a grinding attack, they must first **acquire enough stake**, akin to **buying an entry ticket** to participate in a **lottery**.  
+In this case, the **lottery** is the leader election process, where the probability of winning a slot—and thus influencing the $`\eta`$ nonce—is directly proportional to the stake held.  
+
+Just like in a lottery, **the more tickets an adversary buys (stake accumulated), the greater their chances of winning**.  
+By securing a significant share of stake, they increase the likelihood of being selected as a **slot leader in key trailing positions**, providing the foundation needed to execute a grinding attack.  
+
+Thus, the **first cost** of a grinding attack is **not computational but economic**—the price of acquiring enough stake to play the lottery.
+
+To estimate the cost of these **entry tickets**, we address the following question:  
+
+> **How much grinding depth $`\rho`$ can an adversary achieve with a given percentage of adversarial stake, ensuring a reasonable probability—such as at least one successful grinding opportunity within 10 years** of continuous **epoch-by-epoch execution in Cardano**, where each epoch lasts **5 days**?  
+>  
+> Specifically, for a given percentage of adversarial stake, we seek the **maximum $`\rho`$** for which the probability of obtaining an A-heavy segment $`w_O`$ is **at least once over 10 years**, meaning at least one occurrence within **3,650 epochs**.  
+>  
+> **N.B.:** A 10-year period is long enough to encompass a potential **technological revolution cycle**, during which advancements in cryptographic research or computing power could significantly impact feasibility. It is also a sufficient timeframe for the **Cardano community** to introduce a new version of Ouroboros that may **revisit and fully mitigate this issue**.
+
+---
+#### The formula 
+We previously established that obtaining access to $`2^\rho`$ possible slot leader distributions is equivalent to having an **A-heavy segment** $`w_O`$, where the **heaviness** is given by $`\rho`$ advsersary blocks out of the last $`2\rho -1`$ blocks. This segment $`w_O`$ also corresponds to the **grinding opportunity window**, spanning $`2\rho - 1`$ block durations . In a simplified model where the multi-slot leader feature is not considered, the probability of adversarial blocks within the interval is given by:
+
+```math 
+P(\text{Adversary controls $\rho$ out of $2\rho -1$ blocks}) = \binom{2ρ-1}{ρ} (\text{stake}_{\text{adversarial}})^ρ (1 - \text{stake}_{\text{adversarial}})^{ρ-1}
+``` 
+where:
+
+- $\binom{2\rho-1}{\rho}$ represents the number of ways to select $\rho$ adversarial blocks from $2\rho - 1$ slots.
+- $\text{stake}_{\text{adversarial}}$ is the percentage of total stake controlled by the adversary.
+
+
+#### The Data
+
+![alt text](image-9.png)
+![alt text](image-10.png)
+
+The details of the calculations underlying this table can be found in the following Google Spreadsheet: [Details of Calculations](https://docs.google.com/spreadsheets/d/1DGG4tXTngc2Zu5_IMlWsPoARksgBEMbTCyqBAgKHe7E/edit?gid=0#gid=0).
+
+For example, with **5% adversarial stake**, it would take **184 years** for an adversary to obtain a single adversarial block at the critical juncture—an extremely unlikely event.  
+
+####  The Results
+
+![alt text](image-19.png)
+
+**N.B** : This analysis does not account for recursion in addition to the forking and self-mixing strategy, so the curve should actually be even steeper than in the graph above. 
+
+We conclude that randomness manipulation within Ouroboros seems to become critical above a **33% adversarial stake**, with its impact increasingly dictated by the adversary’s computational ability to compute a $`2^ρ`$ leader election distribution set. This is the specific issue we aim to highlight in this CPS.  
+
+### 3.4 Cost of a Grinding Attempt
+
+
+
+### 3.5 Cost of a Grinding Attempt
 
 ### 3.3 Grinding Power Computational Feasibility
 
@@ -851,37 +903,6 @@ The following describes the feasibility of grinding attacks based on the require
 
 This highlights the importance of **cryptographic constraints** in securing **lower values** of $`\rho`$, as **$`\rho < 64`$** is still **within reach of well-funded adversaries**.
 
-### 3.4 Adversarial Exposure to ρ in Praos
-
-We previously established that obtaining access to $`2^\rho`$ possible slot leader distributions is equivalent to having an **A-heavy segment** $`w`$, where the **heaviness** is given by $`\rho = |A| - |H|`$, with $`|A|`$ and $`|H|`$ denoting the number of adversarial and honest blocks, respectively.  
-
-This segment $`w`$ also corresponds to the **grinding window**, spanning $`2\rho - 1`$ block durations :
-![alt text](image-13.png)
-
-In a simplified model where the multi-slot leader feature is not considered, the probability of adversarial blocks within the interval is given by:
-
-```math 
-P(|A| - |H| = ρ) = \binom{2ρ-1}{ρ} (\text{stake}_{\text{adversarial}})^ρ (1 - \text{stake}_{\text{adversarial}})^{ρ-1}
-``` 
-
-#### Years to Obtain Opportunity for Grinding Attack of Scale 𝜌 vs. Adversarial Stake (%)
-
-![alt text](image-9.png)
-![alt text](image-10.png)
-
-The details of the calculations underlying this table can be found in the following Google Spreadsheet: [Details of Calculations](https://docs.google.com/spreadsheets/d/1DGG4tXTngc2Zu5_IMlWsPoARksgBEMbTCyqBAgKHe7E/edit?gid=0#gid=0).
-
-For example, with **5% adversarial stake**, it would take **184 years** for an adversary to obtain a single adversarial block at the critical juncture—an extremely unlikely event.  
-
-Assuming that having a probability of less than one occurrence in a **5-year period** is discouraging enough—such as when there are more than 20 trailing blocks at a 30% adversarial stake—we have plotted the following graph:
-
-#### Grinding Power vs Adversarial Stake in Praos
-
-![alt text](image-18.png)
-
-**N.B** : This analysis does not account for recursion in addition to the forking and self-mixing strategy, so the curve should actually be even steeper than in the graph above. 
-
-We conclude that randomness manipulation within Ouroboros seems to become critical above a **33% adversarial stake**, with its impact increasingly dictated by the adversary’s computational ability to compute a $`2^ρ`$ leader election distribution set. This is the specific issue we aim to highlight in this CPS.  
 
 ## Goals
 
