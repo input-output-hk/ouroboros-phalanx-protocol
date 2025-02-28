@@ -697,7 +697,7 @@ g = 2^\rho
 ```
 where **$`\rho`$** represents the **grinding depth**, i.e., the number of distinct $`\eta`$ nonces they can evaluate within $`w_O`$.  
 
-### 3.3 Entry Ticket Cost: Acquiring Stake to Play the Lottery  
+### 3.3 Entry Ticket: Acquiring Stake to Play the Lottery  
 
 Before an adversary can execute a grinding attack, they must first **acquire enough stake**, akin to **buying an entry ticket** to participate in a **lottery**.  
 In this case, the **lottery** is the leader election process, where the probability of winning a slot—and thus influencing the $`\eta`$ nonce—is directly proportional to the stake held.  
@@ -709,11 +709,11 @@ Thus, the **first cost** of a grinding attack is **not computational but economi
 
 To estimate the cost of these **entry tickets**, we address the following question:  
 
-> **How much grinding depth $`\rho`$ can an adversary achieve with a given percentage of adversarial stake, ensuring a reasonable probability—such as at least one successful grinding opportunity within 10 years** of continuous **epoch-by-epoch execution in Cardano**, where each epoch lasts **5 days**?  
+> **How much grinding depth $`\rho`$ can an adversary achieve with a given percentage of adversarial stake, ensuring a reasonable probability—such as at least one successful grinding opportunity within 5 years** of continuous **epoch-by-epoch execution in Cardano**, where each epoch lasts **5 days**?  
 >  
-> Specifically, for a given percentage of adversarial stake, we seek the **maximum $`\rho`$** for which the probability of obtaining an A-heavy segment $`w_O`$ is **at least once over 10 years**, meaning at least one occurrence within **3,650 epochs**.  
+> Specifically, for a given percentage of adversarial stake, we seek the **maximum $`\rho`$** for which the probability of obtaining an A-heavy segment $`w_O`$ is **at least once over 5 years**, meaning at least one occurrence within **1,825 epochs**.  
 >  
-> **N.B.:** A 10-year period is long enough to encompass a potential **technological revolution cycle**, during which advancements in cryptographic research or computing power could significantly impact feasibility. It is also a sufficient timeframe for the **Cardano community** to introduce a new version of Ouroboros that may **revisit and fully mitigate this issue**.
+> **N.B.:** A 5-year period is long enough to encompass a potential **technological revolution cycle**, during which advancements in cryptographic research or computing power could significantly impact feasibility. It is also a sufficient timeframe for the **Cardano community** to introduce a new version of Ouroboros that may **revisit and fully mitigate this issue**.
 
 ---
 #### The formula 
@@ -735,21 +735,27 @@ where:
 
 The details of the calculations underlying this table can be found in the following Google Spreadsheet: [Details of Calculations](https://docs.google.com/spreadsheets/d/1DGG4tXTngc2Zu5_IMlWsPoARksgBEMbTCyqBAgKHe7E/edit?gid=0#gid=0).
 
-For example, with **5% adversarial stake**, it would take **184 years** for an adversary to obtain a single adversarial block at the critical juncture—an extremely unlikely event.  
+For example, with **5% adversarial stake**, it would take **73 years** for an adversary to obtain 2 adversarial blocks at the critical juncture—an extremely unlikely event.  
 
 ####  The Results
 
-![alt text](image-19.png)
+![alt text](image-20.png)
 
 **N.B** : This analysis does not account for recursion in addition to the forking and self-mixing strategy, so the curve should actually be even steeper than in the graph above. 
 
-We conclude that randomness manipulation within Ouroboros seems to become critical above a **33% adversarial stake**, with its impact increasingly dictated by the adversary’s computational ability to compute a $`2^ρ`$ leader election distribution set. This is the specific issue we aim to highlight in this CPS.  
+We observe that when the **adversarial stake exceeds 33%**, the adversary gains a significantly higher probability of winning the lottery, to the extent that its influence becomes primarily constrained by its computational capacity to generate and evaluate a $`2^ρ`$-sized leader election distribution set.
+
+Also, note that while we have focused on the cost aspect of this entry ticket, the adversarial stake itself represents an **investment**. This is a prime example of game theory: with a stake exceeding 33%, as of March 1, 2025, we are discussing an investment of more than **7.19 B₳**, a substantial sum. Attacking Ouroboros would not only compromise the system's integrity but also erode community trust, ultimately devaluing the very investment the adversary is attempting to exploit.
+
+If grinding attacks become visible to the community, adversarial SPOs risk being identified and facing significant consequences, such as reputational damage, delegator withdrawals, or even protocol-level countermeasures. 
+
+> This underscores the importance of both **countermeasures against grinding** and **robust monitoring tools** to **detect and deter** such attacks. Moreover, enhancing **transparency** in **leader election** and **randomness generation mechanisms** can serve as a **powerful deterrent**, ensuring that any attempts to **manipulate the system** are not only **costly** but also **highly visible** to the community.
 
 ### 3.4 Cost of a Grinding Attempt
 
 
 
-### 3.5 Cost of a Grinding Attempt
+
 
 ### 3.3 Grinding Power Computational Feasibility
 
