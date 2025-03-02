@@ -243,10 +243,10 @@ If $`VRF^\text{Output}_\text{(participant,t)} `$ is less than her private $` \te
 
 | **Features** | **Mathematical Form** | **Description**  | 
 |--------------|------------------|-----------------------|
-| **Slot Leader Proof** | $`VRF^\text{Certification}_\text{(participant,t)} \equiv (VRF^\text{Proof}_\text{(participant,t)},VRF^\text{Output}_\text{(participant,t)}) \leftarrow VRF_\text{gen} \left( KeyVRF^\text{participant}_\text{private}, \text{slot}_t \, \|\| \, \eta_\text{e} \right) `$ | This function computes the leader eligibility proof using the VRF, based on the slot number and randomness nonce.       | 
+| **Slot Leader Proof** | $`VRF^\text{Certification}_\text{(participant,t)} \equiv (VRF^\text{Proof}_\text{(participant,t)},VRF^\text{Output}_\text{(participant,t)}) \leftarrow VRF_\text{gen} \left( KeyVRF^\text{participant}_\text{private}, \text{slot}_t \, ⭒ \, \eta_\text{e} \right) `$ | This function computes the leader eligibility proof using the VRF, based on the slot number and randomness nonce.       | 
 | **Slot Leader Threshold** | $` \text{Threshold}^\text{participant}_\text{e} = (1 - ActiveSlotCoefficient )^\frac{\text{ActiveStake}^\text{e}_\text{participant}}{\text{ActiveStake}^\text{e}_\text{total}}  `$ | This function calculates the threshold for a participant's eligibility to be selected as a slot leader during $` \text{epoch}_e `$.   | 
 | **Eligibility Check** | $` isEligible\left (t,participant ,\text{ActivesStake}^\text{e},\eta_\text{e}\right) = \frac{ toBoundedNatural  \circ  VRF^\text{Output}_\text{(participant,t)}}{\text{MaxBoundedNatural}} < \text{Threshold}^\text{participant}_\text{e} `$ |The leader proof is compared against a threshold to determine if the participant is eligible to create a block.         |
-| **Verification**       | $` VRF_\text{verify} \left(  KeyVRF^\text{participant}_\text{public}, VRF^\text{Certification}_\text{(participant,t)}\right) = \text{slot}_t \, \|\| \, \eta_\text{e}  `$ | Other nodes verify the correctness of the leader proof by recomputing it using the public VRF key and slot-specific input.     | 
+| **Verification**       | $` VRF_\text{verify} \left(  KeyVRF^\text{participant}_\text{public}, VRF^\text{Certification}_\text{(participant,t)}\right) \equiv \text{slot}_t \, ⭒ \, \eta_\text{e}  `$ | Other nodes verify the correctness of the leader proof by recomputing it using the public VRF key and slot-specific input.     | 
  
 | Where | |
 |-----------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
@@ -256,15 +256,69 @@ If $`VRF^\text{Output}_\text{(participant,t)} `$ is less than her private $` \te
 | $` key_\text{public} `$               | The node's public key.                                                                                                            |
 | $` VRF_\text{gen} \left( key_\text{private}, \text{input} \right) \rightarrow (Proof,Output) `$ | Generate a Certification with input |
 | $` VRF_\text{verify} \left( key_\text{private}, (Proof,Output) \right) \rightarrow Input  `$ | Verify a Certification with input |
-| $` a \|\| b `$                        | The concatenation of $`a`$ and $`b`$.                                                 |
+| $` a ⭒ b `$    | The concatenation of $`a`$ and $`b`$ , followed by a BLAKE2b-256 hash computation.                                                |
 | $` \text{ActiveStake}^\text{e}_\text{participant} `$ | The stake owned by the participant used in $` \text{epoch}_\text{e} `$, computed within the previous $` \text{epoch}_\text{e-1} `$                                                                                              |
 | $` \text{ActiveStake}^\text{e}_\text{total} `$       | The total stake in the system used in $` \text{epoch}_\text{e} `$, computed within the previous $` \text{epoch}_\text{e-1} `$                                                                                                  |
 | $` ActiveSlotCoefficient`$                            | The active slot coefficient (referred as $`f`$), representing the fraction of slots that will have a leader and eventually a block produced.                                           |
 
 <details>
-  <summary>Consensus Layer Code Samples Relevant to This Section </summary>
+  <summary>
+  <span style="color: #0366d6; font-weight: bold;">
+  📌 - Relevant Implementation Code Snippets for This Section
+  <span style="color: #24292e;"> – Expand to view the content.</span>
+</span>
+ </summary>
   
 ```haskell
+-- | The body of the header is the part which gets hashed to form the hash
+-- chain.
+data HeaderBody crypto = HeaderBody
+  { -- | block number
+    hbBlockNo  :: !BlockNo,
+    -- | block slot
+    hbSlotNo   :: !SlotNo,
+    -- | Hash of the previous block header
+    hbPrev     :: !(PrevHash crypto),
+    -- | verification key of block issuer
+    hbVk       :: !(VKey 'BlockIssuer crypto),
+    -- | VRF verification key for block issuer
+    hbVrfVk    :: !(VerKeyVRF crypto),
+    -- | Certified VRF value
+    hbVrfRes   :: !(CertifiedVRF crypto InputVRF),
+    -- | Size of the block body
+    hbBodySize :: !Word32,
+    -- | Hash of block body
+    hbBodyHash :: !(Hash crypto EraIndependentBlockBody),
+    -- | operational certificate
+    hbOCert    :: !(OCert crypto),
+    -- | protocol version
+    hbProtVer  :: !ProtVer
+  }
+  deriving (Generic)
+
+-- | Input to the verifiable random function. Consists of the hash of the slot
+-- and the epoch nonce.
+newtype InputVRF = InputVRF {unInputVRF :: Hash Blake2b_256 InputVRF}
+  deriving (Eq, Ord, Show, Generic)
+  deriving newtype (NoThunks, ToCBOR)
+
+-- | Construct a unified VRF value
+mkInputVRF ::
+  SlotNo ->
+  -- | Epoch nonce
+  Nonce ->
+  InputVRF
+mkInputVRF (SlotNo slot) eNonce =
+  InputVRF
+    . Hash.castHash
+    . Hash.hashWith id
+    . runByteBuilder (8 + 32)
+    $ BS.word64BE slot
+      <> ( case eNonce of
+             NeutralNonce -> mempty
+             Nonce h      -> BS.byteStringCopy (Hash.hashToBytes h)
+         )
+
 -- | Assert that a natural is bounded by a certain value. Throws an error when
 -- this is not the case.
 assertBoundedNatural ::
@@ -351,6 +405,46 @@ checkLeaderNatValue bn σ f =
     x = -fromRational σ * c
     certNatMax = bvMaxValue bn
     certNat = bvValue bn
+
+  -- | Evolving nonce type.
+data Nonce
+  = Nonce !(Hash Blake2b_256 Nonce)
+  | -- | Identity element
+    NeutralNonce
+  deriving (Eq, Generic, Ord, Show, NFData)
+
+-- | Evolve the nonce
+(⭒) :: Nonce -> Nonce -> Nonce
+Nonce a ⭒ Nonce b =
+  Nonce . castHash $
+    hashWith id (hashToBytes a <> hashToBytes b)
+x ⭒ NeutralNonce = x
+NeutralNonce ⭒ x = x
+
+-- | Hash the given value, using a serialisation function to turn it into bytes.
+--
+hashWith :: forall h a. HashAlgorithm h => (a -> ByteString) -> a -> Hash h a
+hashWith serialise =
+    UnsafeHashRep
+  . packPinnedBytes
+  . digest (Proxy :: Proxy h)
+  . serialise
+
+instance HashAlgorithm Blake2b_224 where
+  type SizeHash Blake2b_224 = 28
+  hashAlgorithmName _ = "blake2b_224"
+  digest _ = blake2b_libsodium 28
+
+blake2b_libsodium :: Int -> B.ByteString -> B.ByteString
+blake2b_libsodium size input =
+  BI.unsafeCreate size $ \outptr ->
+    B.useAsCStringLen input $ \(inptr, inputlen) -> do
+      res <- c_crypto_generichash_blake2b (castPtr outptr) (fromIntegral size) (castPtr inptr) (fromIntegral inputlen) nullPtr 0 -- we used unkeyed hash
+      unless (res == 0) $ do
+        errno <- getErrno
+        ioException $ errnoToIOError "digest @Blake2b: crypto_generichash_blake2b" errno Nothing Nothing
+
+
   ```
 </details>
 
@@ -364,13 +458,13 @@ The sequential flow of these 3 phases is deliberately structured by designed :
 
 | Id | **Phase**                                                  | **Key Property**                 | **Description**| 
 |----|-------------------------------|---------------------------|-------------------------------|
-| **1.**| $`\text{ActiveStakeDistribution}_e `$ Stabilization | **Chain Growth (CG)**  | This phase must be long enough to satisfy the **Chain Growth (CG)** property, ensuring that each honest party's chain grows by at least $`k`$ blocks. This guarantees that all honest parties agree on the stake distribution from the previous epoch. | 
+| **1.**| $`\text{ActiveStakeDistribution}_e `$ Stabilization | **Chain Growth (CG for CP)**  | This phase must be long enough to satisfy the **Chain Growth (CG)** property, ensuring that each honest party's chain grows by at least $`k`$ blocks. This guarantees that all honest parties agree on the stake distribution from the previous epoch. | 
 | **2.**| Honest Randomness in $`\eta_\text{e}`$     | **Existential Chain Quality (∃CQ)** | After the Active Stake Distribution being stabilized to prevent adversaries from adjusting their stake in their favor, this phase must be sufficiently long to satisfy the Existential Chain Quality (∃CQ) property, which is parameterized by $`s \in \mathbb{N}`$, ensuring that at least one honestly-generated block is included within any span of $s$ slots. The presence of such a block guarantees that honest contributions to the randomness used in the leader election process are incorporated. This phase directly improves the quality of the randomness $` \eta_\text{e} `$ by ensuring that adversarial attempts to manipulate the randomness beacon are mitigated. The honest block serves as a critical input, strengthening the unpredictability and fairness of the leader election mechanism.   | 
-| **3.**| $`\eta_\text{e}`$ Stabilization   | **Chain Growth (CG)**          | This phase must again be long enough to satisfy the **Chain Growth (CG)** property, ensuring that each honest party's chain grows by at least $`k`$ blocks, allowing all honest parties to agree on the randomness contributions from the second phase. | 
+| **3.**| $`\eta_\text{e}`$ Stabilization   | **Chain Growth (CG for CP)**          | This phase must again be long enough to satisfy the **Chain Growth (CG)** property, ensuring that each honest party's chain grows by at least $`k`$ blocks, allowing all honest parties to agree on the randomness contributions from the second phase. | 
 
 ### 1.3.4 Epoch & Phases Length 
 
-While there is no theoretical upper bound on the epoch size—since it is defined by social and practical considerations (e.g., $`10 \, \text{k}/f`$ slots, approximately 5 days)—the epoch does have a defined lower bound. Phases 1 and 3 have fixed sizes of $`3 \, \text{k}/f`$ and $`4 \, \text{k}/f`$, respectively. The size of Phase 2, "Honest Randomness in $`\eta_\text{e}`$," is adjustable with a minimum size of $`1 \, \text{k}/f`$. 
+While there is no theoretical upper bound on the epoch size—since it is defined by social and practical considerations (e.g., $`10 \, \text{k}/f`$ slots, 5 days)—the epoch does have a defined lower bound. Phases 1 and 3 have fixed sizes of $`3 \, \text{k}/f`$ and $`4 \, \text{k}/f`$, respectively. The size of Phase 2, "Honest Randomness in $`\eta_\text{e}`$," is adjustable with a minimum size of $`1 \, \text{k}/f`$. 
 
 The structure of an epoch is often described by the ratio `3:3:4`:
 - **Phase 1** occupies **3** parts of the total epoch.
@@ -390,7 +484,7 @@ The protocol operates with three distinct nonces, each serving a critical role i
    \eta^{\text{evolving}}_{t+1} =
    \begin{cases}
    \text{ProtocolParameter}_\text{extraEntropy} & \text{when } t = 0, \\
-   \eta^{\text{evolving}}_{t} \oplus VRF^\text{Output}_\text{t+1} & \text{when BlockProduced}(t) \\
+   \eta^{\text{evolving}}_{t} ⭒ VRF^\text{Output}_\text{t+1} & \text{when BlockProduced}(t) \\
    \eta^{\text{evolving}}_{t}  & \text{otherwise.}
    \end{cases}
    
@@ -407,25 +501,30 @@ false & \text{otherwise.}
 |---------------|-----------------|
 | $`\text{ProtocolParameter}_\text{extraEntropy} `$ | The evolving nonce is initialized using the extraEntropy field defined in the protocol parameters.|
 | $` VRF^\text{Output}_\text{i} `$ | The **VRF output** generated by the $` \text{slot}_\text{i} `$ Leader and included in the block header |
+| $` a ⭒ b `$    | The concatenation of $`a`$ and $`b`$ , followed by a BLAKE2b-256 hash computation.
 
 ##### - **The $`\eta^\text{candidates}`$**  
 
    - It represents a candidate nonce for epoch $`e`$ and is the last derived  $`\eta^{evolving}_\text{t}`$ at the end of phase 2 $`\text{epoch}_{e-1}`$.   
-   - The value of $`\eta_\text{e}`$ is derived from the $`\eta_e^\text{candidate}`$ contained within the fork that is ultimately selected as the **canonical chain** at the conclusion of $`\text{epoch}_{e-1}`$.  
    
 ```math
 \eta_\text{e}^\text{candidate} = \eta^\text{evolving}_{t}, \quad \text{when } t = T_{\text{phase2}_\text{end}}^{\text{epoch}_{e-1}}  
 ```
 
 ###### - **The $`\eta`$** Generations
-   - This is the final nonce used to determine participant eligibility during epoch $`e`$.  
-   - It originates from $`\eta_e^\text{candidate}`$ XOR with $`\eta^\text{evolving}`$ of the last block of the previous epoch, which becomes stabilized at the conclusion of $`\text{epoch}_{e-1}`$ and transitions into $`\text{epoch}_e`$.  
+   - This is the final nonce used to determine participant eligibility during epoch $`e`$. 
+   - The value of $`\eta_\text{e}`$ is derived from the $`\eta_e^\text{candidate}`$ contained within the fork that is ultimately selected as the **canonical chain** at the conclusion of $`\text{epoch}_{e-1}`$.  
+   - It originates from $`\eta_e^\text{candidate}`$ concatenated with $`\eta^\text{evolving}`$ of the last block of the previous epoch followed by a BLAKE2b-256 hash computation , which becomes stabilized at the conclusion of $`\text{epoch}_{e-1}`$ and transitions into $`\text{epoch}_e`$.  
 
 ```math
-\eta_\text{e} = \eta^\text{candidate}_{e} \oplus \eta^\text{evolving}_{T_{\text{end}}^{\text{epoch}_{e-2}}} , \quad \text{when } {\text{epoch}_e\text{ start}} 
+\eta_\text{e} = \eta^\text{candidate}_{e} ⭒ \eta^\text{evolving}_{T_{\text{end}}^{\text{epoch}_{e-2}}} , \quad \text{when } {\text{epoch}_e\text{ start}} 
 ```
 <details>
-  <summary>**N.B** : divergence with academic papers </summary> 
+  <summary>
+   <span style="color: #0366d6; font-weight: bold;">
+  📌 - Divergence with academic papers
+  <span style="color: #24292e;"> – Expand to view the content.</span>
+</span></summary> 
   <p>it is :
 
 ```math
@@ -435,27 +534,82 @@ false & \text{otherwise.}
   </p>
 </details>
 
-## 1.4 Forks, Rollbacks, Finality and Settlement Times
+<details>
+  <summary>
+  <span style="color: #0366d6; font-weight: bold;">
+  📌 - Relevant Implementation Code Snippets for This Section
+  <span style="color: #24292e;"> – Expand to view the content.</span>
+</span>
+ </summary>
+  
+```haskell
 
-With Ouroboros Praos, as with [Nakamoto consensus](https://coinmarketcap.com/academy/article/what-is-the-nakamoto-consensus) in general, transaction finality is probabilistic rather than immediate. This means a transaction isn't guaranteed being permanently stored in the ledger when it's first included in a block. Instead, each additional block added on top strengthens its permanence, gradually decreasing the likelihood of rollback. 
+  -- | Evolving nonce type.
+data Nonce
+  = Nonce !(Hash Blake2b_256 Nonce)
+  | -- | Identity element
+    NeutralNonce
+  deriving (Eq, Generic, Ord, Show, NFData)
 
-Ouroboros Praos guarantees that after 𝐾 blocks have been produced, the likelihood of a rollback diminishes to the point where those blocks can be regarded as secure and permanent within the Ledger. However, prior to the production of these 𝐾 blocks, multiple versions of the blockchain—commonly referred to as "forks"—may coexist across the network. Each fork represents a potential ledger state until finality is ultimately achieved.
+-- | Evolve the nonce
+(⭒) :: Nonce -> Nonce -> Nonce
+Nonce a ⭒ Nonce b =
+  Nonce . castHash $
+    hashWith id (hashToBytes a <> hashToBytes b)
+x ⭒ NeutralNonce = x
+NeutralNonce ⭒ x = x
 
-The consensus layer operates with a structure that resembles a branching "tree" of blockchains before finality stabilizes :   
+-- | Hash the given value, using a serialisation function to turn it into bytes.
+--
+hashWith :: forall h a. HashAlgorithm h => (a -> ByteString) -> a -> Hash h a
+hashWith serialise =
+    UnsafeHashRep
+  . packPinnedBytes
+  . digest (Proxy :: Proxy h)
+  . serialise
+
+instance HashAlgorithm Blake2b_224 where
+  type SizeHash Blake2b_224 = 28
+  hashAlgorithmName _ = "blake2b_224"
+  digest _ = blake2b_libsodium 28
+
+blake2b_libsodium :: Int -> B.ByteString -> B.ByteString
+blake2b_libsodium size input =
+  BI.unsafeCreate size $ \outptr ->
+    B.useAsCStringLen input $ \(inptr, inputlen) -> do
+      res <- c_crypto_generichash_blake2b (castPtr outptr) (fromIntegral size) (castPtr inptr) (fromIntegral inputlen) nullPtr 0 -- we used unkeyed hash
+      unless (res == 0) $ do
+        errno <- getErrno
+        ioException $ errnoToIOError "digest @Blake2b: crypto_generichash_blake2b" errno Nothing Nothing
+
+
+  ```
+</details>
+
+## **1.4 Forks, Rollbacks, Finality, and Settlement Times**
+
+With **Ouroboros Praos**, as with [**Nakamoto consensus**](https://coinmarketcap.com/academy/article/what-is-the-nakamoto-consensus) in general, transaction **finality** is **probabilistic** rather than immediate. This means a transaction isn't **guaranteed** to be permanently stored in the **ledger** when it's first included in a **block**. Instead, each additional **block** added on top **strengthens its permanence**, gradually decreasing the likelihood of a **rollback**.
+
+**Ouroboros Praos** guarantees that after $`K`$ blocks have been produced, the likelihood of a **rollback** diminishes to the point where those blocks can be regarded as **secure** and **permanent** within the **ledger**. However, before these $`K`$ blocks are finalized, multiple versions of the **blockchain**—commonly referred to as "**forks**"—may coexist across the **network**. Each **fork** represents a potential **ledger state** until **finality** is ultimately achieved.
+
+The **consensus layer** operates with a structure that resembles a branching **"tree" of blockchains** before **finality** stabilizes:
+
 ![alt text](high-level-ledger-structure.png)
 
-Blockchain forks can occur for several reasons:
+#### **Why Do Blockchain Forks Occur?**
 
-- Multiple slot leaders can be elected for a single slot, potentially resulting in the production of multiple blocks within that slot.
-- Block propagation across the network takes time, causing nodes to have differing views of the current chain.
-- Nodes can dynamically join or leave the network.
-- An adversarial node is not obligated to agree with the most recent block (or series of blocks); it can instead choose to append its block to an earlier block in the chain.
+Blockchain **forks** can happen for several reasons:
 
-Short forks, typically just a few blocks long, occur frequently and are usually non-problematic. The rolled-back blocks are often nearly identical, containing the same transactions, though they might be distributed differently among the blocks or have minor differences.
+- **Multiple slot leaders** can be elected for a single **slot**, potentially resulting in the production of **multiple blocks** within that **slot**.
+- **Block propagation** across the **network** takes time, causing **nodes** to have differing views of the **current chain**.
+- **Nodes** can dynamically **join** or **leave** the **network**, which is a fundamental challenge in decentralized systems, affecting synchronization and consensus stability.
+- An **adversarial node** is not obligated to agree with the most **recent block** (or **series of blocks**); it can instead choose to append its **block** to an **earlier block** in the **chain**.
 
-However, longer forks can have harmful consequences. 
-For example, if an end-user (the recipient of funds) makes a decision—such as accepting payment and delivering goods to another user (the sender of the transaction)—based on a transaction that is later rolled back and does not reappear because it was invalid (e.g., due to double-spending a UTxO), 
-it creates a risk of fraud.
+#### **Short Forks vs. Long Forks**
+
+**Short forks**, typically just a **few blocks long**, occur **frequently** and are usually **non-problematic**. The **rolled-back blocks** are often nearly identical, containing the **same transactions**, though they might be distributed **differently** among the **blocks** or have **minor differences**.
+
+However, **longer forks** can have **harmful consequences**. For example, if an **end-user** (the **recipient** of funds) makes a decision—such as **accepting payment** and **delivering goods** to another user (**the sender of the transaction**)—based on a **transaction** that is later **rolled back** and does not **reappear** because it was **invalid** (e.g., due to **double-spending** a **UTxO**), it creates a **risk of fraud**.
 
 ## 2. The Grinding Attack Algorithm  
 
@@ -745,11 +899,11 @@ For example, with **5% adversarial stake**, it would take **73 years** for an ad
 
 We observe that when the **adversarial stake exceeds 33%**, the adversary gains a significantly higher probability of winning the lottery, to the extent that its influence becomes primarily constrained by its computational capacity to generate and evaluate a $`2^ρ`$-sized leader election distribution set.
 
-Also, note that while we have focused on the cost aspect of this entry ticket, the adversarial stake itself represents an **investment**. This is a prime example of game theory: with a stake exceeding 33%, as of March 1, 2025, we are discussing an investment of more than **7.19 B₳**, a substantial sum. Attacking Ouroboros would not only compromise the system's integrity but also erode community trust, ultimately devaluing the very investment the adversary is attempting to exploit.
+Also, note that while we have focused on the cost aspect of this entry ticket, the adversarial stake itself represents an **investment**. This is a prime example of **game theory**: with a stake exceeding 33%, as of March 1, 2025, we are discussing an investment of more than **7.19 B₳**, a substantial sum. Attacking Ouroboros would not only compromise the system's integrity but also erode community trust, ultimately devaluing the very investment the adversary is attempting to exploit.
 
-If grinding attacks become visible to the community, adversarial SPOs risk being identified and facing significant consequences, such as reputational damage, delegator withdrawals, or even protocol-level countermeasures. 
+Grinding attacks that become visible to the community lead to significant risks for adversarial SPOs. Exposure can result in reputational damage, delegator withdrawals, or even protocol-level countermeasures, limiting their ability to sustain the attack.
 
-> This underscores the importance of both **countermeasures against grinding** and **robust monitoring tools** to **detect and deter** such attacks. Moreover, enhancing **transparency** in **leader election** and **randomness generation mechanisms** can serve as a **powerful deterrent**, ensuring that any attempts to **manipulate the system** are not only **costly** but also **highly visible** to the community.
+> This underscores the importance of **Game Theory** in shaping rational adversarial incentives and **Transparency** as a deterrent mechanism, ensuring that malicious actions come with significant consequences.
 
 ### 3.4 Cost of a Grinding Attempt
 
