@@ -733,9 +733,9 @@ Both strategies undermine fairness in leader election, with **Preemptive Forking
 
 ## 3. The Cost of Grinding: Adversarial Effort and Feasibility  
 
-### 3.2 Definitions
+### 3.1 Definitions
 
-#### 3.2.1 A-Heavy and Heaviness
+#### 3.1.1 A-Heavy and Heaviness
 An **A-heavy suffix** refers to a blockchain segment where **adversarial slots dominate** over a specific interval.
 
 - Let $`X_A(w)`$ be the **number of adversarial slots** in the last $`w`$ slots.
@@ -755,7 +755,7 @@ An **A-heavy suffix** refers to a blockchain segment where **adversarial slots d
   - **$`\lambda(w) = 1`$** → Fully adversarial suffix.
 
 
-#### 3.2.2 Grinding Power g
+#### 3.1.2 Grinding Power g
 
 An **An-heavy suffix** must be present around the critical juncture for a grinding attack to be considered. The **heavier** `w` is, the **higher** the grinding power becomes.
 
@@ -780,7 +780,7 @@ g_{\max} = 2^{256}
 
 However, practical grinding power is typically limited by computational constraints and stake distribution dynamics.
 
-#### 3.2.3 Grinding Depth ρ  
+#### 3.1.3 Grinding Depth ρ  
  
 The **grinding depth** $`\rho`$ quantifies the adversary's **effective search space**, determining the number of distinct nonce values that can be computed and selectively revealed.  
 
@@ -793,9 +793,9 @@ where **$`\rho`$** is the number of bits of randomness an adversary can manipula
 
 The grinding depth $`\rho`$ determines the **entropy reduction** caused by an adversary's nonce manipulation, directly impacting the protocol's resistance to randomness biasing.
 
-#### 3.2.4 Grinding Windows
+#### 3.1.4 Grinding Windows
 
-##### 3.2.4.1 Opportunity Windows $`w_O`$  
+##### 3.1.4.1 Opportunity Windows $`w_O`$  
 
 The **grinding window** $`w_O`$ is the **time interval** during which an adversary can compute all **$`2^\rho`$ possible nonces**, execute the grinding attack algorithm, and strategically publish blocks to enforce their chosen $`\eta`$ nonce at the epoch’s end.  
 
@@ -824,7 +824,7 @@ Moreover, because this fork remains **private until revealed**, the adversary is
 
 As a result, this **fork-based grinding strategy** not only provides a **longer and more stable attack window** but is also **more feasible** than controlling the last $`\rho`$ consecutive blocks.
 
-##### 3.2.4.2 Attack Window $`w_A`$
+##### 3.1.4.2 Attack Window $`w_A`$
 
 Once the adversary obtains a potential **candidate nonce** ($`\eta_e^{\text{candidate}}`$) for epoch $`e`$, they can compute their private **slot leader distribution** for the entire epoch, spanning:  
 
@@ -835,7 +835,7 @@ Once the adversary obtains a potential **candidate nonce** ($`\eta_e^{\text{cand
 
 We define the **grinding attack window** $`w_A`$ as the slot interval an adversary targets based on their attack strategy, where $`1 \leq w_A \leq 4.32 \times 10^5 \text{ slots}`$.
 
-#### 3.2.3 Grinding Attempt
+#### 3.1.3 Grinding Attempt
 
 A **grinding attempt** is a single **evaluation of a possible $`\eta`$ nonce** by the adversary within the grinding attack window $`w_O`$.  
 Each attempt follows three key steps:  
@@ -851,7 +851,7 @@ g = 2^\rho
 ```
 where **$`\rho`$** represents the **grinding depth**, i.e., the number of distinct $`\eta`$ nonces they can evaluate within $`w_O`$.  
 
-### 3.3 Entry Ticket: Acquiring Stake to Play the Lottery  
+### 3.2 Entry Ticket: Acquiring Stake to Play the Lottery  
 
 Before an adversary can execute a grinding attack, they must first **acquire enough stake**, akin to **buying an entry ticket** to participate in a **lottery**.  
 In this case, the **lottery** is the leader election process, where the probability of winning a slot—and thus influencing the $`\eta`$ nonce—is directly proportional to the stake held.  
@@ -905,10 +905,108 @@ Grinding attacks that become visible to the community lead to significant risks 
 
 > This underscores the importance of **Game Theory** in shaping rational adversarial incentives and **Transparency** as a deterrent mechanism, ensuring that malicious actions come with significant consequences.
 
-### 3.4 Cost of a Grinding Attempt
+### 3.3 Cost of a Grinding Attempt  
 
+As previously explained, each attempt consists of three key steps:  
 
+1. **Computing a candidate $`\eta`$ nonce** by selectively revealing or withholding VRF outputs.  
+2. **Simulating the resulting slot leader distribution** over the attack window $`w_A`$.  
+3. **Evaluating the strategic benefit** of choosing this $`\eta`$ nonce for adversarial objectives.  
 
+Let's analyze each of these steps.  
+
+### 3.3.1 Nonce Generation  
+
+Nonce generation consists of:  
+
+1. **VRF Evaluation**: Computes a candidate $`\eta`$ nonce.  
+2. **⭒ Operation**: Concatenation + **BLAKE2b-256** hashing.  
+
+Since the adversary can **reveal or withhold** the VRF output, only **half** of the generated nonces are used, introducing a **$`\frac{1}{2}`$ factor** in computational cost.
+
+#### **Estimated Computational Cost**  
+
+```math
+T_{\text{nonce}} = \frac{1}{2} \times (T_{\text{VRF}} + T_{\text{BLAKE2b}})
+```
+
+### 3.3.2 Slot Leader Distribution Simulation  
+
+After generating a candidate nonce, the adversary must evaluate its impact on **slot leader election** over an attack window $`w_A`$ :  
+
+1. **Computing VRF outputs** for all slots in $`w_A`$.  
+2. **Comparing these values** to the leader threshold.  
+3. **Estimating the probability of successful slot control**.  
+
+Since **leader eligibility is unknown in advance**, the adversary must verify **all slots** in $`w_A`$.
+
+#### **General Computational Formula**  
+
+Define:
+- $`w_A`$ → **attack window size (seconds)**.
+- $`T_{\text{VRF Verify}}`$ → **VRF verification time per slot**.
+- $`N_{\text{CPU}}`$ → **number of available CPUs**.
+
+Each slot requires **one VRF verification**, leading to:
+
+```math
+T_{\text{verify}} = \frac{w_A \times T_{\text{VRF Verify}}}{N_{\text{CPU}}}
+```
+
+### 3.3.3 Strategic Benefit Evaluation  
+
+After simulating the leader election distribution, the adversary must determine whether the selected $`\eta`$ nonce provides a **strategic advantage** by:  
+
+1. **Assessing block production gains** relative to honest stake.  
+2. **Estimating adversarial control over leader election.**  
+3. **Comparing multiple nonces** to select the most effective one.  
+
+#### **Nature of the Computational Workload**  
+
+Unlike previous steps, this phase does not perform a single deterministic computation but operates as an **evaluation loop over a dataset of adversarial leader election scenarios**. The attacker’s dataset includes:  
+
+- **Nonce-to-leader mappings** → which nonces yield better leadership control.  
+- **Stake distributions** → impact of adversarial stake on slot control.  
+- **Slot timing predictions** → evaluating when it's best to control a block.  
+- **Secondary constraints** → network conditions, latency factors, or additional attack-specific considerations.  
+
+Since this **"database" of possible leader elections** depends on **adversarial strategies**, the cost is too diverse to define precisely. While the **exact cost varies**, this step is **compulsory** and must be factored into the total grinding time.
+
+### 3.3.4 Total Estimated Time per Grinding Attempt  
+
+The total grinding time is the sum of:  
+
+1. **Nonce Generation ($T_{\text{nonce}}$)** → VRF evaluation + hashing.  
+2. **Slot Leader Simulation ($T_{\text{verify}}$)** → Eligibility checks over $`w_A`$.  
+3. **Strategic Evaluation ($T_{\text{eval}}$)** → Nonce selection analysis.  
+
+#### **Total Grinding Time Formula**  
+
+```math
+T_{\text{grinding}} = T_{\text{nonce}} + T_{\text{verify}} + T_{\text{eval}}
+```
+
+Expanding each term:
+
+- **Nonce Generation:** : $`T_{\text{nonce}} = \frac{1}{2} (T_{\text{VRF}} + T_{\text{BLAKE2b}})`$
+- **Slot Leader Verification** : $`T_{\text{verify}} = \frac{w_A \times T_{\text{VRF Verify}}}{N_{\text{CPU}}}`$
+- **Strategic Evaluation** : $`T_{\text{eval}}`$ (attack-dependent term)
+
+Final expression:
+
+```math
+T_{\text{grinding}} = \frac{1}{2} (T_{\text{VRF}} + T_{\text{BLAKE2b}}) + \frac{w_A \times T_{\text{VRF Verify}}}{N_{\text{CPU}}} + T_{\text{eval}}
+```
+
+Where:
+- $T_{\text{VRF}}$ is the VRF evaluation time.
+- $T_{\text{BLAKE2b}}$ is the time for the hashing operation.
+- $T_{\text{VRF Verify}}$ is the time required to verify a VRF output.
+- $w_A$ is the attack window size (seconds).
+- $N_{\text{CPU}}$ is the number of CPUs available for parallel processing.
+- $T_{\text{eval}}$ is the nonce selection and evaluation time, which is attack-specific.
+
+### 3.4 Cost of a Grinding Attack
 
 
 ### 3.3 Grinding Power Computational Feasibility
