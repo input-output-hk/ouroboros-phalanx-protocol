@@ -1148,7 +1148,6 @@ These four cases represent **notable grinding attack scenarios**, each correspon
 
 These cases help us **frame the feasibility of grinding attacks** and analyze how **$N_{\text{CPU}}$ scales** across these four scenarios.
 
----
 ### 3.5.2 Estimated Formulas for Each Case
 
 Now, we present the **estimated formula** for each **Feasibility Square** case using **mainnet Cardano parameters**, formatted with math notation:
@@ -1181,7 +1180,7 @@ N_{\text{CPU}} \approx \frac{2^{\rho} \times 5 \times 10^{-5} \times (11 \times 
 N_{\text{CPU}} \approx \frac{2^{\rho} \times 5 \times 10^{-5} \times (11 \times 10^{-3} + 20)}{2\rho - 1} + \frac{\sqrt{2^{\rho} \times 2 \times 10^{-7} \times 432000}}{2\rho - 1}
 ```
 
-
+![alt text](image-23.png)
 
 ------
 
