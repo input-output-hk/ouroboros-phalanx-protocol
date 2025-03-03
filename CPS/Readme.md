@@ -1008,7 +1008,111 @@ Where:
 
 ### 3.4 Cost of a Grinding Attack
 
+A **grinding attack** consists of multiple grinding attempts executed within the **grinding opportunity window** $`w_O`$. Since each grinding attempt takes time to compute, the feasibility of the attack depends on whether the total computation can be completed within this window.
 
+We define the **total attack time** as:
+
+```math
+T_{\text{attack}} = \frac{2^{\rho} \times T_{\text{grinding}}}{N_{\text{CPU}}}
+```
+
+where:
+- $`\rho`$ = **grinding depth** (bits of entropy the adversary can manipulate),
+- $`T_{\text{grinding}}`$ = **time required for one grinding attempt**,
+- $`N_{\text{CPU}}`$ = **number of CPUs available for parallel execution**.
+
+For the attack to be feasible, this total time must fit within the **grinding opportunity window** $`w_O`$:
+
+```math
+\frac{2^{\rho} \times T_{\text{grinding}}}{N_{\text{CPU}}} \leq w_O
+```
+
+which leads to the lower bound on computational power:
+
+```math
+N_{\text{CPU}} \geq \frac{2^{\rho} \times T_{\text{grinding}}}{w_O}
+```
+
+#### Expanding $`T_{\text{grinding}}`$
+From **Section 3.3**, the per-attempt grinding time is:
+
+```math
+T_{\text{grinding}} = \frac{1}{2} (T_{\text{VRF}} + T_{\text{BLAKE2b}}) + \frac{w_A \times T_{\text{VRF Verify}}}{N_{\text{CPU}}} + T_{\text{eval}}
+```
+
+Substituting this into the inequality:
+
+```math
+N_{\text{CPU}} \geq \frac{2^{\rho} \times \left( \frac{1}{2} (T_{\text{VRF}} + T_{\text{BLAKE2b}}) + \frac{w_A \times T_{\text{VRF Verify}}}{N_{\text{CPU}}} + T_{\text{eval}} \right)}{w_O}
+```
+
+Multiplying both sides by $`N_{\text{CPU}}`$ to remove the denominator inside the fraction:
+
+```math
+N_{\text{CPU}}^2 - \frac{2^{\rho} \times \left( \frac{1}{2} (T_{\text{VRF}} + T_{\text{BLAKE2b}}) + T_{\text{eval}} \right)}{w_O} \times N_{\text{CPU}} - \frac{2^{\rho} \times w_A \times T_{\text{VRF Verify}}}{w_O} \geq 0
+```
+
+This is now a **quadratic equation** in $`N_{\text{CPU}}`$, which we solve using the quadratic formula:
+
+```math
+N_{\text{CPU}} \geq \frac{-b + \sqrt{b^2 - 4ac}}{2a}
+```
+
+where:
+- $`a = 1`$
+- $`b = -\frac{2^{\rho} \times \left( \frac{1}{2} (T_{\text{VRF}} + T_{\text{BLAKE2b}}) + T_{\text{eval}} \right)}{w_O}`$
+- $`c = -\frac{2^{\rho} \times w_A \times T_{\text{VRF Verify}}}{w_O}`$
+
+#### Expanding $`w_O`$ in Terms of $`\rho`$ and $`f`$
+From previous sections, the **grinding opportunity window** is:
+
+```math
+w_O = (2\rho - 1) \times \frac{1}{f}
+```
+
+Substituting this into our equation:
+
+```math
+N_{\text{CPU}} \geq \frac{ \frac{2^{\rho} \times f \times \left( \frac{1}{2} (T_{\text{VRF}} + T_{\text{BLAKE2b}}) + T_{\text{eval}} \right)}{2\rho - 1} + \sqrt{\left( \frac{2^{\rho} \times f \times \left( \frac{1}{2} (T_{\text{VRF}} + T_{\text{BLAKE2b}}) + T_{\text{eval}} \right)}{2\rho - 1} \right)^2 + 4 \frac{2^{\rho} \times f \times w_A \times T_{\text{VRF Verify}}}{2\rho - 1} }}{2}
+```
+
+### Final Estimated Formula Using Cardano Parameters
+Using the Cardano estimates:
+- $`T_{\text{VRF}} = 10^{-6}`$
+- $`T_{\text{BLAKE2b}} = 10^{-7}`$
+- $`T_{\text{VRF Verify}} = 10^{-6}`$
+- $`T_{\text{eval}}`$ (kept explicit)
+- $`f = \frac{1}{20}`$
+
+Approximating:
+
+```math
+\frac{1}{2} (T_{\text{VRF}} + T_{\text{BLAKE2b}}) = 5.5 \times 10^{-7}
+```
+
+Substituting:
+
+```math
+N_{\text{CPU}} \geq \frac{ \frac{2^{\rho} \times 5 \times 10^{-5} \times (11 \times 10^{-3} + 20T_{\text{eval}})}{2\rho - 1} + \sqrt{\left( \frac{2^{\rho} \times 5 \times 10^{-5} \times (11 \times 10^{-3} + 20T_{\text{eval}})}{2\rho - 1} \right)^2 + 4 \frac{2^{\rho} \times 5 \times 10^{-7} \times w_A}{2\rho - 1} }}{2}
+```
+
+which further simplifies to:
+
+```math
+N_{\text{CPU}} \approx \frac{2^{\rho} \times 5 \times 10^{-5} \times (11 \times 10^{-3} + 20T_{\text{eval}})}{2\rho - 1} + \frac{\sqrt{2^{\rho} \times 2 \times 10^{-7} \times w_A}}{2\rho - 1}
+```
+
+### Key Takeaways
+- The **first term dominates** when $`w_A`$ is small, meaning the CPU demand is mainly driven by nonce computation.
+- The **second term grows with $`w_A`$**, reflecting greater verification complexity.
+- The **exponential growth of $`2^{\rho}`$ makes grinding infeasible** even for moderate values of $`\rho`$.
+- **$`T_{\text{eval}}`$ is explicitly retained** in the first term.
+
+------
+
+!!**Section below needs to be updated with new formulas**!!
+
+------
 ### 3.3 Grinding Power Computational Feasibility
 
 ![alt text](image-14.png)
