@@ -824,6 +824,20 @@ Moreover, because this fork remains **private until revealed**, the adversary is
 
 As a result, this **fork-based grinding strategy** not only provides a **longer and more stable attack window** but is also **more feasible** than controlling the last $`\rho`$ consecutive blocks.
 
+![alt text](image-21.png)
+
+With an **active slot coefficient** of `f ≈ 0.05`, each slot lasts **~20 seconds**, meaning:  
+- **For ρ = 256 (maximum shown on the graph)**:
+  - **Controlling the last 256 blocks** gives an opportunity window of **256 × 20 = ~1.4 hours**.
+  - **Controlling 256 out of the last 511 blocks** extends the window to **(2 × 256 - 1) × 20 = ~2.8 hours**.
+  
+- **For lower grinding depths**:
+  - **ρ = 128** → `~42 minutes` (last ρ blocks), `~1.4 hours` (fork-based).  
+  - **ρ = 64** → `~21 minutes` (last ρ blocks), `~42 minutes` (fork-based).  
+  - **ρ = 32** → `~10.5 minutes` (last ρ blocks), `~21 minutes` (fork-based).  
+
+The **fork-based strategy provides nearly double the opportunity window**, making grinding more feasible at higher depths. 
+
 ##### 3.1.4.2 Attack Window $`w_A`$
 
 Once the adversary obtains a potential **candidate nonce** ($`\eta_e^{\text{candidate}}`$) for epoch $`e`$, they can compute their private **slot leader distribution** for the entire epoch, spanning:  
