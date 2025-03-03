@@ -53,52 +53,57 @@ Finally, it is essential to recognize that **adversarial capabilities continuall
 
 - [1. Preliminaries](#1-preliminaries)
   - [1.1 Fundamental Properties](#11-fundamental-properties)
-    - [1.1.1 Transaction Ledger Properties](#111-transaction-ledger-properties)
-      - [1.1.1.1 Persistence with the **security parameter** $` \text{k} \in \mathbb{N} `$](#1111-persistence-with-the-security-parameter--textk-in-mathbbn-)
-      - [1.1.1.2 Liveness with the **transaction confirmation time parameter** $` u \in \mathbb{N} `$](#1112-liveness-with-the-transaction-confirmation-time-parameter--textu-in-mathbbn-)
-    - [1.1.2 Chain Properties](#112-chain-properties)
-      - [1.1.2.1 Common Prefix (CP)](#1121-common-prefix-cp)
-      - [1.1.2.2 Existential Chain Quality (∃CQ)](#1122-existential-chain-quality-cq)
-      - [1.1.2.3 Chain Growth (CG)](#1123-chain-growth-cg)
+    + [1.1.1 Transaction Ledger Properties](#111-transaction-ledger-properties)
+      * [1.1.1.1 Persistence with the **security parameter** $` \text{k} \in \mathbb{N} `$](#1111-persistence-with-the-security-parameter--textk-in-mathbbn-)
+      * [1.1.1.2 Liveness with the **transaction confirmation time parameter** $` u \in \mathbb{N} `$](#1112-liveness-with-the-transaction-confirmation-time-parameter--textu-in-mathbbn-)
+    + [1.1.2 Chain Properties](#112-chain-properties)
+      * [1.1.2.1 Common Prefix (CP)](#1121-common-prefix-cp)
+      * [1.1.2.2 Existential Chain Quality (∃CQ)](#1122-existential-chain-quality-cq)
+      * [1.1.2.3 Chain Growth (CG)](#1123-chain-growth-cg)
   - [1.2 The Coin-Flipping Problem](#12-the-coin-flipping-problem)
-    - [1.2.1 Defining the Problem](#121-defining-the-problem)
-    - [1.2.2 Strategies for Randomness Generation](#122-strategies-for-randomness-generation)
-    - [1.2.3 The Historical Evolution of Ouroboros Randomness Generation](#123-the-historical-evolution-of-ouroboros-randomness-generation)
-    - [1.2.4 Alternative Approaches to Randomness Generation](#124-alternative-approaches-to-randomness-generation)
-      - [1.2.4.1 RANDAO (Ethereum’s Post-Merge Approach)](#1241-randao-ethereums-post-merge-approach)
-      - [1.2.4.2 VDFs (Verifiable Delay Functions)](#1242-vdfs-verifiable-delay-functions)
-      - [1.2.4.3 Conclusion: Why VRFs Were Chosen for Ouroboros](#1243-conclusion-why-vrfs-were-chosen-for-ouroboros)
+    + [1.2.1 Defining the Problem](#121-defining-the-problem)
+    + [1.2.2 Strategies for Randomness Generation](#122-strategies-for-randomness-generation)
+    + [1.2.3 The Historical Evolution of Ouroboros Randomness Generation](#123-the-historical-evolution-of-ouroboros-randomness-generation)
+    + [1.2.4 Alternative Approaches to Randomness Generation](#124-alternative-approaches-to-randomness-generation)
+      * [1.2.4.1 RANDAO (Ethereum’s Post-Merge Approach)](#1241-randao-ethereums-post-merge-approach)
+      * [1.2.4.2 VDFs (Verifiable Delay Functions)](#1242-vdfs-verifiable-delay-functions)
+      * [1.2.4.3 Conclusion: Why VRFs Were Chosen for Ouroboros](#1243-conclusion-why-vrfs-were-chosen-for-ouroboros)
   - [1.3 Leader Election in Praos](#13-leader-election-in-praos)
-    - [1.3.1 Oblivious Leader Selection](#131-oblivious-leader-selection)
-    - [1.3.2 Application of Verifiable Random Function (VRF)](#132-application-of-verifiable-random-function-vrf)
-    - [1.3.3 Epoch Structure](#133-epoch-structure)
-    - [1.3.4 Epoch & Phases Length](#134-epoch--phases-length)
-    - [1.3.5 The Randomness Generation Sub-Protocol](#135-the-randomness-generation-sub-protocol)
+    + [1.3.1 Oblivious Leader Selection](#131-oblivious-leader-selection)
+    + [1.3.2 Application of Verifiable Random Function (VRF)](#132-application-of-verifiable-random-function-vrf)
+    + [1.3.3 Epoch Structure](#133-epoch-structure)
+    + [1.3.4 Epoch & Phases Length](#134-epoch--phases-length)
+    + [1.3.5 The Randomness Generation Sub-Protocol](#135-the-randomness-generation-sub-protocol)
   - [1.4 Forks, Rollbacks, Finality and Settlement Times](#14-forks-rollbacks-finality-and-settlement-times)
 
 - [2. The Grinding Attack Algorithm](#2-the-grinding-attack-algorithm)
   - [2.1 Randomness Manipulation Objectives](#21-randomness-manipulation-objectives)
-    - [2.1.1 Exposure](#211-exposure)
-    - [2.1.2 Slot Leader Distribution Selection](#212-slot-leader-distribution-selection)
-    - [2.1.3 Potential Outcomes of Grinding Attacks](#213-potential-outcomes-of-grinding-attacks)
+    + [2.1.1 Exposure](#211-exposure)
+    + [2.1.2 Slot Leader Distribution Selection](#212-slot-leader-distribution-selection)
+    + [2.1.3 Potential Outcomes of Grinding Attacks](#213-potential-outcomes-of-grinding-attacks)
 
   - [2.2 Non-Exhaustive Manipulation Strategy List](#22-non-exhaustive-manipulation-strategy-list)
-    - [2.2.1 System Model](#221-system-model)
-    - [2.2.2 Self Mixing Strategy](#222-self-mixing-strategy)
-    - [2.2.3 Forking Strategies](#223-forking-strategies)
+    + [2.2.1 System Model](#221-system-model)
+    + [2.2.2 Self Mixing Strategy](#222-self-mixing-strategy)
+    + [2.2.3 Forking Strategies](#223-forking-strategies)
 
 - [3. The Cost of Grinding: Adversarial Effort and Feasibility](#3-the-cost-of-grinding-adversarial-effort-and-feasibility)
-  - [3.1 Quantification Gaps Compared to Ethereum](#31-quantification-gaps-compared-to-ethereum)
-  - [3.2 Definitions](#32-definitions)
-    - [3.2.1 A-Heavy and Heaviness](#321-a-heavy-and-heaviness)
-    - [3.2.2 Grinding Power](#322-grinding-power)
-    - [3.2.3 Grinding Window](#323-grinding-window)
-  - [3.3 Grinding Power Computational Feasibility](#33-grinding-power-computational-feasibility)
-    - [3.3.1 CPU Requirement Calculation](#331-cpu-requirement-calculation)
-    - [3.3.2 Thresholds of Feasibility vs. Infeasibility](#332-thresholds-of-feasibility-vs-infeasibility)
-    - [3.3.3 Interpretation of Feasibility Ranges](#333-interpretation-of-feasibility-ranges)
-  - [3.4 Adversarial Exposure to ρ in Praos](#34-adversarial-exposure-to-ρ-in-praos)
-
+  - [3.1 Definitions](#31-definitions)
+    + [3.1.1 A-Heavy and Heaviness](#311-a-heavy-and-heaviness)
+    + [3.1.2 Grinding Power g](#312-grinding-power-g)
+    + [3.1.3 Grinding Depth ρ](#313-grinding-depth-rho)
+    + [3.1.4 Grinding Windows](#314-grinding-windows)
+      * [3.1.4.1 Opportunity Windows](#3141-opportunity-windows-w_o)
+      * [3.1.4.2 Attack Window](#3142-attack-window-w_a)
+  - [3.2 Entry Ticket: Acquiring Stake to Play the Lottery](#32-entry-ticket-acquiring-stake-to-play-the-lottery)
+  - [3.3 Cost of a Grinding Attempt](#33-cost-of-a-grinding-attempt)
+    + [3.3.1 Nonce Generation](#331-nonce-generation)
+    + [3.3.2 Slot Leader Distribution Simulation](#332-slot-leader-distribution-simulation)
+    + [3.3.3 Strategic Benefit Evaluation](#333-strategic-benefit-evaluation)
+    + [3.3.4 Total Estimated Time per Grinding Attempt](#334-total-estimated-time-per-grinding-attempt)
+  - [3.4 Cost of a Grinding Attack](#34-cost-of-a-grinding-attack)
+    + [3.4.1 Formula](#341-formula)
+    + [3.4.2 Estimated Formula Using Mainnet Cardano Parameters](#342-estimated-formula-using-mainnet-cardano-parameters)
 
 
 ---
@@ -1022,6 +1027,8 @@ Where:
 
 ### 3.4 Cost of a Grinding Attack
 
+### 3.4.1 Formula
+
 A **grinding attack** consists of multiple grinding attempts executed within the **grinding opportunity window** $`w_O`$. Since each grinding attempt takes time to compute, the feasibility of the attack depends on whether the total computation can be completed within this window.
 
 We define the **total attack time** as:
@@ -1090,7 +1097,8 @@ Substituting this into our equation:
 N_{\text{CPU}} \geq \frac{ \frac{2^{\rho} \times f \times \left( \frac{1}{2} (T_{\text{VRF}} + T_{\text{BLAKE2b}}) + T_{\text{eval}} \right)}{2\rho - 1} + \sqrt{\left( \frac{2^{\rho} \times f \times \left( \frac{1}{2} (T_{\text{VRF}} + T_{\text{BLAKE2b}}) + T_{\text{eval}} \right)}{2\rho - 1} \right)^2 + 4 \frac{2^{\rho} \times f \times w_A \times T_{\text{VRF Verify}}}{2\rho - 1} }}{2}
 ```
 
-### Final Estimated Formula Using Cardano Parameters
+### 3.4.2 Estimated Formula Using Mainnet Cardano Parameters
+
 Using the Cardano estimates:
 - $`T_{\text{VRF}} = 10^{-6}`$
 - $`T_{\text{BLAKE2b}} = 10^{-7}`$
