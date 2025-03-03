@@ -1139,8 +1139,6 @@ These four cases represent **notable grinding attack scenarios**, each correspon
 
 ### 3.5.1 Attack Classification
 
-![alt text](image-22.png)
-
 | **Use Case** | **$T_{\text{eval}}$ (s)** | **$w_A$ (s) (Attack Window)** | **Description** |
 |-------------|----------------|--------------------|-------------------------------------------|
 | **The Flash Grind Case** | 0  | 1h (3600s)  | A fast, opportunistic attack in a **narrow time window** with minimal computational overhead. |
