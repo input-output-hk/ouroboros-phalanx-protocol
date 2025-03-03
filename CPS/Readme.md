@@ -1130,6 +1130,59 @@ N_{\text{CPU}} \approx \frac{2^{\rho} \times 5 \times 10^{-5} \times (11 \times 
 - The **exponential growth of $`2^{\rho}`$ makes quickly grinding infeasible**.
 - **$`T_{\text{eval}}`$ is explicitly retained** in the first term.
 
+
+## 3.5 The Feasibility Square
+
+After analyzing the computational cost of grinding attacks, we now define **The Feasibility Square**, which captures **four distinct cases** based on the **lowest and highest values of $T_{\text{eval}}$ and $w_A$**.
+
+These four cases represent **notable grinding attack scenarios**, each corresponding to a **specific adversarial strategy**.
+
+### 3.5.1 Attack Classification
+
+| **Use Case** | **$T_{\text{eval}}$ (s)** | **$w_A$ (s) (Attack Window)** | **Description** |
+|-------------|----------------|--------------------|-------------------------------------------|
+| **The Flash Grind Case** | 0  | 1h (3600s)  | A fast, opportunistic attack in a **narrow time window** with minimal computational overhead. |
+| **The Marathon Grind Case** | 0  | 5d (432000s) | A **long-duration attack**, accumulating grinding attempts **over time**. |
+| **The Brute Force Blitz Case** | 1  | 1h (3600s)  | A **high-intensity, high-cost grinding burst** within a **short timeframe**. |
+| **The Endgame Grind Case** | 1  | 5d (432000s) | The **worst-case scenario**, where an attacker has **maximum resources and time**. |
+
+These cases help us **frame the feasibility of grinding attacks** and analyze how **$N_{\text{CPU}}$ scales** across these four scenarios.
+
+---
+### 3.5.2 Estimated Formulas for Each Case
+
+Now, we present the **estimated formula** for each **Feasibility Square** case using **mainnet Cardano parameters**, formatted with math notation:
+
+#### 3.5.2.1 The Flash Grind Case** (Fast but Limited)
+- **$T_{\text{eval}} = 0s$, $w_A = 1h$ (3600s)**
+
+```math
+N_{\text{CPU}} \approx \frac{2^{\rho} \times 5 \times 10^{-5} \times (11 \times 10^{-3})}{2\rho - 1} + \frac{\sqrt{2^{\rho} \times 2 \times 10^{-7} \times 3600}}{2\rho - 1}
+```
+#### 3.5.2.2  The Marathon Grind Case (Extended but Optimized)
+- **$T_{\text{eval}} = 0s$, $w_A = 5d$ (432000s)**
+
+```math
+N_{\text{CPU}} \approx \frac{2^{\rho} \times 5 \times 10^{-5} \times (11 \times 10^{-3})}{2\rho - 1} + \frac{\sqrt{2^{\rho} \times 2 \times 10^{-7} \times 432000}}{2\rho - 1}
+```
+#### 3.5.2.3 The Brute Force Blitz Case (Expensive but Quick)
+
+- **$T_{\text{eval}} = 1s$, $w_A = 1h$ (3600s)**
+
+```math
+N_{\text{CPU}} \approx \frac{2^{\rho} \times 5 \times 10^{-5} \times (11 \times 10^{-3} + 20)}{2\rho - 1} + \frac{\sqrt{2^{\rho} \times 2 \times 10^{-7} \times 3600}}{2\rho - 1}
+```
+
+#### 3.5.2.4 The Endgame Grind Case (Worst-Case Scenario)
+
+- **$T_{\text{eval}} = 1s$, $w_A = 5d$ (432000s)**
+
+```math
+N_{\text{CPU}} \approx \frac{2^{\rho} \times 5 \times 10^{-5} \times (11 \times 10^{-3} + 20)}{2\rho - 1} + \frac{\sqrt{2^{\rho} \times 2 \times 10^{-7} \times 432000}}{2\rho - 1}
+```
+
+
+
 ------
 
 !!**Section below needs to be updated with new formulas**!!
