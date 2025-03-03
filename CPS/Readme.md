@@ -1119,7 +1119,7 @@ N_{\text{CPU}} \approx \frac{2^{\rho} \times 5 \times 10^{-5} \times (11 \times 
 ### Key Takeaways
 - The **first term dominates** when $`w_A`$ is small, meaning the CPU demand is mainly driven by nonce computation.
 - The **second term grows with $`w_A`$**, reflecting greater verification complexity.
-- The **exponential growth of $`2^{\rho}`$ makes grinding infeasible** even for moderate values of $`\rho`$.
+- The **exponential growth of $`2^{\rho}`$ makes quickly grinding infeasible**.
 - **$`T_{\text{eval}}`$ is explicitly retained** in the first term.
 
 ------
