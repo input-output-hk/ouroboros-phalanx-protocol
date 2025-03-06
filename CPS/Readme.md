@@ -800,48 +800,40 @@ The grinding depth $`\rho`$ determines the **entropy reduction** caused by an ad
 
 #### 3.1.4 Grinding Windows
 
-##### 3.1.4.1 Opportunity Windows $`w_O`$  
+#### 3.1.4.1 Opportunity Windows $`w_O`$
 
-The **grinding window** $`w_O`$ is the **time interval** during which an adversary can compute all **$`2^\rho`$ possible nonces**, execute the grinding attack algorithm, and strategically publish blocks to enforce their chosen $`\eta`$ nonce at the epoch’s end.  
+The **grinding opportunity window** $`w_O`$ is the time interval at the end of Phase 2 during which an adversary, controlling $`\rho`$ trailing blocks up to slot $`S_2`$, can compute and reveal one of $`2^\rho`$ possible $`\eta_e^\text{candidate}`$ nonces before the honest chain outpaces their chosen chain. Phase 2 spans $`S_2 = \frac{6k}{f}`$ slots (with $`f = \frac{1}{20}`$, $`k = 2160`$, $`S_2 = 259,200`$), ending at slot $`S_2`$, where $`\eta_e^\text{candidate}`$ is sampled from $`\eta^\text{evolving}`$ based on the VRF outputs of blocks up to that point ([see Section 1.3.5](#135-the-randomness-generation-sub-protocol)).
 
-###### Approximation of $`w_O`$ when $`\rho`$ trailing blocks  
+Assuming the adversary controls the $`\rho`$ trailing slots (from $`S_2 - \rho + 1`$ to $`S_2`$), they can manipulate $`\rho`$ VRF outputs to generate $`2^\rho`$ possible nonces by selectively revealing or withholding each output. After $`S_2`$, they must reveal a chain with their chosen nonce—ranging in length from 1 (revealing one block, withholding $`\rho - 1`$) to $`\rho`$ (revealing all)—before the honest chain, growing at an expected rate of $`f \alpha_H`$ blocks per slot (where $`\alpha_H = 1 - \alpha_A`$), renders their chain uncompetitive.
 
-The simplest grinding attack occurs when an adversary controls the last $`\rho`$ blocks of an epoch.  
-In this scenario, they can choose whether to publish each block and its associated VRF value, leading to **$`2^\rho`$ possible $`\eta`$ nonces**.  
+For simplicity and conservatism, we size $`w_O`$ based on the worst-case scenario: revealing only one block (e.g., at $`S_2`$), withholding $`\rho - 1`$. If an honest block is produced at $`S_2 + 1`$ (probability $`f \alpha_H`$), a fork occurs, and the adversary’s chain (length 1) risks losing to the honest chain via the VRF tiebreaker (~50% chance) or propagation delay. To avoid this, the adversary must reveal their chain within a time frame proportional to the slot frequency, scaled by their control over $`\rho`$ slots. Thus, we define:
 
-At first glance, this may seem impractical, as the adversary only has polynomial time—$`\rho`$ blocks—to compute an **exponential number of values**.  
-However, a closer analysis reveals that the **effective window of opportunity is even smaller**.  
+```math
+w_O = \frac{\rho}{f} \text{ seconds}
+```
 
-Since blocks must be published within a **fixed slot**, the adversary has, on average, **$`\frac{1}{f}`$ seconds per slot** to compute the **$`2^\rho`$ possible $`\eta`$ nonces**.  
-Once the first block is either published or omitted, their choices narrow.  
-After this decision, they only have **$`2^{\rho-1}`$ nonces** left to compute, and this reduction continues.  
-As a result, the **grinding window follows a funnel-like structure**, decreasing with each block decision.  
+- **Parameters**:
+  - $`\rho`$: Grinding depth, the number of trailing slots controlled by the adversary.
+  - $`f`$: Active slot coefficient (e.g., $`\frac{1}{20}`$), the fraction of slots with a leader.
+  - Slot duration = 1 second.
 
-###### Approximation of $`w_O`$ when $`\rho`$ out of the last $`2\rho -1`$ blocks  
+- **Reasoning**: The average time between active slots is $`\frac{1}{f}`$ seconds (e.g., 20 seconds for $`f = \frac{1}{20}`$). With $`\rho`$ trailing blocks, the adversary has $`\rho`$ seconds pre-$`S_2`$ to prepare, and post-$`S_2`$, they need sufficient time to reveal before an honest block (expected in $`\frac{1}{f \alpha_H}`$ seconds, e.g., ~30 seconds for $`\alpha_H = 0.67`$). Scaling $`\frac{1}{f}`$ by $`\rho`$ provides a conservative window to compute and reveal the nonce, ensuring viability even in this tight case.
 
-A more advanced attack arises when the adversary controls **$`\rho`$ out of the last $`2\rho -1`$ blocks**.  
-In this case, they can **withhold all their blocks** from the main chain and construct a **private fork** of their $`\rho`$ blocks.  
-Since they control more blocks, their **fork is eventually adopted** due to the longest-chain rule.  
-
-This grants the adversary significantly more time—$`(2\rho -1) \times \frac{1}{f}`$ seconds—to compute the same **$`2^\rho`$ $`\eta`$ nonces**.  
-
-Moreover, because this fork remains **private until revealed**, the adversary is not constrained by slot timing and can use the entire duration to optimize their choice.  
-
-As a result, this **fork-based grinding strategy** not only provides a **longer and more stable attack window** but is also **more feasible** than controlling the last $`\rho`$ consecutive blocks.
+While revealing all $`\rho`$ blocks (length $`\rho`$) allows a longer window (e.g., up to $`\frac{2\rho - 1}{f}`$ seconds), we adopt $`w_O = \frac{\rho}{f}`$ as a conservative baseline, avoiding the complexity of forking strategies which could extend the window but introduce significant modeling challenges.
 
 ![alt text](image-21.png)
 
-With an **active slot coefficient** of `f ≈ 0.05`, each slot lasts **~20 seconds**, meaning:  
-- **For ρ = 256 (maximum shown on the graph)**:
-  - **Controlling the last 256 blocks** gives an opportunity window of **256 × 20 = ~1.4 hours**.
-  - **Controlling 256 out of the last 511 blocks** extends the window to **(2 × 256 - 1) × 20 = ~2.8 hours**.
-  
-- **For lower grinding depths**:
-  - **ρ = 128** → `~42 minutes` (last ρ blocks), `~1.4 hours` (fork-based).  
-  - **ρ = 64** → `~21 minutes` (last ρ blocks), `~42 minutes` (fork-based).  
-  - **ρ = 32** → `~10.5 minutes` (last ρ blocks), `~21 minutes` (fork-based).  
+- **$`\rho = 16`$**:
+  - $`w_O = \frac{16}{\frac{1}{20}} = 16 \cdot 20 = 320`$ seconds (~5.3 minutes).
+  - Starts at $`S_2 - \rho + 1 = 259,200 - 16 + 1 = 259,185`$, ends at $`S_2 + \frac{1}{f} = 259,200 + 20 = 259,220`$ (adjusted for reveal timing).
+- **$`\rho = 32`$**:
+  - $`w_O = \frac{32}{\frac{1}{20}} = 32 \cdot 20 = 640`$ seconds (~10.7 minutes).
+  - Starts at $`S_2 - \rho + 1 = 259,200 - 32 + 1 = 259,169`$, ends at $`259,200 + 20 = 259,220`$.
+- **$`\rho = 256`$**:
+  - $`w_O = \frac{256}{\frac{1}{20}} = 256 \cdot 20 = 5,120`$ seconds (~85.3 minutes).
+  - Starts at $`S_2 - \rho + 1 = 259,200 - 256 + 1 = 258,945`$, ends at $`259,200 + 20 = 259,220`$.
 
-The **fork-based strategy provides nearly double the opportunity window**, making grinding more feasible at higher depths. 
+This sizing ensures the adversary has time to act before honest chain growth (e.g., $`E[X_H] = 320 \cdot 0.0335 \approx 10.7`$ blocks for $`\rho = 16`$) threatens even a length-1 chain, providing a practical and conservative bound for grinding feasibility.
 
 ##### 3.1.4.2 Attack Window $`w_A`$
 
@@ -1124,65 +1116,60 @@ which further simplifies to:
 N_{\text{CPU}} \approx \frac{2^{\rho} \times 5 \times 10^{-5} \times (11 \times 10^{-3} + 20T_{\text{eval}})}{2\rho - 1} + \frac{\sqrt{2^{\rho} \times 2 \times 10^{-7} \times w_A}}{2\rho - 1}
 ```
 
-### Key Takeaways
-- The **first term dominates** when $`w_A`$ is small, meaning the CPU demand is mainly driven by nonce computation.
-- The **second term grows with $`w_A`$**, reflecting greater verification complexity.
-- The **exponential growth of $`2^{\rho}`$ makes quickly grinding infeasible**.
-- **$`T_{\text{eval}}`$ is explicitly retained** in the first term.
+## 3.5 Scenarios
 
+After analyzing the computational demands of grinding attacks, we define four key scenarios that assess the feasibility of distorting the protocol’s randomness. These cases capture distinct approaches based on the lowest and highest values of evaluation time (\( T_{\text{eval}} \)) and manipulation window (\( w_A \)), ranging from rapid, low-cost attempts to prolonged, resource-intensive efforts. They provide a structured way to evaluate the CPU requirements for disrupting Ouroboros Praos across varying strategies.
 
-## 3.5 The Feasibility Square
+### 3.5.1 Scenario Overview
 
-After analyzing the computational cost of grinding attacks, we now define **The Feasibility Square**, which captures **four distinct cases** based on the **lowest and highest values of $T_{\text{eval}}$ and $w_A$**.
+The scenarios outline different tactics for randomness manipulation, each testing the protocol’s resilience against specific computational efforts:
 
-These four cases represent **notable grinding attack scenarios**, each corresponding to a **specific adversarial strategy**.
+| **Scenario**         | **Eval Time (s)** | **Window (s)** | **Description**                                                                 |
+|----------------------|-------------------|----------------|---------------------------------------------------------------------------------|
+| **Quick Strike**     | 0                 | 1h (3600s)     | A fast, low-overhead attempt to alter randomness within a short 1-hour period.  |
+| **Long Pull**        | 0                 | 5d (432000s)   | A sustained effort to gradually shift randomness over a full 5-day epoch.       |
+| **Sudden Surge**     | 1                 | 1h (3600s)     | An intense, high-cost push to disrupt randomness in a concentrated hour.        |
+| **Total Deluge**     | 1                 | 5d (432000s)   | A maximum-effort strategy to overwhelm the system across an entire epoch.      |
 
-### 3.5.1 Attack Classification
+These cases highlight the range of manipulation tactics, with $`N_{\text{CPU}}`$ scaling according to the scope and intensity of each approach.
 
-| **Use Case** | **$T_{\text{eval}}$ (s)** | **$w_A$ (s) (Attack Window)** | **Description** |
-|-------------|----------------|--------------------|-------------------------------------------|
-| **The Flash Grind Case** | 0  | 1h (3600s)  | A fast, opportunistic attack in a **narrow time window** with minimal computational overhead. |
-| **The Marathon Grind Case** | 0  | 5d (432000s) | A **long-duration attack**, accumulating grinding attempts **over time**. |
-| **The Brute Force Blitz Case** | 1  | 1h (3600s)  | A **high-intensity, high-cost grinding burst** within a **short timeframe**. |
-| **The Endgame Grind Case** | 1  | 5d (432000s) | The **worst-case scenario**, where an attacker has **maximum resources and time**. |
+### 3.5.2 Computational Estimates for Each Case
 
-These cases help us **frame the feasibility of grinding attacks** and analyze how **$N_{\text{CPU}}$ scales** across these four scenarios.
+Using Cardano mainnet parameters, we calculate the minimum $`N_{\text{CPU}}`$ required to execute each scenario within its time constraints. The formulas account for nonce generation, slot verification, and strategic evaluation costs relative to the available opportunity window.
 
-### 3.5.2 Estimated Formulas for Each Case
+#### 3.5.2.1 Quick Strike (Minimal Effort, Short Window)
+- **Parameters**: \( T_{\text{eval}} = 0 \, \text{s} \), \( w_A = 3600 \, \text{s} \).
+- **Formula**:
+  ```math
+  N_{\text{CPU}} \approx \frac{2^{\rho} \times 5 \times 10^{-5} \times (11 \times 10^{-3})}{2\rho - 1} + \frac{\sqrt{2^{\rho} \times 2 \times 10^{-7} \times 3600}}{2\rho - 1}
+  ```
+- **Notes**: This relies on speed and simplicity, requiring fewer resources to nudge the system off balance in a brief timeframe.
 
-Now, we present the **estimated formula** for each **Feasibility Square** case using **mainnet Cardano parameters**, formatted with math notation:
+#### 3.5.2.2 Long Pull (Low Effort, Extended Window)
+- **Parameters**: \( T_{\text{eval}} = 0 \, \text{s} \), \( w_A = 432000 \, \text{s} \).
+- **Formula**:
+  ```math
+  N_{\text{CPU}} \approx \frac{2^{\rho} \times 5 \times 10^{-5} \times (11 \times 10^{-3})}{2\rho - 1} + \frac{\sqrt{2^{\rho} \times 2 \times 10^{-7} \times 432000}}{2\rho - 1}
+  ```
+- **Notes**: This approach uses persistence, gradually shifting randomness with minimal per-step computation over an epoch.
 
-#### 3.5.2.1 The Flash Grind Case** (Fast but Limited)
-- **$T_{\text{eval}} = 0s$, $w_A = 1h$ (3600s)**
+#### 3.5.2.3 Sudden Surge (High Effort, Short Window)
+- **Parameters**: \( T_{\text{eval}} = 1 \, \text{s} \), \( w_A = 3600 \, \text{s} \).
+- **Formula**:
+  ```math
+  N_{\text{CPU}} \approx \frac{2^{\rho} \times 5 \times 10^{-5} \times (11 \times 10^{-3} + 20)}{2\rho - 1} + \frac{\sqrt{2^{\rho} \times 2 \times 10^{-7} \times 3600}}{2\rho - 1}
+  ```
+- **Notes**: This demands significant resources for a rapid, concentrated disruption within an hour.
 
-```math
-N_{\text{CPU}} \approx \frac{2^{\rho} \times 5 \times 10^{-5} \times (11 \times 10^{-3})}{2\rho - 1} + \frac{\sqrt{2^{\rho} \times 2 \times 10^{-7} \times 3600}}{2\rho - 1}
-```
-#### 3.5.2.2  The Marathon Grind Case (Extended but Optimized)
-- **$T_{\text{eval}} = 0s$, $w_A = 5d$ (432000s)**
+#### 3.5.2.4 Total Deluge (High Effort, Extended Window)
+- **Parameters**: \( T_{\text{eval}} = 1 \, \text{s} \), \( w_A = 432000 \, \text{s} \).
+- **Formula**:
+  ```math
+  N_{\text{CPU}} \approx \frac{2^{\rho} \times 5 \times 10^{-5} \times (11 \times 10^{-3} + 20)}{2\rho - 1} + \frac{\sqrt{2^{\rho} \times 2 \times 10^{-7} \times 432000}}{2\rho - 1}
+  ```
+- **Notes**: This represents the upper limit, leveraging extensive computation to overhaul randomness across an entire epoch.
 
-```math
-N_{\text{CPU}} \approx \frac{2^{\rho} \times 5 \times 10^{-5} \times (11 \times 10^{-3})}{2\rho - 1} + \frac{\sqrt{2^{\rho} \times 2 \times 10^{-7} \times 432000}}{2\rho - 1}
-```
-#### 3.5.2.3 The Brute Force Blitz Case (Expensive but Quick)
-
-- **$T_{\text{eval}} = 1s$, $w_A = 1h$ (3600s)**
-
-```math
-N_{\text{CPU}} \approx \frac{2^{\rho} \times 5 \times 10^{-5} \times (11 \times 10^{-3} + 20)}{2\rho - 1} + \frac{\sqrt{2^{\rho} \times 2 \times 10^{-7} \times 3600}}{2\rho - 1}
-```
-
-#### 3.5.2.4 The Endgame Grind Case (Worst-Case Scenario)
-
-- **$T_{\text{eval}} = 1s$, $w_A = 5d$ (432000s)**
-
-```math
-N_{\text{CPU}} \approx \frac{2^{\rho} \times 5 \times 10^{-5} \times (11 \times 10^{-3} + 20)}{2\rho - 1} + \frac{\sqrt{2^{\rho} \times 2 \times 10^{-7} \times 432000}}{2\rho - 1}
-```
-
-![alt text](image-23.png)
-
-------
+![alt text](./graph%20scenarios.png)
 
 !!**Section below needs to be updated with new formulas**!!
 

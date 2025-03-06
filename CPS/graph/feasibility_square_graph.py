@@ -20,20 +20,20 @@ def compute_N_CPU_high_precision(rho, T_eval, w_A):
     return term_1 + term_2
 
 # Define rho values for full range (from 4 to 256)
-rho_values = np.arange(4, 257, 8)  # Now starts from 4 instead of 8
+rho_values = np.arange(4, 257, 8)  # Starts from 4 instead of 8
 
-# Define the four feasibility square cases
-feasibility_cases = [
-    {"T_eval": 0, "w_A": 3600, "label": "The Flash Grind Case"},
-    {"T_eval": 0, "w_A": 432000, "label": "The Marathon Grind Case"},
-    {"T_eval": 1, "w_A": 3600, "label": "The Brute Force Blitz Case"},
-    {"T_eval": 1, "w_A": 432000, "label": "The Endgame Grind Case"}
+# Define the four randomness manipulation scenarios
+manipulation_scenarios = [
+    {"T_eval": 0, "w_A": 3600, "label": "Quick Strike"},
+    {"T_eval": 0, "w_A": 432000, "label": "Long Pull"},
+    {"T_eval": 1, "w_A": 3600, "label": "Sudden Surge"},
+    {"T_eval": 1, "w_A": 432000, "label": "Total Deluge"}
 ]
 
-# Plot the graph for the four cases
+# Plot the graph for the four scenarios
 plt.figure(figsize=(10, 6))
 
-for case in feasibility_cases:
+for case in manipulation_scenarios:
     N_CPU_values = np.array([compute_N_CPU_high_precision(int(rho), int(case["T_eval"]), int(case["w_A"])) for rho in rho_values], dtype=float)
     
     # Handle cases where log values might be undefined or negative
@@ -44,7 +44,7 @@ for case in feasibility_cases:
 # Set labels and title
 plt.xlabel(r"$\rho$ (Grinding Depth)", fontsize=12)
 plt.ylabel(r"$\log_{10}(N_{\mathrm{CPU}})$", fontsize=12)
-plt.title("CPU Requirements for Grinding Attack - Feasibility Square", fontsize=14)
+# plt.title("CPU Requirements for Randomness Manipulation Scenarios", fontsize=14)
 plt.legend()
 plt.grid(True, which="both", linestyle="--", linewidth=0.5)
 
