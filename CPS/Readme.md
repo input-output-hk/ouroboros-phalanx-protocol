@@ -1142,79 +1142,153 @@ N_{\text{CPU}} \geq f \cdot \left \lceil \frac{2^{\rho} \cdot \left( \frac{\rho}
 
 ### 3.4.2 Estimated Formula Using Mainnet Cardano Parameters
 
-Using the Cardano estimates:
-- $`T_{\text{VRF}} = 10^{-6}`$
-- $`T_{\text{eligibility}} = 10^{-8}`$
-- $`T_{\text{BLAKE2b}} = 10^{-8}`$
-- $`T_{\text{eval}}`$ (kept explicit)
-- $`f = \frac{1}{20}`$
-
-
-which simplifies to:
+Building on the cost analysis from [Section 3.4.1 - Cost of a Grinding Attack](#34-cost-of-a-grinding-attack), we now estimate the minimum number of CPUs ($`N_{\text{CPU}}`$) required to execute a grinding attack on Cardano’s mainnet by applying specific protocol parameters to the derived formula. The total attack time must fit within the grinding opportunity window $`w_O`$, leading to the computational requirement:
 
 ```math
-N_{\text{CPU}} \geq \dots
+N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot T_{\text{grinding}}}{w_O} \right \rceil
 ```
 
+Where:
+- $`w_O = \frac{\rho}{f}`$ (from [Section 3.1.4.1 - Opportunity Windows \(w_O\)](#3141-opportunity-windows-w_o)).
+- $`T_{\text{grinding}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_A \cdot T_{\text{VRF}} + T_{\text{eval}}`$.
+
+Substituting $`w_O`$:
+
+```math
+N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot T_{\text{grinding}} \cdot f}{\rho} \right \rceil
+```
+
+#### Applying Cardano Mainnet Parameters
+Using Cardano’s mainnet values:
+- $`T_{\text{VRF}} = 10^{-6}`$ seconds (1 microsecond) – Time to evaluate a Verifiable Random Function.
+- $`T_{\text{BLAKE2b}} = 10^{-8}`$ seconds (0.01 microseconds) – Time for a BLAKE2b-256 hash operation.
+- $`f = \frac{1}{20} = 0.05`$ – Active slot coefficient.
+- Slot duration = 1 second.
+
+Substitute into $`T_{\text{grinding}}`$:
+
+```math
+T_{\text{grinding}} = \frac{\rho}{2} \cdot 10^{-8} + w_A \cdot 10^{-6} + T_{\text{eval}}
+```
+
+Now plug into the formula:
+
+```math
+N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot \left( \frac{\rho}{2} \cdot 10^{-8} + w_A \cdot 10^{-6} + T_{\text{eval}} \right) \cdot 0.05}{\rho} \right \rceil
+```
+
+Simplify:
+
+```math
+N_{\text{CPU}} \geq \left \lceil 0.05 \cdot 2^{\rho} \cdot \left( 5 \cdot 10^{-9} + \frac{w_A \cdot 10^{-6} + T_{\text{eval}}}{\rho} \right) \right \rceil
+```
+
+#### Final Expression
+The estimated number of CPUs required is:
+
+```math
+N_{\text{CPU}} \geq \left \lceil 0.05 \cdot 2^{\rho} \cdot \left( 5 \cdot 10^{-9} + \frac{w_A \cdot 10^{-6} + T_{\text{eval}}}{\rho} \right) \right \rceil
+```
+
+- $`w_A`$: The attack window (in seconds), ranging from short (e.g., 3600 s) to a full epoch (e.g., 432,000 s), as defined in [Section 3.5 - Scenarios](#35-scenarios).
+- $`T_{\text{eval}}`$: The strategic evaluation time (in seconds), varying from 0 to 1, as explored in [Section 3.5 - Scenarios](#35-scenarios).
+
+This expression transitions the theoretical cost model into a practical estimate, with specific values for $`w_A`$ and $`T_{\text{eval}}`$ evaluated in [Section 3.5 - Scenarios](#35-scenarios) to assess feasibility across different attack strategies.
 
 ## 3.5 Scenarios
 
-After analyzing the computational demands of grinding attacks, we define four key scenarios that assess the feasibility of distorting the protocol’s randomness. These cases capture distinct approaches based on the lowest and highest values of evaluation time (\( T_{\text{eval}} \)) and manipulation window (\( w_A \)), ranging from rapid, low-cost attempts to prolonged, resource-intensive efforts. They provide a structured way to evaluate the CPU requirements for disrupting Ouroboros Praos across varying strategies.
+Following the computational model from [Section 3.4.2 - Estimated Formula Using Mainnet Cardano Parameters](#342-estimated-formula-using-mainnet-cardano-parameters), we explore four scenarios to observe how randomness manipulation behaves across varying grinding depths $`\rho`$. These scenarios are framed with an animal-inspired metaphor reflecting evaluation complexity ($`T_{\text{eval}}`$) and observation scope ($`w_A`$), providing a basis for graphical analysis to be developed later.
 
 ### 3.5.1 Scenario Overview
 
-The scenarios outline different tactics for randomness manipulation, each testing the protocol’s resilience against specific computational efforts:
+The scenarios illustrate different attack strategies, with trends to be visualized on a graph:
 
-| **Scenario**         | **Eval Time (s)** | **Window (s)** | **Description**                                                                 |
-|----------------------|-------------------|----------------|---------------------------------------------------------------------------------|
-| **Quick Strike**     | 0                 | 1h (3600s)     | A fast, low-overhead attempt to alter randomness within a short 1-hour period.  |
-| **Long Pull**        | 0                 | 5d (432000s)   | A sustained effort to gradually shift randomness over a full 5-day epoch.       |
-| **Sudden Surge**     | 1                 | 1h (3600s)     | An intense, high-cost push to disrupt randomness in a concentrated hour.        |
-| **Total Deluge**     | 1                 | 5d (432000s)   | A maximum-effort strategy to overwhelm the system across an entire epoch.      |
+| **Scenario**    | **$T_{\text{eval}}$ (Complexity)** | **$w_A$ (Scope)** | **Description**                                      |
+|-----------------|------------------------------------|-------------------|-----------------------------------------------------|
+| **Ant Glance**  | 0 (Low)                            | 1h (3600 s)       | An ant taking a quick glance at a small spot.       |
+| **Ant Patrol**  | 0 (Low)                            | 5d (432,000 s)    | An ant patrolling a wide area over time with simple instincts. |
+| **Owl Stare**   | 1 (High)                           | 1h (3600 s)       | An owl staring intently at a small area with keen focus. |
+| **Owl Survey**  | 1 (High)                           | 5d (432,000 s)    | An owl surveying a wide range with strategic awareness. |
 
-These cases highlight the range of manipulation tactics, with $`N_{\text{CPU}}`$ scaling according to the scope and intensity of each approach.
+- **Ant**: Represents simple evaluation (low $`T_{\text{eval}}$$), indicating basic effort.
+- **Owl**: Represents complex evaluation (high $`T_{\text{eval}}$$), indicating advanced effort.
+- **Glance/Stare**: Narrow observation (small $`w_A`$), a focused scope.
+- **Patrol/Survey**: Wide observation (large $`w_A`$), an expansive scope.
 
-### 3.5.2 Computational Estimates for Each Case
+The behavior is modeled using the formula from [Section 3.4.2 - Estimated Formula Using Mainnet Cardano Parameters](#342-estimated-formula-using-mainnet-cardano-parameters):
 
-Using Cardano mainnet parameters, we calculate the minimum $`N_{\text{CPU}}`$ required to execute each scenario within its time constraints. The formulas account for nonce generation, slot verification, and strategic evaluation costs relative to the available opportunity window.
+```math
+N_{\text{CPU}} = 0.05 \cdot 2^{\rho} \cdot \left( 5 \cdot 10^{-9} + \frac{w_A \cdot 10^{-6} + T_{\text{eval}}}{\rho} \right)
+```
 
-#### 3.5.2.1 Quick Strike (Minimal Effort, Short Window)
-- **Parameters**: \( T_{\text{eval}} = 0 \, \text{s} \), \( w_A = 3600 \, \text{s} \).
-- **Formula**:
-  ```math
-  N_{\text{CPU}} \approx \frac{2^{\rho} \cdot 5 \cdot 10^{-5} \cdot (11 \cdot 10^{-3})}{2\rho - 1} + \frac{\sqrt{2^{\rho} \cdot 2 \cdot 10^{-7} \cdot 3600}}{2\rho - 1}
-  ```
-- **Notes**: This relies on speed and simplicity, requiring fewer resources to nudge the system off balance in a brief timeframe.
+(Note: We omit the ceiling function here for continuous trend observation, to be adjusted for discrete CPU counts in the graph.)
 
-#### 3.5.2.2 Long Pull (Low Effort, Extended Window)
-- **Parameters**: \( T_{\text{eval}} = 0 \, \text{s} \), \( w_A = 432000 \, \text{s} \).
-- **Formula**:
-  ```math
-  N_{\text{CPU}} \approx \frac{2^{\rho} \cdot 5 \cdot 10^{-5} \cdot (11 \cdot 10^{-3})}{2\rho - 1} + \frac{\sqrt{2^{\rho} \cdot 2 \cdot 10^{-7} \cdot 432000}}{2\rho - 1}
-  ```
-- **Notes**: This approach uses persistence, gradually shifting randomness with minimal per-step computation over an epoch.
+### 3.5.2 Scenario Behavior
 
-#### 3.5.2.3 Sudden Surge (High Effort, Short Window)
-- **Parameters**: \( T_{\text{eval}} = 1 \, \text{s} \), \( w_A = 3600 \, \text{s} \).
-- **Formula**:
-  ```math
-  N_{\text{CPU}} \approx \frac{2^{\rho} \cdot 5 \cdot 10^{-5} \cdot (11 \cdot 10^{-3} + 20)}{2\rho - 1} + \frac{\sqrt{2^{\rho} \cdot 2 \cdot 10^{-7} \cdot 3600}}{2\rho - 1}
-  ```
-- **Notes**: This demands significant resources for a rapid, concentrated disruption within an hour.
+We examine how $`\log_{10}(N_{\text{CPU}})`$ varies with $`\rho`$ (grinding depth) for each scenario, setting the stage for graphical representation.
 
-#### 3.5.2.4 Total Deluge (High Effort, Extended Window)
-- **Parameters**: \( T_{\text{eval}} = 1 \, \text{s} \), \( w_A = 432000 \, \text{s} \).
-- **Formula**:
-  ```math
-  N_{\text{CPU}} \approx \frac{2^{\rho} \cdot 5 \cdot 10^{-5} \cdot (11 \cdot 10^{-3} + 20)}{2\rho - 1} + \frac{\sqrt{2^{\rho} \cdot 2 \cdot 10^{-7} \cdot 432000}}{2\rho - 1}
-  ```
-- **Notes**: This represents the upper limit, leveraging extensive computation to overhaul randomness across an entire epoch.
+#### 3.5.2.1 Ant Glance (Low Complexity, Narrow Scope)
+- **Parameters**: $`T_{\text{eval}} = 0`$ s, $`w_A = 3600`$ s.
+- **Expression**:
 
-![alt text](./graph%20scenarios.png)
+```math
+N_{\text{CPU}} = 0.05 \cdot 2^{\rho} \cdot \left( 5 \cdot 10^{-9} + \frac{3600 \cdot 10^{-6}}{\rho} \right)
+```
 
-!!**Section below needs to be updated with new formulas**!!
+- **Behavior**: Starts with a low $`N_{\text{CPU}}`$ due to the small $`w_A`$, but grows exponentially with $`\rho`$ as the $`2^{\rho}`$ term dominates. The narrow scope limits the initial impact, making it the baseline trend.
 
-------
+#### 3.5.2.2 Ant Patrol (Low Complexity, Wide Scope)
+- **Parameters**: $`T_{\text{eval}} = 0`$ s, $`w_A = 432,000`$ s.
+- **Expression**:
+
+```math
+N_{\text{CPU}} = 0.05 \cdot 2^{\rho} \cdot \left( 5 \cdot 10^{-9} + \frac{432,000 \cdot 10^{-6}}{\rho} \right)
+```
+
+- **Behavior**: Higher initial $`N_{\text{CPU}}`$ than Ant Glance due to the larger $`w_A`$, with a steeper rise as $`\rho`$ increases. The wide scope amplifies the effect over time.
+
+#### 3.5.2.3 Owl Stare (High Complexity, Narrow Scope)
+- **Parameters**: $`T_{\text{eval}} = 1`$ s, $`w_A = 3600`$ s.
+- **Expression**:
+
+```math
+N_{\text{CPU}} = 0.05 \cdot 2^{\rho} \cdot \left( 5 \cdot 10^{-9} + \frac{3600 \cdot 10^{-6} + 1}{\rho} \right)
+```
+
+- **Behavior**: Elevated $`N_{\text{CPU}}`$ from the high $`T_{\text{eval}}`$, but the narrow scope keeps the growth rate moderate compared to wide-scope scenarios. The complexity adds a consistent offset.
+
+#### 3.5.2.4 Owl Survey (High Complexity, Wide Scope)
+- **Parameters**: $`T_{\text{eval}} = 1`$ s, $`w_A = 432,000`$ s.
+- **Expression**:
+
+```math
+N_{\text{CPU}} = 0.05 \cdot 2^{\rho} \cdot \left( 5 \cdot 10^{-9} + \frac{432,000 \cdot 10^{-6} + 1}{\rho} \right)
+```
+
+- **Behavior**: The highest initial $`N_{\text{CPU}}`$ due to combined high $`T_{\text{eval}}`$ and large $`w_A`$, with the steepest exponential rise as $`\rho`$ grows, reflecting the most resource-intensive strategy.
+
+
+### 3.5.3 Formula Behavior Analysis
+
+The $`N_{\text{CPU}}`$ trends for Ant Glance, Ant Patrol, Owl Stare, and Owl Survey, from [Section 3.4.2 - Estimated Formula Using Mainnet Cardano Parameters](#342-estimated-formula-using-mainnet-cardano-parameters), are analyzed as $`\rho`$ varies from 0 to 256:
+
+```math
+N_{\text{CPU}} = 0.05 \cdot 2^{\rho} \cdot \left( 5 \cdot 10^{-9} + \frac{w_A \cdot 10^{-6} + T_{\text{eval}}}{\rho} \right)
+```
+
+At $`\rho = 50`$:
+- **Ant Glance** ($`T_{\text{eval}} = 0`$, $`w_A = 3600`$): $`N_{\text{CPU}} \approx 4.053 \times 10^9`$, $`\log_{10}(N_{\text{CPU}}) \approx 9.6077`$.
+- **Ant Patrol** ($`T_{\text{eval}} = 0`$, $`w_A = 432,000`$): $`N_{\text{CPU}} \approx 4.864 \times 10^{11}`$, $`\log_{10}(N_{\text{CPU}}) \approx 11.687`$.
+- **Owl Stare** ($`T_{\text{eval}} = 1`$, $`w_A = 3600`$): $`N_{\text{CPU}} \approx 1.131 \times 10^{12}`$, $`\log_{10}(N_{\text{CPU}}) \approx 12.053`$.
+- **Owl Survey** ($`T_{\text{eval}} = 1`$, $`w_A = 432,000`$): $`N_{\text{CPU}} \approx 1.613 \times 10^{12}`$, $`\log_{10}(N_{\text{CPU}}) \approx 12.207`$.
+
+![alt text](image-22.png)
+
+
+The maximal delta $`\Delta \log_{10}(N_{\text{CPU}})`$ (Owl Survey minus Ant Glance) is $`\sim 2.6`$, matching the graph’s constant gap.  This suggests $`T_{\text{eval}}`$ and $`w_A`$ drive a pre-exponential frame of $`10^2`$-$`10^3`$ CPUs, scaled exponentially by $`2^{\rho}`$
+
+---- Sections Below To update ----
+
 ### 3.3 Grinding Power Computational Feasibility
 
 ![alt text](image-14.png)
@@ -1253,8 +1327,6 @@ where:
 ```math
 T = (2\rho -1) \cdot \frac{1}{f}
 ```
-
----
 
 ### **Example with Estimations: CPU Requirement for $`\rho = 256`$**
 
