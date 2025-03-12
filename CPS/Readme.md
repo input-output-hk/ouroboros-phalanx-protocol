@@ -90,7 +90,7 @@ Finally, it is essential to recognize that **adversarial capabilities continuall
 - [3. The Cost of Grinding: Adversarial Effort and Feasibility](#3-the-cost-of-grinding-adversarial-effort-and-feasibility)
   - [3.1 Definitions](#31-definitions)
     + [3.1.1 $\alpha$-heavy and Heaviness](#311-a-heavy-and-heaviness)
-    + [3.1.2 Grinding Power g](#312-grinding-power-g)
+    + [3.1.2 Grinding Potential g](#312-grinding-power-g)
     + [3.1.3 Grinding Depth ρ](#313-grinding-depth-rho)
     + [3.1.4 Grinding Windows](#314-grinding-windows)
       * [3.1.4.1 Opportunity Windows](#3141-opportunity-windows-w_o)
@@ -730,23 +730,23 @@ We define the heaviness of an interval as the percentage of blocks an adversary 
 Let $X_A(w)$ be the **number of adversarial blocks** and similarly $X_H(w)$ the **number of honest blocks** in the an interval of $w$ blocks.
 The **heaviness** of an interval of size $w$ is thus the ratio $\frac{X_A(w)}{w}$. Heaviness thus vary between 0, where the interval only comprises honest blocks, and 1 where the adversary control them all. 
 
-We say that the interval is $\mathbf{\alpha}$**-heavy** if $\frac{X_A(w)}{w} > \alpha$. We furthermore say that the adversary _dominates_ the interval if $\alpha > 0.5$ and _dominates a suffix_ if $\alpha > 0.5$ and the adversary controls the last block.
+We say that the interval is $\mathbf{\alpha}$**-heavy** if $\frac{X_A(w)}{w} > \alpha$. We furthermore say that the adversary _dominates_ the interval if $\alpha > 0.5$ and _dominates a suffix_ if $\alpha > 0.5$ and the adversary controls the last block. We shall look from now on to the longest suffix the adversary dominates at the critical juncture, hence the longest interval $w_\text{max}$ where $\alpha > 0.5$ and the latest block is located at the end of Phase 2 and controlled by the adversary.
 
-#### 3.1.2 Grinding Power g
+#### 3.1.2 Grinding Potential g
 
-An **$\alpha$-heavy suffix** must be present at the critical juncture for a grinding attack to be considered. The **heavier** `w` is for fixed `w`, the **higher** the grinding power becomes.
+An **$\alpha$-heavy suffix** must be present at the critical juncture for a grinding attack to be considered. The **heavier** `w` is for fixed `w`, the **higher** the grinding potential becomes.
 
-The **grinding power** $g$ of an adversary $A$ is the number of distinct values that $A$ can choose from for the epoch nonce $\eta$. This quantifies the adversary's ability to manipulate randomness by selectively withholding, recomputing, or biasing values. 
+The **grinding potential** $g$ of an adversary $A$ is the number of distinct values that $A$ can choose from for the epoch nonce $\eta$. This quantifies the adversary's ability to manipulate randomness by selectively withholding, recomputing, or biasing values. 
 
-The grinding power is bounded by:
+The grinding potential is bounded by:
 
 ```math
-\sum_{i=X_H(w) +1}^{X_A(w)} \binom{X_A(w)}{i} \leq g \leq 2^X_A(w)
+\sum_{i=X_H(w) +1}^{X_A(w)} \binom{X_A(w)}{i} \leq g \leq 2^{X_A(w)}
 ```
 
-In **Cardano mainnet**, the nonce size used in the randomness beacon is **256 bits**, meaning the theoretical maximum grinding power is $g_{\max} = 2^{256}$. However, practical grinding power is typically limited by computational constraints and stake distribution dynamics.
+In **Cardano mainnet**, the nonce size used in the randomness beacon is **256 bits**, meaning the theoretical maximum grinding potential is $g_{\max} = 2^{256}$. However, practical grinding potential is typically limited by computational constraints and stake distribution dynamics.
 
-Similarly, we define the **grinding depth**, $\rho$, as the logarithm of the grinding power: $\rho = \log_2 g$, and bound it by $\quad 0 \leq \rho \leq 256$. It determines the **entropy reduction** caused by an adversary's nonce manipulation, directly impacting the protocol's resistance to randomness biasing, that is the number of bits of randomness an adversary can manipulate.
+Similarly, we define the **grinding depth**, $\rho$, as the logarithm of the grinding potential: $\rho = \log_2 g$, and bound it by $\quad 0 \leq \rho \leq 256$. It determines the **entropy reduction** caused by an adversary's nonce manipulation, directly impacting the protocol's resistance to randomness biasing, that is the number of bits of randomness an adversary can manipulate.
 
 #### 3.1.4 Grinding Windows
 
@@ -763,6 +763,8 @@ For simplicity, we consider that a honest block is produced at slot $S_2 + 1$. A
 ```math
 \frac{X_A(w)}{f} \leq w_O \leq \frac{w}{f}
 ```
+
+**N.B.** Contrary to the grinding potential that is upper-bounded by $2^{256}$, the grinding window is not.
 
 - **Parameters**:
   - $f$: Active slot coefficient (e.g., $\frac{1}{20}$), the fraction of slots with a leader.
@@ -781,8 +783,9 @@ Let's consider the worst case where the adversary controls all trailing slots ($
   - Starts at $S_2 - w + 1 = 259,200 - 256 + 1 = 258,945$, ends at $259,200 + 20 = 259,220$.
 
 
----- Not sure what you mean now in the line:
-This sizing ensures the adversary has time to act before honest chain growth (e.g., $E[X_H] = 320 \cdot 0.0335 \approx 10.7$ blocks for $w = 16$) threatens even a length-1 chain, providing a practical and conservative bound for grinding feasibility.
+---- Not sure what you mean now in the line (why do you multiply the $w_0$ by the honest rate?):
+
+This sizing ensures the adversary has time to act before honest chain growth (e.g., when the honest stake is 67%, $E[X_H] = 320 \cdot 0.0335 \approx 10.7$ blocks for $w = 16$) threatens even a length-1 chain, providing a practical and conservative bound for grinding feasibility.
 
 ##### 3.1.4.2 Target Window $w_T$
 
@@ -804,7 +807,7 @@ Each attempt follows three key steps:
 2. **Simulating the resulting slot leader distribution** over the target window $w_T$.  
 3. **Evaluating the strategic benefit** of choosing this $\eta$ nonce for their attack objectives.  
 
-The number of grinding attempts an adversary can make is constrained by their **grinding power** $g$, and is bounded by:  
+The number of grinding attempts an adversary can make is constrained by their **grinding potential** $g$, and is upper-bounded by:  
 
 ```math
 g \leq 2^{X_A(w)}
@@ -889,24 +892,22 @@ Let's analyze each of these steps.
 Nonce generation consists of:  
 
 1. **VRF Evaluation**: Computes a candidate $\eta$ nonce.  
-2. **⭒ Operation**: Concatenation + **BLAKE2b-256** hashing.  
+2. **$\ast$ Operation**: Concatenation + **BLAKE2b-256** hashing.  
 
-Since the VRF outptus can be precomputed, we can discard them from the computational cost of a grinding attack. As for the computational cost, as the hash functions are protected against extension attacks, we have to consider the average cost of hashing of all nonces when considering a fixed grinding depth $\rho$.
+Since the VRF outputs can be precomputed, we can discard them from the computational cost of a grinding attack. As for the computational cost, as the hash functions are protected against extension attacks, we have to consider the average cost of hashing of all nonces when considering a fixed grinding depth $\rho$.
 
-We make the assumption that hashing $n$ inputs takes as much time as hashing $n$ times one input, that is that the finalization step of a hashing function is not significant.
+We make the assumption that hashing $n$ inputs takes as much time as hashing $n$ times two inputs, that is that the finalization step of a hashing function is not significant. We also look at the worst case scenario, for simplification, and assume that $g = 2^{X_A(w)}$.
 
 ```math
 T_{\text{nonce}}^\rho =  T_{\text{BLAKE2b}} \cdot \frac{\sum_i i  \cdot \binom{\rho + i}{\rho}}{2^\rho} = \frac{\rho}{2} \cdot T_{\text{BLAKE2b}}
 ```
-_N.B._ We may drop the superscript $\rho$ for readibility.
+**N.B.** We may drop the superscript $\rho$ for readibility.
 
-_N.B._ This represents the average time to compute a nonce. While each nonce can be computed in parallel, we cannot easily parallelize the generation of one nonce as the computation is sequential. 
+**N.B.** This represents the average time to compute a nonce. While each nonce can be computed in parallel, we cannot easily parallelize the generation of one nonce as the computation is sequential. 
 
 ### 3.3.2 Slot Leader Distribution Evaluation  
 
 After generating a candidate nonce, the adversary must evaluate its impact on **slot leader election** over an target window $w_T$ :  
-
----- Correct me if I am wrong but step 2. and 3. are the same no?
 
 1. **Computing VRF outputs** for all slots in $w_T$ of interest.  
 2. **Evaluating the eligibilty of these values** to know when the adversary is the slot leader.  
@@ -924,13 +925,11 @@ Each slot requires **one VRF verification**, leading to:
 T_{\text{leader}} = w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} )
 ```
 
-_N.B._ This represents the total time of the leader distribution evaluation. Once a nonce is computed, we can generate and check the eligibility of the VRF outputs in parallel.
+**N.B.** This represents the total time of the leader distribution evaluation. Once a nonce is computed, we can generate and check the eligibility of the VRF outputs in parallel.
 
 ### 3.3.3 Strategic Benefit Evaluation  
 
 After simulating the leader election distribution, the adversary must determine whether the selected $\eta$ nonce provides a **strategic advantage** by:  
-
----- Not sure what you mean here by honest stake. Do you mean assessing the gain of the attack w.r.t the cost of not publishing some of the blocks (and so missing rewards)?
 
 1. **Assessing block production gains** relative to honest stake.  
 2. **Estimating adversarial control over leader election.**  
@@ -981,7 +980,7 @@ Where:
 - $T_{\text{eligibility}}$ is the eligibility checktime.
 - $T_{\text{BLAKE2b}}$ is the time for the hashing operation.
 - $w_T$ is the target window size (seconds).
-- $\rho$ is the grinding power.
+- $\rho$ is the grinding potential.
 - $T_{\text{eval}}$ is the nonce selection and evaluation time, which is attack-specific.
 
 ### 3.4 Cost of a Grinding Attack
@@ -1032,37 +1031,23 @@ N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\
 #### Expanding $w_O$ in Terms of $\rho$ and $f$
 From previous sections, the **grinding opportunity window** is:
 
----- wasn't it $\rho / f$ ?
-
 ```math
-w_O = (2\rho - 1) \cdot \frac{1}{f}
+\frac{X_A(w)}{f} \leq w_O \leq \frac{w}{f}
 ```
-
----- do we have a relation between $w_O$ and $w_T$?
 
 Substituting this into our equation:
 
 ```math
-N_{\text{CPU}} \geq f \cdot \left \lceil \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right)}{(2\rho - 1)} \right \rceil
+\begin{align}
+N_{\text{CPU}} &\geq  \left \lceil f \cdot \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right)}{w} \right \rceil\\
+& \geq  \left \lceil f \cdot \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right)}{2\cdot \rho - 1} \right \rceil \text{ as } w < 2 \cdot \rho - 1\\
+&    <  \left \lceil \frac{f \cdot 2^{\rho-1}}{\rho} \cdot  \left( \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right) \right \rceil
+\end{align}
 ```
 
 ### 3.4.2 Estimated Formula Using Mainnet Cardano Parameters
 
 Building on the cost analysis from [Section 3.4.1 - Cost of a Grinding Attack](#34-cost-of-a-grinding-attack), we now estimate the minimum number of CPUs ($N_{\text{CPU}}$) required to execute a grinding attack on Cardano’s mainnet by applying specific protocol parameters to the derived formula. The total attack time must fit within the grinding opportunity window $w_O$, leading to the computational requirement:
-
-```math
-N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot T_{\text{grinding}}}{w_O} \right \rceil
-```
-
-Where:
-- $w_O = \frac{\rho}{f}$ (from [Section 3.1.4.1 - Opportunity Windows \(w_O\)](#3141-opportunity-windows-w_o)).
-- $T_{\text{grinding}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot T_{\mathsf{VRF}} + T_{\text{eval}}$.
-
-Substituting $w_O$:
-
-```math
-N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot T_{\text{grinding}} \cdot f}{\rho} \right \rceil
-```
 
 #### Applying Cardano Mainnet Parameters
 Using Cardano’s mainnet values:
@@ -1074,28 +1059,23 @@ Using Cardano’s mainnet values:
 Substitute into $T_{\text{grinding}}$:
 
 ```math
-T_{\text{grinding}} = \frac{\rho}{2} \cdot 10^{-8} + w_T \cdot 10^{-6} + T_{\text{eval}}
+T_{\text{grinding}} \approx \frac{\rho}{2} \cdot 10^{-8} + w_T \cdot 10^{-6} + T_{\text{eval}}
 ```
 
 Now plug into the formula:
 
 ```math
-N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot \left( \frac{\rho}{2} \cdot 10^{-8} + w_T \cdot 10^{-6} + T_{\text{eval}} \right) \cdot 0.05}{\rho} \right \rceil
-```
-
-Simplify:
-
-```math
-N_{\text{CPU}} \geq \left \lceil 0.05 \cdot 2^{\rho} \cdot \left( 5 \cdot 10^{-9} + \frac{w_T \cdot 10^{-6} + T_{\text{eval}}}{\rho} \right) \right \rceil
+N_{\text{CPU}} \geq \left \lceil \frac{0.05 \cdot 2^{\rho-1}}{\rho} \cdot \left( \frac{\rho}{2} \cdot 10^{-8} + w_T \cdot 10^{-6} + T_{\text{eval}} \right) \right \rceil
 ```
 
 #### Final Expression
 The estimated number of CPUs required is:
 
 ```math
-N_{\text{CPU}} \geq \left \lceil 0.05 \cdot 2^{\rho} \cdot \left( 5 \cdot 10^{-9} + \frac{w_T \cdot 10^{-6} + T_{\text{eval}}}{\rho} \right) \right \rceil
+N_{\text{CPU}} \geq \left \lceil 2^{\rho-1} \cdot \left( 2.5 \cdot 10^{-11} + \frac{w_T \cdot 10^{-6} + T_{\text{eval}}}{\rho} \right) \right \rceil
 ```
 
+- $\rho$: The number of blocks controlled by the adversary.
 - $w_T$: The target window (in seconds), ranging from short (e.g., 3600 s) to a full epoch (e.g., 432,000 s), as defined in [Section 3.5 - Scenarios](#35-scenarios).
 - $T_{\text{eval}}$: The strategic evaluation time (in seconds), varying from 0 to 1, as explored in [Section 3.5 - Scenarios](#35-scenarios).
 
@@ -1108,6 +1088,8 @@ Following the computational model from [Section 3.4.2 - Estimated Formula Using 
 ### 3.5.1 Scenario Overview
 
 The scenarios illustrate different attack strategies, with trends to be visualized on a graph:
+
+---- Where do these names come from?
 
 | **Scenario**    | **$T_{\text{eval}}$ (Complexity)** | **$w_T$ (Scope)** | **Description**                                      |
 |-----------------|------------------------------------|-------------------|-----------------------------------------------------|
@@ -1124,11 +1106,12 @@ The scenarios illustrate different attack strategies, with trends to be visualiz
 The behavior is modeled using the formula from [Section 3.4.2 - Estimated Formula Using Mainnet Cardano Parameters](#342-estimated-formula-using-mainnet-cardano-parameters):
 
 ```math
-N_{\text{CPU}} = 0.05 \cdot 2^{\rho} \cdot \left( 5 \cdot 10^{-9} + \frac{w_T \cdot 10^{-6} + T_{\text{eval}}}{\rho} \right)
+N_{\text{CPU}} = 0.05 \cdot 2^{\rho-1} \cdot \left( 5 \cdot 10^{-9} + \frac{w_T \cdot 10^{-6} + T_{\text{eval}}}{\rho} \right)
 ```
 
 (Note: We omit the ceiling function here for continuous trend observation, to be adjusted for discrete CPU counts in the graph.)
 
+---- We could merge all these scenarii in the same section or put them in a table
 ### 3.5.2 Scenario Behavior
 
 We examine how $\log_{10}(N_{\text{CPU}})$ varies with $\rho$ (grinding depth) for each scenario, setting the stage for graphical representation.
@@ -1138,7 +1121,7 @@ We examine how $\log_{10}(N_{\text{CPU}})$ varies with $\rho$ (grinding depth) f
 - **Expression**:
 
 ```math
-N_{\text{CPU}} = 0.05 \cdot 2^{\rho} \cdot \left( 5 \cdot 10^{-9} + \frac{3600 \cdot 10^{-6}}{\rho} \right)
+N_{\text{CPU}} = 0.05 \cdot 2^{\rho - 1} \cdot \left( 5 \cdot 10^{-9} + \frac{3600 \cdot 10^{-6}}{\rho} \right)
 ```
 
 - **Behavior**: Starts with a low $N_{\text{CPU}}$ due to the small $w_T$, but grows exponentially with $\rho$ as the $2^{\rho}$ term dominates. The narrow scope limits the initial impact, making it the baseline trend.
@@ -1148,7 +1131,7 @@ N_{\text{CPU}} = 0.05 \cdot 2^{\rho} \cdot \left( 5 \cdot 10^{-9} + \frac{3600 \
 - **Expression**:
 
 ```math
-N_{\text{CPU}} = 0.05 \cdot 2^{\rho} \cdot \left( 5 \cdot 10^{-9} + \frac{432,000 \cdot 10^{-6}}{\rho} \right)
+N_{\text{CPU}} = 0.05 \cdot 2^{\rho - 1} \cdot \left( 5 \cdot 10^{-9} + \frac{432,000 \cdot 10^{-6}}{\rho} \right)
 ```
 
 - **Behavior**: Higher initial $N_{\text{CPU}}$ than Ant Glance due to the larger $w_T$, with a steeper rise as $\rho$ increases. The wide scope amplifies the effect over time.
@@ -1158,7 +1141,7 @@ N_{\text{CPU}} = 0.05 \cdot 2^{\rho} \cdot \left( 5 \cdot 10^{-9} + \frac{432,00
 - **Expression**:
 
 ```math
-N_{\text{CPU}} = 0.05 \cdot 2^{\rho} \cdot \left( 5 \cdot 10^{-9} + \frac{3600 \cdot 10^{-6} + 1}{\rho} \right)
+N_{\text{CPU}} = 0.05 \cdot 2^{\rho - 1} \cdot \left( 5 \cdot 10^{-9} + \frac{3600 \cdot 10^{-6} + 1}{\rho} \right)
 ```
 
 - **Behavior**: Elevated $N_{\text{CPU}}$ from the high $T_{\text{eval}}$, but the narrow scope keeps the growth rate moderate compared to wide-scope scenarios. The complexity adds a consistent offset.
@@ -1168,7 +1151,7 @@ N_{\text{CPU}} = 0.05 \cdot 2^{\rho} \cdot \left( 5 \cdot 10^{-9} + \frac{3600 \
 - **Expression**:
 
 ```math
-N_{\text{CPU}} = 0.05 \cdot 2^{\rho} \cdot \left( 5 \cdot 10^{-9} + \frac{432,000 \cdot 10^{-6} + 1}{\rho} \right)
+N_{\text{CPU}} = 0.05 \cdot 2^{\rho - 1} \cdot \left( 5 \cdot 10^{-9} + \frac{432,000 \cdot 10^{-6} + 1}{\rho} \right)
 ```
 
 - **Behavior**: The highest initial $N_{\text{CPU}}$ due to combined high $T_{\text{eval}}$ and large $w_T$, with the steepest exponential rise as $\rho$ grows, reflecting the most resource-intensive strategy.
@@ -1179,21 +1162,23 @@ N_{\text{CPU}} = 0.05 \cdot 2^{\rho} \cdot \left( 5 \cdot 10^{-9} + \frac{432,00
 The $N_{\text{CPU}}$ trends for Ant Glance, Ant Patrol, Owl Stare, and Owl Survey, from [Section 3.4.2 - Estimated Formula Using Mainnet Cardano Parameters](#342-estimated-formula-using-mainnet-cardano-parameters), are analyzed as $\rho$ varies from 0 to 256:
 
 ```math
-N_{\text{CPU}} = 0.05 \cdot 2^{\rho} \cdot \left( 5 \cdot 10^{-9} + \frac{w_T \cdot 10^{-6} + T_{\text{eval}}}{\rho} \right)
+N_{\text{CPU}} = 0.05 \cdot 2^{\rho - 1} \cdot \left( 5 \cdot 10^{-9} + \frac{w_T \cdot 10^{-6} + T_{\text{eval}}}{\rho} \right)
 ```
 
+---- TODO: update values
 At $\rho = 50$:
 - **Ant Glance** ($T_{\text{eval}} = 0$, $w_T = 3600$): $N_{\text{CPU}} \approx 4.053 \times 10^9$, $\log_{10}(N_{\text{CPU}}) \approx 9.6077$.
 - **Ant Patrol** ($T_{\text{eval}} = 0$, $w_T = 432,000$): $N_{\text{CPU}} \approx 4.864 \times 10^{11}$, $\log_{10}(N_{\text{CPU}}) \approx 11.687$.
 - **Owl Stare** ($T_{\text{eval}} = 1$, $w_T = 3600$): $N_{\text{CPU}} \approx 1.131 \times 10^{12}$, $\log_{10}(N_{\text{CPU}}) \approx 12.053$.
 - **Owl Survey** ($T_{\text{eval}} = 1$, $w_T = 432,000$): $N_{\text{CPU}} \approx 1.613 \times 10^{12}$, $\log_{10}(N_{\text{CPU}}) \approx 12.207$.
 
+---- TODO: to update
 ![alt text](image-22.png)
 
 
 The maximal delta $\Delta \log_{10}(N_{\text{CPU}})$ (Owl Survey minus Ant Glance) is $\sim 2.6$, matching the graph’s constant gap.  This suggests $T_{\text{eval}}$ and $w_T$ drive a pre-exponential frame of $10^2$-$10^3$ CPUs, scaled exponentially by $2^{\rho}$
 
-### 3.6 Grinding Power Computational Feasibility
+### 3.6 Grinding Potential Computational Feasibility
 
 Building on the analysis in [Section 3.5.3 - Formula Behavior Analysis](#353-formula-behavior-analysis), we assess the feasibility of grinding attacks by examining the computational resources ($N_{\text{CPU}}$) required across different grinding depths ($\rho$). The scenarios (Ant Glance, Ant Patrol, Owl Stare, Owl Survey) show a consistent $\Delta \log_{10}(N_{\text{CPU}}) \sim 2.6$, meaning the most demanding scenario (Owl Survey) requires $10^{2.6} \approx 398$ times more CPUs than the least demanding (Ant Glance). We use this range to define feasibility thresholds, considering computational power, economic costs, and practical constraints.
 
@@ -1202,11 +1187,13 @@ Building on the analysis in [Section 3.5.3 - Formula Behavior Analysis](#353-for
 We evaluate feasibility by estimating $N_{\text{CPU}}$ at various $\rho$ values using the formula from [Section 3.4.2 - Estimated Formula Using Mainnet Cardano Parameters](#342-estimated-formula-using-mainnet-cardano-parameters):
 
 ```math
-N_{\text{CPU}} \geq \left \lceil 0.05 \cdot 2^{\rho} \cdot \left( 5 \cdot 10^{-9} + \frac{w_T \cdot 10^{-6} + T_{\text{eval}}}{\rho} \right) \right \rceil
+N_{\text{CPU}} \geq \left \lceil 0.05 \cdot 2^{\rho - 1} \cdot \left( 5 \cdot 10^{-9} + \frac{w_T \cdot 10^{-6} + T_{\text{eval}}}{\rho} \right) \right \rceil
 ```
 
 Costs are estimated assuming a CPU rental price of $\$0.01$ per CPU-hour, based on low-end instance pricing from major cloud providers like AWS as of March 11, 2025, where basic instances such as t2.micro cost approximately $\$0.0116$ per CPU-hour [AWS EC2 Pricing Page](https://aws.amazon.com/ec2/pricing/). However, for high-performance tasks, actual costs may range from $\$0.04$ to $\$0.08$ per CPU-hour, as seen with `AWS c5.large` ($\$0.048$) or `Azure Standard_F2s_v2` ($\$0.0372$). The table below summarizes the feasibility for `Owl Survey` ($T_{\text{eval}} = 1$, $w_T = 432,000 \, \text{s}$), the most resource-intensive scenario, at different $\rho$ values, using the $\$0.01$ estimate for initial assessment:
 
+
+---- There are discrepencies between the order and approx. value. This table should be updated
 | $\rho$ | CPUs Required (Log₁₀ Scale) | Estimated Cost (USD, 1-hour run) | Feasibility |
 |----------|-----------------------------|----------------------------------|-------------|
 | **16**   | $10^0$ CPUs ($\sim 1$)   | 0.01                        | Trivial for any adversary |
@@ -1231,6 +1218,7 @@ References :
 
 The graph from [Section 3.5.3 - Formula Behavior Analysis](#353-formula-behavior-analysis) uses horizontal layers to show feasibility based on $\log_{10}(N_{\text{CPU}})$, highlighting the $\rho$ ranges where grinding feasibility changes:
 
+---- TODO: Update graph
 ![Grinding Depth Scenarios with Feasibility Thresholds](grinding_depth_scenarios_with_delta.png)
 
 - **Green - Feasible with Standard Resources:**  
