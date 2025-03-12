@@ -26,7 +26,7 @@
 
 <!-- A short (\~200 word) description of the target goals and the technical obstacles to those goals. -->
 
-A well-designed consensus protocol is inherently modular, consisting of multiple sub-protocols that collectively ensure security, efficiency, and decentralization. Among these, the Randomness Generation Sub-Protocol is crucial in addressing the Coin-Flipping Problem —the challenge of generating fair, unbiased, and unpredictable randomness in a distributed setting.
+A well-designed consensus protocol is inherently modular, consisting of multiple sub-protocols that collectively ensure security, efficiency, and decentralization. Among these, the Randomness Generation Sub-Protocol is crucial in addressing the Coin-Flipping Problem — the challenge of generating fair, unbiased, and unpredictable randomness in a distributed setting.
 
 The objective of this CPS is to formally document the Coin-Flipping Problem and coordinate the development of CIPs aimed at mitigating and, if possible, fully resolving this challenge within the Ouroboros protocol.
 
@@ -163,9 +163,8 @@ The Chain Growth (CG) property is a more general concept that combines both the 
 Consider a chain $`C`$ held by an honest party at the onset of a slot. For any portion of $`C`$ spanning $`s`$ contiguous prior slots . The number of blocks in this portion must be at least $`\tau s`$. 
 The parameter $`\tau`$ determines the fraction of slots in which blocks are produced. For example, if $`\tau = 0.5`$ and $`s = 10`$, there should be at least 5 blocks produced within that span.
 
---- that should be not only the general number of blocks, but the number of blocks with at least one honest contribution
   
-For example, if $`\tau = 0.5`$ and $`s = 10`$, then at least $`\tau s = 0.5 \cdot 10 = 5`$ blocks must be produced over the span of those 10 slots. 
+For example, if $`\tau = 0.5`$ and $`s = 10`$, then at least $`\tau s = 0.5 \cdot 10 = 5`$ honest blocks must be produced over the span of those 10 slots. 
 
 ## 1.2 The Coin-Flipping Problem  
 
@@ -183,21 +182,14 @@ In **blockchain consensus protocols**, randomness is crucial for **leader electi
 ### **1.2.2 Strategies for Randomness Generation**  
 Various cryptographic techniques exist to address the **coin-flipping problem** in decentralized settings. These methods differ in **security, efficiency, and resistance to adversarial manipulation**.  
 
----- what is last mover bias? For RANDAO we usually talk about last revealer attack (when it was doing commit & reveal) This should be equivalent to Ouroborous Praos grinding attack
-
----- Both Ethereum and Definity rely on VRFs. We could differentiate how each contributor generate their randomness (verifiable with VRF or siimilar, or not verifiable like Ethereum first version)
-
----- Ethereum "Randao" is very similar to Ouroboros Praos in that we combine (XOR or hash) randomness onchain as such I would just merge them together. Perhaps we should find a better name to talk about both Eths' RANDAO and our solution though. p.s. I have changed the titles here but did not  update the table of contents as I am sure we will further change the titles/structure 
-
 | **Approach**              | **Pros** | **Cons** |
 |---------------------------|---------|---------|
-| **PVSS-Based Beacons** <br> _(Ouroboros Classic, RandHound, Scrape, HydRand)_ | ✔ Strong randomness guarantees—output is indistinguishable from uniform.<br> ✔ Resistant to last-mover bias—commitments prevent selective reveals. | ❌ High communication complexity—requires O(n²) messages.<br> ❌ Vulnerable to adaptive adversaries—who may corrupt committee members. |
+| **PVSS-Based Beacons** <br> _(Ouroboros Classic, RandHound, Scrape, HydRand)_ | ✔ Strong randomness guarantees—output is indistinguishable from uniform.<br> ✔ Resistant to last-mover bias—commitments prevent selective reveals. | ❌ High communication complexity—requires O(n²) messages.<br> ❌ Vulnerable to adaptive adversaries — who may corrupt committee members. |
 | **Threshold Signature-Based Beacons** <br> _(DFINITY)_ | ✔ Fast and non-interactive—requires only one round of communication.<br> ✔ Resistant to last-mover bias—output is deterministic. | ❌ Group setup complexity—requires distributed key generation (DKG).<br> ❌ No random number output in case of threshold signature generation failure. |
-| **Byzantine Agreement-Based Beacons** <br> _(Algorand)_ | ✔ Finality guarantees—randomness is confirmed before the next epoch.<br> ✔ Less entropy loss than Praos. | ❌ Requires multi-round communicatioThreshold Signature-Based Beaconsn—higher latency.<br> ❌ Not designed for eventual consensus—better suited for BA-based protocols. |
+| **Byzantine Agreement-Based Beacons** <br> _(Algorand)_ | ✔ Finality guarantees—randomness is confirmed before the next epoch.<br> ✔ Less entropy loss than Praos. | ❌ Requires multi-round communication—higher latency.<br> ❌ Not designed for eventual consensus—better suited for BA-based protocols. |
 | **"RANDAO"-Based Beacons** <br> _(Ethereum’s RANDAO Post-Merge, Ouroboros Praos, Genesis, Snow White)_ | ✔ Simple and efficient—low computational overhead.<br> ✔ Fully decentralized—any participant can contribute randomness. | ❌ Vulnerable to last-revealer bias—the last participant can manipulate the final output. |
 
 In each of these approaches, individual contributors provide some random numbers, be it signatures in threshold signature schemes or integers in RANDAO. These numbers can be verifiable in some cases, by using Verifiable Random Functions (VRFs) or BLS signatures, as done in Ouroboros Praos and Ehtereum's latest protocols among others.
-
 
 ### **1.2.3 The Historical Evolution of Ouroboros Randomness Generation**
 
@@ -247,16 +239,14 @@ The VRF is used to generate randomness locally in the protocol, making the leade
 - A participant is privately and verifiably selected to create a block for a given slot.
 - The VRF output is both secret (only known to the selected leader) and verifiable (publicly checkable).
 
----- For the eligibility check, the VRF may be hashed before being interpreted as integer (That's what we do for sortition)
-
 To determine whether a participant is the slot leader of $\text{slot}_t$ in epoch $\text{epoch}_e$, they first generate a VRF output and proof using their secret VRF key out of the slot number $\text{slot}_t$ and current epoch random nonce $\eta_\text{e}$. They then compare this value with a threshold $\text{Threshold}^\text{participant}_\text{e}$ that is computed from the participant's relative stake at the beginning of the epoch. If the VRF output is smaller than the threshold, they become the slot leader of $\text{slot}_t$. In that case, when publishing a block for this slot, they include in the block header $` \text{BlockHeader}_\text{t} `$, the $` \text{SlotLeaderProof}_\text{t} `$ comprising the VRF proof.
 
 | **Features** | **Mathematical Formula** | **Description**  | 
 |--------------|------------------|-----------------------|
-| **Slot Leader Proof** | $`VRF^\text{Certification}_\text{(participant,t)} \equiv (VRF^\text{Proof}_\text{(participant,t)},VRF^\text{Output}_\text{(participant,t)}) \leftarrow VRF_\text{gen} \left( KeyVRF^\text{participant}_\text{private}, \text{slot}_t \, ⭒ \, \eta_\text{e} \right) `$ | This function computes the leader eligibility proof using the VRF, based on the slot number and randomness nonce.       | 
+| **Slot Leader Proof** | $`\mathsf{VRF}^\text{Certification}_\text{(participant,t)} \equiv (\mathsf{VRF}^\text{Proof}_\text{(participant,t)},\mathsf{VRF}^\text{Output}_\text{(participant,t)}) \leftarrow VRF_\text{gen} \left( Key\mathsf{VRF}^\text{participant}_\text{private}, \text{slot}_t \, ⭒ \, \eta_\text{e} \right) `$ | This function computes the leader eligibility proof using the VRF, based on the slot number and randomness nonce.       | 
 | **Slot Leader Threshold** | $` \text{Threshold}^\text{participant}_\text{e} = (1 - ActiveSlotCoefficient )^\frac{\text{ActiveStake}^\text{e}_\text{participant}}{\text{ActiveStake}^\text{e}_\text{total}}  `$ | This function calculates the threshold for a participant's eligibility to be selected as a slot leader during $` \text{epoch}_e `$.   | 
-| **Eligibility Check** | $` isEligible\left (t,participant ,\text{ActivesStake}^\text{e},\eta_\text{e}\right) = \frac{ toBoundedNatural  \circ  VRF^\text{Output}_\text{(participant,t)}}{\text{MaxBoundedNatural}} < \text{Threshold}^\text{participant}_\text{e} `$ |The leader proof is compared against a threshold to determine if the participant is eligible to create a block.         |
-| **Verification**       | $` VRF_\text{verify} \left(  KeyVRF^\text{participant}_\text{public}, VRF^\text{Certification}_\text{(participant,t)}, \text{slot}_t \, ⭒ \, \eta_\text{e} \right) = 0 \land 1  `$ | Other nodes verify the correctness of the leader proof by recomputing it using the public VRF key and slot-specific input.     | 
+| **Eligibility Check** | $` isEligible\left (t,participant ,\text{ActivesStake}^\text{e},\eta_\text{e}\right) = \frac{ toBoundedNatural  \circ  \mathsf{VRF}^\text{Output}_\text{(participant,t)}}{\text{MaxBoundedNatural}} < \text{Threshold}^\text{participant}_\text{e} `$ |The leader proof is compared against a threshold to determine if the participant is eligible to create a block.         |
+| **Verification**       | $` VRF_\text{verify} \left(  Key\mathsf{VRF}^\text{participant}_\text{public}, \mathsf{VRF}^\text{Certification}_\text{(participant,t)}, \text{slot}_t \, ⭒ \, \eta_\text{e} \right) = 0 \land 1  `$ | Other nodes verify the correctness of the leader proof by recomputing it using the public VRF key and slot-specific input.     | 
  
 | Where | |
 |-----------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
@@ -484,26 +474,21 @@ The structure of an epoch is often described by the ratio `3:3:4`:
 
 ### 1.3.5 The Randomness Generation Sub-Protocol 
 
----- I am not sure whether I directly say Phase 2 or talk about "VRF contribution period"
-
-In practice, we update the nonce iteratively instead of hashing all VRF outputs at once to spread the cost evenly on the network. As such, the nonce value changes, we talk about evolving nonce, during the VRF contribution period (Phase 2) and is stable otherwise. We then wait for a specific duration (Phase 3) for the network to stabilise on a particular fork and thus determine the correct random nonce.
+To select the slots leaders, which stake pool is eligible to produce and propose a slot's block, we need to rely on random numbers. As economic reward and transaction inclusion depends on these numbers, the generation of these number is of  critical importance to the protocol and its security. We show in this section how these random numbers, or _random nonces_ are defined.
 
 #### **The $`\eta^\text{evolving}`$ Stream Definition**  
 
----- Why do you talk about sampling rate here?
-
-   - This nonce evolves dynamically as the blockchain grows.  
-   - **Sampling Rate**  : For every block produced within the blockchain tree, a unique $`\eta_\text{evolving}`$ is computed :
+The random nonces $\eta$ are defined iteratively from a genesis value, as the hash of the previous epoch's nonce and the VRF outputs published between the Phase 2 of consecutive epochs. We thus talk about _evolving nonces_ $\eta^\text{evolving}$ as their value can be updated with the VRF output comprised in each block.
 
 ```math
    \eta^{\text{evolving}}_{t+1} =
    \begin{cases}
    \text{ProtocolParameter}_\text{extraEntropy} & \text{when } t = 0, \\
-   \eta^{\text{evolving}}_{t} ⭒ VRF^\text{Output}_\text{t+1} & \text{when BlockProduced}(t) \\
-   \eta^{\text{evolving}}_{t}  & \text{otherwise.}
+   \eta^{\text{evolving}}_{t}\ \ast\ \mathsf{VRF}^\text{Output}_\text{t+1} & \text{when BlockProduced}(t) \\
    \end{cases}
    
-````
+```
+
 ```math 
 \text{where } \text{BlockProduced}(t) = 
 \begin{cases} 
@@ -515,37 +500,39 @@ false & \text{otherwise.}
 | **where** ||
 |---------------|-----------------|
 | $`\text{ProtocolParameter}_\text{extraEntropy} `$ | The evolving nonce is initialized using the extraEntropy field defined in the protocol parameters.|
-| $` VRF^\text{Output}_\text{i} `$ | The **VRF output** generated by the $` \text{slot}_\text{i} `$ Leader and included in the block header |
-| $` a ⭒ b `$    | The concatenation of $`a`$ and $`b`$ , followed by a BLAKE2b-256 hash computation.
+| $` \mathsf{VRF}^\text{Output}_\text{i} `$ | The **VRF output** generated by the $` \text{slot}_\text{i} `$ Leader and included in the block header |
+| $` a\ \ast\ b `$    | The concatenation of $`a`$ and $`b`$ , followed by a BLAKE2b-256 hash computation.
 
-#### **The $`\eta^\text{candidates}`$**  
+#### **The $`\eta^\text{candidates}`$**
 
-   - It represents a candidate nonce for epoch $`e`$ and is the last derived  $`\eta^{evolving}_\text{t}`$ at the end of phase 2 $`\text{epoch}_{e-1}`$ if a particular fork.   
-   
-```math
-\eta_\text{e}^\text{candidate} = \eta^\text{evolving}_{t}, \quad \text{when } t = T_{\text{phase2}_\text{end}}^{\text{epoch}_{e-1}}  
-```
-
-#### **The $`\eta`$** Generations
-   - This is the final nonce used to determine participant eligibility during epoch $`e`$. 
-   - The value of $`\eta_\text{e}`$ is derived from the $`\eta_e^\text{candidate}`$ contained within the fork that is ultimately selected as the **canonical chain** at the conclusion of $`\text{epoch}_{e-1}`$.  
-   - It originates from $`\eta_e^\text{candidate}`$ concatenated with $`\eta^\text{evolving}`$ of the last block of the previous epoch followed by a BLAKE2b-256 hash computation, which becomes stabilized at the conclusion of $`\text{epoch}_{e-1}`$ and transitions into $`\text{epoch}_e`$.  
+As we may have several competiting forks at a given time, we also have competing _nonce candidates_ $`\eta^\text{candidates}`$. More particularly, the nonce candidate of a particular fork for epoch $e$ is the combination of the previous epoch nonce $\eta_{e-1}$, the VRFs of from the candidate chain from epoch $e-2$ onwards and the VRFs of the fork until the end of Phase 2 of epoch $e-1$.
 
 ```math
-\eta_\text{e} = \eta^\text{candidate}_{e} ⭒ \eta^\text{evolving}_{T_{\text{end}}^{\text{epoch}_{e-2}}} , \quad \text{when } {\text{epoch}_e\text{ start}} 
+\begin{align}
+\eta_\text{e}^\text{candidate} &= \eta^\text{evolving}_{t}, \quad \text{when } t = T_{\text{phase2}_\text{end}}^{\text{epoch}_{e-1}}  \text{ in the same fork,}\\
+&= \eta_{e-1}\ \ast \ \left (\ast_{block \in \text{main, } block > \text{Phase2 of } e\text{-}2}\ \mathsf{VRF}_{block} \right ) \ \ast \ \left (\ast_{block \in \text{fork, } block < \text{Phase3 of } e\text{-}1}\ \mathsf{VRF}_{block} \right )
+\end{align}
 ```
+
+As one of these fork will become the canonical main chain, so will the candidate nonce. Hence, the epoch nonce $\eta_e$ is the candidate nonce of the longest chain at Phase 2, which is determined once the chain stabilises.
+
 <details>
   <summary>
    <span style="color: #0366d6; font-weight: bold;">
   📌 - Divergence with academic papers
   <span style="color: #24292e;"> – Expand to view the content.</span>
 </span></summary> 
-  <p>it is :
+  <p> In Ouroboros Praos paper, the epoch's random nonce is computed as the hash of the first blocks' VRF outputs with some auxiliary information. This is done so that the individual random contributions are published on-chain and publicly verifiable, and that the computation of the final randomness $\eta_e$ is efficient. In practice however, slight modifications were made to distribute the nonce generation's cost over the network, by iteratively hashing, and to have the same behaviour for the block generation regardless of the block position, giving the additional merit of combining a whole epoch worth of randomness.
 
-```math
-      \eta_\text{e} = \eta^\text{candidate}_{e} , \quad \text{when } {\text{epoch}_e\text{ start}} 
-```
-  Explain why : ...
+  As such, when producing the nonce for epoch $e$, we are combining the VRF of phase 3 of epoch $e\text{-}2$ and phases 1 and 2 of epoch $e\text{-}1$ with the previous epoch nonce $\eta_{e-1}$ - that is,
+  ```math
+  \eta_e = \text{Hash}(\mathsf{VRF}_n || \text{Hash}(\mathsf{VRF}_{n-1} || \dots \text{Hash}(\eta_{e-1} || \mathsf{VRF}_1) \dots ))
+  ```
+  
+  instead of hashing all VRF of solely Phase 1 and 2 of epoch $e-1$ with the previous nonce $\eta_{e-1}$,
+  ```math
+  \eta_e = \text{Hash}(\eta_{e-1} || \mathsf{VRF}_1 || \dots ||  \mathsf{VRF}_m) 
+  ```
   </p>
 </details>
 
@@ -630,7 +617,8 @@ However, **longer forks** can have **harmful consequences**. For example, if an 
 
 In this section, we introduce the grinding attack and how the adversary may maximize its effects.
 
-## 2.1 Randomness Manipulation Objectives  
+## 2.1 Randomness Manipulation
+We descrive here the grinding attack Cardano's randomness generation protocol suffers from, from passively waiting for its chance or actively maximizing its attack surface, to choosing the best attack vector - stake distribution - to achieve its goal, be it maximizing rewards to controlling target blocks.
 
 ### 2.1.1 Exposure 
 
@@ -638,44 +626,21 @@ In its current version, Praos has a vulnerability where an adversary can manipul
 
 At the conclusion of phase 2, when the $\eta^\text{candidate}_{e}$ nonce is determined, the distribution of slot leaders for the next epoch becomes deterministic in a private manner. This means that, at this point, the adversary gains precise knowledge of the slots in which they will be elected but lacks detailed knowledge of the slot distribution for honest participants.
 
-The window of opportunity opens just before the conclusion of phase 2. 
-
-For example, if the adversary acts as the slot leader immediately before this phase transition, they can choose whether to produce a block or not. This decision grants them the ability to test and compare two nonces, one with one fewer VRF update than the other, and so evaluate  different slot leader distributions for the upcoming epoch.  
-
----- Should we only talk about trailing slots here for simplicity?
-
-This marks the beginning of a grinding attack, where the adversary's primary goal is to maximize the number of adversarial trailing blocks  at this critical juncture. By doing so, they expand the range of potential slot leader distributions, significantly enhancing their influence over the protocol. In essence, the adversary gains access to $2^x$ possible combinations of slot leader distributions, where $x$ denotes the number of trailing leader slots at this particular stage of the protocol.
+For example, if the adversary acts as the slot leader immediately before this phase transition, they can choose whether to produce a block or not. This decision grants them the ability to compute and compare two valid nonces - one with one fewer VRF update than the other -, evaluate different slot leader distributions for the upcoming epoch and potentially maximize their future gains at the cost of lesser rewards at this epoch. The more blocks the adversary controls before Phase 2's end, the more nonces they may _grind_ and choose from, and the more critical the atatck becomes. In essence, the adversary gains access to up to $2^x$ possible combinations of slot leader distributions, where $x$ denotes the number of controlled leader slots at this particular stage of the protocol.
 
 ![alt text](grinding-opportunity-window.png)
 
-We use the term "exposure" because the adversary cannot directly control their positioning for a grinding attack; it depends on the random distribution of leader slots. The likelihood of securing x trailing leader slots at the critical juncture decreases significantly as x increases. 
+This marks the beginning of a grinding attack, where the adversary's initial goal is to maximize the number of adversarial blocks at this critical juncture, either passively by waiting, or actively by reaching a snowball effect. By doing so, they expand the range of potential slot leader distributions they can choose from, significantly enhancing their influence over the protocol. We use the term "exposure" here because the adversary is first setting the stage for its attack. 
 
 ### 2.1.2 Slot Leader Distribution Selection
 
-This is the pivotal moment where the adversary's prior efforts pay off. They are now in a position with *x* trailing blocks at the critical juncture. At this stage, the adversary can generate the `2^x` possible `η` nonces, compute the next epoch's slot leader distribution for each nonce, and strategically select the distribution that best aligns with their attack strategy. This positioning enables them to deploy the attack effectively in the subsequent epoch.
+This is the pivotal moment where the adversary's prior efforts pay off. They are now in a position with *x* blocks at the critical juncture. At this stage, the adversary can generate up to `2^x` possible `η` nonces, compute the next epoch's slot leader distribution for each of them, and strategically select the nonce and distribution that best aligns with their goal. This positioning enables them to deploy the attack effectively in the subsequent epoch.
 
 ![alt text](image-1.png)
 
----- I am not sure to entirely get this paragraph (especially the second sentence)
+As the adversary accumulates blocks, the attack's bottleneck swiftly shifts from waiting for enough blocks at the critical juncture to the computational power needed to compute enough nonces to achieve their goal. 
 
-As the adversary accumulates trailing blocks, the limiting factor swiftly shifts to their computational power. This is why the attacker can be seen as gaining partial control over the protocol through their adversarial stake, but as an entry point that scales with their computational power, amplifying potential harm. To provide a sense of scale, let’s quantify the accumulated complexity of computing these slot leader distributions as the adversary accumulates trailing blocks :
-
---- We need to precise what this table is about as it depends on the cost of evaluating a distribution. In term of security, we would say that $2^{80}$ is massive for instance and something around $2^{100}$ not realistic (yet)
-
-| **Exponent $`x`$**| **Number of possible distributions**        | **Complexity**                                            |
-|-------------------|------------------------|-------------------------------------------------------|
-| 0                 | $`2^0 = 1`$             | Single unit, no duplication.                         |
-| 1                 | $`2^1 = 2`$             | Minimum branching or two choices.                    |
-| 4                 | $`2^4 = 16`$            | Small-scale $2^{80}$scenarios (e.g., a few trailing blocks).  |
-| 8                 | $`2^8 = 256`$           | Moderate possibilities (e.g., basic attacks).        |
-| 16                | $`2^{16} = 65,536`$     | Large-scale possibilities, extensive grinding.       |
-| 20                | $`2^{20} = 1,048,576`$  | Highly intensive computational effort.               |
-| 32                | $`2^{32} = 4,294,967,296`$ | Massive brute-force or exhaustive attack scale.      |
-| 40                | $`2^{40} = 1,099,511,627,776`$ | Beyond realistic limits for most adversaries.        |
-
-Accumulating x trailing leader positions is not just a statistical anomaly—it necessitates an underlying intent to exploit or destabilize the protocol. Achieving such a level of control requires significant coordination, making it highly unlikely to occur without deliberate adversarial motives. 
-
-Once an attacker reaches this threshold, their objectives extend beyond a single exploit and diversify into various strategic threats. 
+Accumulating a significant number of leader slots at this position necessitates, except when owning a significant portion of the total stake, an underlying intent to exploit or destabilize the protocol. Achieving such a level of control requires significant coordination, making it highly unlikely to occur without deliberate adversarial motives. Once an attacker reaches this threshold, their objectives extend beyond a single exploit and diversify into various strategic threats. 
 
 ### 2.1.3 Potential Outcomes of Grinding Attacks
 
@@ -1009,13 +974,13 @@ Since **leader eligibility is unknown in advance**, the adversary must verify **
 
 Define:
 - $`w_A`$ → **attack window size (seconds)**.
-- $`T_{\text{VRF}}`$ → **VRF evaluation time**.
+- $`T_{\mathsf{VRF}}`$ → **VRF evaluation time**.
 - $`T_{\text{eligibility}}`$ → **Slot eligilibity check**.
 
 Each slot requires **one VRF verification**, leading to:
 
 ```math
-T_{\text{leader}} = w_A \cdot ( T_{\text{VRF}} + T_{\text{eligibility}} )
+T_{\text{leader}} = w_A \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} )
 ```
 
 _N.B._ This represents the total time of the leader distribution evaluation. Once a nonce is computed, we can generate and check the eligibility of the VRF outputs in parallel.
@@ -1061,17 +1026,17 @@ T_{\text{grinding}} = T_{\text{nonce}} + T_{\text{leader}} + T_{\text{eval}}
 Expanding each term:
 
 - **Nonce Generation:** : $`T_{\text{nonce}} = \frac{\rho}{2} \cdot T_{\text{BLAKE2b}}`$
-- **Slot Leader Verification** : $`T_{\text{verify}} = w_A \cdot ( T_{\text{VRF}} + T_{\text{eligibility}} )`$
+- **Slot Leader Verification** : $`T_{\text{verify}} = w_A \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} )`$
 - **Strategic Evaluation** : $`T_{\text{eval}}`$ (attack-dependent term)
 
 Final expression:
 
 ```math
-T_{\text{grinding}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_A \cdot ( T_{\text{VRF}} + T_{\text{eligibility check}} ) + T_{\text{eval}}
+T_{\text{grinding}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_A \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility check}} ) + T_{\text{eval}}
 ```
 
 Where:
-- $T_{\text{VRF}}$ is the VRF evaluation time.
+- $T_{\mathsf{VRF}}$ is the VRF evaluation time.
 - $T_{\text{eligibility}}$ is the eligibility checktime.
 - $T_{\text{BLAKE2b}}$ is the time for the hashing operation.
 - $w_A$ is the attack window size (seconds).
@@ -1113,13 +1078,13 @@ N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot T_{\text{grinding}}}{w_O}\
 From **Section 3.3**, the per-attempt grinding time is:
 
 ```math
-T_{\text{grinding}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_A \cdot ( T_{\text{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}}
+T_{\text{grinding}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_A \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}}
 ```
 
 Substituting this into the inequality:
 
 ```math
-N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\text{BLAKE2b}} + w_A \cdot ( T_{\text{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right)}{w_O} \right \rceil
+N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\text{BLAKE2b}} + w_A \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right)}{w_O} \right \rceil
 ```
 
 
@@ -1137,7 +1102,7 @@ w_O = (2\rho - 1) \cdot \frac{1}{f}
 Substituting this into our equation:
 
 ```math
-N_{\text{CPU}} \geq f \cdot \left \lceil \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\text{BLAKE2b}} + w_A \cdot ( T_{\text{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right)}{(2\rho - 1)} \right \rceil
+N_{\text{CPU}} \geq f \cdot \left \lceil \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\text{BLAKE2b}} + w_A \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right)}{(2\rho - 1)} \right \rceil
 ```
 
 ### 3.4.2 Estimated Formula Using Mainnet Cardano Parameters
@@ -1150,7 +1115,7 @@ N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot T_{\text{grinding}}}{w_O} 
 
 Where:
 - $`w_O = \frac{\rho}{f}`$ (from [Section 3.1.4.1 - Opportunity Windows \(w_O\)](#3141-opportunity-windows-w_o)).
-- $`T_{\text{grinding}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_A \cdot T_{\text{VRF}} + T_{\text{eval}}`$.
+- $`T_{\text{grinding}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_A \cdot T_{\mathsf{VRF}} + T_{\text{eval}}`$.
 
 Substituting $`w_O`$:
 
@@ -1160,7 +1125,7 @@ N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot T_{\text{grinding}} \cdot 
 
 #### Applying Cardano Mainnet Parameters
 Using Cardano’s mainnet values:
-- $`T_{\text{VRF}} = 10^{-6}`$ seconds (1 microsecond) – Time to evaluate a Verifiable Random Function.
+- $`T_{\mathsf{VRF}} = 10^{-6}`$ seconds (1 microsecond) – Time to evaluate a Verifiable Random Function.
 - $`T_{\text{BLAKE2b}} = 10^{-8}`$ seconds (0.01 microseconds) – Time for a BLAKE2b-256 hash operation.
 - $`f = \frac{1}{20} = 0.05`$ – Active slot coefficient.
 - Slot duration = 1 second.
