@@ -759,9 +759,9 @@ We say that the interval is $\mathbf{\alpha}$**-heavy** if $\frac{X_A(w)}{w} > \
 
 #### 3.1.2 Grinding Potential g
 
-An **$\alpha$-heavy suffix** must be present at the critical juncture for a grinding attack to be considered. The **heavier** `w` is for fixed `w`, the **higher** the grinding potential becomes.
+An **$\alpha$-heavy suffix** must be present at the critical juncture for a grinding attack to be considered. The heavier $w$ , for a fixed $w$, the greater the adversary’s grinding potential.
 
-The **grinding potential** $g$ of an adversary $A$ is the number of distinct values that $A$ can choose from for the epoch nonce $\eta$. This quantifies the adversary's ability to manipulate randomness by selectively withholding, recomputing, or biasing values. 
+The **grinding potential** $g$ of an adversary $A$ is the number of distinct values that $A$ can choose from when determining for the epoch nonce $\eta$. This quantifies the adversary's ability to manipulate randomness by selectively withholding, recomputing, or biasing values. 
 
 The grinding potential is bounded by:
 
@@ -1215,7 +1215,7 @@ We evaluate feasibility by estimating $N_{\text{CPU}}$ at various $\rho$ values 
 N_{\text{CPU}} \geq \left \lceil 0.05 \cdot 2^{\rho - 1} \cdot \left( 5 \cdot 10^{-9} + \frac{w_T \cdot 10^{-6} + T_{\text{eval}}}{\rho} \right) \right \rceil
 ```
 
-Costs are estimated assuming a CPU rental price of $`\$0.01`$ per CPU-hour, based on low-end instance pricing from major cloud providers like AWS as of March 11, 2025, where basic instances such as t2.micro cost approximately $\$0.0116$ per CPU-hour [AWS EC2 Pricing Page](https://aws.amazon.com/ec2/pricing/). However, for high-performance tasks, actual costs may range from $\$0.04$ to $\$0.08$ per CPU-hour, as seen with `AWS c5.large` ($\$0.048$) or `Azure Standard_F2s_v2` ($\$0.0372$). The table below summarizes the feasibility for `Owl Survey` ($T_{\text{eval}} = 1$, $w_T = 432,000 \, \text{s}$), the most resource-intensive scenario, at different $\rho$ values, using the $\$0.01$ estimate for initial assessment:
+Costs are estimated assuming a CPU rental price of $`\$0.01`$ per CPU-hour, based on low-end instance pricing from major cloud providers like AWS as of March 11, 2025, where basic instances such as t2.micro cost approximately $`\$0.0116`$ per CPU-hour [AWS EC2 Pricing Page](https://aws.amazon.com/ec2/pricing/). However, for high-performance tasks, actual costs may range from $`\$0.04`$ to $`\$0.08`$ per CPU-hour, as seen with `AWS c5.large` ($`\$0.048`$) or `Azure Standard_F2s_v2` ($\$0.0372$). The table below summarizes the feasibility for `Owl Survey` ($T_{\text{eval}} = 1$, $w_T = 432,000 \, \text{s}$), the most resource-intensive scenario, at different $\rho$ values, using the $`\$0.01`$ estimate for initial assessment:
 
 
 ---- There are discrepencies between the order and approx. value. This table should be updated
@@ -1224,7 +1224,7 @@ Costs are estimated assuming a CPU rental price of $`\$0.01`$ per CPU-hour, base
 | **16**   | $10^0$ CPUs ($\sim 1$)   | 0.01                        | Trivial for any adversary |
 | **32**   | $10^4$ CPUs ($\sim 9,611,715$) | 96,117                    | Feasible for well-funded adversaries |
 | **48**   | $10^9$ CPUs ($\sim 2.47 \times 10^9$) | 24.7 million             | Possible with large-scale infrastructure |
-| **64**   | $10^{13}$ CPUs ($\sim 2.06 \times 10^{16}$) | $ 2.06 \times 10^{14}$   | Borderline infeasible, requires massive resources |
+| **64**   | $10^{13}$ CPUs ($\sim 2.06 \times 10^{16}$) | $2.06 \times 10^{14}$   | Borderline infeasible, requires massive resources |
 | **80**   | $10^{18}$ CPUs ($\sim 8.22 \times 10^{20}$) | $8.22 \times 10^{18}$  | Infeasible, exceeds global computing capacity |
 | **128**  | $10^{31}$ CPUs ($\sim 5.24 \times 10^{33}$) | $5.24 \times 10^{31}$ | Impossible, beyond planetary energy limits |
 | **256**  | $10^{62}$ CPUs ($\sim 2.13 \times 10^{64}$) | $2.13 \times 10^{61}$ | Beyond universal computing limits |
