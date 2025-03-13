@@ -54,8 +54,8 @@ Finally, it is essential to recognize that **adversarial capabilities continuall
 - [1. Preliminaries](#1-preliminaries)
   - [1.1 Fundamental Properties](#11-fundamental-properties)
     + [1.1.1 Transaction Ledger Properties](#111-transaction-ledger-properties)
-      * [1.1.1.1 Persistence with the **security parameter** $ \text{k} \in \mathbb{N} $](#1111-persistence-with-the-security-parameter--textk-in-mathbbn-)
-      * [1.1.1.2 Liveness with the **transaction confirmation time parameter** $ u \in \mathbb{N} $](#1112-liveness-with-the-transaction-confirmation-time-parameter--textu-in-mathbbn-)
+      * [1.1.1.1 Persistence with the security parameter k ](#1111-persistence-with-the-security-parameter--textk-in-mathbbn-)
+      * [1.1.1.2 Liveness with the transaction confirmation time parameter u](#1112-liveness-with-the-transaction-confirmation-time-parameter--textu-in-mathbbn-)
     + [1.1.2 Chain Properties](#112-chain-properties)
       * [1.1.2.1 Common Prefix (CP)](#1121-common-prefix-cp)
       * [1.1.2.2 Existential Chain Quality (∃CQ)](#1122-existential-chain-quality-cq)
@@ -89,7 +89,7 @@ Finally, it is essential to recognize that **adversarial capabilities continuall
 
 - [3. The Cost of Grinding: Adversarial Effort and Feasibility](#3-the-cost-of-grinding-adversarial-effort-and-feasibility)
   - [3.1 Definitions](#31-definitions)
-    + [3.1.1 $\alpha$-heavy and Heaviness](#311-a-heavy-and-heaviness)
+    + [3.1.1 α-heavy and Heaviness](#311-a-heavy-and-heaviness)
     + [3.1.2 Grinding Potential g](#312-grinding-power-g)
     + [3.1.3 Grinding Depth ρ](#313-grinding-depth-rho)
     + [3.1.4 Grinding Windows](#314-grinding-windows)
@@ -127,19 +127,19 @@ The protocol must satisfy the following two critical properties (Persistence & L
 | **Chain Growth (CG)**                   | Ensures that the blockchain extends at a minimum rate over time, preventing indefinite stalling by adversaries while maintaining progress based on the fraction of honest stakeholders producing blocks. |
 
 ### 1.1.1 Transaction Ledger Properties 
-#### 1.1.1.1 Persistence with the **security parameter $ \text{k} \in \mathbb{N} $**
+#### 1.1.1.1 Persistence with the **security parameter $` \text{k} \in \mathbb{N} `$**
  
-Once a node of the system proclaims a certain transaction *tx* in the stable part of its ledger, all nodes, if queried, will either report *tx* in the same position of that ledger or report a stable ledger which is a prefix of that ledger. Here the notion of stability is a predicate that is parameterized by a **security parameter $ \text{k} $**. Specifically, a transaction is declared **stable** if and only if it is in a block that is more than $ \text{k} $ blocks deep in the ledger.
+Once a node of the system proclaims a certain transaction *tx* in the stable part of its ledger, all nodes, if queried, will either report *tx* in the same position of that ledger or report a stable ledger which is a prefix of that ledger. Here the notion of stability is a predicate that is parameterized by a **security parameter $` \text{k} `$**. Specifically, a transaction is declared **stable** if and only if it is in a block that is more than $` \text{k} `$ blocks deep in the ledger.
 
-#### 1.1.1.2 Liveness with the **transaction confirmation time parameter $ u \in \mathbb{N} $** 
+#### 1.1.1.2 Liveness with the **transaction confirmation time parameter $` u \in \mathbb{N} `$** 
 
-If all honest nodes in the system attempt to include a certain transaction then, after the passing of time corresponding to $ \text{u} $ slots (called the **transaction confirmation time**), all nodes, if queried and responding honestly, will report the transaction as stable.
+If all honest nodes in the system attempt to include a certain transaction then, after the passing of time corresponding to $`\text{u}`$ slots (called the **transaction confirmation time**), all nodes, if queried and responding honestly, will report the transaction as stable.
 
 ### 1.1.2 Chains properties 
 
 **Persistence** and **liveness** can be derived from basic **chain properties**, provided that the protocol structures the ledger as a **blockchain**—a sequential data structure. The following key chain properties ensure that the blockchain behaves securely and efficiently:
 
-#### 1.1.2.1 **Common Prefix (CP)**: With the **security parameter $k \in \mathbb{N}$**. 
+#### 1.1.2.1 **Common Prefix (CP)**: With the **security parameter $`k \in \mathbb{N}`$**. 
 
 Consider 2 chains $C_1$ and $C_2$ adopted by 2 honest parties at the onset of slots $sl_1$ and $sl_2$, respectively, where $sl_1 \leq sl_2$. The chains must satisfy the condition:
 
@@ -239,27 +239,27 @@ The VRF is used to generate randomness locally in the protocol, making the leade
 - A participant is privately and verifiably selected to create a block for a given slot.
 - The VRF output is both secret (only known to the selected leader) and verifiable (publicly checkable).
 
-To determine whether a participant is the slot leader of $\text{slot}_t$ in epoch $\text{epoch}_e$, they first generate a VRF output and proof using their secret VRF key out of the slot number $\text{slot}_t$ and current epoch random nonce $\eta_\text{e}$. They then compare this value with a threshold $\text{Threshold}^\text{participant}_\text{e}$ that is computed from the participant's relative stake at the beginning of the epoch. If the VRF output is smaller than the threshold, they become the slot leader of $\text{slot}_t$. In that case, when publishing a block for this slot, they include in the block header $ \text{BlockHeader}_\text{t} $, the $ \text{SlotLeaderProof}_\text{t} $ comprising the VRF proof.
+To determine whether a participant is the slot leader of $`\text{slot}_t`$ in epoch $`\text{epoch}_e`$, they first generate a VRF output and proof using their secret VRF key out of the slot number $`\text{slot}_t`$ and current epoch random nonce $`\eta_\text{e}`$. They then compare this value with a threshold $`\text{Threshold}^\text{participant}_\text{e}`$ that is computed from the participant's relative stake at the beginning of the epoch. If the VRF output is smaller than the threshold, they become the slot leader of $`\text{slot}_t`$. In that case, when publishing a block for this slot, they include in the block header $` \text{BlockHeader}_\text{t} `$, the $` \text{SlotLeaderProof}_\text{t} `$ comprising the VRF proof.
 
 | **Features** | **Mathematical Formula** | **Description**  | 
 |--------------|------------------|-----------------------|
-| **Slot Leader Proof** | $\mathsf{VRF}^\text{Certification}_\text{(participant,t)} \equiv (\mathsf{VRF}^\text{Proof}_\text{(participant,t)},\mathsf{VRF}^\text{Output}_\text{(participant,t)}) \leftarrow VRF_\text{gen} \left( Key\mathsf{VRF}^\text{participant}_\text{private}, \text{slot}_t \, ⭒ \, \eta_\text{e} \right) $ | This function computes the leader eligibility proof using the VRF, based on the slot number and randomness nonce.       | 
-| **Slot Leader Threshold** | $ \text{Threshold}^\text{participant}_\text{e} = (1 - ActiveSlotCoefficient )^\frac{\text{ActiveStake}^\text{e}_\text{participant}}{\text{ActiveStake}^\text{e}_\text{total}}  $ | This function calculates the threshold for a participant's eligibility to be selected as a slot leader during $ \text{epoch}_e $.   | 
-| **Eligibility Check** | $ isEligible\left (t,participant ,\text{ActivesStake}^\text{e},\eta_\text{e}\right) = \frac{ toBoundedNatural  \circ  \mathsf{VRF}^\text{Output}_\text{(participant,t)}}{\text{MaxBoundedNatural}} < \text{Threshold}^\text{participant}_\text{e} $ |The leader proof is compared against a threshold to determine if the participant is eligible to create a block.         |
-| **Verification**       | $ VRF_\text{verify} \left(  Key\mathsf{VRF}^\text{participant}_\text{public}, \mathsf{VRF}^\text{Certification}_\text{(participant,t)}, \text{slot}_t \, ⭒ \, \eta_\text{e} \right) = 0 \land 1  $ | Other nodes verify the correctness of the leader proof by recomputing it using the public VRF key and slot-specific input.     | 
+| **Slot Leader Proof** | $`\mathsf{VRF}^\text{Certification}_\text{(participant,t)} \equiv (\mathsf{VRF}^\text{Proof}_\text{(participant,t)},\mathsf{VRF}^\text{Output}_\text{(participant,t)}) \leftarrow VRF_\text{gen} \left( Key\mathsf{VRF}^\text{participant}_\text{private}, \text{slot}_t \, ⭒ \, \eta_\text{e} \right) `$ | This function computes the leader eligibility proof using the VRF, based on the slot number and randomness nonce.       | 
+| **Slot Leader Threshold** | $` \text{Threshold}^\text{participant}_\text{e} = (1 - ActiveSlotCoefficient )^\frac{\text{ActiveStake}^\text{e}_\text{participant}}{\text{ActiveStake}^\text{e}_\text{total}}  `$ | This function calculates the threshold for a participant's eligibility to be selected as a slot leader during $` \text{epoch}_e `$.   | 
+| **Eligibility Check** | $` isEligible\left (t,participant ,\text{ActivesStake}^\text{e},\eta_\text{e}\right) = \frac{ toBoundedNatural  \circ  \mathsf{VRF}^\text{Output}_\text{(participant,t)}}{\text{MaxBoundedNatural}} < \text{Threshold}^\text{participant}_\text{e} `$ |The leader proof is compared against a threshold to determine if the participant is eligible to create a block.         |
+| **Verification**       | $` VRF_\text{verify} \left(  Key\mathsf{VRF}^\text{participant}_\text{public}, \mathsf{VRF}^\text{Certification}_\text{(participant,t)}, \text{slot}_t \, ⭒ \, \eta_\text{e} \right) = 0 \land 1  `$ | Other nodes verify the correctness of the leader proof by recomputing it using the public VRF key and slot-specific input.     | 
  
 | Where | |
 |-----------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
-| $ \text{slot}_t $                   | The current slot number.                                                                                                          |
-| $ \eta_\text{e} $                   | Eta, The randomness nonce used in $ \text{epoch}_\text{e} $, computed within the previous $ \text{epoch}_\text{e-1} $.            |
-| $ key_\text{private} $              | The node's secret (private) key.                                                                                                  |
-| $ key_\text{public} $               | The node's public key.                                                                                                            |
-| $ VRF_\text{gen} \left( key_\text{private}, \text{input} \right) \rightarrow (Proof,Output) $ | Generate a Certification with input |
-| $ VRF_\text{verify} \left( key_\text{private}, (Proof,Output), msg \right) \rightarrow \{0,1\}  $ | Verify a Certification with input |
-| $ a ⭒ b $    | The concatenation of $a$ and $b$ , followed by a BLAKE2b-256 hash computation.                                                |
-| $ \text{ActiveStake}^\text{e}_\text{participant} $ | The stake owned by the participant used in $ \text{epoch}_\text{e} $, computed within the previous $ \text{epoch}_\text{e-1} $                                                                                              |
-| $ \text{ActiveStake}^\text{e}_\text{total} $       | The total stake in the system used in $ \text{epoch}_\text{e} $, computed within the previous $ \text{epoch}_\text{e-1} $                                                                                                  |
-| $ ActiveSlotCoefficient$                            | The active slot coefficient (referred as $f$), representing the fraction of slots that will have a leader and eventually a block produced.                                           |
+| $` \text{slot}_t `$                   | The current slot number.                                                                                                          |
+| $` \eta_\text{e} `$                   | Eta, The randomness nonce used in $` \text{epoch}_\text{e} `$, computed within the previous $` \text{epoch}_\text{e-1} `$.            |
+| $` key_\text{private} `$              | The node's secret (private) key.                                                                                                  |
+| $` key_\text{public} `$               | The node's public key.                                                                                                            |
+| $` VRF_\text{gen} \left( key_\text{private}, \text{input} \right) \rightarrow (Proof,Output) `$ | Generate a Certification with input |
+| $` VRF_\text{verify} \left( key_\text{private}, (Proof,Output), msg \right) \rightarrow \{0,1\}  `$ | Verify a Certification with input |
+| $` a ⭒ b `$    | The concatenation of $`a`$ and $`b`$ , followed by a BLAKE2b-256 hash computation.                                                |
+| $` \text{ActiveStake}^\text{e}_\text{participant} `$ | The stake owned by the participant used in $` \text{epoch}_\text{e} `$, computed within the previous $` \text{epoch}_\text{e-1} `$                                                                                              |
+| $` \text{ActiveStake}^\text{e}_\text{total} `$       | The total stake in the system used in $` \text{epoch}_\text{e} `$, computed within the previous $` \text{epoch}_\text{e-1} `$                                                                                                  |
+| $` ActiveSlotCoefficient`$                            | The active slot coefficient (referred as $`f`$), representing the fraction of slots that will have a leader and eventually a block produced.                                           |
 
 <details>
   <summary>
@@ -339,6 +339,31 @@ assertBoundedNatural maxVal val =
 --
 getOutputVRFNatural :: OutputVRF v -> Natural
 getOutputVRFNatural = bytesToNatural . getOutputVRFBytes
+
+-- This is fast enough to use in production.
+bytesToNatural :: ByteString -> Natural
+bytesToNatural = GHC.naturalFromInteger . bytesToInteger
+
+bytesToInteger :: ByteString -> Integer
+bytesToInteger (BS.PS fp (GHC.I# off#) (GHC.I# len#)) =
+  -- This should be safe since we're simply reading from ByteString (which is
+  -- immutable) and GMP allocates a new memory for the Integer, i.e., there is
+  -- no mutation involved.
+  unsafeDupablePerformIO $
+    withForeignPtr fp $ \(GHC.Ptr addr#) ->
+      let addrOff# = addr# `GHC.plusAddr#` off#
+       in -- The last parmaeter (`1#`) tells the import function to use big
+          -- endian encoding.
+          importIntegerFromAddr addrOff# (GHC.int2Word# len#) 1#
+  where
+    importIntegerFromAddr :: Addr# -> Word# -> Int# -> IO Integer
+#if __GLASGOW_HASKELL__ >= 900
+-- Use the GHC version here because this is compiler dependent, and only indirectly lib dependent.
+    importIntegerFromAddr addr sz = integerFromAddr sz addr
+#else
+    importIntegerFromAddr = GMP.importIntegerFromAddr
+#endif
+
 
 -- | Check that the certified VRF output, when used as a natural, is valid for
 -- being slot leader.
@@ -458,7 +483,7 @@ The sequential flow of these 3 phases is deliberately structured by designed :
 
 | Id | **Phase**                                                  | **Key Property**                 | **Description**| 
 |----|-------------------------------|---------------------------|-------------------------------|
-| **1.**| $\text{ActiveStakeDistribution}_e $ Stabilization | **Chain Growth (CG for CP)**  | This phase must be long enough to satisfy the **Chain Growth (CG)** property, ensuring that each honest party's chain grows by at least $k$ blocks. This guarantees that all honest parties agree on the stake distribution from the previous epoch. | 
+| **1.**| $`\text{ActiveStakeDistribution}_e`$ Stabilization | **Chain Growth (CG for CP)**  | This phase must be long enough to satisfy the **Chain Growth (CG)** property, ensuring that each honest party's chain grows by at least $k$ blocks. This guarantees that all honest parties agree on the stake distribution from the previous epoch. | 
 | **2.**| Honest Randomness in $\eta_\text{e}$     | **Existential Chain Quality (∃CQ)** | After the Active Stake Distribution being stabilized to prevent adversaries from adjusting their stake in their favor, this phase must be sufficiently long to satisfy the Existential Chain Quality (∃CQ) property, which is parameterized by $s \in \mathbb{N}$, ensuring that at least one honestly-generated block is included within any span of $s$ slots. The presence of such a block guarantees that honest contributions to the randomness used in the leader election process are incorporated. This phase directly improves the quality of the randomness $ \eta_\text{e} $ by ensuring that adversarial attempts to manipulate the randomness beacon are mitigated. The honest block serves as a critical input, strengthening the unpredictability and fairness of the leader election mechanism.   | 
 | **3.**| $\eta_\text{e}$ Stabilization   | **Chain Growth (CG for CP)**          | This phase must again be long enough to satisfy the **Chain Growth (CG)** property, ensuring that each honest party's chain grows by at least $k$ blocks, allowing all honest parties to agree on the randomness contributions from the second phase. | 
 
