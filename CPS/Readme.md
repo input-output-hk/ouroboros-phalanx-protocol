@@ -544,10 +544,10 @@ false & \text{otherwise.}
 As we may have several competiting forks at a given time, we also have competing _nonce candidates_ $\eta^\text{candidates}$. More particularly, the nonce candidate of a particular fork for epoch $e$ is the combination of the previous epoch nonce $\eta_{e-1}$, the VRFs of from the candidate chain from epoch $e-2$ onwards and the VRFs of the fork until the end of Phase 2 of epoch $e-1$.
 
 ```math
-\begin{align}
+\begin{align*}
 \eta_\text{e}^\text{candidate} &= \eta^\text{evolving}_{t}, \quad \text{when } t = T_{\text{phase2}_\text{end}}^{\text{epoch}_{e-1}}  \text{ in the same fork,}\\
 &= \eta_{e-1}\ \ast \ \left (\ast_{block \in \text{main, } block > \text{Phase2 of } e\text{-}2}\ \mathsf{VRF}_{block} \right ) \ \ast \ \left (\ast_{block \in \text{fork, } block < \text{Phase3 of } e\text{-}1}\ \mathsf{VRF}_{block} \right )
-\end{align}
+\end{align*}
 ```
 
 As one of these fork will become the canonical main chain, so will the candidate nonce. Hence, the epoch nonce $\eta_e$ is the candidate nonce of the longest chain at Phase 2, which is determined once the chain stabilises.
@@ -1071,11 +1071,11 @@ From previous sections, the **grinding opportunity window** is:
 Substituting this into our equation:
 
 ```math
-\begin{align}
+\begin{align*}
 N_{\text{CPU}} &\geq  \left \lceil f \cdot \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right)}{w} \right \rceil\\
 & \geq  \left \lceil f \cdot \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right)}{2\cdot \rho - 1} \right \rceil \text{ as } w < 2 \cdot \rho - 1\\
-&    <  \left \lceil \frac{f \cdot 2^{\rho-1}}{\rho} \cdot  \left( \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right) \right \rceil
-\end{align}
+& >  \left \lceil f \cdot 2^{\rho-1} \cdot T_{\text{BLAKE2b}} + \frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right) \right \rceil
+\end{align*}
 ```
 
 ### 3.4.2 Estimated Formula Using Mainnet Cardano Parameters
