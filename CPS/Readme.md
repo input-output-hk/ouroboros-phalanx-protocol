@@ -5,6 +5,8 @@
 - Status: Proposed
 - Authors:
     - `Nicolas Henin <nicolas.henin@iohk.io>`
+    - `Raphael Toledo <raphael.toledo@iohk.io>`
+    - `Peter Gaži <peter.gazi@iohk.io>`
 - Implementors: []
 - Discussions:
     - `https://github.com/cardano-foundation/CIPs/pull/?`
@@ -1030,9 +1032,6 @@ For the attack to be feasible, this total time must fit within the **grinding op
 ```math
 \frac{2^{\rho} \cdot T_{\text{grinding}}}{N_{\text{CPU}}} \leq w_O
 ```
-
----- what is the computational power? The nb of CPUs?
-
 which leads to the lower bound on computational power ($N_CPU$) : 
 
 ```math
