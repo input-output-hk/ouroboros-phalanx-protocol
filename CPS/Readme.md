@@ -557,6 +557,8 @@ false & \text{otherwise.}
 
 As one of these fork will become the canonical main chain, so will the candidate nonce. Hence, the epoch nonce $\eta_e$ is the candidate nonce of the longest chain at Phase 2, which is determined once the chain stabilises.
 
+For a detailed formalization of the consensus mechanisms discussed herein, refer to the [Consensus Specifications](https://github.com/IntersectMBO/cardano-formal-specifications?tab=readme-ov-file#consensus-specifications) in the Cardano Formal Specifications repository maintained by IntersectMBO.
+
 <details>
   <summary>📌📌 <i>Divergence with academic papers</i> – <b>Expand to view the content </b>.
    </summary> 
