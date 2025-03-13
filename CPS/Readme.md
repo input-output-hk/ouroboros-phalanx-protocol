@@ -1033,7 +1033,7 @@ For the attack to be feasible, this total time must fit within the **grinding op
 
 ---- what is the computational power? The nb of CPUs?
 
-which leads to the lower bound on computational power:
+which leads to the lower bound on computational power ($N_CPU$) : 
 
 ```math
 N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot T_{\text{grinding}}}{w_O}\right \rceil
