@@ -53,10 +53,12 @@ Finally, it is essential to recognize that **adversarial capabilities continuall
 
 ## Table of Contents
 
+## Table of Contents
+
 - [1. Preliminaries](#1-preliminaries)
   - [1.1 Fundamental Properties](#11-fundamental-properties)
     + [1.1.1 Transaction Ledger Properties](#111-transaction-ledger-properties)
-      * [1.1.1.1 Persistence with the security parameter k ](#1111-persistence-with-the-security-parameter--textk-in-mathbbn-)
+      * [1.1.1.1 Persistence with the security parameter k](#1111-persistence-with-the-security-parameter--textk-in-mathbbn-)
       * [1.1.1.2 Liveness with the transaction confirmation time parameter u](#1112-liveness-with-the-transaction-confirmation-time-parameter--textu-in-mathbbn-)
     + [1.1.2 Chain Properties](#112-chain-properties)
       * [1.1.2.1 Common Prefix (CP)](#1121-common-prefix-cp)
@@ -77,26 +79,23 @@ Finally, it is essential to recognize that **adversarial capabilities continuall
     + [1.3.4 Epoch & Phases Length](#134-epoch--phases-length)
     + [1.3.5 The Randomness Generation Sub-Protocol](#135-the-randomness-generation-sub-protocol)
   - [1.4 Forks, Rollbacks, Finality and Settlement Times](#14-forks-rollbacks-finality-and-settlement-times)
-
 - [2. The Grinding Attack Algorithm](#2-the-grinding-attack-algorithm)
   - [2.1 Randomness Manipulation Objectives](#21-randomness-manipulation-objectives)
     + [2.1.1 Exposure](#211-exposure)
     + [2.1.2 Slot Leader Distribution Selection](#212-slot-leader-distribution-selection)
     + [2.1.3 Potential Outcomes of Grinding Attacks](#213-potential-outcomes-of-grinding-attacks)
-
   - [2.2 Non-Exhaustive Manipulation Strategy List](#22-non-exhaustive-manipulation-strategy-list)
     + [2.2.1 System Model](#221-system-model)
     + [2.2.2 Self Mixing Strategy](#222-self-mixing-strategy)
     + [2.2.3 Forking Strategies](#223-forking-strategies)
-
 - [3. The Cost of Grinding: Adversarial Effort and Feasibility](#3-the-cost-of-grinding-adversarial-effort-and-feasibility)
   - [3.1 Definitions](#31-definitions)
     + [3.1.1 α-heavy and Heaviness](#311-a-heavy-and-heaviness)
     + [3.1.2 Grinding Potential g](#312-grinding-power-g)
     + [3.1.3 Grinding Depth ρ](#313-grinding-depth-rho)
     + [3.1.4 Grinding Windows](#314-grinding-windows)
-      * [3.1.4.1 Opportunity Windows](#3141-opportunity-windows-w_o)
-      * [3.1.4.2 Target Window](#3142-attack-window-w_T)
+      * [3.1.4.1 Opportunity Windows](#3141-opportunity-windows-wo)
+      * [3.1.4.2 Target Window](#3142-attack-window-wt)
   - [3.2 Entry Ticket: Acquiring Stake to Play the Lottery](#32-entry-ticket-acquiring-stake-to-play-the-lottery)
   - [3.3 Cost of a Grinding Attempt](#33-cost-of-a-grinding-attempt)
     + [3.3.1 Nonce Generation](#331-nonce-generation)
@@ -106,8 +105,18 @@ Finally, it is essential to recognize that **adversarial capabilities continuall
   - [3.4 Cost of a Grinding Attack](#34-cost-of-a-grinding-attack)
     + [3.4.1 Formula](#341-formula)
     + [3.4.2 Estimated Formula Using Mainnet Cardano Parameters](#342-estimated-formula-using-mainnet-cardano-parameters)
-
-
+  - [3.5 Scenarios](#35-scenarios)
+    + [3.5.1 Scenario Overview](#351-scenario-overview)
+    + [3.5.2 Scenario Behavior](#352-scenario-behavior)
+      * [3.5.2.1 Ant Glance (Low Complexity, Narrow Scope)](#3521-ant-glance-low-complexity-narrow-scope)
+      * [3.5.2.2 Ant Patrol (Low Complexity, Wide Scope)](#3522-ant-patrol-low-complexity-wide-scope)
+      * [3.5.2.3 Owl Stare (High Complexity, Narrow Scope)](#3523-owl-stare-high-complexity-narrow-scope)
+      * [3.5.2.4 Owl Survey (High Complexity, Wide Scope)](#3524-owl-survey-high-complexity-wide-scope)
+    + [3.5.3 Formula Behavior Analysis](#353-formula-behavior-analysis)
+  - [3.6 Grinding Potential Computational Feasibility](#36-grinding-potential-computational-feasibility)
+    + [3.6.1 Feasibility Thresholds](#361-feasibility-thresholds)
+    + [3.6.2 Interpretation of Feasibility Ranges](#362-interpretation-of-feasibility-ranges)
+  
 ---
 
 To fully grasp the context and accurately assess the level of vulnerability, it is crucial to **clearly define how the Praos protocol handles randomness** and eliminate any ambiguity in its implementation. This precise understanding will then serve as a foundation for **identifying and defining these potential attack vectors**. We will refer to these types of attacks as Grinding Attacks throughout this document.
