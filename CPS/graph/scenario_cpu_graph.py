@@ -4,30 +4,18 @@ import matplotlib.pyplot as plt
 # Define the range for rho (Grinding Depth), starting at 0.1 to avoid division by zero
 rho = np.linspace(0.1, 256, 1000)  # 1000 points for smooth curve
 
-# Constants from Cardano mainnet parameters
-f = 0.05
-base_term = 5e-9  # 5 * 10^-9
-
-# Define N_CPU functions for each scenario
+# Define N_CPU functions for each scenario based on the developed formulas
 def ant_glance(rho):
-    wa = 3600
-    teval = 0
-    return 0.05 * 2**rho * (base_term + (wa * 1e-6) / rho)
+    return 5e-10 * 2**(rho - 1) + 1.8e-11 * 2**(rho - 1)
 
 def ant_patrol(rho):
-    wa = 432000
-    teval = 0
-    return 0.05 * 2**rho * (base_term + (wa * 1e-6) / rho)
+    return 5e-10 * 2**(rho - 1) + 2.16e-9 * 2**(rho - 1)
 
 def owl_stare(rho):
-    wa = 3600
-    teval = 1
-    return 0.05 * 2**rho * (base_term + (wa * 1e-6 + teval) / rho)
+    return 5e-10 * 2**(rho - 1) + 1.8e-11 * 2**(rho - 1) + 5e-2 * 2**(rho - 1) / rho
 
 def owl_survey(rho):
-    wa = 432000
-    teval = 1
-    return 0.05 * 2**rho * (base_term + (wa * 1e-6 + teval) / rho)
+    return 5e-10 * 2**(rho - 1) + 2.16e-9 * 2**(rho - 1) + 5e-2 * 2**(rho - 1) / rho
 
 # Calculate log10(N_CPU) for each scenario
 log_ant_glance = np.log10(ant_glance(rho))
@@ -59,7 +47,7 @@ plt.annotate('', xy=(50, log_owl_survey[rho_idx]), xytext=(50, log_ant_glance[rh
              arrowprops=dict(arrowstyle='<->', color='purple', lw=1, shrinkA=0, shrinkB=0))
 
 # Add the delta label in purple, slightly offset to the right
-plt.text(53, mid_y-3.5 , f'$\\Delta \\log_{{10}}(N_{{CPU}}) \\approx {delta_log_ncpu:.1f}$',
+plt.text(53, mid_y-3.5, f'$\\Delta \\log_{{10}}(N_{{CPU}}) \\approx {delta_log_ncpu:.1f}$',
          fontsize=12, color='purple', bbox=dict(facecolor='white', alpha=0.8, edgecolor='none'),
          verticalalignment='center')
 

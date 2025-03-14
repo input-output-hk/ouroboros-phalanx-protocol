@@ -106,16 +106,8 @@ Finally, it is essential to recognize that **adversarial capabilities continuall
     + [3.4.1 Formula](#341-formula)
     + [3.4.2 Estimated Formula Using Mainnet Cardano Parameters](#342-estimated-formula-using-mainnet-cardano-parameters)
   - [3.5 Scenarios](#35-scenarios)
-    + [3.5.1 Scenario Overview](#351-scenario-overview)
-    + [3.5.2 Scenario Behavior](#352-scenario-behavior)
-      * [3.5.2.1 Ant Glance (Low Complexity, Narrow Scope)](#3521-ant-glance-low-complexity-narrow-scope)
-      * [3.5.2.2 Ant Patrol (Low Complexity, Wide Scope)](#3522-ant-patrol-low-complexity-wide-scope)
-      * [3.5.2.3 Owl Stare (High Complexity, Narrow Scope)](#3523-owl-stare-high-complexity-narrow-scope)
-      * [3.5.2.4 Owl Survey (High Complexity, Wide Scope)](#3524-owl-survey-high-complexity-wide-scope)
-    + [3.5.3 Formula Behavior Analysis](#353-formula-behavior-analysis)
   - [3.6 Grinding Potential Computational Feasibility](#36-grinding-potential-computational-feasibility)
-    + [3.6.1 Feasibility Thresholds](#361-feasibility-thresholds)
-    + [3.6.2 Interpretation of Feasibility Ranges](#362-interpretation-of-feasibility-ranges)
+
   
 ---
 
@@ -1143,160 +1135,85 @@ N_{\text{CPU}} > \left \lceil 5 \cdot 10^{-10} \cdot 2^{\rho-1} + \frac{5 \cdot 
 
 This expression transitions the theoretical cost model into a practical estimate, with specific values for $w_T$ and $T_{\text{eval}}$ evaluated in [Section 3.5 - Scenarios](#35-scenarios) to assess feasibility across different attack strategies.
 
+
 ## 3.5 Scenarios
 
-Following the computational model from [Section 3.4.2 - Estimated Formula Using Mainnet Cardano Parameters](#342-estimated-formula-using-mainnet-cardano-parameters), we explore four scenarios to observe how randomness manipulation behaves across varying grinding depths $\rho$. These scenarios are framed with an animal-inspired metaphor reflecting evaluation complexity ($T_{\text{eval}}$) and observation scope ($w_T$), providing a basis for graphical analysis to be developed later.
+Following the computational model from [Section 3.4.2 - Estimated Formula Using Mainnet Cardano Parameters](#342-estimated-formula-using-mainnet-cardano-parameters), we explore four scenarios to observe how randomness manipulation behaves across varying grinding depths $\rho$. These scenarios are framed with an animal-inspired metaphor reflecting evaluation complexity ($T_{\text{eval}}$) and observation scope ($w_T $), providing a basis for graphical analysis to be developed later.
 
-### 3.5.1 Scenario Overview
+| **Scenario**    | **$T_{\text{eval}}$ (Complexity)** | **$w_T$ (Scope)** | **Description**                                                                 |
+|-----------------|--------------------------------------|---------------------|---------------------------------------------------------------------------------|
+| **Ant Glance**  | 0 (Low)                              | 1h (3600 s)         | An ant quickly glancing at a small spot, representing simple evaluation (low $T_{\text{eval}}$) with basic effort and a narrow observation scope (small $w_T$). |
+| **Ant Patrol**  | 0 (Low)                              | 5d (432,000 s)      | An ant patrolling a wide area over time with simple instincts, representing simple evaluation (low $T_{\text{eval}} $) with basic effort and a broad observation scope (large $w_T$). |
+| **Owl Stare**   | 1 (High)                             | 1h (3600 s)         | An owl staring intently at a small area with keen focus, representing complex evaluation (high $T_{\text{eval}} $) with advanced effort and a narrow observation scope (small $w_T$). |
+| **Owl Survey**  | 1 (High)                             | 5d (432,000 s)      | An owl surveying a wide range with strategic awareness, representing complex evaluation (high $T_{\text{eval}} $) with advanced effort and a broad observation scope (large $w_T$). |
 
-The scenarios illustrate different attack strategies, with trends to be visualized on a graph:
-
-| **Scenario**    | **$T_{\text{eval}}$ (Complexity)** | **$w_T$ (Scope)** | **Description**                                      |
-|-----------------|------------------------------------|-------------------|-----------------------------------------------------|
-| **Ant Glance**  | 0 (Low)                            | 1h (3600 s)       | An ant taking a quick glance at a small spot.       |
-| **Ant Patrol**  | 0 (Low)                            | 5d (432,000 s)    | An ant patrolling a wide area over time with simple instincts. |
-| **Owl Stare**   | 1 (High)                           | 1h (3600 s)       | An owl staring intently at a small area with keen focus. |
-| **Owl Survey**  | 1 (High)                           | 5d (432,000 s)    | An owl surveying a wide range with strategic awareness. |
-
-- **Ant**: Represents simple evaluation (low $T_{\text{eval}}$), indicating basic effort.
-- **Owl**: Represents complex evaluation (high $T_{\text{eval}}$), indicating advanced effort.
-- **Glance/Stare**: Narrow observation (small $w_T$), a focused scope.
-- **Patrol/Survey**: Wide observation (large $w_T$), an expansive scope.
-
-The behavior is modeled using the formula from [Section 3.4.2 - Estimated Formula Using Mainnet Cardano Parameters](#342-estimated-formula-using-mainnet-cardano-parameters):
-
-```math
-N_{\text{CPU}} = 0.05 \cdot 2^{\rho-1} \cdot \left( 5 \cdot 10^{-9} + \frac{w_T \cdot 10^{-6} + T_{\text{eval}}}{\rho} \right)
+The $N_{\text{CPU}}$ formulas are derived by substituting the respective $w_T$ and $T_{\text{eval}}$ values from each scenario into the base expression : 
+```math 
+N_{\text{CPU}} > \left \lceil 5 \cdot 10^{-10} \cdot 2^{\rho-1} + \frac{5 \cdot 10^{-14} \cdot 2^{\rho-1}}{\rho} \cdot w_T + \frac{5 \cdot 10^{-2} \cdot 2^{\rho-1}}{\rho} \cdot T_{\text{eval}} \right \rceil
 ```
 
-(Note: We omit the ceiling function here for continuous trend observation, to be adjusted for discrete CPU counts in the graph.)
-
----- We could merge all these scenarii in the same section or put them in a table
-### 3.5.2 Scenario Behavior
-
-We examine how $\log_{10}(N_{\text{CPU}})$ varies with $\rho$ (grinding depth) for each scenario, setting the stage for graphical representation.
-
-#### 3.5.2.1 Ant Glance (Low Complexity, Narrow Scope)
-- **Parameters**: $T_{\text{eval}} = 0$ s, $w_T = 3600$ s.
-- **Expression**:
-
-```math
-N_{\text{CPU}} = 0.05 \cdot 2^{\rho - 1} \cdot \left( 5 \cdot 10^{-9} + \frac{3600 \cdot 10^{-6}}{\rho} \right)
-```
-
-- **Behavior**: Starts with a low $N_{\text{CPU}}$ due to the small $w_T$, but grows exponentially with $\rho$ as the $2^{\rho}$ term dominates. The narrow scope limits the initial impact, making it the baseline trend.
-
-#### 3.5.2.2 Ant Patrol (Low Complexity, Wide Scope)
-- **Parameters**: $T_{\text{eval}} = 0$ s, $w_T = 432,000$ s.
-- **Expression**:
-
-```math
-N_{\text{CPU}} = 0.05 \cdot 2^{\rho - 1} \cdot \left( 5 \cdot 10^{-9} + \frac{432,000 \cdot 10^{-6}}{\rho} \right)
-```
-
-- **Behavior**: Higher initial $N_{\text{CPU}}$ than Ant Glance due to the larger $w_T$, with a steeper rise as $\rho$ increases. The wide scope amplifies the effect over time.
-
-#### 3.5.2.3 Owl Stare (High Complexity, Narrow Scope)
-- **Parameters**: $T_{\text{eval}} = 1$ s, $w_T = 3600$ s.
-- **Expression**:
-
-```math
-N_{\text{CPU}} = 0.05 \cdot 2^{\rho - 1} \cdot \left( 5 \cdot 10^{-9} + \frac{3600 \cdot 10^{-6} + 1}{\rho} \right)
-```
-
-- **Behavior**: Elevated $N_{\text{CPU}}$ from the high $T_{\text{eval}}$, but the narrow scope keeps the growth rate moderate compared to wide-scope scenarios. The complexity adds a consistent offset.
-
-#### 3.5.2.4 Owl Survey (High Complexity, Wide Scope)
-- **Parameters**: $T_{\text{eval}} = 1$ s, $w_T = 432,000$ s.
-- **Expression**:
-
-```math
-N_{\text{CPU}} = 0.05 \cdot 2^{\rho - 1} \cdot \left( 5 \cdot 10^{-9} + \frac{432,000 \cdot 10^{-6} + 1}{\rho} \right)
-```
-
-- **Behavior**: The highest initial $N_{\text{CPU}}$ due to combined high $T_{\text{eval}}$ and large $w_T$, with the steepest exponential rise as $\rho$ grows, reflecting the most resource-intensive strategy.
+| **Scenario**    | **$N_{\text{CPU}}$ Formula**                                                                                     |
+|-----------------|-----------------------------------------------------------------------------------------------------------------|
+| **Ant Glance**  | $5\cdot10^{-10}\cdot2^{\rho-1} + 1.8\cdot10^{-11}\cdot2^{\rho-1}$ |
+| **Ant Patrol**  | $5\cdot10^{-10}\cdot2^{\rho-1} + 2.16\cdot10^{-9}\cdot2^{\rho-1}$ |
+| **Owl Stare**   | $5\cdot10^{-10}\cdot2^{\rho-1} + 1.8\cdot10^{-11}\cdot2^{\rho-1} + 5\cdot10^{-2}\cdot\frac{2^{\rho-1}}{\rho}$ |
+| **Owl Survey**  | $5\cdot10^{-10}\cdot2^{\rho-1} + 2.16\cdot10^{-9}\cdot2^{\rho-1} + 5\cdot10^{-2}\cdot\frac{2^{\rho-1}}{\rho}$ |
 
 
-### 3.5.3 Formula Behavior Analysis
+![alt text](image-15.png)
 
-The $N_{\text{CPU}}$ trends for Ant Glance, Ant Patrol, Owl Stare, and Owl Survey, from [Section 3.4.2 - Estimated Formula Using Mainnet Cardano Parameters](#342-estimated-formula-using-mainnet-cardano-parameters), are analyzed as $\rho$ varies from 0 to 256:
-
-```math
-N_{\text{CPU}} = 0.05 \cdot 2^{\rho - 1} \cdot \left( 5 \cdot 10^{-9} + \frac{w_T \cdot 10^{-6} + T_{\text{eval}}}{\rho} \right)
-```
-
----- TODO: update values
-At $\rho = 50$:
-- **Ant Glance** ($T_{\text{eval}} = 0$, $w_T = 3600$): $N_{\text{CPU}} \approx 4.053 \times 10^9$, $\log_{10}(N_{\text{CPU}}) \approx 9.6077$.
-- **Ant Patrol** ($T_{\text{eval}} = 0$, $w_T = 432,000$): $N_{\text{CPU}} \approx 4.864 \times 10^{11}$, $\log_{10}(N_{\text{CPU}}) \approx 11.687$.
-- **Owl Stare** ($T_{\text{eval}} = 1$, $w_T = 3600$): $N_{\text{CPU}} \approx 1.131 \times 10^{12}$, $\log_{10}(N_{\text{CPU}}) \approx 12.053$.
-- **Owl Survey** ($T_{\text{eval}} = 1$, $w_T = 432,000$): $N_{\text{CPU}} \approx 1.613 \times 10^{12}$, $\log_{10}(N_{\text{CPU}}) \approx 12.207$.
-
----- TODO: to update
-![alt text](image-22.png)
-
-
-The maximal delta $\Delta \log_{10}(N_{\text{CPU}})$ (Owl Survey minus Ant Glance) is $\sim 2.6$, matching the graph’s constant gap.  This suggests $T_{\text{eval}}$ and $w_T$ drive a pre-exponential frame of $10^\text{2.6}$ CPUs, scaled exponentially by $2^{\rho}$
+The maximal delta $\Delta \log_{10}(N_{\text{CPU}})$ (Owl Survey minus Ant Glance) is $\sim 6.3$, matching the graph’s constant gap. This suggests $T_{\text{eval}}$ and $w_T$ drive a pre-exponential frame of $10^{6.3}$ CPUs, scaled exponentially by $2^{\rho}$. Note that the green line (Owl Stare) is not visible on the graph, likely due to its close alignment with the blue line (Ant Glance), as both share the same $w_T = 3600$ s, and the difference in $T_{\text{eval}}$ (0 for Ant Glance vs. 1 for Owl Stare) becomes negligible on the logarithmic scale for large $\rho$.
 
 ### 3.6 Grinding Potential Computational Feasibility
 
-Building on the analysis in [Section 3.5.3 - Formula Behavior Analysis](#353-formula-behavior-analysis), we assess the feasibility of grinding attacks by examining the computational resources ($N_{\text{CPU}}$) required across different grinding depths ($\rho$). The scenarios (Ant Glance, Ant Patrol, Owl Stare, Owl Survey) show a consistent $\Delta \log_{10}(N_{\text{CPU}}) \sim 2.6$, meaning the most demanding scenario (Owl Survey) requires $10^{2.6} \approx 398$ times more CPUs than the least demanding (Ant Glance). We use this range to define feasibility thresholds, considering computational power, economic costs, and practical constraints.
+Building on the analysis in [Section 3.6](#353-formula-behavior-analysis), we assess the feasibility of grinding attacks by examining the computational resources ($N_{\text{CPU}}$) required across different grinding depths ($\rho$). The scenarios (Ant Glance, Ant Patrol, Owl Stare, Owl Survey) show a consistent $\Delta \log_{10}(N_{\text{CPU}}) \sim 6.3$, meaning the most demanding scenario (Owl Survey) requires $10^{6.3}$ times more CPUs than the least demanding (Ant Glance).
 
-#### 3.6.1 Feasibility Thresholds
+To help readers understand the practicality of these attacks, we define feasibility thresholds based on economic and computational viability, as shown in the table below:
 
-We evaluate feasibility by estimating $N_{\text{CPU}}$ at various $\rho$ values using the formula from [Section 3.4.2 - Estimated Formula Using Mainnet Cardano Parameters](#342-estimated-formula-using-mainnet-cardano-parameters):
+| **Feasibility Category**          | **Cost Range (USD)**         | **Description**                                                                                                   |
+|------------------------------------|------------------------------|------------------------------------------------------------------------------------------------------------------|
+| **Trivial**                       | < $100                       | Indicates costs below $100, representing an amount easily affordable by an individual with basic computing resources, such as a personal computer. |
+| **Feasible**                      | $10,000 to $1,000,000        | Reflects costs that require a substantial financial commitment, typically beyond the reach of individuals but manageable for well-funded entities, such as tech startups, research groups, or organized crime syndicates, assuming access to mid-tier cloud computing resources or a dedicated server farm, necessitating a strategic investment that signals a serious intent to exploit the network. |
+| **Possible**                      | $1,000,000 to $1,000,000,000 | Reflects costs that demand resources on the scale of large corporations, government agencies, or nation-states, implying the use of extensive computational infrastructure (e.g., data centers) and significant capital, suggesting an attack that requires coordinated effort and advanced planning, potentially involving millions of CPU hours or specialized hardware. |
+| **Borderline Infeasible**         | $1,000,000,000 to $1,000,000,000,000 | Indicates costs that approach the upper bounds of what global economies can sustain for a single project, requiring resources comparable to those of major international organizations or coalitions, pushing the limits of current computational and financial capabilities, and suggesting that such an endeavor would strain even well-resourced entities, making it highly improbable without global-scale coordination. |
+| **Infeasible**                    | > $1,000,000,000,000         | Denotes costs exceeding \$1 trillion, deemed infeasible because they surpass the total economic output or computational capacity available globally (e.g., estimated at $\sim 10^{15}$ CPUs or $\sim \$100$ trillion GDP as of 2025), implying an attack that is theoretically possible only with resources beyond current technological or economic limits, rendering it practically impossible with present-day infrastructure. |
 
-```math
-N_{\text{CPU}} \geq \left \lceil 0.05 \cdot 2^{\rho - 1} \cdot \left( 5 \cdot 10^{-9} + \frac{w_T \cdot 10^{-6} + T_{\text{eval}}}{\rho} \right) \right \rceil
-```
+The cost model uses the $N_{\text{CPU}}$ formulas from [Section 3.5 - Scenarios](#35-scenarios), computes the number of CPUs needed for the attack, and multiplies by the CPU rental price ($0.01$ per CPU-hour) and runtime defined by the grinding opportunity window $w_O = \frac{2\rho - 1}{f}$ seconds (with $f = 0.05$) to estimate the total cost.
 
-Costs are estimated assuming a CPU rental price of $`\$0.01`$ per CPU-hour, based on low-end instance pricing from major cloud providers like AWS as of March 11, 2025, where basic instances such as t2.micro cost approximately $`\$0.0116`$ per CPU-hour [AWS EC2 Pricing Page](https://aws.amazon.com/ec2/pricing/). However, for high-performance tasks, actual costs may range from $`\$0.04`$ to $`\$0.08`$ per CPU-hour, as seen with `AWS c5.large` ($`\$0.048`$) or `Azure Standard_F2s_v2` ($\$0.0372$). The table below summarizes the feasibility for `Owl Survey` ($T_{\text{eval}} = 1$, $w_T = 432,000 \, \text{s}$), the most resource-intensive scenario, at different $\rho$ values, using the $`\$0.01`$ estimate for initial assessment:
+Costs are estimated assuming a CPU rental price of $0.01$ per CPU-hour, based on low-end instance pricing from major cloud providers like AWS as of March 11, 2025, where basic instances such as t2.micro cost approximately $0.0116$ per CPU-hour [AWS EC2 Pricing Page](https://aws.amazon.com/ec2/pricing/). However, for high-performance tasks, actual costs may range from $0.04$ to $0.08$ per CPU-hour, as seen with `AWS c5.large` ($0.048$) or `Azure Standard_F2s_v2` ($0.0372$). The table below summarizes the feasibility for `Owl Survey` ($T_{\text{eval}} = 1$, $w_T = 432,000 \, \text{s}$), the most resource-intensive scenario, at different $\rho$ values, using the $0.01$ estimate for initial assessment:
 
-
----- There are discrepencies between the order and approx. value. This table should be updated
-| $\rho$ | CPUs Required (Log₁₀ Scale) | Estimated Cost (USD, 1-hour run) | Feasibility |
+| $\rho$ | CPUs Required (Log₁₀ Scale) | Estimated Cost (USD, $w_O$ run) | Feasibility |
 |----------|-----------------------------|----------------------------------|-------------|
-| **16**   | $10^0$ CPUs ($\sim 1$)   | 0.01                        | Trivial for any adversary |
-| **32**   | $10^4$ CPUs ($\sim 9,611,715$) | 96,117                    | Feasible for well-funded adversaries |
-| **48**   | $10^9$ CPUs ($\sim 2.47 \times 10^9$) | 24.7 million             | Possible with large-scale infrastructure |
-| **64**   | $10^{13}$ CPUs ($\sim 2.06 \times 10^{16}$) | $2.06 \times 10^{14}$   | Borderline infeasible, requires massive resources |
-| **80**   | $10^{18}$ CPUs ($\sim 8.22 \times 10^{20}$) | $8.22 \times 10^{18}$  | Infeasible, exceeds global computing capacity |
-| **128**  | $10^{31}$ CPUs ($\sim 5.24 \times 10^{33}$) | $5.24 \times 10^{31}$ | Impossible, beyond planetary energy limits |
-| **256**  | $10^{62}$ CPUs ($\sim 2.13 \times 10^{64}$) | $2.13 \times 10^{61}$ | Beyond universal computing limits |
+| **20**   | $10^4$ CPUs ($\sim 10^4$)    | 56.74                            | Trivial for any adversary |
+| **38**   | $10^9$ CPUs ($\sim 10^9$)    | 2.86 million                     | Feasible for well-funded adversaries |
+| **50**   | $10^{13}$ CPUs ($\sim 10^{13}$) | 3.10 billion                 | Possible with large-scale infrastructure |
+| **70**   | $10^{18}$ CPUs ($\sim 10^{18}$) | $9.80 \times 10^{16}$        | Borderline infeasible, requires massive resources |
+| **110**  | $10^{31}$ CPUs ($\sim 10^{31}$) | $5.97 \times 10^{28}$        | Infeasible, exceeds global computing capacity |
+| **215**  | $10^{62}$ CPUs ($\sim 10^{62}$) | $2.38 \times 10^{59}$        | Impossible, beyond planetary energy limits |
 
-- **CPUs Required**: Computed for Owl Survey at each $\rho$, rounded to the nearest order of magnitude for readability (exact values from prior calculations).
-- **Cost**: Assumes $\$0.01$ per CPU-hour, scaled for a 1-hour target window ($w_O \leq 3600 \, \text{s}$ for $\rho \leq 180$, adjusted for higher $\rho$).
+- **CPUs Required**: Computed for Owl Survey at each $\rho$, rounded to the nearest order of magnitude for readability (exact values approximated).
+- **Cost**: Assumes $0.01$ per CPU-hour, scaled for the runtime $w_O = 20 (2\rho - 1)$ seconds.
 - **Feasibility**: Assessed based on computational and economic viability, considering global computing resources (e.g., $\sim 10^{12}$ CPUs in modern data centers, $\sim 10^{15}$ CPUs globally as of March 11, 2025).
 
-References : 
+References:
 - [AWS EC2 Pricing Page Detailed Instance Pricing](https://aws.amazon.com/ec2/pricing/)
 - [Azure Virtual Machines Pricing Calculator Detailed VM Costs](https://azure.microsoft.com/en-us/pricing/calculator/)
 - [Google Compute Engine Pricing Detailed Compute Pricing](https://cloud.google.com/compute/pricing)
 - [iRender Pricing Information Competitive Cloud Rates](https://www.irender.com/pricing)
 
-### 3.6.2 Interpretation of Feasibility Ranges
+![Grinding Depth Scenarios with Feasibility Thresholds](grinding_depth_scenarios_cost_with_feasibility_layers_gradient.png)
 
-The graph from [Section 3.5.3 - Formula Behavior Analysis](#353-formula-behavior-analysis) uses horizontal layers to show feasibility based on $\log_{10}(N_{\text{CPU}})$, highlighting the $\rho$ ranges where grinding feasibility changes:
+The cost difference between the most expensive scenario (Owl Survey) and the cheapest (Ant Glance) is significant, with a consistent $\Delta \log_{10}(\text{Cost (USD)}) \sim 6.3$, meaning Owl Survey costs approximately $10^{6.3}$ times more than Ant Glance, reflecting the substantial impact of $T_{\text{eval}}$ and $w_T$ on resource demands. The table below shows the $\rho$ values where each scenario transitions across feasibility categories:
 
----- TODO: Update graph
-![Grinding Depth Scenarios with Feasibility Thresholds](grinding_depth_scenarios_with_delta.png)
+| **Feasibility Category**                  | **🔵 Ant Glance** | **🟠 Ant Patrol** | **🟢 Owl Stare** | **🔴 Owl Survey** |
+|--------------------------------------------|-------------------|-------------------|------------------|-------------------|
+| **🟢 🌱 Trivial for Any Adversary**        | $[0, 49)$         | $[0, 47)$         | $[0, 27)$        | $[0, 27)$         |
+| **🟡 💰 Feasible with Standard Resources** | $[49, 59)$        | $[47, 57)$        | $[27, 34)$       | $[27, 34)$        |
+| **🟠 🏭 Possible with Large-Scale Infrastructure** | $[59, 73)$ | $[57, 71)$        | $[34, 48)$       | $[34, 48)$        |
+| **🔴 🚫 Borderline Infeasible**            | $[73, 87)$        | $[71, 85)$       | $[48, 62)$       | $[48, 62)$        |
+| **🔴 🚫 Infeasible**                      | $[87, \infty)$    | $[85, \infty)$    | $[62, \infty)$   | $[62, \infty)$    |
 
-- **Green - Feasible with Standard Resources:**  
-  - For $\rho < 20$, costs ($\sim \$100,000$) remain manageable, allowing grinding by well-funded adversaries.
-
-- **Yellow - Expensive but Possible:**  
-  - For $20 \leq \rho < 40$, costs rise to millions, requiring large-scale infrastructure.
-
-- **Orange - Borderline Infeasible:**  
-  - For $40 \leq \rho < 60$, costs reach billions to trillions, nearing global limits.
-
-- **Red - Infeasible:**  
-  - For $\rho \geq 60$, costs become astronomical, exceeding capacity for $\rho \geq 80$, making attacks impossible.
-
-
-#### 3.7 Conclusion 
-
-N.H . Todo : When we are sure of the formulas and results
+---
 
 ## Goals
 
