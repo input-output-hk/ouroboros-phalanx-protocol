@@ -932,6 +932,8 @@ Let's analyze each of these steps.
 
 ### 3.3.1 Nonce Generation  
 
+We will denote this step as $T_{\text{nonce}}^\rho$ moving forward. 
+
 Nonce generation consists of:  
 
 1. **VRF Evaluation**: Computes a candidate $\eta$ nonce.  
@@ -950,6 +952,8 @@ T_{\text{nonce}}^\rho =  T_{\text{BLAKE2b}} \cdot \frac{\sum_i i  \cdot \binom{\
 
 ### 3.3.2 Slot Leader Distribution Evaluation  
 
+We will denote this step as $T_{\text{distribution}}$ moving forward. 
+
 After generating a candidate nonce, the adversary must evaluate its impact on **slot leader election** over an target window $w_T$ :  
 
 1. **Computing VRF outputs** for all slots in $w_T$ of interest.  
@@ -965,12 +969,16 @@ Define:
 Each slot requires **one VRF verification**, leading to:
 
 ```math
-T_{\text{leader}} = w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} )
+T_{\text{distribution}} = w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} )
 ```
 
-**N.B.** This represents the total time of the leader distribution evaluation. Once a nonce is computed, we can generate and check the eligibility of the VRF outputs in parallel.
+This represents the total time of the leader distribution evaluation. Once a nonce is computed, we can generate and check the eligibility of the VRF outputs in parallel.
+
+
 
 ### 3.3.3 Strategic Benefit Evaluation  
+
+We denote this step as $T_{\text{eval}}$ moving forward.
 
 After simulating the leader election distribution, the adversary must determine whether the selected $\eta$ nonce provides a **strategic advantage** by:  
 
@@ -987,20 +995,20 @@ Unlike previous steps, this phase does not perform a single deterministic comput
 - **Slot timing predictions** → evaluating when it's best to control a block.  
 - **Secondary constraints** → network conditions, latency factors, or additional attack-specific considerations.  
 
-Since this **"database" of possible leader elections** depends on **adversarial strategies**, the cost is too diverse to define precisely. While the **exact cost varies**, this step is **compulsory** and must be factored into the total grinding time. We denote this as $T_{\text{eval}}$ moving forward.
+Since this **"database" of possible leader elections** depends on **adversarial strategies**, the cost is too diverse to define precisely. While the **exact cost varies**, this step is **compulsory** and must be factored into the total grinding time. 
 
 ### 3.3.4 Total Estimated Time per Grinding Attempt  
 
 The total grinding time is the sum of:  
 
 1. **Nonce Generation ($T_{\text{nonce}}$)** → VRF evaluation + hashing.  
-2. **Slot Leader Simulation ($T_{\text{leader}}$)** → Eligibility checks over $w_T$.  
+2. **Slot Leader Simulation ($T_{\text{distribution}}$)** → Eligibility checks over $w_T$.  
 3. **Strategic Evaluation ($T_{\text{eval}}$)** → Nonce selection analysis.  
 
 #### **Total Grinding Time Formula**  
 
 ```math
-T_{\text{grinding}} = T_{\text{nonce}} + T_{\text{leader}} + T_{\text{eval}}
+T_{\text{grinding}} = T_{\text{nonce}} + T_{\text{distribution}} + T_{\text{eval}}
 ```
 
 Expanding each term:
@@ -1012,7 +1020,7 @@ Expanding each term:
 Final expression:
 
 ```math
-T_{\text{grinding}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility check}} ) + T_{\text{eval}}
+T_{\text{grinding}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}}
 ```
 
 Where:
