@@ -828,10 +828,7 @@ Let's consider the worst case where the adversary controls all trailing slots ($
   - $w_O = \frac{256}{\frac{1}{20}} = 256 \cdot 20 = 5,120$ seconds (~85.3 minutes).
   - Starts at $S_2 - w + 1 = 259,200 - 256 + 1 = 258,945$, ends at $259,200 + 20 = 259,220$.
 
-
----- Not sure what you mean now in the line (why do you multiply the $w_0$ by the honest rate?):
-
-This sizing ensures the adversary has time to act before honest chain growth (e.g., when the honest stake is 67%, $E[X_H] = 320 \cdot 0.0335 \approx 10.7$ blocks for $w = 16$) threatens even a length-1 chain, providing a practical and conservative bound for grinding feasibility.
+This sizing ensures the adversary has time to act before honest chain growth threatens even a length-1 chain, providing a practical and conservative bound for grinding feasibility.
 
 ##### 3.1.4.2 Target Window $w_T$
 
