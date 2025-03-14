@@ -1089,10 +1089,20 @@ N_{\text{CPU}} &\geq  \left \lceil f \cdot \frac{2^{\rho} \cdot \left( \frac{\rh
 & >  \left \lceil f \cdot 2^{\rho-1} \cdot T_{\text{BLAKE2b}} + \frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right) \right \rceil
 \end{align*}
 ```
+We end up with this final expression : 
+```math
+\begin{align*}
+N_{\text{CPU}} >  \left \lceil f \cdot 2^{\rho-1} \cdot T_{\text{BLAKE2b}} + \frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right) \right \rceil
+\end{align*}
+```
 
 ### 3.4.2 Estimated Formula Using Mainnet Cardano Parameters
 
-Building on the cost analysis from [Section 3.4.1 - Cost of a Grinding Attack](#34-cost-of-a-grinding-attack), we now estimate the minimum number of CPUs ($N_{\text{CPU}}$) required to execute a grinding attack on Cardano’s mainnet by applying specific protocol parameters to the derived formula. The total attack time must fit within the grinding opportunity window $w_O$, leading to the computational requirement:
+Starting from the final expression at the end of the last section:
+
+```math
+N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho-1} \cdot T_{\text{BLAKE2b}} + \frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right) \right \rceil 
+```
 
 #### Applying Cardano Mainnet Parameters
 Using Cardano’s mainnet values:
@@ -1101,23 +1111,30 @@ Using Cardano’s mainnet values:
 - $f = \frac{1}{20} = 0.05$ – Active slot coefficient.
 - Slot duration = 1 second.
 
-Substitute into $T_{\text{grinding}}$:
+Since the eligibility check is negligible, set $T_{\text{eligibility}} \approx 0$:
+
+Substitute into the expression:
+
+- First term: $f \cdot 2^{\rho-1} \cdot T_{\text{BLAKE2b}} = 0.05 \cdot 2^{\rho-1} \cdot 10^{-8} = 5 \cdot 10^{-10} \cdot 2^{\rho-1}$,
+- Second term: $\frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right) = \frac{0.05}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot (10^{-6} + 0) + T_{\text{eval}} \right) = \frac{0.05 \cdot 2^{\rho-1}}{\rho} \cdot (10^{-6} w_T + T_{\text{eval}})$.
+
+Thus, the expression becomes:
 
 ```math
-T_{\text{grinding}} \approx \frac{\rho}{2} \cdot 10^{-8} + w_T \cdot 10^{-6} + T_{\text{eval}}
+N_{\text{CPU}} > \left \lceil 5 \cdot 10^{-10} \cdot 2^{\rho-1} + \frac{5 \cdot 10^{-2} \cdot 2^{\rho-1}}{\rho} \cdot (10^{-6} w_T + T_{\text{eval}}) \right \rceil 
 ```
 
-Now plug into the formula:
+Simplify:
 
 ```math
-N_{\text{CPU}} \geq \left \lceil \frac{0.05 \cdot 2^{\rho-1}}{\rho} \cdot \left( \frac{\rho}{2} \cdot 10^{-8} + w_T \cdot 10^{-6} + T_{\text{eval}} \right) \right \rceil
+N_{\text{CPU}} > \left \lceil 5 \cdot 10^{-10} \cdot 2^{\rho-1} + \frac{5 \cdot 10^{-8} \cdot 2^{\rho-1}}{\rho} \cdot w_T + \frac{5 \cdot 10^{-2} \cdot 2^{\rho-1}}{\rho} \cdot T_{\text{eval}} \right \rceil 
 ```
 
 #### Final Expression
 The estimated number of CPUs required is:
 
 ```math
-N_{\text{CPU}} \geq \left \lceil 2^{\rho-1} \cdot \left( 2.5 \cdot 10^{-11} + \frac{w_T \cdot 10^{-6} + T_{\text{eval}}}{\rho} \right) \right \rceil
+N_{\text{CPU}} > \left \lceil 5 \cdot 10^{-10} \cdot 2^{\rho-1} + \frac{5 \cdot 10^{-14} \cdot 2^{\rho-1}}{\rho} \cdot w_T + \frac{5 \cdot 10^{-2} \cdot 2^{\rho-1}}{\rho} \cdot T_{\text{eval}} \right \rceil 
 ```
 
 - $\rho$: The number of blocks controlled by the adversary.
@@ -1133,8 +1150,6 @@ Following the computational model from [Section 3.4.2 - Estimated Formula Using 
 ### 3.5.1 Scenario Overview
 
 The scenarios illustrate different attack strategies, with trends to be visualized on a graph:
-
----- Where do these names come from?
 
 | **Scenario**    | **$T_{\text{eval}}$ (Complexity)** | **$w_T$ (Scope)** | **Description**                                      |
 |-----------------|------------------------------------|-------------------|-----------------------------------------------------|
