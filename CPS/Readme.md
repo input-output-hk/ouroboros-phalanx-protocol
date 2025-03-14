@@ -987,7 +987,7 @@ Unlike previous steps, this phase does not perform a single deterministic comput
 - **Slot timing predictions** → evaluating when it's best to control a block.  
 - **Secondary constraints** → network conditions, latency factors, or additional attack-specific considerations.  
 
-Since this **"database" of possible leader elections** depends on **adversarial strategies**, the cost is too diverse to define precisely. While the **exact cost varies**, this step is **compulsory** and must be factored into the total grinding time.
+Since this **"database" of possible leader elections** depends on **adversarial strategies**, the cost is too diverse to define precisely. While the **exact cost varies**, this step is **compulsory** and must be factored into the total grinding time. We denote this as $T_{\text{eval}}$ moving forward.
 
 ### 3.3.4 Total Estimated Time per Grinding Attempt  
 
@@ -996,9 +996,6 @@ The total grinding time is the sum of:
 1. **Nonce Generation ($T_{\text{nonce}}$)** → VRF evaluation + hashing.  
 2. **Slot Leader Simulation ($T_{\text{leader}}$)** → Eligibility checks over $w_T$.  
 3. **Strategic Evaluation ($T_{\text{eval}}$)** → Nonce selection analysis.  
-
-
----- is $T_{\text{eval}}$) from 3.3.3?
 
 #### **Total Grinding Time Formula**  
 
