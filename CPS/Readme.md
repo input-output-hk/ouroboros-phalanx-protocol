@@ -862,16 +862,14 @@ Thus, the **first cost** of a grinding attack is **not computational but economi
 
 To estimate the cost of these **entry tickets**, we address the following question: 
 
----- Do we still talk about 5 years or change to 10?
-
----- Do we talk about expectations here? (probbility of (at least one over 5 years in average)
-
-> **How many blocks can an adversary control in average with a given adversarial stake, ensuring a reasonable probability—such as at least one successful grinding opportunity within 5 years** of continuous **epoch-by-epoch execution in Cardano**, where each epoch lasts **5 days**?  
+> **How many blocks can an adversary control on average with a given adversarial stake, ensuring a reasonable probability—such as at least one successful grinding opportunity within 10 years** of continuous **epoch-by-epoch execution in Cardano**, where each epoch lasts **5 days**?  
 >  
-> Specifically, for a given adversarial stake, we seek the **maximum $X_A(w)$** for which the probability of obtaining a _dominating_ $\alpha$-heavy suffix $w_O$ is **at least once over 5 years**, meaning at least one occurrence within **1,825 epochs**.  
+> Specifically, for a given adversarial stake, we seek the **maximum $X_A(w)$** for which the probability of obtaining a _dominating_ $\alpha$-heavy suffix $w_O$ is **at least once over 10 years**, meaning at least one occurrence within **3,650 epochs**.  
 >  
-> **N.B.:** A 5-year period is long enough to encompass a potential **technological revolution cycle**, during which advancements in cryptographic research or computing power could significantly impact feasibility. It is also a sufficient timeframe for the **Cardano community** to introduce a new version of Ouroboros that may **revisit and fully mitigate this issue**.
-
+> **N.B.:** A **10-year period** spans **two full technological innovation cycles**, significantly increasing the likelihood of disruptive advancements in **cryptographic research, computing power, or consensus protocols**. This timeframe provides a long enough horizon for:  
+> - **Assessing long-term adversarial feasibility** and whether stake-based grinding remains viable at scale.  
+> - **Observing historical adversarial behaviors**, particularly in decentralized networks with shifting governance dynamics.  
+> - **Giving the Cardano community sufficient time** to introduce fundamental **protocol-level improvements** to Ouroboros that could **completely mitigate or transform this issue**.  
 
 #### The formula
 
@@ -902,15 +900,15 @@ For example, with **5% adversarial stake**, it would take about **44 years** in 
 
 **N.B** : This analysis does not account for recursion in addition to the forking and self-mixing strategy, so the curve should actually be even steeper than in the graph above. 
 
-We observe that when the **adversarial stake exceeds 33%**, the adversary gains a significantly higher probability of winning the lottery, to the extent that its influence becomes primarily constrained by its computational capacity to generate and evaluate a $2^ρ$-sized leader election distribution set.
+This investment is non-trivial and serves as an implicit deterrent to attacks, as the adversary must weigh the risks of financial exposure against potential gains. While stake acquisition might appear as a sunk cost, it can, in some cases, be viewed as an active investment in the blockchain ecosystem. For instance, an adversary with a large stake may not only attempt manipulation but could also seek to benefit from staking rewards, governance influence, or other economic incentives, adding an additional layer of strategic decision-making.
 
----- Not sure what you want to convey here... you could argue that the investmentis a part of the cost (but not always) perhaps more nuance is needed (talk that the entry ticket is a based cost that can be in case be an active investment in the blockchain...)
+Results suggests that **crossing the 33% stake threshold** dramatically increases an adversary’s probability of influencing leader elections. With such control, their ability to manipulate leader election outcomes becomes **exponentially and primarily constrained by computational feasibility rather than probabilistic limitations**.
 
-Also, note that while we have focused on the cost aspect of this entry ticket, the adversarial stake itself represents an **investment**. This is a prime example of **game theory**: with a stake exceeding 33%, as of March 1, 2025, we are discussing an investment of more than **7.19 B₳**, a substantial sum. Attacking Ouroboros would not only compromise the system's integrity but also erode community trust, ultimately devaluing the very investment the adversary is attempting to exploit.
+As of **March 1, 2025**, acquiring a 33% stake in Cardano would require an investment exceeding **7.19 billion ADA**, a substantial sum that introduces a fundamental **game-theoretic disincentive**:  
+- A successful attack could undermine the blockchain’s integrity, leading to **loss of trust and stake devaluation**.  
+- If the attack is detected, **reputational damage, delegator withdrawals, or protocol-level countermeasures** could make the adversary's stake significantly less valuable.
 
-Grinding attacks that become visible to the community lead to significant risks for adversarial SPOs. Exposure can result in reputational damage, delegator withdrawals, or even protocol-level countermeasures, limiting their ability to sustain the attack.
-
-> This underscores the importance of **Game Theory** in shaping rational adversarial incentives and **Transparency** as a deterrent mechanism, ensuring that malicious actions come with significant consequences.
+> This reinforces **transparency as a natural deterrent**: publicly observable grinding attempts expose adversarial stake pool operators (SPOs) to severe economic and social consequences.
 
 ### 3.3 Cost of a Grinding Attempt  
 
