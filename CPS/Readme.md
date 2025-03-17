@@ -674,7 +674,7 @@ This marks the beginning of a grinding attack, where the adversary's initial goa
 
 This is the pivotal moment where the adversary's prior efforts pay off. They are now in a position with *x* blocks at the critical juncture. At this stage, the adversary can generate up to $2^x$ possible $η$ nonces, compute the next epoch's slot leader distribution for each of them, and strategically select the nonce and distribution that best aligns with their goal. This positioning enables them to deploy the attack effectively in the subsequent epoch.
 
-![alt text](image-1.png)
+![alt text](slot-leader-distribution-selection.png)
 
 As the adversary accumulates blocks, the attack's bottleneck swiftly shifts from waiting for enough blocks at the critical juncture to the computational power needed to compute enough nonces to achieve their goal. 
 
@@ -723,7 +723,7 @@ A block can exist in one of four states:
 - **P / Private** – The validator constructs a block but does not immediately publish it during its assigned slot. Instead, an adversarial validator selectively shares the block with validators within its staking pool. Later, the private block may be introduced into the canonical chain by **forking** the next block—a strategy known as an **ex-ante reorg attack**. Alternatively, depending on the evolving chain state, the attacker may decide to withhold the block entirely, a tactic we refer to as **regret**.  
 
 
-![alt text](image-4.png)
+![alt text](grinding-model.png)
 
 
 Block statuses are denoted as $H^e_i, R^e_i, M^e_i, P^e_i$ indicating that the 
@@ -736,7 +736,7 @@ The adversary can selectively propose or miss blocks to manipulate $\eta_e$. Ass
 
 The manipulative power for $t = 2$ is the following decision tree 
 
-![alt text](image-5.png)
+![alt text](mixing-strategy.png)
 
 e.g : The adversary chooses option $\{H^e_{30}, M^e_{31}\}$ if the calculated $\eta_e$ eventually leads to the highest number of blocks. In this case, sacrificing Slot 30 and 31 is worthwhile, as it results in a significantly higher number of blocks in epoch $e + 2$.  
 
@@ -808,7 +808,7 @@ For simplicity, we consider that a honest block is produced at slot $S_2 + 1$. A
   - $f$: Active slot coefficient (e.g., $\frac{1}{20}$), the fraction of slots with a leader.
   - Slot duration = 1 second.
 
-![alt text](image-21.png)
+![alt text](grinding-depth-vs-opportunity-window.png)
 Let's consider the worst case where the adversary controls all trailing slots ($g = 1 \Leftrightarrow w=X_A(w)$):
 - **$w = 16$**:
   - $w_O = \frac{16}{\frac{1}{20}} = 16 \cdot 20 = 320$ seconds (~5.3 minutes).
@@ -887,7 +887,7 @@ where:
 #### The Data
 
 ![alt text](proba_controlling_majority_x_blocks.png)
-![alt text](image-10.png)
+![alt text](table-legend.png)
 
 The details of the calculations underlying this table can be found in the following Google Spreadsheet: [Details of Calculations](https://docs.google.com/spreadsheets/d/1DGG4tXTngc2Zu5_IMlWsPoARksgBEMbTCyqBAgKHe7E/edit?gid=0#gid=0).
 
@@ -896,7 +896,7 @@ For example, with **5% adversarial stake**, it would take about **44 years** in 
 ####  The Results
 
 ----To update
-![alt text](image-20.png)
+![alt text](grinding-depth-vs-stake.png)
 
 **N.B** : This analysis does not account for recursion in addition to the forking and self-mixing strategy, so the curve should actually be even steeper than in the graph above. 
 
@@ -1158,7 +1158,7 @@ N_{\text{CPU}} > \left \lceil 5 \cdot 10^{-10} \cdot 2^{\rho-1} + \frac{5 \cdot 
 | **Owl Survey**  | $5\cdot10^{-10}\cdot2^{\rho-1} + 2.16\cdot10^{-9}\cdot2^{\rho-1} + 5\cdot10^{-2}\cdot\frac{2^{\rho-1}}{\rho}$ |
 
 
-![alt text](image-15.png)
+![alt text](grinding-depth-vs-NCPU.png)
 
 The maximal delta $\Delta \log_{10}(N_{\text{CPU}})$ (Owl Survey minus Ant Glance) is $\sim 6.3$, matching the graph’s constant gap. This suggests $T_{\text{eval}}$ and $w_T$ drive a pre-exponential frame of $10^{6.3}$ CPUs, scaled exponentially by $2^{\rho}$. Note that the green line (Owl Stare) is not visible on the graph, likely due to its close alignment with the blue line (Ant Glance), as both share the same $w_T = 3600$ s, and the difference in $T_{\text{eval}}$ (0 for Ant Glance vs. 1 for Owl Stare) becomes negligible on the logarithmic scale for large $\rho$.
 
@@ -1209,7 +1209,8 @@ The cost difference between the most expensive scenario (Owl Survey) and the che
 | **🟡 💰 Feasible with Standard Resources** | $[49, 59)$        | $[47, 57)$        | $[27, 34)$       | $[27, 34)$        |
 | **🟠 🏭 Possible with Large-Scale Infrastructure** | $[59, 73)$ | $[57, 71)$        | $[34, 48)$       | $[34, 48)$        |
 | **🔴 🚫 Borderline Infeasible**            | $[73, 87)$        | $[71, 85)$       | $[48, 62)$       | $[48, 62)$        |
-| **🔴 🚫 Infeasible**                      | $[87, \infty)$    | $[85, \infty)$    | $[62, \infty)$   | $[62, \infty)$    |
+| **🔴 🚫 Infeasible**                      | $[87, 256)$    | $[85, 256)$    | $[62, 256)$   | $[62, 256)$    |
+
 
 ---
 
