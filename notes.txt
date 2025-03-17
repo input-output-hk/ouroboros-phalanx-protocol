@@ -1,0 +1,12 @@
++1 in combinatorics to check
+page 	165/242 or 149
+
+Divide by number of total combinations
+
+Add expectations to have
+
+
+Point that we are simplifying the scheme by assuming a uniform distribution
+
+Thesis: 19.6 nb of grinnig attempts
+

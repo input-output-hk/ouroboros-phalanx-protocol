@@ -91,7 +91,7 @@ Finally, it is essential to recognize that **adversarial capabilities continuall
 - [3. The Cost of Grinding: Adversarial Effort and Feasibility](#3-the-cost-of-grinding-adversarial-effort-and-feasibility)
   - [3.1 Definitions](#31-definitions)
     + [3.1.1 α-heavy and Heaviness](#311-a-heavy-and-heaviness)
-    + [3.1.2 Grinding Potential g](#312-grinding-power-g)
+    + [3.1.2 Grinding Power g](#312-grinding-power-g)
     + [3.1.3 Grinding Depth ρ](#313-grinding-depth-rho)
     + [3.1.4 Grinding Windows](#314-grinding-windows)
       * [3.1.4.1 Opportunity Windows](#3141-opportunity-windows-wo)
@@ -762,29 +762,55 @@ Both strategies undermine fairness in leader election, with **Preemptive Forking
 ### 3.1 Definitions
 
 #### 3.1.1 $\alpha$-Heavy and Heaviness
----- perhaps we should change the definition of dominating to have a notion of maximal length interval dominating
-
 We define the heaviness of an interval as the percentage of blocks an adversary controls.
 Let $X_A(w)$ be the **number of adversarial blocks** and similarly $X_H(w)$ the **number of honest blocks** in the an interval of $w$ blocks.
 The **heaviness** of an interval of size $w$ is thus the ratio $\frac{X_A(w)}{w}$. Heaviness thus vary between 0, where the interval only comprises honest blocks, and 1 where the adversary control them all. 
 
-We say that the interval is $\mathbf{\alpha}$**-heavy** if $\frac{X_A(w)}{w} > \alpha$. We furthermore say that the adversary _dominates_ the interval if $\alpha > 0.5$ and _dominates a suffix_ if $\alpha > 0.5$ and the adversary controls the last block. We shall look from now on to the longest suffix the adversary dominates at the critical juncture, hence the longest interval $w_\text{max}$ where $\alpha > 0.5$ and the latest block is located at the end of Phase 2 and controlled by the adversary.
+We say that the interval is $\mathbf{\alpha}$**-heavy** if $\frac{X_A(w)}{w} > \alpha$. We furthermore say that the adversary _dominates_ the interval if $\alpha > 0.5$. We shall look from now on to the longest suffix the adversary dominates at the critical juncture, hence the longest interval $w_\text{max}$ where $\alpha > 0.5$.
 
-#### 3.1.2 Grinding Potential g
+#### 3.1.2 Grinding Power g
 
-An **$\alpha$-heavy suffix** must be present at the critical juncture for a grinding attack to be considered. The heavier $w$ , for a fixed $w$, the greater the adversary’s grinding potential.
+An **$\alpha$-heavy suffix** must be present at the critical juncture for a grinding attack to be considered. The heavier $w$ , for a fixed $w$, the greater the adversary’s grinding power.
 
-The **grinding potential** $g$ of an adversary $A$ is the number of distinct values that $A$ can choose from when determining for the epoch nonce $\eta$. This quantifies the adversary's ability to manipulate randomness by selectively withholding, recomputing, or biasing values. 
+The **grinding power** $g$ of an adversary $A$ is the number of distinct values that $A$ can choose from when determining for the epoch nonce $\eta$. This quantifies the adversary's ability to manipulate randomness by selectively withholding, recomputing, or biasing values. 
 
-The grinding potential is bounded by:
+Let $g_w(X_A)$ be the number of grinding possible in an interval of size $w$ when controlling $X_A$ blocks. We have,
 
 ```math
-\sum_{i=X_H(w) +1}^{X_A(w)} \binom{X_A(w)}{i} \leq g \leq 2^{X_A(w)}
+\begin{align*}
+g_w(X_A) &= \sum_{i= w - X_A(w)}^{X_A(w)} \binom{X_A(w)}{i}\\
+        &= 2^{w} \text{ when } X_A = w
+\end{align*}
 ```
 
-In **Cardano mainnet**, the nonce size used in the randomness beacon is **256 bits**, meaning the theoretical maximum grinding potential is $g_{\max} = 2^{256}$. However, practical grinding potential is typically limited by computational constraints and stake distribution dynamics.
+The grinding power for a given interval of size $w$ is the sum of $g_w(X)(X_A)$ when the adversary controls a majority of the blocks. 
 
-Similarly, we define the **grinding depth**, $\rho$, as the logarithm of the grinding potential: $\rho = \log_2 g$, and bound it by $\quad 0 \leq \rho \leq 256$. It determines the **entropy reduction** caused by an adversary's nonce manipulation, directly impacting the protocol's resistance to randomness biasing, that is the number of bits of randomness an adversary can manipulate.
+```math
+g_w = \sum_{X_A \geq \frac{w}{2}}^{w} g_w(X_A)
+```
+Similarly, we define the **grinding depth**, $\rho$, as the logarithm of the grinding power: $\rho = \log_2 g$, and bound it by $0 \leq \rho \leq 256$. It determines the **entropy reduction** caused by an adversary's nonce manipulation, directly impacting the protocol's resistance to randomness biasing, that is the number of bits of randomness an adversary can manipulate.
+
+In a simplified model where the multi-slot leader feature is not considered, the probability an adversary with $\text{stake}_A \in (0,1)$ stake controls $X_A$ out of $w$ blocks is:
+
+```math
+P(\text{$\exists X_A \in w$}) = \binom{w}{X_A}\ \text{stake}_A^{X_A}\ (1 - \text{stake}_A)^{w-X_A}
+``` 
+
+where:
+- $\binom{x}{y}$ represents the number of ways to select $x$ blocks out of $y$.
+- $\text{stake}_A$ is the percentage of stake controlled by the adversary.
+
+
+We can now define the expected grinding power $\mathbb{E}(g)$:
+
+```math
+\begin{align*}
+\mathbb{E}(g) &= \sum_{t=n-s+1}^n g_{n-t} \cdot P(\text{\{slot T is honest and slots T+1..N are A-heavy\}}) \\
+&= (1-\text{stake}_A) \sum_{d=1}^s \sum_{X_A \geq d/2}^{d} g_d(X_A) \cdot P(\text{$\exists X_A \in d$})
+\end{align*}
+``` 
+
+In **Cardano mainnet**, the nonce size used in the randomness beacon is **256 bits**, meaning the theoretical maximum grinding power is $g_{\max} = 2^{256}$. However, practical grinding power is typically limited by computational constraints and stake distribution dynamics.
 
 #### 3.1.4 Grinding Windows
 
@@ -802,7 +828,7 @@ For simplicity, we consider that a honest block is produced at slot $S_2 + 1$. A
 \frac{X_A(w)}{f} \leq w_O \leq \frac{w}{f}
 ```
 
-**N.B.** Contrary to the grinding potential that is upper-bounded by $2^{256}$, the grinding window is not.
+**N.B.** Contrary to the grinding power that is upper-bounded by $2^{256}$, the grinding window is not.
 
 - **Parameters**:
   - $f$: Active slot coefficient (e.g., $\frac{1}{20}$), the fraction of slots with a leader.
@@ -842,7 +868,7 @@ Each attempt follows three key steps:
 2. **Simulating the resulting slot leader distribution** over the target window $w_T$.  
 3. **Evaluating the strategic benefit** of choosing this $\eta$ nonce for their attack objectives.  
 
-The number of grinding attempts an adversary can make is constrained by their **grinding potential** $g$, and is upper-bounded by:  
+The number of grinding attempts an adversary can make is constrained by their **grinding power** $g$, and is upper-bounded by:  
 
 ```math
 g \leq 2^{X_A(w)}
@@ -871,40 +897,100 @@ To estimate the cost of these **entry tickets**, we address the following questi
 > - **Observing historical adversarial behaviors**, particularly in decentralized networks with shifting governance dynamics.  
 > - **Giving the Cardano community sufficient time** to introduce fundamental **protocol-level improvements** to Ouroboros that could **completely mitigate or transform this issue**.  
 
-#### The formula
-
-We previously established that obtaining access to $2^{X_A(w)}$ possible slot leader distributions is equivalent to dominating an **$\alpha$-heavy suffix** $w$, where the **heaviness** is given by the number of advsersary blocks out of the last $w$ blocks. To this suffix also corresponds a **grinding opportunity window** $w_O$, spanning up to the $w$ blocks. In a simplified model where the multi-slot leader feature is not considered, the probability of adversarial blocks within the interval is given by:
-
-```math 
-P(\text{Adversary controls a majority of $x$ blocks}) = \sum_{i=0}^{x-1} \binom{x+i}{x} (\text{stake}_{\text{adversarial}})^x (1 - \text{stake}_{\text{adversarial}})^{i}
-``` 
-where:
-
-- $\binom{x + i}{x}$ represents the number of ways to select $x$ blocks out of $x + i$.
-- $\text{stake}_{\text{adversarial}}$ is the percentage of stake controlled by the adversary.
-
-
 #### The Data
 
+##### Self-Mixing
+
+We show here the _average_ numbers of years for an adversary $\text{stake}_A$ stake to control _N_ blocks. We made the choice to highlight frequencies less than 10 years as we can reasonably expect the protocol to hav evolved after such period.
+
+![alt text](grinding_mixing_years.png)
+
+(*) We make the simplification to consider the 21,600 blocks directly, that is: there is only 21,600 slots and to each to slot is exactly assigned one slot leader.
+
+<details>
+<summary>More details on the probabilitie here.</summary>
+
+We show here the probabilities for an adversary with $\text{stake}_A$ stake to control _N_ blocks.
+
+| $N \text{ vs }\ \text{stake}_A$ (%) |    0.5    |     1     |     2     |     5      |     10     |     20     |     25     |     30      |     33       |     40     |     45    |     49    |
+| :----------------------: | :-------:   | :------: | :-------: | :--------: | :--------: | :--------: | :--------: | :---------: | :----------: | :--------: | :-------: | :-------: |
+| $1$                      |  5.00E-03	 |1.00E-02	| 2.00E-02	| 5.00E-02	 | 1.00E-01	  | 2.00E-01 	 | 2.50E-01 	|  3.00E-01	  |  3.30E-01	   |  4.00E-01  | 4.50E-01	| 4.90E-01  |
+| $2$                      |  2.50E-05	 |1.00E-04	| 4.00E-04	| 2.50E-03	 | 1.00E-02	  | 4.00E-02 	 | 6.25E-02 	|  9.00E-02	  |  1.09E-01	   |  1.60E-01  | 2.03E-01	| 2.40E-01  |
+| $4$                      |  6.25E-10	 |1.00E-08	| 1.60E-07	| 6.25E-06	 | 1.00E-04	  | 1.60E-03 	 | 3.91E-03 	|  8.10E-03	  |  1.19E-02	   |  2.56E-02  | 4.10E-02	| 5.76E-02  |
+| $8$                      |  3.91E-19	 |1.00E-16	| 2.56E-14	| 3.91E-11	 | 1.00E-08	  | 2.56E-06 	 | 1.53E-05 	|  6.56E-05	  |  1.41E-04	   |  6.55E-04  | 1.68E-03	| 3.32E-03  |
+| $16$                     |  1.53E-37	 |1.00E-32	| 6.55E-28	| 1.53E-21	 | 1.00E-16	  | 6.55E-12 	 | 2.33E-10 	|  4.30E-09	  |  1.98E-08	   |  4.29E-07  | 2.83E-06	| 1.10E-05  |
+| $32$                     |  2.33E-74	 |1.00E-64	| 4.29E-55	| 2.33E-42	 | 1.00E-32	  | 4.29E-23 	 | 5.42E-20 	|  1.85E-17	  |  3.91E-16	   |  1.84E-13  | 7.99E-12	| 1.22E-10  |
+| $64$                     |  5.42E-148	 |1.00E-128 |	1.84E-109	| 5.42E-84	 | 1.00E-64	  | 1.84E-45 	 | 2.94E-39 	|  3.43E-34	  |  1.53E-31	   |  3.40E-26  | 6.39E-23	| 1.49E-20  |
+| $128$                    |  2.94E-295	 |1.00E-256 |	3.40E-218	| 2.94E-167  | 1.00E-128	| 3.40E-90 	 | 8.64E-78 	|  1.18E-67 	|  2.34E-62	   |  1.16E-51  | 4.09E-45	| 2.21E-40  |
+| $256$                    |  0.00E+00	 |0.00E+00	| 0.00E+00	| 0.00E+00	 | 1.00E-256	| 1.16E-179	 | 7.46E-155	|  1.39E-134	|  5.49E-124	 |  1.34E-102	| 1.67E-89	| 4.90E-80  |
+</details>
+
+We show the moment, i.e. expected number, of grinding attempts when self-mixing, i.e. trailing blocks during an epoch.
+| $\text{stake}_A$ (%) |    0.5    |     1     |     2     |     5     |     10    |     20    |     25    |     30    |     33    |     40    |     45    |     49    |
+| :------------------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: |
+| $\mathbb{E}(X_A)$    |   0.005   |   0.010   |   0.020   |   0.053   |   0.111   |   0.250   |   0.333   |   0.429   |   0.493   |   0.667   |   0.818   |   0.961   |
+
+We can conclude, the self-mixing attack is not very probable nor critical.
+
+##### Forking
+
+We extend here the self-mixing strategy with forking and show how this renders the attack viable. We show here a lower bound on the _average_ numbers of years for an adversary $\text{stake}_A$ stake to control a majority of blocks, while fixing the difference between honestly and adversarially controlled blocks to _N_.
+
+![alt text](grinding_forking_years.png)
+
+<details>
+<summary>More details on the probabilitie here.</summary>
+
+We show here the probabilities for an adversary with $\text{stake}_A$ stake to control a majority of blocks such that $\|X_A - X_H\| = N$. 
+
+| $\|X_A - X_H\| \text{ vs }\ \text{stake}_A$ (%) |    0.5    |     1     |     2     |     5      |     10     |     20     |     25     |     30      |     33       |     40     |     45    |     49    |
+| :-------------------------------------------: | :-------: | :-------: | :-------: | :-------: | :-------: | :------: | :--------: | :-------: | :-------: | :-------: | :-------: | :-------: |
+| $1$                                           | 5.02E-3	  | 1.01E-2	  | 2.04E-2	  | 5.24E-2	  | 1.09E-1	  | 2.27E-1	 | 2.84E-1	  | 3.36E-1	  | 3.64E-1	  | 4.16E-1	  | 4.37E-1	  | 4.44E-1   |
+| $2$                     	                    | 2.52E-5	  | 1.02E-4 	| 4.16E-4	  | 2.75E-3	  | 1.19E-2	  | 5.40E-2	 | 8.74E-2	  | 1.28E-1	  | 1.54E-1	  | 2.19E-1	  | 2.61E-1	  | 2.90E-1   |
+| $4$                     	                    | 6.38E-10	| 1.04E-8 	| 1.73E-7	  | 7.57E-6	  | 1.44E-4	  | 3.06E-3	 | 8.27E-3	  | 1.84E-2	  | 2.77E-2	  | 6.06E-2	  | 9.35E-2	  | 1.24E-1   |
+| $8$                     	                    | 4.07E-19	| 1.08E-16	| 3.00E-14	| 5.75E-11	| 2.10E-8	  | 9.84E-6	 | 7.42E-5	  | 3.83E-4	  | 8.93E-4	  | 4.65E-3	  | 1.20E-2	  | 2.25E-2   |
+| $16$                     	                    | 1.65E-37	| 1.17E-32	| 8.99E-28	| 3.32E-21	| 4.47E-16	| 1.02E-10 | 5.96E-9	  | 1.66E-7	  | 9.27E-7	  | 2.74E-5	  | 1.96E-4	  | 7.48E-4   |
+| $32$                                         	| 2.73E-74	| 1.37E-64	| 8.09E-55	| 1.10E-41	| 2.02E-31	| 1.08E-20 | 3.85E-17	  | 3.10E-14	| 9.99E-13	| 9.49E-10	| 5.23E-8	  | 8.22E-7   |
+| $64$                                         	| 7.46E-148	| 1.89E-128	| 6.55E-109	| 1.22E-82	| 4.13E-62	| 1.11E-40 | 1.17E-33	  | 5.86E-28	| 5.14E-25	| 3.33E-19	| 9.00E-16	| 2.24E-13  |
+| $128$                    	                    | 0.00E-313	| 0.00E-278	| 0.00E-244	| 0.00E-200	| 0.00E-165	| 0.00E-130| 0.00E-120	| 0.00E-110	| 0.00E-105	| 0.00E-94	| 0.00E-89	| 0.00E-84  | 
+| $256$                                        	| 0.00E-460	| 0.00E-406	| 0.00E-353	| 0.00E-282	| 0.00E-226	| 0.00E-169| 0.00E-150	| 0.00E-133	| 0.00E-125	| 0.00E-106	| 0.00E-94	| 0.00E-85  |
+</details>
+
+We can see that the numbers only show a modest increase. This is partially due to computational errors and the formula itself. Looking at the average number of grinding attempts when forking reveals another story.
+More precisely, we tabulated here the grinding powers' expectation when looking at total period of variable length. While the expectation converges quickly for small stake, we can note it takes an exponential trend when the adversary owns more than 20\% of the total stake.
+
+ $\text{stake}_A$ (%)        |    0.5    |     1     |     2     |     5     |     10    |     20    |     25    |     30    |     33    |     40    |     45    |     49    |
+| :------------------------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: |
+| $\mathbb{E}(g, n=16)$     | 1.03E-02	 |  2.12E-02 | 4.49E-02  |	1.36E-01 |	4.12E-01 |	5.17E+00 |	4.27E+01 |	3.83E+02 |	1.29E+03 |	1.51E+04 |	6.57E+04 |	1.85E+05 |
+| $\mathbb{E}(g, n=64)$     | 1.03E-02	 |  2.12E-02 | 4.49E-02  |	1.36E-01 |	4.12E-01 |	8.40E+00 |	1.01E+03 |	1.46E+05 |	2.01E+06 |	3.56E+08 |	7.37E+09 |	6.06E+10 |
+| $\mathbb{E}(g, n=128)$    | 1.03E-02	 |  2.12E-02 | 4.49E-02  |	1.36E-01 |	4.12E-01 |	1.30E+01 |	7.86E+05 |	2.92E+10 |	6.59E+12 |	2.44E+17 |	1.05E+20 |	6.87E+21 |
+| $\mathbb{E}(g, n=256)$    | 1.03E-02	 |  2.12E-02 | 4.49E-02  |	1.36E-01 |	4.12E-01 |	1.97E+01 |	6.98E+11 |	1.64E+21 |	9.60E+25 |	1.45E+35 |	2.48E+40 |	9.29E+43 |
+| $\mathbb{E}(g, n=512)$    | 1.03E-02	 |  2.12E-02 | 4.49E-02  |	1.36E-01 |	4.12E-01 |	2.91E+01 |	7.87E+23 |	7.19E+42 |	2.80E+52 |	6.60E+70 |	1.64E+81 |	1.79E+88 |
+
+Looking at an approximation of the expected grinding power, also called first moment, confirms our assumptions. This graph more particularly shows the base of the exponent of the approximation with regards to the honest bias, i.e. $\epsilon = \frac{1 - \text{stake}_A}{2}$.
+
+![alt text](grinding_moment.png)
+
+<!-- 
 ![alt text](proba_controlling_majority_x_blocks.png)
 ![alt text](table-legend.png)
 
-The details of the calculations underlying this table can be found in the following Google Spreadsheet: [Details of Calculations](https://docs.google.com/spreadsheets/d/1DGG4tXTngc2Zu5_IMlWsPoARksgBEMbTCyqBAgKHe7E/edit?gid=0#gid=0).
+<!-- The details of the calculations underlying this table can be found in the following Google Spreadsheet: [Details of Calculations](https://docs.google.com/spreadsheets/d/1DGG4tXTngc2Zu5_IMlWsPoARksgBEMbTCyqBAgKHe7E/edit?gid=0#gid=0).
 
-For example, with **5% adversarial stake**, it would take about **44 years** in average for an adversary to obtain 4 adversarial blocks at the critical juncture.  
+For example, with **5% adversarial stake**, it would take about **44 years** in average for an adversary to obtain 4 adversarial blocks at the critical juncture.   -->
 
 ####  The Results
 
-----To update
-![alt text](grinding-depth-vs-stake.png)
+<!-- ----To update
+![alt text](grinding-depth-vs-stake.png) -->
 
 **N.B** : This analysis does not account for recursion in addition to the forking and self-mixing strategy, so the curve should actually be even steeper than in the graph above. 
 
 This investment is non-trivial and serves as an implicit deterrent to attacks, as the adversary must weigh the risks of financial exposure against potential gains. While stake acquisition might appear as a sunk cost, it can, in some cases, be viewed as an active investment in the blockchain ecosystem. For instance, an adversary with a large stake may not only attempt manipulation but could also seek to benefit from staking rewards, governance influence, or other economic incentives, adding an additional layer of strategic decision-making.
 
-Results suggests that **crossing the 33% stake threshold** dramatically increases an adversary’s probability of influencing leader elections. With such control, their ability to manipulate leader election outcomes becomes **exponentially and primarily constrained by computational feasibility rather than probabilistic limitations**.
+Results suggests that **crossing the 20% stake threshold** dramatically increases an adversary’s probability of influencing leader elections. With such control, their ability to manipulate leader election outcomes becomes **exponentially and primarily constrained by computational feasibility rather than probabilistic limitations**.
 
-As of **March 1, 2025**, acquiring a 33% stake in Cardano would require an investment exceeding **7.19 billion ADA**, a substantial sum that introduces a fundamental **game-theoretic disincentive**:  
+As of **March 1, 2025**, acquiring a 20% stake in Cardano would require an investment exceeding **4.36 billion ADA**, a substantial sum that introduces a fundamental **game-theoretic disincentive**:  
 - A successful attack could undermine the blockchain’s integrity, leading to **loss of trust and stake devaluation**.  
 - If the attack is detected, **reputational damage, delegator withdrawals, or protocol-level countermeasures** could make the adversary's stake significantly less valuable.
 
@@ -1018,7 +1104,7 @@ Where:
 - $T_{\text{eligibility}}$ is the eligibility checktime.
 - $T_{\text{BLAKE2b}}$ is the time for the hashing operation.
 - $w_T$ is the target window size (seconds).
-- $\rho$ is the grinding potential.
+- $\rho$ is the grinding power.
 - $T_{\text{eval}}$ is the nonce selection and evaluation time, which is attack-specific.
 
 ### 3.4 Cost of a Grinding Attack
@@ -1157,12 +1243,18 @@ N_{\text{CPU}} > \left \lceil 5 \cdot 10^{-10} \cdot 2^{\rho-1} + \frac{5 \cdot 
 | **Owl Stare**   | $5\cdot10^{-10}\cdot2^{\rho-1} + 1.8\cdot10^{-11}\cdot2^{\rho-1} + 5\cdot10^{-2}\cdot\frac{2^{\rho-1}}{\rho}$ |
 | **Owl Survey**  | $5\cdot10^{-10}\cdot2^{\rho-1} + 2.16\cdot10^{-9}\cdot2^{\rho-1} + 5\cdot10^{-2}\cdot\frac{2^{\rho-1}}{\rho}$ |
 
-
+---- TODO: to update ? <=======
 ![alt text](grinding-depth-vs-NCPU.png)
 
 The maximal delta $\Delta \log_{10}(N_{\text{CPU}})$ (Owl Survey minus Ant Glance) is $\sim 6.3$, matching the graph’s constant gap. This suggests $T_{\text{eval}}$ and $w_T$ drive a pre-exponential frame of $10^{6.3}$ CPUs, scaled exponentially by $2^{\rho}$. Note that the green line (Owl Stare) is not visible on the graph, likely due to its close alignment with the blue line (Ant Glance), as both share the same $w_T = 3600$ s, and the difference in $T_{\text{eval}}$ (0 for Ant Glance vs. 1 for Owl Stare) becomes negligible on the logarithmic scale for large $\rho$.
 
-### 3.6 Grinding Potential Computational Feasibility
+<!-- At $\rho = 50$:
+- **Ant Glance** ($T_{\text{eval}} = 0$, $w_T = 3600$): $N_{\text{CPU}} \approx 1.22 \cdot 10^{12}$, $\log_{10}(N_{\text{CPU}}) \approx 10.085$.
+- **Ant Patrol** ($T_{\text{eval}} = 0$, $w_T = 432,000$): $N_{\text{CPU}} \approx 1.46 \cdot 10^{12}$, $\log_{10}(N_{\text{CPU}}) \approx 12.164$.
+- **Owl Stare** ($T_{\text{eval}} = 1$, $w_T = 3600$): $N_{\text{CPU}} \approx 5.75 \cdot 10^{11}$, $\log_{10}(N_{\text{CPU}}) \approx 11.760$.
+- **Owl Survey** ($T_{\text{eval}} = 1$, $w_T = 432,000$): $N_{\text{CPU}} \approx 2.02 \cdot 10^{12}$, $\log_{10}(N_{\text{CPU}}) \approx 12.306$. -->
+
+### 3.6 Grinding Power Computational Feasibility
 
 Building on the analysis in [Section 3.6](#353-formula-behavior-analysis), we assess the feasibility of grinding attacks by examining the computational resources ($N_{\text{CPU}}$) required across different grinding depths ($\rho$). The scenarios (Ant Glance, Ant Patrol, Owl Stare, Owl Survey) show a consistent $\Delta \log_{10}(N_{\text{CPU}}) \sim 6.3$, meaning the most demanding scenario (Owl Survey) requires $10^{6.3}$ times more CPUs than the least demanding (Ant Glance).
 
@@ -1179,6 +1271,8 @@ To help readers understand the practicality of these attacks, we define feasibil
 The cost model uses the $N_{\text{CPU}}$ formulas from [Section 3.5 - Scenarios](#35-scenarios), computes the number of CPUs needed for the attack, and multiplies by the CPU rental price ($0.01$ per CPU-hour) and runtime defined by the grinding opportunity window $w_O = \frac{2\rho - 1}{f}$ seconds (with $f = 0.05$) to estimate the total cost.
 
 Costs are estimated assuming a CPU rental price of $0.01$ per CPU-hour, based on low-end instance pricing from major cloud providers like AWS as of March 11, 2025, where basic instances such as t2.micro cost approximately $0.0116$ per CPU-hour [AWS EC2 Pricing Page](https://aws.amazon.com/ec2/pricing/). However, for high-performance tasks, actual costs may range from $0.04$ to $0.08$ per CPU-hour, as seen with `AWS c5.large` ($0.048$) or `Azure Standard_F2s_v2` ($0.0372$). The table below summarizes the feasibility for `Owl Survey` ($T_{\text{eval}} = 1$, $w_T = 432,000 \, \text{s}$), the most resource-intensive scenario, at different $\rho$ values, using the $0.01$ estimate for initial assessment:
+
+---- TODO: to update ? <=======
 
 | $\rho$ | CPUs Required (Log₁₀ Scale) | Estimated Cost (USD, $w_O$ run) | Feasibility |
 |----------|-----------------------------|----------------------------------|-------------|
