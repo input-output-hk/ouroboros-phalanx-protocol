@@ -476,7 +476,9 @@ blake2b_libsodium size input =
 
 In Praos and Genesis, an epoch consists of 3 logical phases to compute these 2 key variables—**active stake distribution** and **randomness beacon**—by going through the following phases:
 
-![Epoch Structure](epoch-structure-praos.png)
+<div align="center">
+<img src="epoch-structure-praos.png" alt="Epoch Structure" width="800"/>
+</div>
 
 The sequential flow of these 3 phases is deliberately structured by designed : 
 
@@ -634,7 +636,9 @@ With **Ouroboros Praos**, as with [**Nakamoto consensus**](https://coinmarketcap
 
 The **consensus layer** operates with a structure that resembles a branching **"tree" of blockchains** before **finality** stabilizes:
 
-![alt text](high-level-ledger-structure.png)
+<div align="center">
+<img src="high-level-ledger-structure.png" alt="" width="500"/>
+</div>
 
 #### **Why Do Blockchain Forks Occur?**
 
@@ -666,7 +670,9 @@ At the conclusion of phase 2, when the $\eta^\text{candidate}_{e}$ nonce is dete
 
 For example, if the adversary acts as the slot leader immediately before this phase transition, they can choose whether to produce a block or not. This decision grants them the ability to compute and compare two valid nonces - one with one fewer VRF update than the other -, evaluate different slot leader distributions for the upcoming epoch and potentially maximize their future gains at the cost of lesser rewards at this epoch. The more blocks the adversary controls before Phase 2's end, the more nonces they may _grind_ and choose from, and the more critical the atatck becomes. In essence, the adversary gains access to up to $2^x$ possible combinations of slot leader distributions, where $x$ denotes the number of controlled leader slots at this particular stage of the protocol.
 
-![alt text](grinding-opportunity-window.png)
+<div align="center">
+<img src="grinding-opportunity-window.png" alt="" width="800"/>
+</div>
 
 This marks the beginning of a grinding attack, where the adversary's initial goal is to maximize the number of adversarial blocks at this critical juncture, either passively by waiting, or actively by reaching a snowball effect. By doing so, they expand the range of potential slot leader distributions they can choose from, significantly enhancing their influence over the protocol. We use the term "exposure" here because the adversary is first setting the stage for its attack. 
 
@@ -674,7 +680,9 @@ This marks the beginning of a grinding attack, where the adversary's initial goa
 
 This is the pivotal moment where the adversary's prior efforts pay off. They are now in a position with *x* blocks at the critical juncture. At this stage, the adversary can generate up to $2^x$ possible $η$ nonces, compute the next epoch's slot leader distribution for each of them, and strategically select the nonce and distribution that best aligns with their goal. This positioning enables them to deploy the attack effectively in the subsequent epoch.
 
-![alt text](slot-leader-distribution-selection.png)
+<div align="center">
+<img src="slot-leader-distribution-selection.png" alt="" width="800"/>
+</div>
 
 As the adversary accumulates blocks, the attack's bottleneck swiftly shifts from waiting for enough blocks at the critical juncture to the computational power needed to compute enough nonces to achieve their goal. 
 
@@ -722,9 +730,9 @@ A block can exist in one of four states:
 
 - **P / Private** – The validator constructs a block but does not immediately publish it during its assigned slot. Instead, an adversarial validator selectively shares the block with validators within its staking pool. Later, the private block may be introduced into the canonical chain by **forking** the next block—a strategy known as an **ex-ante reorg attack**. Alternatively, depending on the evolving chain state, the attacker may decide to withhold the block entirely, a tactic we refer to as **regret**.  
 
-
-![alt text](grinding-model.png)
-
+<div align="center">
+<img src="grinding-model.png" alt="" width="500"/>
+</div>
 
 Block statuses are denoted as $H^e_i, R^e_i, M^e_i, P^e_i$ indicating that the 
 block in the $i$ th slot in epoch $e$ was proposed, reorged, missed, or built privately, respectively. Reorged and missed blocks do not contribute to the generation of $\eta_e$ since they are not part of the canonical chain. 
@@ -736,7 +744,9 @@ The adversary can selectively propose or miss blocks to manipulate $\eta_e$. Ass
 
 The manipulative power for $t = 2$ is the following decision tree 
 
-![alt text](mixing-strategy.png)
+<div align="center">
+<img src="mixing-strategy.png" alt="" width="600"/>
+</div>
 
 e.g : The adversary chooses option $\{H^e_{30}, M^e_{31}\}$ if the calculated $\eta_e$ eventually leads to the highest number of blocks. In this case, sacrificing Slot 30 and 31 is worthwhile, as it results in a significantly higher number of blocks in epoch $e + 2$.  
 
@@ -834,7 +844,10 @@ For simplicity, we consider that a honest block is produced at slot $S_2 + 1$. A
   - $f$: Active slot coefficient (e.g., $\frac{1}{20}$), the fraction of slots with a leader.
   - Slot duration = 1 second.
 
-![alt text](grinding-depth-vs-opportunity-window.png)
+<div align="center">
+<img src="grinding-depth-vs-opportunity-window.png" alt="" width="800"/>
+</div>
+
 Let's consider the worst case where the adversary controls all trailing slots ($g = 1 \Leftrightarrow w=X_A(w)$):
 - **$w = 16$**:
   - $w_O = \frac{16}{\frac{1}{20}} = 16 \cdot 20 = 320$ seconds (~5.3 minutes).
@@ -903,7 +916,9 @@ To estimate the cost of these **entry tickets**, we address the following questi
 
 We show here the _average_ numbers of years for an adversary $\text{stake}_A$ stake to control _N_ blocks. We made the choice to highlight frequencies less than 10 years as we can reasonably expect the protocol to hav evolved after such period.
 
-![alt text](grinding_mixing_years.png)
+<div align="center">
+<img src="grinding_mixing_years.png" alt="" width="800"/>
+</div>
 
 (*) We make the simplification to consider the 21,600 blocks directly, that is: there is only 21,600 slots and to each to slot is exactly assigned one slot leader.
 
@@ -936,7 +951,9 @@ We can conclude, the self-mixing attack is not very probable nor critical.
 
 We extend here the self-mixing strategy with forking and show how this renders the attack viable. We show here a lower bound on the _average_ numbers of years for an adversary $\text{stake}_A$ stake to control a majority of blocks, while fixing the difference between honestly and adversarially controlled blocks to _N_.
 
-![alt text](grinding_forking_years.png)
+<div align="center">
+<img src="grinding_forking_years.png" alt="" width="800"/>
+</div>
 
 <details>
 <summary>More details on the probabilities here.</summary>
@@ -967,13 +984,16 @@ More precisely, we tabulated here the grinding powers' expectation when looking 
 | $\mathbb{E}(g, n=256)$    | 1.03E-02	 |  2.12E-02 | 4.49E-02  |	1.36E-01 |	4.12E-01 |	1.97E+01 |	6.98E+11 |	1.64E+21 |	9.60E+25 |	1.45E+35 |	2.48E+40 |	9.29E+43 |
 | $\mathbb{E}(g, n=512)$    | 1.03E-02	 |  2.12E-02 | 4.49E-02  |	1.36E-01 |	4.12E-01 |	2.91E+01 |	7.87E+23 |	7.19E+42 |	2.80E+52 |	6.60E+70 |	1.64E+81 |	1.79E+88 |
 
-Looking at an approximation of the expected grinding power, also called first moment, confirms our assumptions. This graph more particularly shows the base of the exponent of the approximation with regards to the honest bias, i.e. $\epsilon = \frac{1 - \text{stake}_A}{2}$.
+Looking at an approximation of the expected grinding power, also called first moment, confirms our assumptions as when $\text{stake}_A = 20%$, we have the exponent base that becomes one, and thus the exponential start growing instead of decaying.
 
-![alt text](grinding_moment.png)
+<div align="center">
+<img src="grinding_moment.png" alt="" width="500"/>
+</div>
 
 <!-- 
-![alt text](proba_controlling_majority_x_blocks.png)
-![alt text](table-legend.png) -->
+<img src="proba_controlling_majority_x_blocks.png" alt="" width="500"/>
+<img src="table-legend.png" alt="" width="500"/>
+-->
 
 The details of the calculations underlying this table can be found in the following Google Spreadsheet: [Details of Calculations](https://docs.google.com/spreadsheets/d/1DGG4tXTngc2Zu5_IMlWsPoARksgBEMbTCyqBAgKHe7E/edit?gid=0#gid=0).
 
@@ -981,8 +1001,10 @@ For example, with **5% adversarial stake**, it would take about **1800 years** i
 
 ####  The Results
 
-<!-- ----To update
-![alt text](grinding-depth-vs-stake.png) -->
+<div align="center">
+<img src="grinding_depth_comparison.png" alt="" width="800"/>
+<img src="grinding_power_comparison.png" alt="" width="800"/>
+</div>
 
 **N.B** : This analysis does not account for recursion in addition to the forking and self-mixing strategy, so the curve should actually be even steeper than in the graph above. 
 
@@ -1244,7 +1266,9 @@ N_{\text{CPU}} > \left \lceil 5 \cdot 10^{-10} \cdot 2^{\rho-1} + \frac{5 \cdot 
 | **Owl Survey**  | $5\cdot10^{-10}\cdot2^{\rho-1} + 2.16\cdot10^{-9}\cdot2^{\rho-1} + 5\cdot10^{-2}\cdot\frac{2^{\rho-1}}{\rho}$ |
 
 ---- TODO: to update ? <=======
-![alt text](grinding-depth-vs-NCPU.png)
+<div align="center">
+<img src="grinding-depth-vs-NCPU.png" alt="" width="800"/>
+</div>
 
 The maximal delta $\Delta \log_{10}(N_{\text{CPU}})$ (Owl Survey minus Ant Glance) is $\sim 6.3$, matching the graph’s constant gap. This suggests $T_{\text{eval}}$ and $w_T$ drive a pre-exponential frame of $10^{6.3}$ CPUs, scaled exponentially by $2^{\rho}$. Note that the green line (Owl Stare) is not visible on the graph, likely due to its close alignment with the blue line (Ant Glance), as both share the same $w_T = 3600$ s, and the difference in $T_{\text{eval}}$ (0 for Ant Glance vs. 1 for Owl Stare) becomes negligible on the logarithmic scale for large $\rho$.
 
@@ -1293,7 +1317,10 @@ References:
 - [Google Compute Engine Pricing Detailed Compute Pricing](https://cloud.google.com/compute/pricing)
 - [iRender Pricing Information Competitive Cloud Rates](https://www.irender.com/pricing)
 
-![Grinding Depth Scenarios with Feasibility Thresholds](grinding_depth_scenarios_cost_with_feasibility_layers_gradient.png)
+
+<div align="center">
+<img src="grinding_depth_scenarios_cost_with_feasibility_layers_gradient.png" alt="Grinding Depth Scenarios with Feasibility Thresholds" width="800"/>
+</div>
 
 The cost difference between the most expensive scenario (Owl Survey) and the cheapest (Ant Glance) is significant, with a consistent $\Delta \log_{10}(\text{Cost (USD)}) \sim 6.3$, meaning Owl Survey costs approximately $10^{6.3}$ times more than Ant Glance, reflecting the substantial impact of $T_{\text{eval}}$ and $w_T$ on resource demands. The table below shows the $\rho$ values where each scenario transitions across feasibility categories:
 
