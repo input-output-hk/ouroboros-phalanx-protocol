@@ -908,7 +908,7 @@ We show here the _average_ numbers of years for an adversary $\text{stake}_A$ st
 (*) We make the simplification to consider the 21,600 blocks directly, that is: there is only 21,600 slots and to each to slot is exactly assigned one slot leader.
 
 <details>
-<summary>More details on the probabilitie here.</summary>
+<summary>More details on the probabilities here.</summary>
 
 We show here the probabilities for an adversary with $\text{stake}_A$ stake to control _N_ blocks.
 
@@ -939,7 +939,7 @@ We extend here the self-mixing strategy with forking and show how this renders t
 ![alt text](grinding_forking_years.png)
 
 <details>
-<summary>More details on the probabilitie here.</summary>
+<summary>More details on the probabilities here.</summary>
 
 We show here the probabilities for an adversary with $\text{stake}_A$ stake to control a majority of blocks such that $\|X_A - X_H\| = N$. 
 
