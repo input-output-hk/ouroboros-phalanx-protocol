@@ -705,7 +705,7 @@ Exploiting control over slot leader distributions to reverse confirmed transacti
 ### Chain-Freezing Attacks
 Using nonce selection to stall block production entirely, halting the protocol and causing network paralysis.
 
-## 2.2. Non-Exaustive Manipulation Stategy List
+## 2.2. Non-Exhaustive Manipulation Stategy List
 
 The Ethereum community recently published an insightful paper titled [*Forking the RANDAO: Manipulating Ethereum's Distributed Randomness Beacon*](https://eprint.iacr.org/2025/037). Since the system model used to analyze randomness manipulation in Ethereum is also applicable to Cardano, we will extensively reference their work to explore various manipulation strategies within the Cardano ecosystem. 
 
@@ -774,7 +774,7 @@ An **$\alpha$-heavy suffix** must be present at the critical juncture for a grin
 
 The **grinding power** $g$ of an adversary $A$ is the number of distinct values that $A$ can choose from when determining for the epoch nonce $\eta$. This quantifies the adversary's ability to manipulate randomness by selectively withholding, recomputing, or biasing values. 
 
-Let $g_w(X_A)$ be the number of grinding possible in an interval of size $w$ when controlling $X_A$ blocks. We have,
+Let $g_w(X_A)$ be the number of possible grinding attempts in an interval of size $w$ when controlling $X_A$ blocks. We have,
 
 ```math
 \begin{align*}
@@ -973,11 +973,11 @@ Looking at an approximation of the expected grinding power, also called first mo
 
 <!-- 
 ![alt text](proba_controlling_majority_x_blocks.png)
-![alt text](table-legend.png)
+![alt text](table-legend.png) -->
 
-<!-- The details of the calculations underlying this table can be found in the following Google Spreadsheet: [Details of Calculations](https://docs.google.com/spreadsheets/d/1DGG4tXTngc2Zu5_IMlWsPoARksgBEMbTCyqBAgKHe7E/edit?gid=0#gid=0).
+The details of the calculations underlying this table can be found in the following Google Spreadsheet: [Details of Calculations](https://docs.google.com/spreadsheets/d/1DGG4tXTngc2Zu5_IMlWsPoARksgBEMbTCyqBAgKHe7E/edit?gid=0#gid=0).
 
-For example, with **5% adversarial stake**, it would take about **44 years** in average for an adversary to obtain 4 adversarial blocks at the critical juncture.   -->
+For example, with **5% adversarial stake**, it would take about **1800 years** in average for an adversary to obtain an advantage of of exactly 4 blocks at the critical juncture.
 
 ####  The Results
 
