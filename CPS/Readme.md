@@ -657,7 +657,7 @@ However, **longer forks** can have **harmful consequences**. For example, if an 
 
 ## 2. The Grinding Attack Algorithm  
 
-In this section, we introduce the grinding attack and how the adversary may maximize its effects.
+This section describes the grinding attack, detailing its objectives, mechanics, and the adversary’s strategy to maximize its effectiveness.
 
 ## 2.1 Randomness Manipulation
 We descrive here the grinding attack Cardano's randomness generation protocol suffers from, from passively waiting for its chance or actively maximizing its attack surface, to choosing the best attack vector - stake distribution - to achieve its goal, be it maximizing rewards to controlling target blocks.
