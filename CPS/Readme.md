@@ -911,6 +911,7 @@ To estimate the cost of these **entry tickets**, we address the following questi
 > - **Giving the Cardano community sufficient time** to introduce fundamental **protocol-level improvements** to Ouroboros that could **completely mitigate or transform this issue**.  
 
 #### The Data
+We are computing here the expected number of grinding attempts for both the self-mixing and forking strategies.
 
 ##### Self-Mixing
 
@@ -940,7 +941,7 @@ We show here the probabilities for an adversary with $\text{stake}_A$ stake to c
 | $256$                    |  0.00E+00	 |0.00E+00	| 0.00E+00	| 0.00E+00	 | 1.00E-256	| 1.16E-179	 | 7.46E-155	|  1.39E-134	|  5.49E-124	 |  1.34E-102	| 1.67E-89	| 4.90E-80  |
 </details>
 
-We show the moment, i.e. expected number, of grinding attempts when self-mixing, i.e. trailing blocks during an epoch.
+We finally show the moment, i.e. expected number, of grinding attempts when self-mixing, i.e. trailing blocks during an epoch.
 | $\text{stake}_A$ (%) |    0.5    |     1     |     2     |     5     |     10    |     20    |     25    |     30    |     33    |     40    |     45    |     49    |
 | :------------------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: |
 | $\mathbb{E}(X_A)$    |   0.005   |   0.010   |   0.020   |   0.053   |   0.111   |   0.250   |   0.333   |   0.429   |   0.493   |   0.667   |   0.818   |   0.961   |
@@ -949,32 +950,9 @@ We can conclude, the self-mixing attack is not very probable nor critical.
 
 ##### Forking
 
-We extend here the self-mixing strategy with forking and show how this renders the attack viable. We show here a lower bound on the _average_ numbers of years for an adversary $\text{stake}_A$ stake to control a majority of blocks, while fixing the difference between honestly and adversarially controlled blocks to _N_.
+We extend here the self-mixing strategy with forking and show how this renders the attack viable.
 
-<div align="center">
-<img src="grinding_forking_years.png" alt="" width="800"/>
-</div>
-
-<details>
-<summary>More details on the probabilities here.</summary>
-
-We show here the probabilities for an adversary with $\text{stake}_A$ stake to control a majority of blocks such that $\|X_A - X_H\| = N$. 
-
-| $\|X_A - X_H\| \text{ vs }\ \text{stake}_A$ (%) |    0.5    |     1     |     2     |     5      |     10     |     20     |     25     |     30      |     33       |     40     |     45    |     49    |
-| :-------------------------------------------: | :-------: | :-------: | :-------: | :-------: | :-------: | :------: | :--------: | :-------: | :-------: | :-------: | :-------: | :-------: |
-| $1$                                           | 5.02E-3	  | 1.01E-2	  | 2.04E-2	  | 5.24E-2	  | 1.09E-1	  | 2.27E-1	 | 2.84E-1	  | 3.36E-1	  | 3.64E-1	  | 4.16E-1	  | 4.37E-1	  | 4.44E-1   |
-| $2$                     	                    | 2.52E-5	  | 1.02E-4 	| 4.16E-4	  | 2.75E-3	  | 1.19E-2	  | 5.40E-2	 | 8.74E-2	  | 1.28E-1	  | 1.54E-1	  | 2.19E-1	  | 2.61E-1	  | 2.90E-1   |
-| $4$                     	                    | 6.38E-10	| 1.04E-8 	| 1.73E-7	  | 7.57E-6	  | 1.44E-4	  | 3.06E-3	 | 8.27E-3	  | 1.84E-2	  | 2.77E-2	  | 6.06E-2	  | 9.35E-2	  | 1.24E-1   |
-| $8$                     	                    | 4.07E-19	| 1.08E-16	| 3.00E-14	| 5.75E-11	| 2.10E-8	  | 9.84E-6	 | 7.42E-5	  | 3.83E-4	  | 8.93E-4	  | 4.65E-3	  | 1.20E-2	  | 2.25E-2   |
-| $16$                     	                    | 1.65E-37	| 1.17E-32	| 8.99E-28	| 3.32E-21	| 4.47E-16	| 1.02E-10 | 5.96E-9	  | 1.66E-7	  | 9.27E-7	  | 2.74E-5	  | 1.96E-4	  | 7.48E-4   |
-| $32$                                         	| 2.73E-74	| 1.37E-64	| 8.09E-55	| 1.10E-41	| 2.02E-31	| 1.08E-20 | 3.85E-17	  | 3.10E-14	| 9.99E-13	| 9.49E-10	| 5.23E-8	  | 8.22E-7   |
-| $64$                                         	| 7.46E-148	| 1.89E-128	| 6.55E-109	| 1.22E-82	| 4.13E-62	| 1.11E-40 | 1.17E-33	  | 5.86E-28	| 5.14E-25	| 3.33E-19	| 9.00E-16	| 2.24E-13  |
-| $128$                    	                    | 0.00E-313	| 0.00E-278	| 0.00E-244	| 0.00E-200	| 0.00E-165	| 0.00E-130| 0.00E-120	| 0.00E-110	| 0.00E-105	| 0.00E-94	| 0.00E-89	| 0.00E-84  | 
-| $256$                                        	| 0.00E-460	| 0.00E-406	| 0.00E-353	| 0.00E-282	| 0.00E-226	| 0.00E-169| 0.00E-150	| 0.00E-133	| 0.00E-125	| 0.00E-106	| 0.00E-94	| 0.00E-85  |
-</details>
-
-We can see that the numbers only show a modest increase. This is partially due to computational errors and the formula itself. Looking at the average number of grinding attempts when forking reveals another story.
-More precisely, we tabulated here the grinding powers' expectation when looking at total period of variable length. While the expectation converges quickly for small stake, we can note it takes an exponential trend when the adversary owns more than 20\% of the total stake.
+More precisely, we tabulated here the grinding powers' expectation when looking at total period of variable length, as looking at a whole epoch is computationally impractical. While the expectation converges quickly for small stake, we can note it significicantly rises when the adversary owns more than around 20\% of the total stake.
 
  $\text{stake}_A$ (%)        |    0.5    |     1     |     2     |     5     |     10    |     20    |     25    |     30    |     33    |     40    |     45    |     49    |
 | :------------------------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: |
@@ -984,7 +962,7 @@ More precisely, we tabulated here the grinding powers' expectation when looking 
 | $\mathbb{E}(g, n=256)$    | 1.03E-02	 |  2.12E-02 | 4.49E-02  |	1.36E-01 |	4.12E-01 |	1.97E+01 |	6.98E+11 |	1.64E+21 |	9.60E+25 |	1.45E+35 |	2.48E+40 |	9.29E+43 |
 | $\mathbb{E}(g, n=512)$    | 1.03E-02	 |  2.12E-02 | 4.49E-02  |	1.36E-01 |	4.12E-01 |	2.91E+01 |	7.87E+23 |	7.19E+42 |	2.80E+52 |	6.60E+70 |	1.64E+81 |	1.79E+88 |
 
-Looking at an approximation of the expected grinding power, also called first moment, confirms our assumptions as when $\text{stake}_A = 20%$, we have the exponent base that becomes one, and thus the exponential start growing instead of decaying.
+We can approximate the expected grinding power as an exponential function of the precision, i.e. $E(g, n)= \text{poly}(n) \cdot \zeta^n$. Looking at the exponential's based, $\zeta$ can tell us precisely when the grinding power becomes rises exponentially, that is when $\zeta = 1$ the exponentiaition starts growing instead of decaying. The following graph indeed confirms that 20\% is the threshold.
 
 <div align="center">
 <img src="grinding_moment.png" alt="" width="500"/>

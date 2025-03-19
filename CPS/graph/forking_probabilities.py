@@ -54,16 +54,14 @@ def eg(s, precision=10, cores=2):
   results = Parallel(n_jobs=cores)(delayed(expectation)(w, x, s) for x in range(math.ceil(w/2),w+1))
   for res in results:
     p += res
- return (s, Decimal(1-s) * p)
+ return (s, Decimal(1-s) * p)  
 
-def eg(s, precision=10, cores=1):
+def proba_least(k, s, precision=10):
  p = Decimal(0)
  for w in range(1, precision):
-  results = Parallel(n_jobs=cores)(delayed(expectation)(w, x, s) for x in range(math.ceil(w/2),w+1))
-  for res in results:
-    p += res
- return (s, Decimal(1-s) * p)
-  
+   if (w - k) % 2 == 0:
+     p += proba_attempts(w, int((w-k)/2) + k, s)
+ return (s, Decimal(1-s) * p)  
 
 # Computes and print the expectation of grinding attempts for all adversaries
 def all_egs(precision=10, cores=1):
@@ -75,6 +73,27 @@ def all_egs(precision=10, cores=1):
  print("stake \t E(#grinding attempts)")
  for r in res:
   print("{0:.3f}:\t {1:.3E}".format(r[0], r[1]))
+  
+pows = [1,2,4,8,16,32,64,128,256]
+
+def proba_table(precision = 10, cores=1):
+    table = []
+    row = ["N \ stake"]
+    for s in stakes:
+        row.append("{}%".format(s*100))
+    table.append(row)
+    for p in pows:
+        row = [str(p)]
+        results = Parallel(n_jobs=cores)(delayed(proba_least)(p, s, precision) for s in stakes)
+        res = sorted(results, key=lambda x: x[0])
+        for r in res:
+            row.append("{0:.2E}".format(r[1]))
+        table.append(row)
+    for row in table:
+        for element in row:
+            print(element, "\t", end="")
+        print()
+
 
 def parseArguments():
     # Create argument parser
@@ -97,4 +116,8 @@ if __name__ == '__main__':
   args = parseArguments()
   
   # Run function
-  all_egs(precision=args.precision, cores=min(args.cores, nb_stakes))
+  # all_egs(precision=args.precision, cores=min(args.cores, nb_stakes))
+  print()
+  
+  # Print table
+  proba_table(precision=args.precision, cores=min(args.cores, nb_stakes))
