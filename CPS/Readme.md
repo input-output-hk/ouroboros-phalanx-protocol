@@ -53,8 +53,6 @@ Finally, it is essential to recognize that **adversarial capabilities continuall
 
 ## Table of Contents
 
-## Table of Contents
-
 - [1. Preliminaries](#1-preliminaries)
   - [1.1 Fundamental Properties](#11-fundamental-properties)
     + [1.1.1 Transaction Ledger Properties](#111-transaction-ledger-properties)
@@ -68,10 +66,8 @@ Finally, it is essential to recognize that **adversarial capabilities continuall
     + [1.2.1 Defining the Problem](#121-defining-the-problem)
     + [1.2.2 Strategies for Randomness Generation](#122-strategies-for-randomness-generation)
     + [1.2.3 The Historical Evolution of Ouroboros Randomness Generation](#123-the-historical-evolution-of-ouroboros-randomness-generation)
-    + [1.2.4 Alternative Approaches to Randomness Generation](#124-alternative-approaches-to-randomness-generation)
-      * [1.2.4.1 RANDAO (Ethereum’s Post-Merge Approach)](#1241-randao-ethereums-post-merge-approach)
-      * [1.2.4.2 VDFs (Verifiable Delay Functions)](#1242-vdfs-verifiable-delay-functions)
-      * [1.2.4.3 Conclusion: Why VRFs Were Chosen for Ouroboros](#1243-conclusion-why-vrfs-were-chosen-for-ouroboros)
+    + [1.2.4 Comparing Ouroboros Randomness Generation with Ethereum](#124-comparing-ouroboros-randomness-generation-with-ethereum)
+    + [1.2.5 Conclusion: The reasons behind Ouroboros Praos](#125-conclusion-the-reasons-behind-ouroboros-praos)
   - [1.3 Leader Election in Praos](#13-leader-election-in-praos)
     + [1.3.1 Oblivious Leader Selection](#131-oblivious-leader-selection)
     + [1.3.2 Application of Verifiable Random Function (VRF)](#132-application-of-verifiable-random-function-vrf)
@@ -90,24 +86,24 @@ Finally, it is essential to recognize that **adversarial capabilities continuall
     + [2.2.3 Forking Strategies](#223-forking-strategies)
 - [3. The Cost of Grinding: Adversarial Effort and Feasibility](#3-the-cost-of-grinding-adversarial-effort-and-feasibility)
   - [3.1 Definitions](#31-definitions)
-    + [3.1.1 α-heavy and Heaviness](#311-a-heavy-and-heaviness)
+    + [3.1.1 α-heavy and Heaviness](#311-α-heavy-and-heaviness)
     + [3.1.2 Grinding Power g](#312-grinding-power-g)
-    + [3.1.3 Grinding Depth ρ](#313-grinding-depth-rho)
+    + [3.1.3 Grinding Depth ρ](#313-grinding-depth-ρ)
     + [3.1.4 Grinding Windows](#314-grinding-windows)
       * [3.1.4.1 Opportunity Windows](#3141-opportunity-windows-wo)
-      * [3.1.4.2 Target Window](#3142-attack-window-wt)
+      * [3.1.4.2 Target Window](#3142-target-window-wt)
   - [3.2 Entry Ticket: Acquiring Stake to Play the Lottery](#32-entry-ticket-acquiring-stake-to-play-the-lottery)
   - [3.3 Cost of a Grinding Attempt](#33-cost-of-a-grinding-attempt)
     + [3.3.1 Nonce Generation](#331-nonce-generation)
-    + [3.3.2 Slot Leader Distribution Simulation](#332-slot-leader-distribution-simulation)
+    + [3.3.2 Slot Leader Distribution Evaluation](#332-slot-leader-distribution-evaluation)
     + [3.3.3 Strategic Benefit Evaluation](#333-strategic-benefit-evaluation)
     + [3.3.4 Total Estimated Time per Grinding Attempt](#334-total-estimated-time-per-grinding-attempt)
   - [3.4 Cost of a Grinding Attack](#34-cost-of-a-grinding-attack)
     + [3.4.1 Formula](#341-formula)
     + [3.4.2 Estimated Formula Using Mainnet Cardano Parameters](#342-estimated-formula-using-mainnet-cardano-parameters)
   - [3.5 Scenarios](#35-scenarios)
-  - [3.6 Grinding Potential Computational Feasibility](#36-grinding-potential-computational-feasibility)
-
+  - [3.6 Grinding Power Computational Feasibility](#36-grinding-power-computational-feasibility)
+                                                       
   
 ---
 
@@ -138,7 +134,7 @@ Once a node of the system proclaims a certain transaction *tx* in the stable par
 
 If all honest nodes in the system attempt to include a certain transaction then, after the passing of time corresponding to $`\text{u}`$ slots (called the **transaction confirmation time**), all nodes, if queried and responding honestly, will report the transaction as stable.
 
-### 1.1.2 Chains properties 
+### 1.1.2 Chain properties 
 
 **Persistence** and **liveness** can be derived from basic **chain properties**, provided that the protocol structures the ledger as a **blockchain**—a sequential data structure. The following key chain properties ensure that the blockchain behaves securely and efficiently:
 
