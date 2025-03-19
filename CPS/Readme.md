@@ -838,6 +838,8 @@ For simplicity, we consider that a honest block is produced at slot $S_2 + 1$. A
 <img src="grinding-depth-vs-opportunity-window.png" alt=""/>
 </div>
 
+✏️ **Note**: The code to generate this graph is available at ➡️ [this link](./graph/window0_graph.py).
+
 Let's consider the worst case where the adversary controls all trailing slots ($g = 1 \Leftrightarrow w=X_A(w)$):
 - **$w = 16$**:
   - $w_O = \frac{16}{\frac{1}{20}} = 16 \cdot 20 = 320$ seconds (~5.3 minutes).
@@ -1239,6 +1241,8 @@ N_{\text{CPU}} > \left \lceil 5 \cdot 10^{-10} \cdot 2^{\rho-1} + \frac{5 \cdot 
 <img src="grinding-depth-vs-NCPU.png" alt="" />
 </div>
 
+✏️ **Note**: The code to generate this graph is available at ➡️ [this link](./graph/scenario_cpu_graph.py).
+
 The maximal delta $\Delta \log_{10}(N_{\text{CPU}})$ (Owl Survey minus Ant Glance) is $\sim 6.3$, matching the graph’s constant gap. This suggests $T_{\text{eval}}$ and $w_T$ drive a pre-exponential frame of $10^{6.3}$ CPUs, scaled exponentially by $2^{\rho}$. Note that the green line (Owl Stare) is not visible on the graph, likely due to its close alignment with the blue line (Ant Glance), as both share the same $w_T = 3600$ s, and the difference in $T_{\text{eval}}$ (0 for Ant Glance vs. 1 for Owl Stare) becomes negligible on the logarithmic scale for large $\rho$.
 
 <!-- At $\rho = 50$:
@@ -1431,6 +1435,8 @@ This falls within $\log_{10} 9$ to 12, corresponding to **Borderline Infeasible*
 <div align="center">
 <img src="grinding_depth_scenarios_cost_with_feasibility_layers_gradient.png" alt="Grinding Depth Scenarios with Feasibility Thresholds"/>
 </div>
+
+✏️ **Note**: The code to generate this graph is available at ➡️ [this link](./graph/scenario_cost-graph.py).
 
 The cost difference between the most expensive scenario (Owl Survey) and the cheapest (Ant Glance) is significant, with a consistent $\Delta \log_{10}(\text{Cost (USD)}) \sim 6.3$, meaning Owl Survey costs approximately $10^{6.3}$ times more than Ant Glance, reflecting the substantial impact of $T_{\text{eval}}$ and $w_T$ on resource demands. The table below shows the $\rho$ values where each scenario transitions across feasibility categories:
 
