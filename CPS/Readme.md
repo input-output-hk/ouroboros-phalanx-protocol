@@ -918,7 +918,7 @@ We are computing here the expected number of grinding attempts for both the self
 We show here the _average_ numbers of years for an adversary $\text{stake}_A$ stake to control _N_ blocks. We made the choice to highlight frequencies less than 10 years as we can reasonably expect the protocol to hav evolved after such period.
 
 <div align="center">
-<img src="grinding_mixing_years.png" alt="" width="800"/>
+<img src="grinding_mixing_years.png" />
 </div>
 
 (*) We make the simplification to consider the 21,600 blocks directly, that is: there is only 21,600 slots and to each to slot is exactly assigned one slot leader.
@@ -965,7 +965,7 @@ More precisely, we tabulated here the grinding powers' expectation when looking 
 We can approximate the expected grinding power as an exponential function of the precision, i.e. $E(g, n)= \text{poly}(n) \cdot \zeta^n$. Looking at the exponential's based, $\zeta$ can tell us precisely when the grinding power becomes rises exponentially, that is when $\zeta = 1$ the exponentiaition starts growing instead of decaying. The following graph indeed confirms that 20\% is the threshold.
 
 <div align="center">
-<img src="grinding_moment.png" alt="" width="500"/>
+<img src="grinding_moment.png" alt="" />
 </div>
 
 <!-- 
@@ -980,8 +980,8 @@ For example, with **5% adversarial stake**, it would take about **1800 years** i
 ####  The Results
 
 <div align="center">
-<img src="grinding_depth_comparison.png" alt="" width="800"/>
-<img src="grinding_power_comparison.png" alt="" width="800"/>
+<img src="grinding_depth_comparison.png" alt="" />
+<img src="grinding_power_comparison.png" alt="" />
 </div>
 
 **N.B** : This analysis does not account for recursion in addition to the forking and self-mixing strategy, so the curve should actually be even steeper than in the graph above. 
@@ -1243,9 +1243,8 @@ N_{\text{CPU}} > \left \lceil 5 \cdot 10^{-10} \cdot 2^{\rho-1} + \frac{5 \cdot 
 | **Owl Stare**   | $5\cdot10^{-10}\cdot2^{\rho-1} + 1.8\cdot10^{-11}\cdot2^{\rho-1} + 5\cdot10^{-2}\cdot\frac{2^{\rho-1}}{\rho}$ |
 | **Owl Survey**  | $5\cdot10^{-10}\cdot2^{\rho-1} + 2.16\cdot10^{-9}\cdot2^{\rho-1} + 5\cdot10^{-2}\cdot\frac{2^{\rho-1}}{\rho}$ |
 
----- TODO: to update ? <=======
 <div align="center">
-<img src="grinding-depth-vs-NCPU.png" alt="" width="800"/>
+<img src="grinding-depth-vs-NCPU.png" alt="" />
 </div>
 
 The maximal delta $\Delta \log_{10}(N_{\text{CPU}})$ (Owl Survey minus Ant Glance) is $\sim 6.3$, matching the graph’s constant gap. This suggests $T_{\text{eval}}$ and $w_T$ drive a pre-exponential frame of $10^{6.3}$ CPUs, scaled exponentially by $2^{\rho}$. Note that the green line (Owl Stare) is not visible on the graph, likely due to its close alignment with the blue line (Ant Glance), as both share the same $w_T = 3600$ s, and the difference in $T_{\text{eval}}$ (0 for Ant Glance vs. 1 for Owl Stare) becomes negligible on the logarithmic scale for large $\rho$.
@@ -1274,8 +1273,6 @@ The cost model uses the $N_{\text{CPU}}$ formulas from [Section 3.5 - Scenarios]
 
 Costs are estimated assuming a CPU rental price of $0.01$ per CPU-hour, based on low-end instance pricing from major cloud providers like AWS as of March 11, 2025, where basic instances such as t2.micro cost approximately $0.0116$ per CPU-hour [AWS EC2 Pricing Page](https://aws.amazon.com/ec2/pricing/). However, for high-performance tasks, actual costs may range from $0.04$ to $0.08$ per CPU-hour, as seen with `AWS c5.large` ($0.048$) or `Azure Standard_F2s_v2` ($0.0372$). The table below summarizes the feasibility for `Owl Survey` ($T_{\text{eval}} = 1$, $w_T = 432,000 \, \text{s}$), the most resource-intensive scenario, at different $\rho$ values, using the $0.01$ estimate for initial assessment:
 
----- TODO: to update ? <=======
-
 | $\rho$ | CPUs Required (Log₁₀ Scale) | Estimated Cost (USD, $w_O$ run) | Feasibility |
 |----------|-----------------------------|----------------------------------|-------------|
 | **20**   | $10^4$ CPUs ($\sim 10^4$)    | 56.74                            | Trivial for any adversary |
@@ -1289,7 +1286,148 @@ Costs are estimated assuming a CPU rental price of $0.01$ per CPU-hour, based on
 - **Cost**: Assumes $0.01$ per CPU-hour, scaled for the runtime $w_O = 20 (2\rho - 1)$ seconds.
 - **Feasibility**: Assessed based on computational and economic viability, considering global computing resources (e.g., $\sim 10^{12}$ CPUs in modern data centers, $\sim 10^{15}$ CPUs globally as of March 11, 2025).
 
-References:
+
+<details>
+<summary>📌 Example Calculation for ρ = 50 (Owl Survey)</summary>
+
+Let’s walk through the calculation for the Owl Survey scenario at $\rho=50$ to demonstrate how the values in the table are derived. The Owl Survey scenario has $T_{\text{eval}}=1$ (high complexity) and $w_T=432,000\,\text{s}$ (5 days), making it the most resource-intensive scenario.
+
+### Step 1: Compute $N_{\text{CPU}}$
+
+The formula for $N_{\text{CPU}}$ in the Owl Survey scenario, as given in [Section 3.5 - Scenarios](#35-scenarios), is:
+
+```math
+N_{\text{CPU}} > \left \lceil 5 \times 10^{-10} \times 2^{\rho-1} + \frac{5 \times 10^{-14} \times 2^{\rho-1}}{\rho} \cdot w_T + \frac{5 \times 10^{-2} \times 2^{\rho-1}}{\rho} \cdot T_{\text{eval}} \right \rceil
+```
+
+Substitute the values $\rho=50$, $w_T=432,000$, and $T_{\text{eval}}=1$:
+
+```math
+N_{\text{CPU}} > \left \lceil 5 \times 10^{-10} \times 2^{50-1} + \frac{5 \times 10^{-14} \times 2^{50-1}}{50} \times 432,000 + \frac{5 \times 10^{-2} \times 2^{50-1}}{50} \times 1 \right \rceil
+```
+
+#### Compute $2^{49}$
+
+First, calculate $2^{50-1}=2^{49}$:
+
+```math
+2^{49} = 2^{40} \times 2^{9} = (2^{10})^4 \times 2^9 = 1024^4 \times 512
+```
+
+```math
+1024^4 = (1024^2)^2 = (1,048,576)^2 \approx 1.0995 \times 10^{12}
+```
+
+```math
+2^{49} \approx 1.0995 \times 10^{12} \times 512 \approx 5.629 \times 10^{14}
+```
+
+#### First Term: $5 \times 10^{-10} \times 2^{49}$
+
+```math
+5 \times 10^{-10} \times 5.629 \times 10^{14} = 5 \times 5.629 \times 10^{-10} \times 10^{14} = 28.145 \times 10^4 = 2.8145 \times 10^5
+```
+
+#### Second Term: $\frac{5 \times 10^{-14} \times 2^{49}}{50} \times 432,000$
+
+```math
+\frac{5 \times 10^{-14} \times 5.629 \times 10^{14}}{50} \times 432,000 = \frac{5 \times 5.629 \times 10^{-14} \times 10^{14}}{50} \times 432,000
+```
+
+```math
+= \frac{28.145}{50} \times 432,000 = 0.5629 \times 432,000 \approx 243,172.8
+```
+
+#### Third Term: $\frac{5 \times 10^{-2} \times 2^{49}}{50} \times 1$
+
+```math
+\frac{5 \times 10^{-2} \times 5.629 \times 10^{14}}{50} = \frac{5 \times 5.629 \times 10^{-2} \times 10^{14}}{50} = \frac{28.145 \times 10^{12}}{50}
+```
+
+```math
+= 0.5629 \times 10^{12} = 5.629 \times 10^{11}
+```
+
+#### Sum the Terms
+
+```math
+2.8145 \times 10^5 + 243,172.8 = 524,322.8
+```
+
+```math
+524,322.8 + 5.629 \times 10^{11} \approx 5.629 \times 10^{11}
+```
+
+```math
+N_{\text{CPU}} > \left \lceil 5.629 \times 10^{11} \right \rceil = 5.629 \times 10^{11}
+```
+
+In $\log_{10}$ scale:
+
+```math
+\log_{10}(5.629 \times 10^{11}) = \log_{10}(5.629) + 11 \approx 0.7503 + 11 \approx 11.7503
+```
+
+The table rounds this to $10^{13}$, which appears to be an error; the correct value is closer to $10^{11.75}$.
+
+### Step 2: Compute the Estimated Cost in USD
+
+The cost is calculated as:
+
+```math
+\text{Cost (USD)} = N_{\text{CPU}} \times \text{cost per CPU-hour} \times \text{runtime in hours}
+```
+
+- **Cost per CPU-hour**: $0.01\,\text{USD}$,
+- **Runtime**: $w_O = 20 \times (2\rho - 1)$ seconds, with $\rho=50$:
+
+```math
+w_O = 20 \times (2 \times 50 - 1) = 20 \times 99 = 1,980\,\text{seconds}
+```
+
+Convert to hours:
+
+```math
+w_O^{\text{hours}} = \frac{1,980}{3,600} = 0.55\,\text{hours}
+```
+
+- **$N_{\text{CPU}}$**: $5.629 \times 10^{11}$,
+
+```math
+\text{Cost (USD)} = 5.629 \times 10^{11} \times 0.01 \times 0.55
+```
+
+```math
+= 5.629 \times 0.0055 \times 10^{11} = 0.03096 \times 10^{11} = 3.096 \times 10^9
+```
+
+```math
+\text{Cost (USD)} \approx 3.10 \times 10^9 = 3.10\,\text{billion}
+```
+
+This matches the table value of 3.10 billion USD.
+
+### Step 3: Determine Feasibility
+
+The feasibility thresholds are:
+
+- **Trivial**: < $10,000$ ($\log_{10} < 4$),
+- **Feasible**: $10,000$ to $1,000,000$ ($\log_{10} 4$ to 6),
+- **Possible**: $1,000,000$ to $1,000,000,000$ ($\log_{10} 6$ to 9),
+- **Borderline Infeasible**: $1,000,000,000$ to $1,000,000,000,000$ ($\log_{10} 9$ to 12),
+- **Infeasible**: > $1,000,000,000,000$ ($\log_{10} > 12$).
+
+For a cost of $3.10 \times 10^9$:
+
+```math
+\log_{10}(3.10 \times 10^9) = \log_{10}(3.10) + 9 \approx 0.4914 + 9 = 9.4914
+```
+
+This falls within $\log_{10} 9$ to 12, corresponding to **Borderline Infeasible**. The table lists it as "Possible," which appears to be a categorization error based on the defined thresholds.
+
+</details>
+
+#### References
 - [AWS EC2 Pricing Page Detailed Instance Pricing](https://aws.amazon.com/ec2/pricing/)
 - [Azure Virtual Machines Pricing Calculator Detailed VM Costs](https://azure.microsoft.com/en-us/pricing/calculator/)
 - [Google Compute Engine Pricing Detailed Compute Pricing](https://cloud.google.com/compute/pricing)
@@ -1297,7 +1435,7 @@ References:
 
 
 <div align="center">
-<img src="grinding_depth_scenarios_cost_with_feasibility_layers_gradient.png" alt="Grinding Depth Scenarios with Feasibility Thresholds" width="800"/>
+<img src="grinding_depth_scenarios_cost_with_feasibility_layers_gradient.png" alt="Grinding Depth Scenarios with Feasibility Thresholds"/>
 </div>
 
 The cost difference between the most expensive scenario (Owl Survey) and the cheapest (Ant Glance) is significant, with a consistent $\Delta \log_{10}(\text{Cost (USD)}) \sim 6.3$, meaning Owl Survey costs approximately $10^{6.3}$ times more than Ant Glance, reflecting the substantial impact of $T_{\text{eval}}$ and $w_T$ on resource demands. The table below shows the $\rho$ values where each scenario transitions across feasibility categories:
@@ -1325,7 +1463,7 @@ Finally, goals may also serve as evaluation metrics to assess how good a propose
 The goal is to **mitigate or completely eliminate grinding attacks** on the protocol by introducing **targeted protocol enhancements** to address this issue. Two approaches are actively being explored to address the **Randomness Manipulation Problem**:  
 
 - **Complete Elimination of Grinding Attacks** – Ongoing research aims to make the protocol fully resistant to such attacks. One notable example is *[Efficient Random Beacons with Adaptive Security for Ungrindable Blockchains](https://eprint.iacr.org/2021/1698.pdf).*  
-- **Partial Mitigation by Increasing Attack Complexity** – While full protection may not yet be feasible, making such attacks **computationally and economically prohibitive** can significantly reduce their viability. This approach is the basis of the [**Phalanx CIP**](../CIP/Readme.md).   
+- **Partial Mitigation by Increasing Attack Complexity** – While full protection may not yet be feasible, making such attacks **computationally and economically prohibitive** can significantly reduce their viability. This approach is the basis of the **Phalanx CIP** (Coming soon)].   
 
 However, while **fully protecting the protocol from Randomness Manipulation attacks** may not yet be feasible, it is crucial to advance in the following areas:  
 
@@ -1360,7 +1498,7 @@ We strongly encourage the community to actively engage in addressing this challe
 - [The combinatorics of the longest-chain rule: Linear consistency for proof-of-stake blockchains](https://eprint.iacr.org/2017/241.pdf)
 - [Efficient Random Beacons with Adaptive Securityfor Ungrindable Blockchains](https://eprint.iacr.org/2021/1698.pdf)
 - [Forking the RANDAO: Manipulating Ethereum's Distributed Randomness Beacon](https://eprint.iacr.org/2025/037)
-
+- [Security of Proof-of-Stake Blockchains](https://search.worldcat.org/title/1336590866)
 
 
 ## Copyright
