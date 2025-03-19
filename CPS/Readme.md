@@ -1249,7 +1249,7 @@ The maximal delta $\Delta \log_{10}(N_{\text{CPU}})$ (Owl Survey minus Ant Glanc
 
 ### 3.6 Grinding Power Computational Feasibility
 
-Building on the analysis in [Section 3.6](#353-formula-behavior-analysis), we assess the feasibility of grinding attacks by examining the computational resources ($N_{\text{CPU}}$) required across different grinding depths ($\rho$). The scenarios (Ant Glance, Ant Patrol, Owl Stare, Owl Survey) show a consistent $\Delta \log_{10}(N_{\text{CPU}}) \sim 6.3$, meaning the most demanding scenario (Owl Survey) requires $10^{6.3}$ times more CPUs than the least demanding (Ant Glance).
+Building on the analysis in previous [Section 3.5](##35-scenarios), we assessed the feasibility of grinding attacks by examining the computational resources ($N_{\text{CPU}}$) required across different grinding depths ($\rho$). The scenarios (Ant Glance, Ant Patrol, Owl Stare, Owl Survey) show a consistent $\Delta \log_{10}(N_{\text{CPU}}) \sim 6.3$, meaning the most demanding scenario (Owl Survey) requires $10^{6.3}$ times more CPUs than the least demanding (Ant Glance).
 
 To help readers understand the practicality of these attacks, we define feasibility thresholds based on economic and computational viability, as shown in the table below:
 
@@ -1263,7 +1263,9 @@ To help readers understand the practicality of these attacks, we define feasibil
 
 The cost model uses the $N_{\text{CPU}}$ formulas from [Section 3.5 - Scenarios](#35-scenarios), computes the number of CPUs needed for the attack, and multiplies by the CPU rental price ($0.01$ per CPU-hour) and runtime defined by the grinding opportunity window $w_O = \frac{2\rho - 1}{f}$ seconds (with $f = 0.05$) to estimate the total cost.
 
-Costs are estimated assuming a CPU rental price of $0.01$ per CPU-hour, based on low-end instance pricing from major cloud providers like AWS as of March 11, 2025, where basic instances such as t2.micro cost approximately $0.0116$ per CPU-hour [AWS EC2 Pricing Page](https://aws.amazon.com/ec2/pricing/). However, for high-performance tasks, actual costs may range from $0.04$ to $0.08$ per CPU-hour, as seen with `AWS c5.large` ($0.048$) or `Azure Standard_F2s_v2` ($0.0372$). The table below summarizes the feasibility for `Owl Survey` ($T_{\text{eval}} = 1$, $w_T = 432,000 \, \text{s}$), the most resource-intensive scenario, at different $\rho$ values, using the $0.01$ estimate for initial assessment:
+Costs are estimated assuming a CPU rental price of $0.01$ per CPU-hour, based on low-end instance pricing from major cloud providers like AWS as of March 11, 2025, where basic instances such as t2.micro cost approximately $0.0116$ per CPU-hour [AWS EC2 Pricing Page](https://aws.amazon.com/ec2/pricing/). However, for high-performance tasks, actual costs may range from $0.04$ to $0.08$ per CPU-hour, as seen with `AWS c5.large` ($0.048$) or `Azure Standard_F2s_v2` ($0.0372$). 
+
+The table below summarizes the feasibility for `Owl Survey` ($T_{\text{eval}} = 1$, $w_T = 432,000 \, \text{s}$), the most resource-intensive scenario, at different $\rho$ values, using the $0.01$ estimate for initial assessment:
 
 | $\rho$ | CPUs Required (Log₁₀ Scale) | Estimated Cost (USD, $w_O$ run) | Feasibility |
 |----------|-----------------------------|----------------------------------|-------------|
