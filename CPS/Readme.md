@@ -915,7 +915,7 @@ We are computing here the expected number of grinding attempts for both the self
 
 ##### Self-Mixing
 
-We show here the _average_ numbers of years for an adversary $\text{stake}_A$ stake to control _N_ blocks. We made the choice to highlight frequencies less than 10 years as we can reasonably expect the protocol to hav evolved after such period.
+We present here the average number of years required for an adversary with a stake of $\text{stake}_A$ to control N blocks. We chose to emphasize frequencies below 10 years, as it is reasonable to assume the protocol will have evolved after such a period.
 
 <div align="center">
 <img src="grinding_mixing_years.png" />
@@ -924,9 +924,9 @@ We show here the _average_ numbers of years for an adversary $\text{stake}_A$ st
 (*) We make the simplification to consider the 21,600 blocks directly, that is: there is only 21,600 slots and to each to slot is exactly assigned one slot leader.
 
 <details>
-<summary>More details on the probabilities here.</summary>
+<summary>📌📌 <i> More Details on Probabilities Here </i> – <b>  Expand to view the content.</b></summary>
 
-We show here the probabilities for an adversary with $\text{stake}_A$ stake to control _N_ blocks.
+We display here the probabilities of an adversary with a stake of $\text{stake}_A$ controlling N blocks:
 
 | $N \text{ vs }\ \text{stake}_A$ (%) |    0.5    |     1     |     2     |     5      |     10     |     20     |     25     |     30      |     33       |     40     |     45    |     49    |
 | :----------------------: | :-------:   | :------: | :-------: | :--------: | :--------: | :--------: | :--------: | :---------: | :----------: | :--------: | :-------: | :-------: |
@@ -940,13 +940,15 @@ We show here the probabilities for an adversary with $\text{stake}_A$ stake to c
 | $128$                    |  2.94E-295	 |1.00E-256 |	3.40E-218	| 2.94E-167  | 1.00E-128	| 3.40E-90 	 | 8.64E-78 	|  1.18E-67 	|  2.34E-62	   |  1.16E-51  | 4.09E-45	| 2.21E-40  |
 | $256$                    |  0.00E+00	 |0.00E+00	| 0.00E+00	| 0.00E+00	 | 1.00E-256	| 1.16E-179	 | 7.46E-155	|  1.39E-134	|  5.49E-124	 |  1.34E-102	| 1.67E-89	| 4.90E-80  |
 </details>
+</br>
 
-We finally show the moment, i.e. expected number, of grinding attempts when self-mixing, i.e. trailing blocks during an epoch.
+We present the expected number (i.e., moment) of grinding attempts during self-mixing, which refers to trailing blocks within an epoch.
+
 | $\text{stake}_A$ (%) |    0.5    |     1     |     2     |     5     |     10    |     20    |     25    |     30    |     33    |     40    |     45    |     49    |
 | :------------------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: |
 | $\mathbb{E}(X_A)$    |   0.005   |   0.010   |   0.020   |   0.053   |   0.111   |   0.250   |   0.333   |   0.429   |   0.493   |   0.667   |   0.818   |   0.961   |
 
-We can conclude, the self-mixing attack is not very probable nor critical.
+We conclude that the self-mixing attack is neither highly probable nor particularly critical.
 
 ##### Forking
 
