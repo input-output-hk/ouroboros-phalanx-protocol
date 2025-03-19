@@ -52,10 +52,9 @@
     - [3.1 Definitions](#31-definitions)
       + [3.1.1 α-heavy and Heaviness](#311-α-heavy-and-heaviness)
       + [3.1.2 Grinding Power g](#312-grinding-power-g)
-      + [3.1.3 Grinding Depth ρ](#313-grinding-depth-ρ)
-      + [3.1.4 Grinding Windows](#314-grinding-windows)
-        * [3.1.4.1 Opportunity Windows](#3141-opportunity-windows-wo)
-        * [3.1.4.2 Target Window](#3142-target-window-wt)
+      + [3.1.3 Grinding Windows](#314-grinding-windows)
+        * [3.1.3.1 Opportunity Windows](#3141-opportunity-windows-wo)
+        * [3.1.3.2 Target Window](#3142-target-window-wt)
     - [3.2 Entry Ticket: Acquiring Stake to Play the Lottery](#32-entry-ticket-acquiring-stake-to-play-the-lottery)
     - [3.3 Cost of a Grinding Attempt](#33-cost-of-a-grinding-attempt)
       + [3.3.1 Nonce Generation](#331-nonce-generation)
@@ -180,15 +179,13 @@ Various cryptographic techniques exist to address the **coin-flipping problem** 
 | **PVSS-Based Beacons** <br> _(Ouroboros Classic, RandHound, Scrape, HydRand)_ | ✔ Strong randomness guarantees—output is indistinguishable from uniform.<br> ✔ Resistant to last-mover bias—commitments prevent selective reveals. | ❌ High communication complexity—requires O(n²) messages.<br> ❌ Vulnerable to adaptive adversaries — who may corrupt committee members. |
 | **Threshold Signature-Based Beacons** <br> _(DFINITY)_ | ✔ Fast and non-interactive—requires only one round of communication.<br> ✔ Resistant to last-mover bias—output is deterministic. | ❌ Group setup complexity—requires distributed key generation (DKG).<br> ❌ No random number output in case of threshold signature generation failure. |
 | **Byzantine Agreement-Based Beacons** <br> _(Algorand)_ | ✔ Finality guarantees—randomness is confirmed before the next epoch.<br> ✔ Less entropy loss than Praos. | ❌ Requires multi-round communication—higher latency.<br> ❌ Not designed for eventual consensus—better suited for BA-based protocols. |
-| **"RANDAO"-Based Beacons** <br> _(Ethereum’s RANDAO Post-Merge, Ouroboros Praos, Genesis, Snow White)_ | ✔ Simple and efficient—low computational overhead.<br> ✔ Fully decentralized—any participant can contribute randomness. | ❌ Vulnerable to last-revealer bias—the last participant can manipulate the final output. |
-
-In each of these approaches, individual contributors provide some random numbers, be it signatures in threshold signature schemes or integers in RANDAO. These numbers can be verifiable in some cases, by using Verifiable Random Functions (VRFs) or BLS signatures, as done in Ouroboros Praos and Ehtereum's latest protocols among others.
+| **"VRF"-Based Beacons** <br> _(Ethereum’s RANDAO Post-Merge, Ouroboros Praos, Genesis, Snow White)_ | ✔ Simple and efficient—low computational overhead.<br> ✔ Fully decentralized—any participant can contribute randomness. | ❌ Vulnerable to last-revealer bias—the last participant can manipulate the final output. |
 
 ### **1.2.3 The Historical Evolution of Ouroboros Randomness Generation**
 
 The **Ouroboros family of protocols** has evolved over time to optimize **randomness generation** while balancing **security, efficiency, and decentralization**. Initially, **Ouroboros Classic** used a **secure multi-party computation (MPC) protocol** with **Publicly Verifiable Secret Sharing (PVSS)** to ensure **unbiased randomness**. While providing **strong security guarantees**, PVSS required **quadratic message exchanges** between committee members, introducing **significant communication overhead**. This **scalability bottleneck** limited participation and hindered the decentralization of Cardano's consensus process.
 
-Recognizing these limitations, **Ouroboros Praos** moved to a **RANDAO-based randomness generation** mechanism where each individual randomness contribution is generated with VRFs. Here, each block includes a **VRF value** computed from a _determinitic_ message. The randomn nonce for an epoch is then derived from the **concatenation and hashing** of all these values from a **specific section of the previous epoch’s chain**. This significantly **reduces communication complexity to linear in the number of block producers**, making randomness generation **scalable and practical** while maintaining **adequate security properties**.
+Recognizing these limitations, **Ouroboros Praos** moved to a **VRF-based randomness generation** mechanism where each individual randomness contribution is generated with VRFs. Here, each block includes a **VRF value** computed from a _determinitic_ message. The randomn nonce for an epoch is then derived from the **concatenation and hashing** of all these values from a **specific section of the previous epoch’s chain**. This significantly **reduces communication complexity to linear in the number of block producers**, making randomness generation **scalable and practical** while maintaining **adequate security properties**.
 
 However, this efficiency gain comes at a cost: it introduces a **limited avenue for randomness manipulation**. Adversaries can attempt **grinding attacks**, evaluating multiple **potential nonces** and selectively influencing randomness outcomes. While constrained, this trade-off necessitates further countermeasures to **limit adversarial influence** while maintaining protocol scalability.
 
@@ -199,7 +196,7 @@ Ethereum RANDAO protocol was first based on a **commit and reveal** approach whe
 Ethereum's **Post-Merge RANDAO** protocol remains mostly the same, but instead of using a **commit-reveal** approach, each contributor generate randomness deterministically by using VRF, making these values verifiables. These values are finally, as before, sequentially aggregated using **XOR**, forming the final **randomness output** used in **validator shuffling** and **protocol randomness**.
 This version of the protocol is very similar to Ouroboros Praos' where hashing is used instead of XOR to combine contributors' randomness together, and does not rely on commitees.
 
-While **decentralized** and **computationally lightweight**, RANDAO still suffers from **last-revealer bias**, where the **final proposers** in an epoch can **withhold their reveals** to manipulate randomness. As such, Ethereum has spent some time studying Verifiable Delayed Functions (VDFs) to prevent the last revealer attack. Subsequently, Ethereum decided **against integrating Verifiable Delay Functions (VDFs)**  due to feasibility concerns, including the difficulty of practical deployment and the risk of centralization stemming from specialized hardware dependencies. The instead opted for a **frequent reseeding mechanism** to strengthen the commitee selection in order to mitigate biases which, unfortunately does not fully eliminate **last-mover manipulation** concerns.
+While **decentralized** and **computationally lightweight**, RANDAO still suffers from **last-revealer bias**, where the **final proposers** in an epoch can **withhold their reveals** to manipulate randomness. As such, Ethereum has spent some time studying Verifiable Delayed Functions (VDFs) to prevent the last revealer attack. Subsequently, Ethereum decided **against integrating Verifiable Delay Functions**  due to feasibility concerns, including the difficulty of practical deployment and the risk of centralization stemming from specialized hardware dependencies. The instead opted for a **frequent reseeding mechanism** to strengthen the commitee selection in order to mitigate biases which, unfortunately does not fully eliminate **last-mover manipulation** concerns.
 
 VDFs are designed to provide **unpredictable, verifiable randomness** by requiring a **sequential computation delay** before revealing the output. This makes them **resistant to grinding attacks** since adversaries cannot efficiently evaluate multiple outcomes. However, they introduce **significant computational costs**, require specialized **hardware for efficient verification**, and demand **additional synchronization mechanisms**. 
 
@@ -656,7 +653,7 @@ We descrive here the grinding attack Cardano's randomness generation protocol su
 
 In its current version, Praos has a vulnerability where an adversary can manipulate the nonce $\eta_\text{e}$, the random value used for selecting block producers. This allows the adversary to incrementally and iteratively undermine the uniform distribution of slot leaders, threatening the fairness and unpredictability of the leader selection process.
 
-At the conclusion of phase 2, when the $\eta^\text{candidate}_{e}$ nonce is determined, the distribution of slot leaders for the next epoch becomes deterministic in a private manner. This means that, at this point, the adversary gains precise knowledge of the slots in which they will be elected but lacks detailed knowledge of the slot distribution for honest participants.
+At the conclusion of Phase 2, when the $\eta^\text{candidate}_{e}$ nonce is determined, the distribution of slot leaders for the next epoch becomes deterministic in a private manner. This means that, at this point, the adversary gains precise knowledge of the slots in which they will be elected but lacks detailed knowledge of the slot distribution for honest participants.
 
 For example, if the adversary acts as the slot leader immediately before this phase transition, they can choose whether to produce a block or not. This decision grants them the ability to compute and compare two valid nonces - one with one fewer VRF update than the other -, evaluate different slot leader distributions for the upcoming epoch and potentially maximize their future gains at the cost of lesser rewards at this epoch. The more blocks the adversary controls before Phase 2's end, the more nonces they may _grind_ and choose from, and the more critical the atatck becomes. In essence, the adversary gains access to up to $2^x$ possible combinations of slot leader distributions, where $x$ denotes the number of controlled leader slots at this particular stage of the protocol.
 
@@ -728,7 +725,6 @@ Block statuses are denoted as $H^e_i, R^e_i, M^e_i, P^e_i$ indicating that the
 block in the $i$ th slot in epoch $e$ was proposed, reorged, missed, or built privately, respectively. Reorged and missed blocks do not contribute to the generation of $\eta_e$ since they are not part of the canonical chain. 
 
 ### 2.2.2 Self Mixing Strategy
----- Do another pass
 
 The adversary can selectively propose or miss blocks to manipulate $\eta_e$. Assume that $\mathcal{A}$ is assigned with $t$ consecutive tail blocks, formally $\mathcal{A}^{t}$ of epoch $e$, then $\mathcal{A}$ can choose arbitrarily between $2^t$ $\eta_e$ by missing or proposing each tail block. Thus, it is trivial that $\mathcal{A}^{t} \in AS_{\alpha}(m,n)$ for $0 \leq t \leq m$, as $\mathcal{A}$ can compute $\eta_e$ corresponding to $C^t$.  
 
@@ -741,7 +737,7 @@ The manipulative power for $t = 2$ is the following decision tree
 e.g : The adversary chooses option $\{H^e_{30}, M^e_{31}\}$ if the calculated $\eta_e$ eventually leads to the highest number of blocks. In this case, sacrificing Slot 30 and 31 is worthwhile, as it results in a significantly higher number of blocks in epoch $e + 2$.  
 
 ### 2.2.3 Forking Strategies
----- Do another pass
+
 
 To achieve the goal of maximizing $x$ trailing blocks at this critical juncture, the adversary leverages the forking nature of the consensus protocol by introducing a private chain. By strategically applying the Longest-Chain rule to their advantage, the adversary ensures that the last honest trailing blocks are excluded at this pivotal moment. With this added dimension, gaining access to $2^x$ possible combinations of slot leader distributions becomes equivalent to $x = |A| - |H|$, where $|A|$ and $|H|$ represent the number of adversarial and honest blocks, respectively, within this specific interval of the protocol : 
 
@@ -812,9 +808,9 @@ We can now define the expected grinding power $\mathbb{E}(g)$:
 
 In **Cardano mainnet**, the nonce size used in the randomness beacon is **256 bits**, meaning the theoretical maximum grinding power is $g_{\max} = 2^{256}$. However, practical grinding power is typically limited by computational constraints and stake distribution dynamics.
 
-#### 3.1.4 Grinding Windows
+#### 3.1.3 Grinding Windows
 
-#### 3.1.4.1 Opportunity Windows $w_O$
+#### 3.1.3.1 Opportunity Windows $w_O$
 
 The **grinding opportunity window** $w_O$ is the time interval at the end of Phase 2 during which an adversary, dominating a suffix of size $w$, can compute and reveal one of $g$ possible $\eta_e^\text{candidate}$ nonces before the honest chain outpaces their chosen chain.
 
@@ -853,7 +849,7 @@ Let's consider the worst case where the adversary controls all trailing slots ($
 
 This sizing ensures the adversary has time to act before honest chain growth threatens even a length-1 chain, providing a practical and conservative bound for grinding feasibility.
 
-##### 3.1.4.2 Target Window $w_T$
+##### 3.1.3.2 Target Window $w_T$
 
 Once the adversary obtains a potential **candidate nonce** ($\eta_e^{\text{candidate}}$) for epoch $e$, they can compute their private **slot leader distribution** for the entire epoch, spanning:  
 
