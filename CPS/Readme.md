@@ -477,7 +477,7 @@ blake2b_libsodium size input =
 In Praos and Genesis, an epoch consists of 3 logical phases to compute these 2 key variables—**active stake distribution** and **randomness beacon**—by going through the following phases:
 
 <div align="center">
-<img src="epoch-structure-praos.png" alt="Epoch Structure" width="800"/>
+<img src="epoch-structure-praos.png" alt="Epoch Structure" />
 </div>
 
 The sequential flow of these 3 phases is deliberately structured by designed : 
@@ -637,7 +637,7 @@ With **Ouroboros Praos**, as with [**Nakamoto consensus**](https://coinmarketcap
 The **consensus layer** operates with a structure that resembles a branching **"tree" of blockchains** before **finality** stabilizes:
 
 <div align="center">
-<img src="high-level-ledger-structure.png" alt="" width="500"/>
+<img src="high-level-ledger-structure.png" alt="" />
 </div>
 
 #### **Why Do Blockchain Forks Occur?**
@@ -671,7 +671,7 @@ At the conclusion of phase 2, when the $\eta^\text{candidate}_{e}$ nonce is dete
 For example, if the adversary acts as the slot leader immediately before this phase transition, they can choose whether to produce a block or not. This decision grants them the ability to compute and compare two valid nonces - one with one fewer VRF update than the other -, evaluate different slot leader distributions for the upcoming epoch and potentially maximize their future gains at the cost of lesser rewards at this epoch. The more blocks the adversary controls before Phase 2's end, the more nonces they may _grind_ and choose from, and the more critical the atatck becomes. In essence, the adversary gains access to up to $2^x$ possible combinations of slot leader distributions, where $x$ denotes the number of controlled leader slots at this particular stage of the protocol.
 
 <div align="center">
-<img src="grinding-opportunity-window.png" alt="" width="800"/>
+<img src="grinding-opportunity-window.png" alt="" />
 </div>
 
 This marks the beginning of a grinding attack, where the adversary's initial goal is to maximize the number of adversarial blocks at this critical juncture, either passively by waiting, or actively by reaching a snowball effect. By doing so, they expand the range of potential slot leader distributions they can choose from, significantly enhancing their influence over the protocol. We use the term "exposure" here because the adversary is first setting the stage for its attack. 
@@ -681,7 +681,7 @@ This marks the beginning of a grinding attack, where the adversary's initial goa
 This is the pivotal moment where the adversary's prior efforts pay off. They are now in a position with *x* blocks at the critical juncture. At this stage, the adversary can generate up to $2^x$ possible $η$ nonces, compute the next epoch's slot leader distribution for each of them, and strategically select the nonce and distribution that best aligns with their goal. This positioning enables them to deploy the attack effectively in the subsequent epoch.
 
 <div align="center">
-<img src="slot-leader-distribution-selection.png" alt="" width="800"/>
+<img src="slot-leader-distribution-selection.png" alt=""/>
 </div>
 
 As the adversary accumulates blocks, the attack's bottleneck swiftly shifts from waiting for enough blocks at the critical juncture to the computational power needed to compute enough nonces to achieve their goal. 
@@ -845,7 +845,7 @@ For simplicity, we consider that a honest block is produced at slot $S_2 + 1$. A
   - Slot duration = 1 second.
 
 <div align="center">
-<img src="grinding-depth-vs-opportunity-window.png" alt="" width="800"/>
+<img src="grinding-depth-vs-opportunity-window.png" alt=""/>
 </div>
 
 Let's consider the worst case where the adversary controls all trailing slots ($g = 1 \Leftrightarrow w=X_A(w)$):
