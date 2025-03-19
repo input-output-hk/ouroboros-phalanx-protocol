@@ -15,8 +15,8 @@
 
 ## Table of Contents
 
-- [Abstract](#abstract)
-- [Problem](#problem)
+- [**Abstract**](#abstract)
+- [**Problem**](#problem)
   - [**1. Preliminaries**](#1-preliminaries)
     - [1.1 Fundamental Properties](#11-fundamental-properties)
       + [1.1.1 Transaction Ledger Properties](#111-transaction-ledger-properties)
@@ -67,10 +67,10 @@
       + [3.4.2 Estimated Formula Using Mainnet Cardano Parameters](#342-estimated-formula-using-mainnet-cardano-parameters)
     - [3.5 Scenarios](#35-scenarios)
     - [3.6 Grinding Power Computational Feasibility](#36-grinding-power-computational-feasibility)
-- [Goals](#goals)
-- [Open Questions](#open-questions)
-- [References](#references)
-- [Copyright](#copyright)
+- [**Goals**](#goals)
+- [**Open Questions**](#open-questions)
+- [**References**](#references)
+- [**Copyright**](#copyright)
 
 
 ## Abstract
