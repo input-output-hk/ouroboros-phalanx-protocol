@@ -21,14 +21,23 @@ FYI > Work in Progress, in [google doc](https://docs.google.com/document/d/13TZF
 
 ## Table of Contents
 
-- [Abstract](#abstract)
-- [Motivation: Why is this CIP necessary?](#motivation-why-is-this-cip-necessary)
-- [Specification](#specification)
-- [Rationale: How does this CIP achieve its goals?](#rationale-how-does-this-cip-achieve-its-goals)
-- [Path to Active](#path-to-active)
-  - [Acceptance Criteria](#acceptance-criteria)
-  - [Implementation Plan](#implementation-plan)
-- [Copyright](#copyright)
+- [**Abstract**](#abstract)
+- [**Motivation: Why is this CIP necessary?**](#motivation-why-is-this-cip-necessary)
+- [**Specification**](#specification)
+  - [**1. The Flow**](#1-the-flow)
+  - [**2. The Randomness Generation Sub-Protocol**](#2-the-randomness-generation-sub-protocol)
+  - [**3. The Φ Cryptographic Primitive**](#3-the-φ-cryptographic-primitive)
+  - [**4. Adversarial Cost Overhead**](#4-adversarial-cost-overhead)
+    - [**Interpretation of the Graph**](#interpretation-of-the-graph)
+    - [**Impact on Feasibility Categories**](#impact-on-feasibility-categories)
+      + [**Original Praos Feasibility Ranges**](#original-praos-feasibility-ranges)
+      + [**Phalanx with $\Phi_{\text{min}}$**](#phalanx-with-φ_textmin)
+      + [**Phalanx with $\Phi_{\text{max}}$**](#phalanx-with-φ_textmax)
+- [**Rationale: How does this CIP achieve its goals?**](#rationale-how-does-this-cip-achieve-its-goals)
+- [**Path to Active**](#path-to-active)
+  - [**Acceptance Criteria**](#acceptance-criteria)
+  - [**Implementation Plan**](#implementation-plan)
+- [**Copyright**](#copyright)
 
 # Abstract
 
