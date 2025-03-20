@@ -14,6 +14,16 @@ Created: 2025-10-03
 License: Apache-2.0
 ---
 
+⚠️ **IMPORTANT NOTICE** ⚠️  
+
+🚨 **This repository is now frozen.** Further development, discussions, and updates are happening in the **official CIP repository**.  
+
+🔗 **Follow the latest updates here:** [https://github.com/cardano-foundation/CIPs/pull/1009](https://github.com/cardano-foundation/CIPs/pull/1008)  
+
+Please ensure all contributions, comments, and discussions take place in the official repository. 🚀  
+
+----
+
 ## Abstract
 
 <!-- A short (\~200 word) description of the target goals and the technical obstacles to those goals. -->
