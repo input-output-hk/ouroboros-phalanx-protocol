@@ -1,5 +1,5 @@
 
-- CPS: 18
+- CPS: 19
 - Title: `Ouroboros Randomness Generation Sub-Protocol - The coin-flipping Problem`
 - Category: Consensus/Security
 - Status: Proposed
@@ -10,7 +10,7 @@
 - Implementors: []
 - Discussions:
     - `https://github.com/cardano-foundation/CIPs/pull/?`
-- Created: `2024-10-03`
+- Created: `2025-10-03`
 - License: `CC-BY-4.0`
 
 ## Table of Contents
@@ -464,7 +464,7 @@ blake2b_libsodium size input =
 In Praos and Genesis, an epoch consists of 3 logical phases to compute these 2 key variables—**active stake distribution** and **randomness beacon**—by going through the following phases:
 
 <div align="center">
-<img src="epoch-structure-praos.png" alt="Epoch Structure" />
+<img src="./image/epoch-structure-praos.png" alt="Epoch Structure" />
 </div>
 
 The sequential flow of these 3 phases is deliberately structured by designed : 
@@ -624,7 +624,7 @@ With **Ouroboros Praos**, as with [**Nakamoto consensus**](https://coinmarketcap
 The **consensus layer** operates with a structure that resembles a branching **"tree" of blockchains** before **finality** stabilizes:
 
 <div align="center">
-<img src="high-level-ledger-structure.png" alt="" />
+<img src="./image/high-level-ledger-structure.png" alt="" />
 </div>
 
 #### **Why Do Blockchain Forks Occur?**
@@ -658,7 +658,7 @@ At the conclusion of Phase 2, when the $\eta^\text{candidate}_{e}$ nonce is dete
 For example, if the adversary acts as the slot leader immediately before this phase transition, they can choose whether to produce a block or not. This decision grants them the ability to compute and compare two valid nonces - one with one fewer VRF update than the other -, evaluate different slot leader distributions for the upcoming epoch and potentially maximize their future gains at the cost of lesser rewards at this epoch. The more blocks the adversary controls before Phase 2's end, the more nonces they may _grind_ and choose from, and the more critical the atatck becomes. In essence, the adversary gains access to up to $2^x$ possible combinations of slot leader distributions, where $x$ denotes the number of controlled leader slots at this particular stage of the protocol.
 
 <div align="center">
-<img src="grinding-opportunity-window.png" alt="" />
+<img src="./image/grinding-opportunity-window.png" alt="" />
 </div>
 
 This marks the beginning of a grinding attack, where the adversary's initial goal is to maximize the number of adversarial blocks at this critical juncture, either passively by waiting, or actively by reaching a snowball effect. By doing so, they expand the range of potential slot leader distributions they can choose from, significantly enhancing their influence over the protocol. We use the term "exposure" here because the adversary is first setting the stage for its attack. 
@@ -668,7 +668,7 @@ This marks the beginning of a grinding attack, where the adversary's initial goa
 This is the pivotal moment where the adversary's prior efforts pay off. They are now in a position with *x* blocks at the critical juncture. At this stage, the adversary can generate up to $2^x$ possible $η$ nonces, compute the next epoch's slot leader distribution for each of them, and strategically select the nonce and distribution that best aligns with their goal. This positioning enables them to deploy the attack effectively in the subsequent epoch.
 
 <div align="center">
-<img src="slot-leader-distribution-selection.png" alt=""/>
+<img src="./image/slot-leader-distribution-selection.png" alt=""/>
 </div>
 
 As the adversary accumulates blocks, the attack's bottleneck swiftly shifts from waiting for enough blocks at the critical juncture to the computational power needed to compute enough nonces to achieve their goal. 
@@ -718,7 +718,7 @@ A block can exist in one of four states:
 - **P / Private** – The validator constructs a block but does not immediately publish it during its assigned slot. Instead, an adversarial validator selectively shares the block with validators within its staking pool. Later, the private block may be introduced into the canonical chain by **forking** the next block—a strategy known as an **ex-ante reorg attack**. Alternatively, depending on the evolving chain state, the attacker may decide to withhold the block entirely, a tactic we refer to as **regret**.  
 
 <div align="center">
-<img src="grinding-model.png" alt="" width="500"/>
+<img src="./image/grinding-model.png" alt="" width="500"/>
 </div>
 
 Block statuses are denoted as $H^e_i, R^e_i, M^e_i, P^e_i$ indicating that the 
@@ -731,7 +731,7 @@ The adversary can selectively propose or miss blocks to manipulate $\eta_e$. Ass
 The manipulative power for $t = 2$ is the following decision tree 
 
 <div align="center">
-<img src="mixing-strategy.png" alt="" width="600"/>
+<img src="./image/mixing-strategy.png" alt="" width="600"/>
 </div>
 
 e.g : The adversary chooses option $\{H^e_{30}, M^e_{31}\}$ if the calculated $\eta_e$ eventually leads to the highest number of blocks. In this case, sacrificing Slot 30 and 31 is worthwhile, as it results in a significantly higher number of blocks in epoch $e + 2$.  
@@ -742,7 +742,7 @@ e.g : The adversary chooses option $\{H^e_{30}, M^e_{31}\}$ if the calculated $\
 To achieve the goal of maximizing $x$ trailing blocks at this critical juncture, the adversary leverages the forking nature of the consensus protocol by introducing a private chain. By strategically applying the Longest-Chain rule to their advantage, the adversary ensures that the last honest trailing blocks are excluded at this pivotal moment. With this added dimension, gaining access to $2^x$ possible combinations of slot leader distributions becomes equivalent to $x = |A| - |H|$, where $|A|$ and $|H|$ represent the number of adversarial and honest blocks, respectively, within this specific interval of the protocol : 
 
 <div align="center">
-  <img src="grinding-opportunity.png" alt="Grinding Opportunity" width="600">
+  <img src="./image/grinding-opportunity.png" alt="Grinding Opportunity" width="600">
 </div>
 
 The adversary can choose between **two forking strategies** depending on when they act:
@@ -831,7 +831,7 @@ For simplicity, we consider that a honest block is produced at slot $S_2 + 1$. A
   - Slot duration = 1 second.
 
 <div align="center">
-<img src="grinding-depth-vs-opportunity-window.png" alt=""/>
+<img src="./image/grinding-depth-vs-opportunity-window.png" alt=""/>
 </div>
 
 ✏️ **Note**: The code to generate this graph is available at ➡️ [this link](./graph/window0_graph.py).
@@ -906,7 +906,7 @@ We are computing here the expected number of grinding attempts for both the self
 We present here the average number of years required for an adversary with a stake of $\text{stake}_A$ to control N blocks. We chose to emphasize frequencies below 10 years, as it is reasonable to assume the protocol will have evolved after such a period.
 
 <div align="center">
-<img src="grinding_mixing_years.png" />
+<img src="./image/grinding_mixing_years.png" />
 </div>
 
 (*) We make the simplification to consider the 21,600 blocks directly, that is: there is only 21,600 slots and to each to slot is exactly assigned one slot leader.
@@ -955,12 +955,12 @@ More precisely, we tabulated here the grinding powers' expectation when looking 
 We can approximate the expected grinding power as an exponential function of the precision, i.e. $E(g, n)= \text{poly}(n) \cdot \zeta^n$. Looking at the exponential's based, $\zeta$ can tell us precisely when the grinding power becomes rises exponentially, that is when $\zeta = 1$ the exponentiaition starts growing instead of decaying. The following graph indeed confirms that 20\% is the threshold.
 
 <div align="center">
-<img src="grinding_moment.png" alt="" />
+<img src="./image/grinding_moment.png" alt="" />
 </div>
 
 <!-- 
-<img src="proba_controlling_majority_x_blocks.png" alt="" width="500"/>
-<img src="table-legend.png" alt="" width="500"/>
+<img src="./image/proba_controlling_majority_x_blocks.png" alt="" width="500"/>
+<img src="./image/table-legend.png" alt="" width="500"/>
 -->
 
 The details of the calculations underlying this table can be found in the following Google Spreadsheet: [Details of Calculations](https://docs.google.com/spreadsheets/d/1DGG4tXTngc2Zu5_IMlWsPoARksgBEMbTCyqBAgKHe7E/edit?gid=0#gid=0).
@@ -970,8 +970,8 @@ For example, with **5% adversarial stake**, it would take about **1800 years** i
 ####  The Results
 
 <div align="center">
-<img src="grinding_depth_comparison.png" alt="" />
-<img src="grinding_power_comparison.png" alt="" />
+<img src="./image/grinding_depth_comparison.png" alt="" />
+<img src="./image/grinding_power_comparison.png" alt="" />
 </div>
 
 **N.B** : This analysis does not account for recursion in addition to the forking and self-mixing strategy, so the curve should actually be even steeper than in the graph above. 
@@ -1234,7 +1234,7 @@ N_{\text{CPU}} > \left \lceil 5 \cdot 10^{-10} \cdot 2^{\rho-1} + \frac{5 \cdot 
 | **Owl Survey**  | $5\cdot10^{-10}\cdot2^{\rho-1} + 2.16\cdot10^{-9}\cdot2^{\rho-1} + 5\cdot10^{-2}\cdot\frac{2^{\rho-1}}{\rho}$ |
 
 <div align="center">
-<img src="grinding-depth-vs-NCPU.png" alt="" />
+<img src="./image/grinding-depth-vs-NCPU.png" alt="" />
 </div>
 
 ✏️ **Note**: The code to generate this graph is available at ➡️ [this link](./graph/scenario_cpu_graph.py).
@@ -1429,7 +1429,7 @@ This falls within $\log_{10} 9$ to 12, corresponding to **Borderline Infeasible*
 
 
 <div align="center">
-<img src="grinding_depth_scenarios_cost_with_feasibility_layers_gradient.png" alt="Grinding Depth Scenarios with Feasibility Thresholds"/>
+<img src="./image/grinding_depth_scenarios_cost_with_feasibility_layers_gradient.png" alt="Grinding Depth Scenarios with Feasibility Thresholds"/>
 </div>
 
 ✏️ **Note**: The code to generate this graph is available at ➡️ [this link](./graph/scenario_cost-graph.py).
