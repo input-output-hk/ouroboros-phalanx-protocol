@@ -1,21 +1,46 @@
+---
+CPS: ??
+Title: Ouroboros Randomness Generation Sub-Protocol - The coin-flipping Problem
+Category: Consensus/Security
+Status: Proposed
+Authors:
+    - Nicolas Henin <nicolas.henin@iohk.io>
+    - Raphael Toledo <raphael.toledo@iohk.io>
+    - Peter Gaži <peter.gazi@iohk.io>
+Proposed Solutions: []
+Discussions:
+    - https://github.com/cardano-foundation/CIPs/pull/1009
+Created: 2025-10-03
+License: Apache-2.0
+---
 
-- CPS: 19
-- Title: `Ouroboros Randomness Generation Sub-Protocol - The coin-flipping Problem`
-- Category: Consensus/Security
-- Status: Proposed
-- Authors:
-    - `Nicolas Henin <nicolas.henin@iohk.io>`
-    - `Raphael Toledo <raphael.toledo@iohk.io>`
-    - `Peter Gaži <peter.gazi@iohk.io>`
-- Implementors: []
-- Discussions:
-    - `https://github.com/cardano-foundation/CIPs/pull/?`
-- Created: `2025-10-03`
-- License: `CC-BY-4.0`
+## Abstract
+
+<!-- A short (\~200 word) description of the target goals and the technical obstacles to those goals. -->
+
+A well-designed consensus protocol is inherently modular, consisting of multiple sub-protocols that collectively ensure security, efficiency, and decentralization. Among these, the Randomness Generation Sub-Protocol is crucial in addressing the Coin-Flipping Problem — the challenge of generating fair, unbiased, and unpredictable randomness in a distributed setting.
+
+The objective of this CPS is to formally document the Coin-Flipping Problem and coordinate the development of CIPs aimed at mitigating and, if possible, fully resolving this challenge within the Ouroboros protocol.
+
+This problem is particularly critical in **Ouroboros**, where randomness serves as a foundation for key sub-protocols such as **leader election**. Ensuring a **robust and tamper-resistant** randomness mechanism is essential to preserving the **security, fairness, and integrity** of the protocol.
+
+To uphold Cardano’s **decentralized ethos**, the community must proactively mitigate these risks and **reduce the feasibility of biasing strategies**. Addressing this challenge requires answering key questions:
+
+- **Is Cardano currently being manipulated?**  
+  Strengthening **detection mechanisms**, such as **self-mixing analysis** and **forking manipulation detection**, can help **identify potential exploits** and assess ongoing threats.
+
+- **Are we sufficiently disincentivizing randomness manipulation?**  
+  Enhancing **stake operator diversity** and reinforcing incentives for **decentralization** will make manipulation **economically unviable**, fostering a **resilient and distributed** stake pool ecosystem.
+
+- **How vulnerable is Cardano to these attacks, and what are the potential consequences?**  
+  Improving **risk quantification** will provide deeper insight into **attack feasibility, vulnerabilities, and potential security gaps** within the protocol.
+
+Beyond **detection, assessment, and quantification**, **protocol-level enhancements** must be explored to directly **reduce manipulation opportunities** and strengthen incentives for honest participation.
+
+Finally, it is essential to recognize that **adversarial capabilities continually evolve**, making this an **ongoing challenge** that demands sustained **research, adaptation, and community-driven innovation**.
 
 ## Table of Contents
 
-- [**Abstract**](#abstract)
 - [**Problem**](#problem)
   - [**1. Preliminaries**](#1-preliminaries)
     - [1.1 Fundamental Properties](#11-fundamental-properties)
@@ -71,32 +96,6 @@
 - [**References**](#references)
 - [**Copyright**](#copyright)
 
-
-## Abstract
-
-
-<!-- A short (\~200 word) description of the target goals and the technical obstacles to those goals. -->
-
-A well-designed consensus protocol is inherently modular, consisting of multiple sub-protocols that collectively ensure security, efficiency, and decentralization. Among these, the Randomness Generation Sub-Protocol is crucial in addressing the Coin-Flipping Problem — the challenge of generating fair, unbiased, and unpredictable randomness in a distributed setting.
-
-The objective of this CPS is to formally document the Coin-Flipping Problem and coordinate the development of CIPs aimed at mitigating and, if possible, fully resolving this challenge within the Ouroboros protocol.
-
-This problem is particularly critical in **Ouroboros**, where randomness serves as a foundation for key sub-protocols such as **leader election**. Ensuring a **robust and tamper-resistant** randomness mechanism is essential to preserving the **security, fairness, and integrity** of the protocol.
-
-To uphold Cardano’s **decentralized ethos**, the community must proactively mitigate these risks and **reduce the feasibility of biasing strategies**. Addressing this challenge requires answering key questions:
-
-- **Is Cardano currently being manipulated?**  
-  Strengthening **detection mechanisms**, such as **self-mixing analysis** and **forking manipulation detection**, can help **identify potential exploits** and assess ongoing threats.
-
-- **Are we sufficiently disincentivizing randomness manipulation?**  
-  Enhancing **stake operator diversity** and reinforcing incentives for **decentralization** will make manipulation **economically unviable**, fostering a **resilient and distributed** stake pool ecosystem.
-
-- **How vulnerable is Cardano to these attacks, and what are the potential consequences?**  
-  Improving **risk quantification** will provide deeper insight into **attack feasibility, vulnerabilities, and potential security gaps** within the protocol.
-
-Beyond **detection, assessment, and quantification**, **protocol-level enhancements** must be explored to directly **reduce manipulation opportunities** and strengthen incentives for honest participation.
-
-Finally, it is essential to recognize that **adversarial capabilities continually evolve**, making this an **ongoing challenge** that demands sustained **research, adaptation, and community-driven innovation**.
   
 ## Problem
 
