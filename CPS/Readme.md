@@ -830,7 +830,7 @@ Assuming the adversary controls the $X_A(w)$ slots (between slot numbered $S_2 -
 For simplicity, we consider that a honest block is produced at slot $S_2 + 1$. As such, the grinding oppotunity window is bounded by,
 
 ```math
-\frac{X_A(w)}{f} \leq w_O \leq \frac{w}{f}
+\frac{X_A(w)}{f} \leq w_O \leq \frac{w}{f} \text{ when w is A-heavy}
 ```
 
 **N.B.** Contrary to the grinding power that is upper-bounded by $2^{256}$, the grinding window is not.
@@ -949,17 +949,57 @@ We conclude that the self-mixing attack is neither highly probable nor particula
 
 ##### Forking
 
-We extend here the self-mixing strategy with forking and show how this renders the attack viable.
+We extend here the self-mixing strategy with forking and show how this renders the attack viable. 
 
-More precisely, we tabulated here the grinding powers' expectation when looking at total period of variable length, as looking at a whole epoch is computationally impractical. While the expectation converges quickly for small stake, we can note it significicantly rises when the adversary owns more than around 20\% of the total stake.
+We first introduce the formula for the probability for an adversary having $\text{stake}_A$ stake of having an advantage of $|X_A - X_H| = N$ blocks, that is an adversary controlling a majority of $N$ blocks, in any given interval smaller than $s$ blocks where $s$ is from the $s$-CQ property. 
 
- $\text{stake}_A$ (%)        |    0.5    |     1     |     2     |     5     |     10    |     20    |     25    |     30    |     33    |     40    |     45    |     49    |
-| :------------------------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: | :-------: |
-| $\mathbb{E}(g, n=16)$     | 1.03E-02	 |  2.12E-02 | 4.49E-02  |	1.36E-01 |	4.12E-01 |	5.17E+00 |	4.27E+01 |	3.83E+02 |	1.29E+03 |	1.51E+04 |	6.57E+04 |	1.85E+05 |
-| $\mathbb{E}(g, n=64)$     | 1.03E-02	 |  2.12E-02 | 4.49E-02  |	1.36E-01 |	4.12E-01 |	8.40E+00 |	1.01E+03 |	1.46E+05 |	2.01E+06 |	3.56E+08 |	7.37E+09 |	6.06E+10 |
-| $\mathbb{E}(g, n=128)$    | 1.03E-02	 |  2.12E-02 | 4.49E-02  |	1.36E-01 |	4.12E-01 |	1.30E+01 |	7.86E+05 |	2.92E+10 |	6.59E+12 |	2.44E+17 |	1.05E+20 |	6.87E+21 |
-| $\mathbb{E}(g, n=256)$    | 1.03E-02	 |  2.12E-02 | 4.49E-02  |	1.36E-01 |	4.12E-01 |	1.97E+01 |	6.98E+11 |	1.64E+21 |	9.60E+25 |	1.45E+35 |	2.48E+40 |	9.29E+43 |
-| $\mathbb{E}(g, n=512)$    | 1.03E-02	 |  2.12E-02 | 4.49E-02  |	1.36E-01 |	4.12E-01 |	2.91E+01 |	7.87E+23 |	7.19E+42 |	2.80E+52 |	6.60E+70 |	1.64E+81 |	1.79E+88 |
+``` math
+\begin{align*}
+\Delta_{i,N} &= \binom{N + 2 \cdot i}{N + i} - \sum_{j=0}^{i-1}  \binom{2 \cdot (i-j)}{i-j} \cdot \Delta_{j,n} \text{ and } \Delta_0^N = 1 \\
+P(|X_A-X_H|=N) &= \sum_{i=0}^{\lfloor s/2 \rfloor} \Delta_{i,N} \cdot \text{stake}_A^{N+i} \cdot (1-\text{stake}_A)^i 
+\end{align*}
+```
+
+As the formula is not computationally friendly, instead of showing numbers for an interval of size $s$, we look at a smaller interval of size $precision$, to give us a lower-bound on these numbers. We now display a lower bound on the probabilities of having  an advantage of $|X_A - X_H| = N$ blocks, and an upper-bound on the frequency of a corresponding grinding attack per year.
+
+
+<details>
+<summary>📌📌 <i> More Details on Probabilities Here </i> – <b>  Expand to view the content.</b></summary>
+
+We display here the probabilities of an adversary with a stake of $\text{stake}_A$ controlling a majority of blocks such that $|X_A - X_H| = N$:
+
+| $N \text{ vs }\ \text{stake}_A$ (%) |    0.5    |     1     |     2     |     5      |     10     |     20     |     25     |     30      |     33       |     40     |     45    |     49    |
+| :----------------------: | :-------:   | :------: | :-------: | :--------: | :--------: | :--------: | :--------: | :---------: | :----------: | :--------: | :-------: | :-------: |
+| $1$                      |  5.00E-03	 |1.00E-02	| 2.00E-02	| 5.00E-02	 | 1.00E-01	  | 2.00E-01 	 | 2.50E-01 	|  3.00E-01	  |  3.30E-01	   |  4.00E-01  | 4.50E-01	| 4.90E-01  |
+| $2$                      |  2.50E-05	 |1.00E-04	| 4.00E-04	| 2.50E-03	 | 1.00E-02	  | 4.00E-02 	 | 6.25E-02 	|  9.00E-02	  |  1.09E-01	   |  1.60E-01  | 2.03E-01	| 2.40E-01  |
+| $4$                      |  6.25E-10	 |1.00E-08	| 1.60E-07	| 6.25E-06	 | 1.00E-04	  | 1.60E-03 	 | 3.91E-03 	|  8.10E-03	  |  1.19E-02	   |  2.56E-02  | 4.10E-02	| 5.76E-02  |
+| $8$                      |  3.91E-19	 |1.00E-16	| 2.56E-14	| 3.91E-11	 | 1.00E-08	  | 2.56E-06 	 | 1.53E-05 	|  6.56E-05	  |  1.41E-04	   |  6.55E-04  | 1.68E-03	| 3.32E-03  |
+| $16$                     |  1.53E-37	 |1.00E-32	| 6.55E-28	| 1.53E-21	 | 1.00E-16	  | 6.55E-12 	 | 2.33E-10 	|  4.30E-09	  |  1.98E-08	   |  4.29E-07  | 2.83E-06	| 1.10E-05  |
+| $32$                     |  2.33E-74	 |1.00E-64	| 4.29E-55	| 2.33E-42	 | 1.00E-32	  | 4.29E-23 	 | 5.42E-20 	|  1.85E-17	  |  3.91E-16	   |  1.84E-13  | 7.99E-12	| 1.22E-10  |
+| $64$                     |  5.42E-148	 |1.00E-128 |	1.84E-109	| 5.42E-84	 | 1.00E-64	  | 1.84E-45 	 | 2.94E-39 	|  3.43E-34	  |  1.53E-31	   |  3.40E-26  | 6.39E-23	| 1.49E-20  |
+| $128$                    |  2.94E-295	 |1.00E-256 |	3.40E-218	| 2.94E-167  | 1.00E-128	| 3.40E-90 	 | 8.64E-78 	|  1.18E-67 	|  2.34E-62	   |  1.16E-51  | 4.09E-45	| 2.21E-40  |
+| $256$                    |  0.00E+00	 |0.00E+00	| 0.00E+00	| 0.00E+00	 | 1.00E-256	| 1.16E-179	 | 7.46E-155	|  1.39E-134	|  5.49E-124	 |  1.34E-102	| 1.67E-89	| 4.90E-80  |
+</details>
+</br>
+
+
+
+<div align="center">
+<!-- <img src="grinding_forking_probabilities.png" alt="" /> -->
+<img src="grinding_forking_years.png" alt="" />
+</div>
+
+
+We now tabulatethe grinding power's expectation when looking at different precision $s$. While the expectation converges quickly for small stake, smaller than 20\%, we can note it significicantly rises afterwards.
+ $\text{precision} \text{ vs stake}_A$ |   0.5% |   1.0% |   2.0% |   5.0% |   10.0% |   20.0% |    25.0% |    30.0% |     33.0% |     40.0% |     45.0% |     49.0% |
+| :----------------------------------: | :----: | :----: | :----: | :----: | :-----: | :-----: | :------: | :------: | :-------: | :-------: | :-------: | :-------: |
+| 16                                   | 0.0203 | 0.0414 | 0.0857 |  0.242 |   0.636 |    3.49 |     8.86 |       22 |      36.8 |       108 |       209 |       334 |
+| 32                                   | 0.0203 | 0.0414 | 0.0857 |  0.242 |   0.637 |    5.71 |     43.4 |      384 |     1,290 |    15,100 |    65,700 |   185,000 |
+| 64                                   | 0.0203 | 0.0414 | 0.0857 |  0.242 |   0.637 |    8.93 |     1010 |  145,000 |  2.01e+06 |  3.56e+08 |  7.36e+09 |  6.06e+10 |
+| 128                                  | 0.0203 | 0.0414 | 0.0857 |  0.242 |   0.637 |    13.6 |  786,000 | 2.92e+10 |  6.59e+12 |  2.44e+17 |  1.05e+20 |  6.87e+21 |
+| 256                                  | 0.0203 | 0.0414 | 0.0857 |  0.242 |   0.637 |    20.2 | 6.98e+11 | 1.64e+21 |   9.6e+25 |  1.45e+35 |  2.48e+40 |  9.29e+43 |
+| 512                                  | 0.0203 | 0.0414 | 0.0857 |  0.242 |   0.637 |    29.6 | 7.87e+23 | 7.19e+42 |   2.8e+52 |  6.59e+70 |  1.64e+81 |  1.79e+88 |
+| 1024                                 | 0.0203 | 0.0414 | 0.0857 |  0.242 |   0.637 |      43 | 1.43e+48 | 1.94e+86 | 3.32e+105 | 1.84e+142 | 8.81e+162 | 7.03e+176 |
 
 We can approximate the expected grinding power as an exponential function of the precision, i.e. $E(g, n)= \text{poly}(n) \cdot \zeta^n$. Looking at the exponential's based, $\zeta$ can tell us precisely when the grinding power becomes rises exponentially, that is when $\zeta = 1$ the exponentiaition starts growing instead of decaying. The following graph indeed confirms that 20\% is the threshold.
 
