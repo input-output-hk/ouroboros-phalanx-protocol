@@ -14,11 +14,6 @@ Created: 2025-10-03
 License: Apache-2.0
 ---
 
----
-FYI > Work in Progress, in [google doc](https://docs.google.com/document/d/13TZF2jYLoKPjs6Aa9tLA4t9TtxqhBB7qMIZCy9SWKR4/edit?tab=t.0)
-
----
-
 ## Table of Contents
 
 - [**Abstract**](#abstract)
@@ -28,13 +23,20 @@ FYI > Work in Progress, in [google doc](https://docs.google.com/document/d/13TZF
   - [**2. The Randomness Generation Sub-Protocol**](#2-the-randomness-generation-sub-protocol)
   - [**3. The Φ Cryptographic Primitive**](#3-the-φ-cryptographic-primitive)
   - [**4. Adversarial Cost Overhead**](#4-adversarial-cost-overhead)
+  - [**5. Balancing Honest and Adversarial Computation (Performance & Scalability)**](#5-balancing-honest-and-adversarial-computation-performance--scalability)
+  - [**6. Operability, Maintainability & Modularity**](#6-operability-maintainability--modularity)
+  - [**7. Agda Mechanization**](#7-agda-mechanization)
 - [**Rationale: How does this CIP achieve its goals?**](#rationale-how-does-this-cip-achieve-its-goals)
+  - [**1. Cryptographic Primitive Selection**](#1-cryptographic-primitive-selection)
+  - [**2. Performance Impacts on Consensus & Ledger Repository**](#2-performance-impacts-on-consensus--ledger-repository)
+  - [**3. Maintainability**](#3-maintainability)
 - [**Path to Active**](#path-to-active)
   - [**Acceptance Criteria**](#acceptance-criteria)
   - [**Implementation Plan**](#implementation-plan)
 - [**Copyright**](#copyright)
 
-# Abstract
+
+## Abstract
 
 <!-- A short (\\\~200 word) description of the proposed solution and the technical issue being addressed. \-->
 
@@ -48,7 +50,7 @@ In **Φalanx Protocol**, we apply this idea cryptographically by **enhancing the
 
 Please refer to the CPS "[Ouroboros Randomness Generation Sub-Protocol – The Coin-Flipping Problem](https://github.com/input-output-hk/ouroboros-anti-grinding-design/blob/main/CPS/Readme.md#4-the-quantification-challenge)" for a detailed understanding of **randomness generation, leader election in Praos, and the coin-flipping dilemma in consensus protocols**. Moving forward, we will **dive into the core details**, assuming you have the **relevant background** to understand the proposal.
 
-# Motivation: why is this CIP necessary?
+## Motivation: why is this CIP necessary?
 
 <!-- A clear explanation that introduces the reason for a proposal, its use cases and stakeholders. If the CIP changes an established design then it must outline design issues that motivate a rework. For complex proposals, authors must write a Cardano Problem Statement (CPS) as defined in CIP-9999 and link to it as the \`Motivation\`. -->
 
@@ -104,7 +106,7 @@ The analysis in [Section 4 - Adversarial Cost Overhead](#4-adversarial-cost-over
 | **🔴 🚫 Infeasible**                      | $[20, 256)$                   | +67               | +65               | +42              | +42               |
 
 
-# Specification
+## Specification
 
 <!-- The technical specification should describe the proposed improvement in sufficient technical detail. In particular, it should provide enough information that an implementation can be performed solely on the basis of the design in the CIP. This is necessary to facilitate multiple, interoperable implementations. This must include how the CIP should be versioned, if not covered under an optional Versioning main heading. If a proposal defines structure of on-chain data it must include a CDDL schema in its specification.-->
 
@@ -115,7 +117,7 @@ To achieve this, every honest participant is required to perform a designated co
 By enforcing this computational burden, we **drastically reduce the feasible number of grinding attempts** an adversary with a fixed resource budget can execute, making randomness manipulation **more expensive and significantly less practical**.
  
 
-## 1. The Flow
+### 1. The Flow
 
 In **Φalanx** , the randomness generation and leader election flows are modified as follows:
 
@@ -125,7 +127,7 @@ In **Φalanx** , the randomness generation and leader election flows are modifie
 2. The **honest contribution inclusion phase**, which originally resulted in a **ηₑ candidate**, is also **shifted back by one epoch**, aligning with the adjusted **stake distribution stabilization**. This value is now referred to as the **pre-ηₑ candidate**, signifying its role as an **intermediate randomness nonce** in the sub-protocol.  
 3. The **ηₑ (randomness eta nonce)** undergoes an **additional sequence of incremental hashing** using a **new deterministic** **cryptographic primitive Φ (Phi)**, applied over a duration equivalent to a full epoch.
 
-## 2. The Randomness Generation Sub-Protocol 
+### 2. The Randomness Generation Sub-Protocol 
 
 The Randomness Generation sub-protocol operates with two parallel streams: $`\eta^\text{stream}`$ and $`\phi^\text{stream}`$, which synchronize at the conclusion of the **Include Honest Contribution** Phase (akka Phase 2).  
 
@@ -183,7 +185,7 @@ false & \text{otherwise.}
 ```
 **N.B** : $`\text{pre-}\eta_\text{e+1}`$ synchronization occurs $`\text{when } t = \text{end of phase 2 at epoch}_\text{e-1}`$
 
-## 3. The Φ Cryptographic Primitive
+### 3. The Φ Cryptographic Primitive
 
 The Φ cryptographic primitive is a critical component of the Φalanx protocol, designed to increase the computational cost of grinding attacks while remaining efficient for honest participants. To achieve this, Φ must adhere to a set of well-defined properties that ensure its security, efficiency, and practical usability within the Cardano ecosystem. These properties are outlined in the table below :
 
@@ -198,7 +200,7 @@ The Φ cryptographic primitive is a critical component of the Φalanx protocol, 
 | **Adaptive Security**     | Function and its parameters should be easily reconfigurable to accommodate evolving threats, such as advances in computational power or new cryptographic attacks. |
 
 
-## 4. Adversarial Cost Overhead
+### 4. Adversarial Cost Overhead
 
 We have detailed in the CPS [Section 3.4.1 - Formula](https://github.com/input-output-hk/ouroboros-anti-grinding-design/blob/main/CPS/Readme.md#341-formula) the computational cost of a grinding attack, culminating in the estimated formula using Cardano mainnet parameters in [Section 3.4.2 - Estimated Formula Using Mainnet Cardano Parameters](https://github.com/input-output-hk/ouroboros-anti-grinding-design/blob/main/CPS/Readme.md#342-estimated-formula-using-mainnet-cardano-parameters):
 
@@ -336,8 +338,20 @@ This simplification allows us to revisit and improve the feasibility category ta
 
 This updated table demonstrates a significant improvement over the Praos scenarios. For $\Phi_{\text{min}}$, the "Trivial" range shrinks to $\rho < 10$ (a reduction of up to 39 for Ant Glance Praos), and the "Possible" range is limited to $\rho < 20$ (a reduction of up to 53). For $\Phi_{\text{max}}$, the effect is even more pronounced, with the "Trivial" range reduced to $\rho < 5$ (a reduction of up to 44) and the "Possible" range to $\rho < 15$ (a reduction of up to 58). These substantial $\Delta \rho$ values indicate that Phalanx significantly raises the bar for grinding attacks, pushing the feasibility thresholds to much lower $\rho$ values across all scenarios. This makes such attacks economically and computationally prohibitive for adversaries, even those with significant resources, thereby enhancing the security of the Ouroboros Praos protocol.
 
-## 5. Performance & Scalability / Balancing Honest and Adversarial Computation
+### 5. Balancing Honest and Adversarial Computation (Performance & Scalability)
 
+
+Work in Progress in [google doc](https://docs.google.com/document/d/13TZF2jYLoKPjs6Aa9tLA4t9TtxqhBB7qMIZCy9SWKR4/edit?tab=t.0)
+
+
+### 6. Operability, Maintainability & Modularity
+
+Work in Progress in [google doc](https://docs.google.com/document/d/13TZF2jYLoKPjs6Aa9tLA4t9TtxqhBB7qMIZCy9SWKR4/edit?tab=t.0)
+
+
+### 7. Agda Mechanization
+
+Todo  
 
 ## Rationale: how does this CIP achieve its goals?
 <!-- The rationale fleshes out the specification by describing what motivated the design and what led to particular design decisions. It should describe alternate designs considered and related work. The rationale should provide evidence of consensus within the community and discuss significant objections or concerns raised during the discussion.
@@ -345,18 +359,34 @@ This updated table demonstrates a significant improvement over the Praos scenari
 It must also explain how the proposal affects the backward compatibility of existing solutions when applicable. If the proposal responds to a CPS, the 'Rationale' section should explain how it addresses the CPS, and answer any questions that the CPS poses for potential solutions.
 -->
 
+### 1. Cryptographic Primitive Selection
+
+Work in Progress in [google doc](https://docs.google.com/document/d/13TZF2jYLoKPjs6Aa9tLA4t9TtxqhBB7qMIZCy9SWKR4/edit?tab=t.0)
+
+[Consolidation of this google doc - Anti-Grinding: the Cryptography](https://docs.google.com/document/d/1zXMdoIlwnVSYjz46jxXuNPIWi-xPXxUjltF-8g7TJTc/edit?tab=t.0#heading=h.wefcmsmvzoy5)
+
+### 2. Performance Impacts on Consensus & Ledger Repository
+
+Todo
+
+### 3. Maintainability
+
+Todo
+
 ## Path to Active
 
 ### Acceptance Criteria
 <!-- Describes what are the acceptance criteria whereby a proposal becomes 'Active' -->
 
+Todo
+
 ### Implementation Plan
 <!-- A plan to meet those criteria or `N/A` if an implementation plan is not applicable. -->
-
+Todo
 <!-- OPTIONAL SECTIONS: see CIP-0001 > Document > Structure table -->
 
 ## Copyright
 <!-- The CIP must be explicitly licensed under acceptable copyright terms.  Uncomment the one you wish to use (delete the other one) and ensure it matches the License field in the header: -->
-
+Todo
 <!-- This CIP is licensed under [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/legalcode). -->
 <!-- This CIP is licensed under [Apache-2.0](http://www.apache.org/licenses/LICENSE-2.0). -->
