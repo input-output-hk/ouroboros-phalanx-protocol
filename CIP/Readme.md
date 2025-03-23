@@ -367,11 +367,11 @@ Work in Progress in [google doc](https://docs.google.com/document/d/13TZF2jYLoKP
 
 ### 2. Performance Impacts on Consensus & Ledger Repository
 
-Todo
+Todo : Simulation of Phalanx for Honest Participant for refining $\Phi_{\text{min}}$ and $\Phi_{\text{max}}$ defined in Specification.
 
 ### 3. Maintainability
 
-Todo
+Todo 
 
 ## Path to Active
 
