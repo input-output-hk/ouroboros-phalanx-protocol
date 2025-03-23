@@ -74,6 +74,35 @@ These findings indicate that, under current protocol parameters, grinding attack
 
 This CIP addresses the critical question: **Can we increase the computational cost of grinding attempts to shrink these vulnerable intervals, thereby deterring adversaries effectively?** Φalanx proposes a solution by introducing a computationally intensive mechanism that disproportionately burdens attackers while remaining manageable for honest participants. By elevating the resource threshold required for successful attacks, as analyzed in [CPS Section 3.4 - Cost of a Grinding Attack](https://github.com/input-output-hk/ouroboros-anti-grinding-design/blob/main/CPS/Readme.md#34-cost-of-a-grinding-attack), this CIP aims to shift the feasibility curve, making randomness manipulation prohibitively expensive and strengthening the protocol’s resilience against such threats.
 
+The analysis in [Section 4 - Adversarial Cost Overhead](#4-adversarial-cost-overhead) demonstrates that Φalanx significantly increases the computational cost of grinding attacks, with a $\Delta \log_{10}(\text{Cost (USD)}) \approx 15.2$ at $\rho = 50$ between the most resource-intensive Phalanx scenario (Owl Survey $\Phi_{\text{max}}$) and the least resource-intensive Praos scenario (Ant Glance Praos). Notably, all Phalanx scenarios overlap closely in a $\log_{10}$ approximation, meaning the attack cost is largely independent of the adversary’s strategy, simplifying the assessment of attack feasibility. This allows us to focus on a unified cost model moving forward. Consequently, Phalanx shrinks the vulnerable $\rho$ intervals, as shown in the tables below, which compare the original Praos feasibility ranges with the updated Phalanx ranges for $\Phi_{\text{min}}$ and $\Phi_{\text{max}}$, including the delta improvements ($\Delta \rho$) for each Praos scenario. A positive $\Delta \rho$ indicates that Phalanx increases the cost by making attacks infeasible at lower $\rho$ values, thereby reinforcing the value of this CIP in enhancing Cardano’s security.
+
+#### Original Praos Feasibility Ranges
+| **Feasibility Category**                  | **🔵 Ant Glance** | **🟠 Ant Patrol** | **🟢 Owl Stare** | **🔴 Owl Survey** |
+|--------------------------------------------|-------------------|-------------------|------------------|-------------------|
+| **🟢 🌱 Trivial for Any Adversary**        | $[0, 49)$         | $[0, 47)$         | $[0, 27)$        | $[0, 27)$         |
+| **🟡 💰 Feasible with Standard Resources** | $[49, 59)$        | $[47, 57)$        | $[27, 34)$       | $[27, 34)$        |
+| **🟠 🏭 Possible with Large-Scale Infrastructure** | $[59, 73)$ | $[57, 71)$        | $[34, 48)$       | $[34, 48)$        |
+| **🔴 🚫 Borderline Infeasible**            | $[73, 87)$        | $[71, 85)$       | $[48, 62)$       | $[48, 62)$        |
+| **🔴 🚫 Infeasible**                      | $[87, 256)$       | $[85, 256)$       | $[62, 256)$      | $[62, 256)$       |
+
+#### Phalanx with $\Phi_{\text{min}}$
+| **Feasibility Category**                  | **Phalanx $\Phi_{\text{min}}$** | **🔵 Ant Glance** | **🟠 Ant Patrol** | **🟢 Owl Stare** | **🔴 Owl Survey** |
+|--------------------------------------------|-------------------------------|-------------------|-------------------|------------------|-------------------|
+| **🟢 🌱 Trivial for Any Adversary**        | $[0, 10)$                     | +39               | +37               | +17              | +17               |
+| **🟡 💰 Feasible with Standard Resources** | $[10, 15)$                    | +44               | +42               | +19              | +19               |
+| **🟠 🏭 Possible with Large-Scale Infrastructure** | $[15, 20)$            | +53               | +51               | +28              | +28               |
+| **🔴 🚫 Borderline Infeasible**            | $[20, 25)$                    | +62               | +60               | +37              | +37               |
+| **🔴 🚫 Infeasible**                      | $[25, 256)$                   | +62               | +60               | +37              | +37               |
+
+#### Phalanx with $\Phi_{\text{max}}$
+| **Feasibility Category**                  | **Phalanx $\Phi_{\text{max}}$** | **🔵 Ant Glance** | **🟠 Ant Patrol** | **🟢 Owl Stare** | **🔴 Owl Survey** |
+|--------------------------------------------|-------------------------------|-------------------|-------------------|------------------|-------------------|
+| **🟢 🌱 Trivial for Any Adversary**        | $[0, 5)$                      | +44               | +42               | +22              | +22               |
+| **🟡 💰 Feasible with Standard Resources** | $[5, 10)$                     | +49               | +47               | +24              | +24               |
+| **🟠 🏭 Possible with Large-Scale Infrastructure** | $[10, 15)$            | +58               | +56               | +33              | +33               |
+| **🔴 🚫 Borderline Infeasible**            | $[15, 20)$                    | +67               | +65               | +42              | +42               |
+| **🔴 🚫 Infeasible**                      | $[20, 256)$                   | +67               | +65               | +42              | +42               |
+
 
 # Specification
 
