@@ -121,7 +121,7 @@ In **Φalanx** , the randomness generation and leader election flows are modifie
 
 ![alt text](./image/image-1.png)
 
-1. The **stake distribution stabilization phase** is shifted **back by one epoch :** The **active** **stake distribution** *SDe* used for leader election is now derived from the **end of epoch*e-3*** instead of ***epoche-2***  as in the original Praos protocol.  
+1. The **stake distribution stabilization phase** is shifted **back by one epoch :** The **active** **stake distribution** *SDe* used for leader election is now derived from the **end of $epoch_\text{e-3}$** instead of **$epoch_\text{e-2}$**  as in the original Praos protocol.  
 2. The **honest contribution inclusion phase**, which originally resulted in a **ηₑ candidate**, is also **shifted back by one epoch**, aligning with the adjusted **stake distribution stabilization**. This value is now referred to as the **pre-ηₑ candidate**, signifying its role as an **intermediate randomness nonce** in the sub-protocol.  
 3. The **ηₑ (randomness eta nonce)** undergoes an **additional sequence of incremental hashing** using a **new deterministic** **cryptographic primitive Φ (Phi)**, applied over a duration equivalent to a full epoch.
 
@@ -222,22 +222,22 @@ For a grinding attack with grinding depth $\rho$, the adversary must evaluate $2
 N_{\text{CPU}} > \left \lceil 2^\rho \cdot T_\Phi + 5 \times 10^{-10} \times 2^{\rho-1} + \frac{5 \times 10^{-14} \times 2^{\rho-1}}{\rho} \cdot w_T + \frac{5 \times 10^{-2} \times 2^{\rho-1}}{\rho} \cdot T_{\text{eval}} \right \rceil
 ```
 
-To evaluate the impact of Phalanx on grinding attack feasibility, we revisit the four scenarios defined in [CPS Section 3.5 - Scenarios](https://github.com/input-output-hk/ouroboros-anti-grinding-design/blob/main/CPS/Readme.md#35-scenarios)—Ant Glance, Ant Patrol, Owl Stare, and Owl Survey—and extend them to include Phalanx-enhanced versions. These scenarios use an animal-inspired metaphor to reflect evaluation complexity ($T_{\text{eval}}$) and observation scope ($w_T$), providing a basis for comparing the computational cost under Praos. We incorporate the additional computational cost $T_\Phi$, with $T_\phi$ values of $100 \, \text{ms}$ ($0.1 \, \text{s}$) for $\Phi_{\text{min}}$ (where $T_\Phi = 4.32 \times 10^4 \, \text{s}$) and $1 \, \text{s}$ for $\Phi_{\text{max}}$ (where $T_\Phi = 4.32 \times 10^5 \, \text{s}$).
+To evaluate the impact of Phalanx on grinding attack feasibility, we revisit the four scenarios defined in [CPS Section 3.5 - Scenarios](https://github.com/input-output-hk/ouroboros-anti-grinding-design/blob/main/CPS/Readme.md#35-scenarios)—Ant Glance, Ant Patrol, Owl Stare, and Owl Survey—and extend them to include Phalanx-enhanced versions. These scenarios use an animal-inspired metaphor to reflect evaluation complexity ($T_{\text{eval}}$) and observation scope ($w_T$), providing a basis for comparing the computational cost under Praos. We incorporate the additional computational cost $T_\Phi$, with $T_\phi$ values of $100  \text{ms}$ ($0.1  \text{s}$) for $\Phi_{\text{min}}$ (where $T_\Phi = 4.32 \times 10^4  \text{s}$) and $1  \text{s}$ for $\Phi_{\text{max}}$ (where $T_\Phi = 4.32 \times 10^5  \text{s}$).
 
 | **Scenario**            | **$T_{\text{eval}}$ (Complexity)** | **$w_T$ (Scope)**       | **Description**                                                                 |
 |--------------------------|------------------------------------|-------------------------|---------------------------------------------------------------------------------|
-| **Ant Glance Praos**     | $0$ (Low)                          | $1 \, \text{h}$ ($3600 \, \text{s}$) | An ant quickly glancing at a small spot, representing simple evaluation (low $T_{\text{eval}}$) with basic effort and a narrow observation scope (small $w_T$). |
-| **Ant Glance $\Phi_{\text{min}}$** | $0$ (Low)                          | $1 \, \text{h}$ ($3600 \, \text{s}$) | An ant glancing with Phalanx’s minimal $\Phi$ cost, adding moderate effort due to $T_\Phi = 4.32 \times 10^4 \, \text{s}$. |
-| **Ant Glance $\Phi_{\text{max}}$** | $0$ (Low)                          | $1 \, \text{h}$ ($3600 \, \text{s}$) | An ant glancing with Phalanx’s maximal $\Phi$ cost, significantly increasing effort due to $T_\Phi = 4.32 \times 10^5 \, \text{s}$. |
-| **Ant Patrol Praos**     | $0$ (Low)                          | $5 \, \text{d}$ ($432000 \, \text{s}$) | An ant patrolling a wide area over time with simple instincts, representing simple evaluation (low $T_{\text{eval}}$) with basic effort and a broad observation scope (large $w_T$). |
-| **Ant Patrol $\Phi_{\text{min}}$** | $0$ (Low)                          | $5 \, \text{d}$ ($432000 \, \text{s}$) | An ant patrolling with Phalanx’s minimal $\Phi$ cost, adding moderate effort across the wide scope. |
-| **Ant Patrol $\Phi_{\text{max}}$** | $0$ (Low)                          | $5 \, \text{d}$ ($432000 \, \text{s}$) | An ant patrolling with Phalanx’s maximal $\Phi$ cost, significantly increasing effort across the wide scope. |
-| **Owl Stare Praos**      | $1$ (High)                         | $1 \, \text{h}$ ($3600 \, \text{s}$) | An owl staring intently at a small area with keen focus, representing complex evaluation (high $T_{\text{eval}}$) with advanced effort and a narrow observation scope (small $w_T$). |
-| **Owl Stare $\Phi_{\text{min}}$**  | $1$ (High)                         | $1 \, \text{h}$ ($3600 \, \text{s}$) | An owl staring with Phalanx’s minimal $\Phi$ cost, adding moderate effort to its complex evaluation. |
-| **Owl Stare $\Phi_{\text{max}}$**  | $1$ (High)                         | $1 \, \text{h}$ ($3600 \, \text{s}$) | An owl staring with Phalanx’s maximal $\Phi$ cost, significantly increasing effort in its complex evaluation. |
-| **Owl Survey Praos**     | $1$ (High)                         | $5 \, \text{d}$ ($432000 \, \text{s}$) | An owl surveying a wide range with strategic awareness, representing complex evaluation (high $T_{\text{eval}}$) with advanced effort and a broad observation scope (large $w_T$). |
-| **Owl Survey $\Phi_{\text{min}}$** | $1$ (High)                         | $5 \, \text{d}$ ($432000 \, \text{s}$) | An owl surveying with Phalanx’s minimal $\Phi$ cost, adding moderate effort across the broad scope. |
-| **Owl Survey $\Phi_{\text{max}}$** | $1$ (High)                         | $5 \, \text{d}$ ($432000 \, \text{s}$) | An owl surveying with Phalanx’s maximal $\Phi$ cost, significantly increasing effort across the broad scope. |
+| **Ant Glance Praos**     | $0$ (Low)                          | $1  \text{h}$ ($3600  \text{s}$) | An ant quickly glancing at a small spot, representing simple evaluation (low $T_{\text{eval}}$) with basic effort and a narrow observation scope (small $w_T$). |
+| **Ant Glance $\Phi_{\text{min}}$** | $0$ (Low)                          | $1  \text{h}$ ($3600  \text{s}$) | An ant glancing with Phalanx’s minimal $\Phi$ cost, adding moderate effort due to $T_\Phi = 4.32 \times 10^4  \text{s}$. |
+| **Ant Glance $\Phi_{\text{max}}$** | $0$ (Low)                          | $1  \text{h}$ ($3600  \text{s}$) | An ant glancing with Phalanx’s maximal $\Phi$ cost, significantly increasing effort due to $T_\Phi = 4.32 \times 10^5  \text{s}$. |
+| **Ant Patrol Praos**     | $0$ (Low)                          | $5  \text{d}$ ($432000  \text{s}$) | An ant patrolling a wide area over time with simple instincts, representing simple evaluation (low $T_{\text{eval}}$) with basic effort and a broad observation scope (large $w_T$). |
+| **Ant Patrol $\Phi_{\text{min}}$** | $0$ (Low)                          | $5  \text{d}$ ($432000  \text{s}$) | An ant patrolling with Phalanx’s minimal $\Phi$ cost, adding moderate effort across the wide scope. |
+| **Ant Patrol $\Phi_{\text{max}}$** | $0$ (Low)                          | $5  \text{d}$ ($432000  \text{s}$) | An ant patrolling with Phalanx’s maximal $\Phi$ cost, significantly increasing effort across the wide scope. |
+| **Owl Stare Praos**      | $1$ (High)                         | $1  \text{h}$ ($3600  \text{s}$) | An owl staring intently at a small area with keen focus, representing complex evaluation (high $T_{\text{eval}}$) with advanced effort and a narrow observation scope (small $w_T$). |
+| **Owl Stare $\Phi_{\text{min}}$**  | $1$ (High)                         | $1 \text{h}$ ($3600  \text{s}$) | An owl staring with Phalanx’s minimal $\Phi$ cost, adding moderate effort to its complex evaluation. |
+| **Owl Stare $\Phi_{\text{max}}$**  | $1$ (High)                         | $1 \text{h}$ ($3600  \text{s}$) | An owl staring with Phalanx’s maximal $\Phi$ cost, significantly increasing effort in its complex evaluation. |
+| **Owl Survey Praos**     | $1$ (High)                         | $5  \text{d}$ ($432000 \text{s}$) | An owl surveying a wide range with strategic awareness, representing complex evaluation (high $T_{\text{eval}}$) with advanced effort and a broad observation scope (large $w_T$). |
+| **Owl Survey $\Phi_{\text{min}}$** | $1$ (High)                         | $5 \text{d}$ ($432000 \text{s}$) | An owl surveying with Phalanx’s minimal $\Phi$ cost, adding moderate effort across the broad scope. |
+| **Owl Survey $\Phi_{\text{max}}$** | $1$ (High)                         | $5 \text{d}$ ($432000 \text{s}$) | An owl surveying with Phalanx’s maximal $\Phi$ cost, significantly increasing effort across the broad scope. |
 
 The $N_{\text{CPU}}$ formulas are derived by substituting the respective $w_T$ and $T_{\text{eval}}$ values from each scenario into the base expression from Section 4:
 
@@ -335,3 +335,28 @@ This simplification allows us to revisit and improve the feasibility category ta
 </br>
 
 This updated table demonstrates a significant improvement over the Praos scenarios. For $\Phi_{\text{min}}$, the "Trivial" range shrinks to $\rho < 10$ (a reduction of up to 39 for Ant Glance Praos), and the "Possible" range is limited to $\rho < 20$ (a reduction of up to 53). For $\Phi_{\text{max}}$, the effect is even more pronounced, with the "Trivial" range reduced to $\rho < 5$ (a reduction of up to 44) and the "Possible" range to $\rho < 15$ (a reduction of up to 58). These substantial $\Delta \rho$ values indicate that Phalanx significantly raises the bar for grinding attacks, pushing the feasibility thresholds to much lower $\rho$ values across all scenarios. This makes such attacks economically and computationally prohibitive for adversaries, even those with significant resources, thereby enhancing the security of the Ouroboros Praos protocol.
+
+## 5. Performance & Scalability / Balancing Honest and Adversarial Computation
+
+
+## Rationale: how does this CIP achieve its goals?
+<!-- The rationale fleshes out the specification by describing what motivated the design and what led to particular design decisions. It should describe alternate designs considered and related work. The rationale should provide evidence of consensus within the community and discuss significant objections or concerns raised during the discussion.
+
+It must also explain how the proposal affects the backward compatibility of existing solutions when applicable. If the proposal responds to a CPS, the 'Rationale' section should explain how it addresses the CPS, and answer any questions that the CPS poses for potential solutions.
+-->
+
+## Path to Active
+
+### Acceptance Criteria
+<!-- Describes what are the acceptance criteria whereby a proposal becomes 'Active' -->
+
+### Implementation Plan
+<!-- A plan to meet those criteria or `N/A` if an implementation plan is not applicable. -->
+
+<!-- OPTIONAL SECTIONS: see CIP-0001 > Document > Structure table -->
+
+## Copyright
+<!-- The CIP must be explicitly licensed under acceptable copyright terms.  Uncomment the one you wish to use (delete the other one) and ensure it matches the License field in the header: -->
+
+<!-- This CIP is licensed under [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/legalcode). -->
+<!-- This CIP is licensed under [Apache-2.0](http://www.apache.org/licenses/LICENSE-2.0). -->
