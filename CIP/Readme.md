@@ -226,18 +226,18 @@ To evaluate the impact of Phalanx on grinding attack feasibility, we revisit the
 
 | **Scenario**            | **$T_{\text{eval}}$ (Complexity)** | **$w_T$ (Scope)**       | **Description**                                                                 |
 |--------------------------|------------------------------------|-------------------------|---------------------------------------------------------------------------------|
-| **Ant Glance Praos**     | $0 \text{s}$ (Low)                          | $1  \text{h}$  | An ant quickly glancing at a small spot, representing simple evaluation (low $T_{\text{eval}}$) with basic effort and a narrow observation scope (small $w_T$). |
-| **Ant Glance $\Phi_{\text{min}}$** | $0 \text{s}$ (Low)                          | $1  \text{h}$  | An ant glancing with Phalanx’s minimal $\Phi$ cost, adding moderate effort due to $T_\Phi = 4.32 \times 10^4  \text{s}$. |
-| **Ant Glance $\Phi_{\text{max}}$** | $0 \text{s}$ (Low)                          | $1  \text{h}$  | An ant glancing with Phalanx’s maximal $\Phi$ cost, significantly increasing effort due to $T_\Phi = 4.32 \times 10^5  \text{s}$. |
-| **Ant Patrol Praos**     | $0 \text{s}$ (Low)                          | $5  \text{d}$  | An ant patrolling a wide area over time with simple instincts, representing simple evaluation (low $T_{\text{eval}}$) with basic effort and a broad observation scope (large $w_T$). |
-| **Ant Patrol $\Phi_{\text{min}}$** | $0 \text{s}$ (Low)                          | $5  \text{d}$  | An ant patrolling with Phalanx’s minimal $\Phi$ cost, adding moderate effort across the wide scope. |
-| **Ant Patrol $\Phi_{\text{max}}$** | $0 \text{s}$ (Low)                          | $5  \text{d}$  | An ant patrolling with Phalanx’s maximal $\Phi$ cost, significantly increasing effort across the wide scope. |
-| **Owl Stare Praos**      | $1 \text{s}$ (High)                         | $1  \text{h}$  | An owl staring intently at a small area with keen focus, representing complex evaluation (high $T_{\text{eval}}$) with advanced effort and a narrow observation scope (small $w_T$). |
-| **Owl Stare $\Phi_{\text{min}}$**  | $1 \text{s}$ (High)                         | $1 \text{h}$  | An owl staring with Phalanx’s minimal $\Phi$ cost, adding moderate effort to its complex evaluation. |
-| **Owl Stare $\Phi_{\text{max}}$**  | $1 \text{s}$ (High)                         | $1 \text{h}$  | An owl staring with Phalanx’s maximal $\Phi$ cost, significantly increasing effort in its complex evaluation. |
-| **Owl Survey Praos**     | $1 \text{s}$ (High)                         | $5  \text{d}$ | An owl surveying a wide range with strategic awareness, representing complex evaluation (high $T_{\text{eval}}$) with advanced effort and a broad observation scope (large $w_T$). |
-| **Owl Survey $\Phi_{\text{min}}$** | $1 \text{s}$ (High)                         | $5 \text{d}$ | An owl surveying with Phalanx’s minimal $\Phi$ cost, adding moderate effort across the broad scope. |
-| **Owl Survey $\Phi_{\text{max}}$** | $1 \text{s}$ (High)                         | $5 \text{d}$ | An owl surveying with Phalanx’s maximal $\Phi$ cost, significantly increasing effort across the broad scope. |
+| **Ant Glance Praos**     | $0 \text{s}$                           | $1  \text{h}$  | An ant quickly glancing at a small spot, representing simple evaluation (low $T_{\text{eval}}$) with basic effort and a narrow observation scope (small $w_T$). |
+| **Ant Glance $\Phi_{\text{min}}$** | $0 \text{s}$                           | $1  \text{h}$  | An ant glancing with Phalanx’s minimal $\Phi$ cost, adding moderate effort due to $T_\Phi = 4.32 \times 10^4  \text{s}$. |
+| **Ant Glance $\Phi_{\text{max}}$** | $0 \text{s}$                           | $1  \text{h}$  | An ant glancing with Phalanx’s maximal $\Phi$ cost, significantly increasing effort due to $T_\Phi = 4.32 \times 10^5  \text{s}$. |
+| **Ant Patrol Praos**     | $0 \text{s}$                           | $5  \text{d}$  | An ant patrolling a wide area over time with simple instincts, representing simple evaluation (low $T_{\text{eval}}$) with basic effort and a broad observation scope (large $w_T$). |
+| **Ant Patrol $\Phi_{\text{min}}$** | $0 \text{s}$                           | $5  \text{d}$  | An ant patrolling with Phalanx’s minimal $\Phi$ cost, adding moderate effort across the wide scope. |
+| **Ant Patrol $\Phi_{\text{max}}$** | $0 \text{s}$                           | $5  \text{d}$  | An ant patrolling with Phalanx’s maximal $\Phi$ cost, significantly increasing effort across the wide scope. |
+| **Owl Stare Praos**      | $1 \text{s}$                          | $1  \text{h}$  | An owl staring intently at a small area with keen focus, representing complex evaluation (high $T_{\text{eval}}$) with advanced effort and a narrow observation scope (small $w_T$). |
+| **Owl Stare $\Phi_{\text{min}}$**  | $1 \text{s}$                          | $1 \text{h}$  | An owl staring with Phalanx’s minimal $\Phi$ cost, adding moderate effort to its complex evaluation. |
+| **Owl Stare $\Phi_{\text{max}}$**  | $1 \text{s}$                          | $1 \text{h}$  | An owl staring with Phalanx’s maximal $\Phi$ cost, significantly increasing effort in its complex evaluation. |
+| **Owl Survey Praos**     | $1 \text{s}$                          | $5  \text{d}$ | An owl surveying a wide range with strategic awareness, representing complex evaluation (high $T_{\text{eval}}$) with advanced effort and a broad observation scope (large $w_T$). |
+| **Owl Survey $\Phi_{\text{min}}$** | $1 \text{s}$                          | $5 \text{d}$ | An owl surveying with Phalanx’s minimal $\Phi$ cost, adding moderate effort across the broad scope. |
+| **Owl Survey $\Phi_{\text{max}}$** | $1 \text{s}$                          | $5 \text{d}$ | An owl surveying with Phalanx’s maximal $\Phi$ cost, significantly increasing effort across the broad scope. |
 
 The $N_{\text{CPU}}$ formulas are derived by substituting the respective $w_T$ and $T_{\text{eval}}$ values from each scenario into the base expression from Section 4:
 
