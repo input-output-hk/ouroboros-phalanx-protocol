@@ -22,8 +22,8 @@ License: Apache-2.0
   - [**1. The Flow**](#1-the-flow)
   - [**2. The Randomness Generation Sub-Protocol**](#2-the-randomness-generation-sub-protocol)
   - [**3. The Φ Cryptographic Primitive**](#3-the-φ-cryptographic-primitive)
-  - [**4. Balancing Honest and Adversarial Computation: Determining $T_\phi$**](#4-balancing-honest-and-adversarial-computation-determining-t_phi)
-  - [**5. Adversarial Cost Overhead on a Theoretical $T_\phi$ Interval**](#5-adversarial-cost-overhead-on-a-theoretical-t_phi-interval)
+  - [**4. Balancing Honest and Adversarial Computation**](#4-balancing-honest-and-adversarial-computation)
+  - [**5. Adversarial Cost Overhead**](#5-adversarial-cost-overhead)
   - [**6. Operability, Maintainability & Modularity**](#6-operability-maintainability--modularity)
   - [**7. Agda Mechanization**](#7-agda-mechanization)
 - [**Rationale: How does this CIP achieve its goals?**](#rationale-how-does-this-cip-achieve-its-goals)
@@ -34,6 +34,7 @@ License: Apache-2.0
   - [**Acceptance Criteria**](#acceptance-criteria)
   - [**Implementation Plan**](#implementation-plan)
 - [**Copyright**](#copyright)
+
 ## Abstract
 
 <!-- A short (\\\~200 word) description of the proposed solution and the technical issue being addressed. \-->
@@ -199,7 +200,7 @@ The Φ cryptographic primitive is a critical component of the Φalanx protocol, 
 
 
 
-### 4. Balancing Honest and Adversarial Computation: Determining $T_\phi$
+### 4. Balancing Honest and Adversarial Computation
 
 By incorporating additional computation after aggregating all VRF contributions, we require each honest participant to perform a portion of the calculation within a reasonable timeframe, while imposing an exponential computational overhead on adversaries within a constrained window. Our objective is to select the duration of this computation such that, in the best-case scenarios, it completely prevents attacks, and in the worst-case scenarios, it deters adversaries from initiating an attack. To achieve this, we have identified four key goals when parameterizing Φalanx:
 
@@ -254,7 +255,7 @@ Where:
 The introduction of $T_\Phi$ substantially increases the computational burden for adversaries, as they must recompute the $\Phi$ function across the entire epoch for each of the $2^\rho$ possible nonces evaluated during a grinding attack. In contrast, for honest participants, this computation is distributed across the epoch, ensuring it remains manageable and efficient. Consequently, the selection of $T_\phi$ is pivotal in achieving the four goals outlined above, effectively balancing the computational load to deter adversaries while preserving efficiency for honest participants. To determine an optimal range for $T_\phi$, simulations will be conducted with varying $T_\Phi$ values to evaluate the range within which the properties of the consensus layer remain preserved.
 
 
-### 5. Adversarial Cost Overhead on a Theoretical $T_\phi$ Interval
+### 5. Adversarial Cost Overhead
 
 Building on the updated grinding time formula introduced in [Section 4 - Balancing Honest and Adversarial Computation: Determining $T_\phi$](#4-balancing-honest-and-adversarial-computation-determining-t_phi), which incorporates the additional computational cost $T_\Phi$, we now analyze how this cost impacts the overall feasibility of grinding attacks across a range of theoretical $T_\phi$ values. As established, the total grinding time per attempt under Φalanx is:
 
