@@ -22,8 +22,8 @@ License: Apache-2.0
   - [**1. The Flow**](#1-the-flow)
   - [**2. The Randomness Generation Sub-Protocol**](#2-the-randomness-generation-sub-protocol)
   - [**3. The Φ Cryptographic Primitive**](#3-the-φ-cryptographic-primitive)
-  - [**4. Adversarial Cost Overhead**](#4-adversarial-cost-overhead)
-  - [**5. Balancing Honest and Adversarial Computation (Performance & Scalability)**](#5-balancing-honest-and-adversarial-computation-performance--scalability)
+  - [**4. Balancing Honest and Adversarial Computation: Determining $T_\phi$**](#4-balancing-honest-and-adversarial-computation-determining-t_phi)
+  - [**5. Adversarial Cost Overhead on a Theoretical $T_\phi$ Interval**](#5-adversarial-cost-overhead-on-a-theoretical-t_phi-interval)
   - [**6. Operability, Maintainability & Modularity**](#6-operability-maintainability--modularity)
   - [**7. Agda Mechanization**](#7-agda-mechanization)
 - [**Rationale: How does this CIP achieve its goals?**](#rationale-how-does-this-cip-achieve-its-goals)
@@ -34,8 +34,6 @@ License: Apache-2.0
   - [**Acceptance Criteria**](#acceptance-criteria)
   - [**Implementation Plan**](#implementation-plan)
 - [**Copyright**](#copyright)
-
-
 ## Abstract
 
 <!-- A short (\\\~200 word) description of the proposed solution and the technical issue being addressed. \-->
@@ -200,23 +198,71 @@ The Φ cryptographic primitive is a critical component of the Φalanx protocol, 
 | **Adaptive Security**     | Function and its parameters should be easily reconfigurable to accommodate evolving threats, such as advances in computational power or new cryptographic attacks. |
 
 
-### 4. Adversarial Cost Overhead
 
-We have detailed in the CPS [Section 3.4.1 - Formula](https://github.com/input-output-hk/ouroboros-anti-grinding-design/blob/main/CPS/Readme.md#341-formula) the computational cost of a grinding attack, culminating in the estimated formula using Cardano mainnet parameters in [Section 3.4.2 - Estimated Formula Using Mainnet Cardano Parameters](https://github.com/input-output-hk/ouroboros-anti-grinding-design/blob/main/CPS/Readme.md#342-estimated-formula-using-mainnet-cardano-parameters):
+### 4. Balancing Honest and Adversarial Computation: Determining $T_\phi$
+
+By incorporating additional computation after aggregating all VRF contributions, we require each honest participant to perform a portion of the calculation within a reasonable timeframe, while imposing an exponential computational overhead on adversaries within a constrained window. Our objective is to select the duration of this computation such that, in the best-case scenarios, it completely prevents attacks, and in the worst-case scenarios, it deters adversaries from initiating an attack. To achieve this, we have identified four key goals when parameterizing Φalanx:
+
+- Ensure a reasonable cost for honest participants.
+- Maintain a prohibitive cost for adversaries.
+- Prevent small-scale attacks.
+- Deter, where feasible, medium- to large-scale attacks.
+
+In Φalanx, we introduce an additional computational cost, $T_\Phi$, for each grinding attempt, which arises from the new $\Phi$ cryptographic primitive applied across all blocks in an epoch. This cost is defined as:
 
 ```math
- N_{\text{CPU}} > \left \lceil 5 \times 10^{-10} \times 2^{\rho-1} + \frac{5 \times 10^{-14} \times 2^{\rho-1}}{\rho} \cdot w_T + \frac{5 \times 10^{-2} \times 2^{\rho-1}}{\rho} \cdot T_{\text{eval}} \right \rceil 
-```
-
-In Phalanx, we introduce an additional computational cost, $T_\Phi$, for each grinding attempt, which arises from the new $\Phi$ cryptographic primitive applied across all blocks in an epoch. This cost is defined as:
-
-```math
-T_\Phi = \frac{10k \cdot T_\phi}{f} 
+T_\Phi = \frac{10k \cdot T_\phi}{f}
 ```
 
 Where:
 - $10k/f = 432,000$ slots (number of slots in an epoch, with $k = 2,160$, $f = 0.05$),
-- $T_\phi$: Time to compute an iteration $\phi$ of $\Phi$ function per block.
+- $T_\phi$: Time to compute an iteration $\phi$ of the $\Phi$ function per block.
+
+This additional cost directly impacts the total estimated time per grinding attempt, as originally defined in [CPS Section 3.3.4 - Total Estimated Time per Grinding Attempt](https://github.com/input-output-hk/ouroboros-anti-grinding-design/blob/main/CPS/Readme.md#334-total-estimated-time-per-grinding-attempt). The baseline grinding time in Praos is:
+
+```math
+T_{\text{grinding}}^{\text{Praos}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}}
+```
+
+With Φalanx, the total grinding time per attempt is updated to include $T_\Phi$:
+
+```math
+T_{\text{grinding}}^{\text{Phalanx}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_\Phi
+```
+
+Substituting $T_\Phi$ with the expression above, the final grinding time per attempt under Φalanx becomes:
+
+```math
+T_{\text{grinding}}^{\text{Phalanx}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + \frac{10k \cdot T_\phi}{f}
+```
+
+With Cardano mainnet parameters ($k = 2,160$, $f = 0.05$), this simplifies to:
+
+```math
+T_{\text{grinding}}^{\text{Phalanx}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + 432,000 \cdot T_\phi
+```
+
+Where:
+- $T_{\mathsf{VRF}}$ is the VRF evaluation time,
+- $T_{\text{eligibility}}$ is the eligibility check time,
+- $T_{\text{BLAKE2b}}$ is the time for the hashing operation,
+- $w_T$ is the target window size (seconds),
+- $\rho$ is the grinding power,
+- $T_{\text{eval}}$ is the nonce selection and evaluation time (attack-specific).
+
+
+The introduction of $T_\Phi$ substantially increases the computational burden for adversaries, as they must recompute the $\Phi$ function across the entire epoch for each of the $2^\rho$ possible nonces evaluated during a grinding attack. In contrast, for honest participants, this computation is distributed across the epoch, ensuring it remains manageable and efficient. Consequently, the selection of $T_\phi$ is pivotal in achieving the four goals outlined above, effectively balancing the computational load to deter adversaries while preserving efficiency for honest participants. To determine an optimal range for $T_\phi$, simulations will be conducted with varying $T_\Phi$ values to evaluate the range within which the properties of the consensus layer remain preserved.
+
+
+### 5. Adversarial Cost Overhead on a Theoretical $T_\phi$ Interval
+
+Building on the updated grinding time formula introduced in [Section 4 - Balancing Honest and Adversarial Computation: Determining $T_\phi$](#4-balancing-honest-and-adversarial-computation-determining-t_phi), which incorporates the additional computational cost $T_\Phi$, we now analyze how this cost impacts the overall feasibility of grinding attacks across a range of theoretical $T_\phi$ values. As established, the total grinding time per attempt under Φalanx is:
+
+```math
+T_{\text{grinding}}^{\text{Phalanx}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + 432,000 \cdot T_\phi
+```
+
+This increased grinding time directly affects the number of CPUs ($N_{\text{CPU}}$) required for an adversary to execute a grinding attack within the grinding opportunity window $w_O$, as originally derived in [CPS Section 3.4.1 - Formula](https://github.com/input-output-hk/ouroboros-anti-grinding-design/blob/main/CPS/Readme.md#341-formula). By varying $T_\phi$, we can explore how the computational overhead scales and assess its effectiveness in deterring adversaries, aligning with the goals of balancing honest and adversarial computation outlined in Section 4.
 
 For a grinding attack with grinding depth $\rho$, the adversary must evaluate $2^\rho$ possible nonces, each requiring the recomputation of the $\Phi$ function across the entire epoch. Thus, the total additional cost for the attack is $2^\rho \cdot T_\Phi$. Incorporating this into the formula, the updated computational requirement becomes:
 
@@ -224,7 +270,8 @@ For a grinding attack with grinding depth $\rho$, the adversary must evaluate $2
 N_{\text{CPU}} > \left \lceil 2^\rho \cdot T_\Phi + 5 \times 10^{-10} \times 2^{\rho-1} + \frac{5 \times 10^{-14} \times 2^{\rho-1}}{\rho} \cdot w_T + \frac{5 \times 10^{-2} \times 2^{\rho-1}}{\rho} \cdot T_{\text{eval}} \right \rceil
 ```
 
-To evaluate the impact of Phalanx on grinding attack feasibility, we revisit the four scenarios defined in [CPS Section 3.5 - Scenarios](https://github.com/input-output-hk/ouroboros-anti-grinding-design/blob/main/CPS/Readme.md#35-scenarios)—Ant Glance, Ant Patrol, Owl Stare, and Owl Survey—and extend them to include Phalanx-enhanced versions. These scenarios use an animal-inspired metaphor to reflect evaluation complexity ($T_{\text{eval}}$) and observation scope ($w_T$), providing a basis for comparing the computational cost under Praos. We incorporate the additional computational cost $T_\Phi$, with $T_\phi$ values of $100  \text{ms}$ ($0.1  \text{s}$) for $\Phi_{\text{min}}$ (where $T_\Phi = 4.32 \times 10^4  \text{s}$) and $1  \text{s}$ for $\Phi_{\text{max}}$ (where $T_\Phi = 4.32 \times 10^5  \text{s}$).
+To evaluate the impact of Phalanx on grinding attack feasibility, we revisit the four scenarios defined in [CPS Section 3.5 - Scenarios](https://github.com/input-output-hk/ouroboros-anti-grinding-design/blob/main/CPS/Readme.md#35-scenarios)—Ant Glance, Ant Patrol, Owl Stare, and Owl Survey—and extend them to include Phalanx-enhanced versions. These scenarios use an animal-inspired metaphor to reflect evaluation complexity ($T_{\text{eval}}$) and observation scope ($w_T$), providing a basis for comparing the computational cost under Praos. We incorporate the additional computational cost $T_\Phi$, with $T_\phi$ values of $100 \, \text{ms}$ ($0.1 \, \text{s}$) for $\Phi_{\text{min}}$ (where $T_\Phi = 4.32 \times 10^4 \, \text{s}$) and $1 \, \text{s}$ for $\Phi_{\text{max}}$ (where $T_\Phi = 4.32 \times 10^5 \, \text{s}$).
+
 
 | **Scenario**            | **$T_{\text{eval}}$ (Complexity)** | **$w_T$ (Scope)**       | **Description**                                                                 |
 |--------------------------|------------------------------------|-------------------------|---------------------------------------------------------------------------------|
@@ -338,15 +385,19 @@ This simplification allows us to revisit and improve the feasibility category ta
 
 This updated table demonstrates a significant improvement over the Praos scenarios. For $\Phi_{\text{min}}$, the "Trivial" range shrinks to $\rho < 10$ (a reduction of up to 39 for Ant Glance Praos), and the "Possible" range is limited to $\rho < 20$ (a reduction of up to 53). For $\Phi_{\text{max}}$, the effect is even more pronounced, with the "Trivial" range reduced to $\rho < 5$ (a reduction of up to 44) and the "Possible" range to $\rho < 15$ (a reduction of up to 58). These substantial $\Delta \rho$ values indicate that Phalanx significantly raises the bar for grinding attacks, pushing the feasibility thresholds to much lower $\rho$ values across all scenarios. This makes such attacks economically and computationally prohibitive for adversaries, even those with significant resources, thereby enhancing the security of the Ouroboros Praos protocol.
 
-### 5. Balancing Honest and Adversarial Computation (Performance & Scalability)
-
-
-Work in Progress in [google doc](https://docs.google.com/document/d/13TZF2jYLoKPjs6Aa9tLA4t9TtxqhBB7qMIZCy9SWKR4/edit?tab=t.0)
 
 
 ### 6. Operability, Maintainability & Modularity
 
 Work in Progress in [google doc](https://docs.google.com/document/d/13TZF2jYLoKPjs6Aa9tLA4t9TtxqhBB7qMIZCy9SWKR4/edit?tab=t.0)
+
+Some of the key properties we want the cryptographic scheme to have is to be easily operable and maintainable. 
+
+As depicted previously, the chain of computation can be seen as a challenge that is being reset every epoch with the preseed, and can be divided into smaller self-contained puzzles to complete every block or so. We thus need to find a function that is (1) easy to set up, (2) has a large enough domain space to securely reset from, and (3) can be split in intermediary steps or called in chain with ease. For instance, this could correspond to iterating on a hash function, using the preseed as the hash’s seed and with each block revealing the output after a portion of them.
+
+We also have a further requirement to be able to reassess and smoothly change the security parameters or the cryptographic function itself in case a new vulnerability is found or rapid hardware progress. The hash function chosen would regularly need its security parameter to change to take into account hardware evolution and might need to be changed altogether, for instance from SHA2 to SHA3 family.
+
+These properties show the modularity the cryptographic function and Φhalanx needs overall.
 
 
 ### 7. Agda Mechanization
