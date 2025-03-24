@@ -202,58 +202,56 @@ The Φ cryptographic primitive is a critical component of the Φalanx protocol, 
 
 ### 4. Balancing Honest and Adversarial Computation
 
-By incorporating additional computation after aggregating all VRF contributions, we require each honest participant to perform a portion of the calculation within a reasonable timeframe, while imposing an exponential computational overhead on adversaries within a constrained window. Our objective is to select the duration of this computation such that, in the best-case scenarios, it completely prevents attacks, and in the worst-case scenarios, it deters adversaries from initiating an attack. To achieve this, we have identified four key goals when parameterizing Φalanx:
+By incorporating additional **computation** after aggregating all **VRF contributions**, we require each **honest participant** to perform a portion of the **calculation** within a reasonable timeframe, while imposing an **exponential computational overhead** on **adversaries** within a constrained window. Our objective is to select the **duration** of this computation such that, in the **best-case scenarios**, it completely **prevents attacks**, and in the **worst-case scenarios**, it **deters adversaries** from initiating an attack. To achieve this, we have identified four key goals when parameterizing **Φalanx**:
 
-- Ensure a reasonable cost for honest participants.
-- Maintain a prohibitive cost for adversaries.
-- Prevent small-scale attacks.
-- Deter, where feasible, medium- to large-scale attacks.
+- Ensure a **reasonable cost** for honest participants.  
+- Maintain a **prohibitive cost** for adversaries.  
+- Prevent **small-scale attacks**.  
+- Deter, where feasible, **medium- to large-scale attacks**.
 
-In Φalanx, we introduce an additional computational cost, $T_\Phi$, for each grinding attempt, which arises from the new $\Phi$ cryptographic primitive applied across all blocks in an epoch. This cost is defined as:
+In **Φalanx**, we introduce an additional **computational cost**, $T_\Phi$, for each **grinding attempt**, which arises from the new $\Phi$ **cryptographic primitive** applied across all blocks in an epoch. This cost is defined as:
 
 ```math
 T_\Phi = \frac{10k \cdot T_\phi}{f}
 ```
 
-Where:
-- $10k/f = 432,000$ slots (number of slots in an epoch, with $k = 2,160$, $f = 0.05$),
-- $T_\phi$: Time to compute an iteration $\phi$ of the $\Phi$ function per block.
+Where:  
+- $10k/f = 432,000$ slots (number of **slots in an epoch**, with $k = 2,160$, $f = 0.05$),  
+- $T_\phi$: **Time to compute** an iteration $\phi$ of the $\Phi$ function per block.
 
-This additional cost directly impacts the total estimated time per grinding attempt, as originally defined in [CPS Section 3.3.4 - Total Estimated Time per Grinding Attempt](https://github.com/input-output-hk/ouroboros-anti-grinding-design/blob/main/CPS/Readme.md#334-total-estimated-time-per-grinding-attempt). The baseline grinding time in Praos is:
+This additional cost directly impacts the total estimated **time per grinding attempt**, as originally defined in [CPS Section 3.3.4 - Total Estimated Time per Grinding Attempt](https://github.com/input-output-hk/ouroboros-anti-grinding-design/blob/main/CPS/Readme.md#334-total-estimated-time-per-grinding-attempt). The baseline grinding time in **Praos** is:
 
 ```math
 T_{\text{grinding}}^{\text{Praos}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}}
 ```
 
-With Φalanx, the total grinding time per attempt is updated to include $T_\Phi$:
+With **Φalanx**, the total grinding time per attempt is updated to include $T_\Phi$:
 
 ```math
 T_{\text{grinding}}^{\text{Phalanx}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_\Phi
 ```
 
-Substituting $T_\Phi$ with the expression above, the final grinding time per attempt under Φalanx becomes:
+Substituting $T_\Phi$ with the expression above, the final grinding time per attempt under **Φalanx** becomes:
 
 ```math
 T_{\text{grinding}}^{\text{Phalanx}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + \frac{10k \cdot T_\phi}{f}
 ```
 
-With Cardano mainnet parameters ($k = 2,160$, $f = 0.05$), this simplifies to:
+With **Cardano mainnet parameters** ($k = 2,160$, $f = 0.05$), this simplifies to:
 
 ```math
 T_{\text{grinding}}^{\text{Phalanx}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + 432,000 \cdot T_\phi
 ```
 
-Where:
-- $T_{\mathsf{VRF}}$ is the VRF evaluation time,
-- $T_{\text{eligibility}}$ is the eligibility check time,
-- $T_{\text{BLAKE2b}}$ is the time for the hashing operation,
-- $w_T$ is the target window size (seconds),
-- $\rho$ is the grinding power,
-- $T_{\text{eval}}$ is the nonce selection and evaluation time (attack-specific).
+Where:  
+- $T_{\mathsf{VRF}}$ is the **VRF evaluation time**,  
+- $T_{\text{eligibility}}$ is the **eligibility check time**,  
+- $T_{\text{BLAKE2b}}$ is the time for the **hashing operation**,  
+- $w_T$ is the **target window size** (seconds),  
+- $\rho$ is the **grinding power**,  
+- $T_{\text{eval}}$ is the **nonce selection and evaluation time** (**attack-specific**).
 
-
-The introduction of $T_\Phi$ substantially increases the computational burden for adversaries, as they must recompute the $\Phi$ function across the entire epoch for each of the $2^\rho$ possible nonces evaluated during a grinding attack. In contrast, for honest participants, this computation is distributed across the epoch, ensuring it remains manageable and efficient. Consequently, the selection of $T_\phi$ is pivotal in achieving the four goals outlined above, effectively balancing the computational load to deter adversaries while preserving efficiency for honest participants. To determine an optimal range for $T_\phi$, simulations will be conducted with varying $T_\Phi$ values to evaluate the range within which the properties of the consensus layer remain preserved.
-
+The introduction of $T_\Phi$ substantially increases the **computational burden** for adversaries, as they must **recompute** the $\Phi$ function across the entire epoch for each of the $2^\rho$ possible **nonces** evaluated during a grinding attack. In contrast, for **honest participants**, this computation is **distributed** across the epoch, ensuring it remains **manageable and efficient**. Consequently, the selection of $T_\phi$ is **pivotal** in achieving the four goals outlined above, effectively **balancing** the computational load to **deter adversaries** while preserving **efficiency** for honest participants. To determine an optimal range for $T_\phi$, **simulations** will be conducted with varying $T_\Phi$ values to evaluate the range within which the **properties of the consensus layer** remain preserved.
 
 ### 5. Adversarial Cost Overhead
 
@@ -387,18 +385,19 @@ This simplification allows us to revisit and improve the feasibility category ta
 This updated table demonstrates a significant improvement over the Praos scenarios. For $\Phi_{\text{min}}$, the "Trivial" range shrinks to $\rho < 10$ (a reduction of up to 39 for Ant Glance Praos), and the "Possible" range is limited to $\rho < 20$ (a reduction of up to 53). For $\Phi_{\text{max}}$, the effect is even more pronounced, with the "Trivial" range reduced to $\rho < 5$ (a reduction of up to 44) and the "Possible" range to $\rho < 15$ (a reduction of up to 58). These substantial $\Delta \rho$ values indicate that Phalanx significantly raises the bar for grinding attacks, pushing the feasibility thresholds to much lower $\rho$ values across all scenarios. This makes such attacks economically and computationally prohibitive for adversaries, even those with significant resources, thereby enhancing the security of the Ouroboros Praos protocol.
 
 
-
 ### 6. Operability, Maintainability & Modularity
 
-Work in Progress in [google doc](https://docs.google.com/document/d/13TZF2jYLoKPjs6Aa9tLA4t9TtxqhBB7qMIZCy9SWKR4/edit?tab=t.0)
 
-Some of the key properties we want the cryptographic scheme to have is to be easily operable and maintainable. 
+A **fundamental requirement** for the **cryptographic scheme** in **Φalanx** is that it must be both easily **operable** and **maintainable** to ensure **long-term usability** within the **Cardano ecosystem**.
 
-As depicted previously, the chain of computation can be seen as a challenge that is being reset every epoch with the preseed, and can be divided into smaller self-contained puzzles to complete every block or so. We thus need to find a function that is (1) easy to set up, (2) has a large enough domain space to securely reset from, and (3) can be split in intermediary steps or called in chain with ease. For instance, this could correspond to iterating on a hash function, using the preseed as the hash’s seed and with each block revealing the output after a portion of them.
+As previously illustrated, the **chain of computation** can be conceptualized as a **challenge** that resets at the start of each **epoch** using a **preseed**. This process can be broken down into **smaller, self-contained puzzles** that are completed with each **block** or a **subset of blocks**. Consequently, we need to identify a **function** that satisfies three **key criteria**:  
+1. it must be **straightforward to set up**, minimizing **implementation complexity**;  
+2. it must possess a **sufficiently large domain space** to enable **secure resets** without compromising **randomness**;  
+3. it must support **division into intermediate steps** or allow **seamless chaining**, facilitating **efficient computation across blocks**. For example, this could be achieved by **iterating a hash function**, where the **preseed** serves as the **initial seed**, and each block reveals the output after processing a **portion of the computation**.
 
-We also have a further requirement to be able to reassess and smoothly change the security parameters or the cryptographic function itself in case a new vulnerability is found or rapid hardware progress. The hash function chosen would regularly need its security parameter to change to take into account hardware evolution and might need to be changed altogether, for instance from SHA2 to SHA3 family.
+Additionally, we require the ability to **periodically reassess** and seamlessly **update the security parameters** or even **replace the cryptographic function** itself in response to **emerging vulnerabilities** or **rapid advancements in hardware**. For instance, the selected **hash function** would need its **security parameters adjusted** regularly to account for **hardware evolution** and might require a complete **transition**—such as from the **SHA2** to the **SHA3 family**—if significant **weaknesses** are identified.
 
-These properties show the modularity the cryptographic function and Φhalanx needs overall.
+These properties collectively underscore the **modularity** that both the **cryptographic function** and the **Φalanx protocol** must exhibit to ensure **adaptability**, **efficiency**, and **resilience over time**.
 
 
 ### 7. Agda Mechanization
