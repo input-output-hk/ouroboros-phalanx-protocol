@@ -251,11 +251,10 @@ if __name__ == '__main__':
   print("Printing forking's figures with precision={}".format(precision))
   
   # Run function
+  all_egs(precision, cores)
   all_ews(precision, cores)
-  # approx_ews(cores)
+  approx_ews(cores)
+  all_egws(precision, cores)
   
-  # # Run function
-  # all_egws(precision, cores)
-  
-  # # Run tables
-  # tables(precision, cores)
+  # Run tables
+  tables(precision, cores)
