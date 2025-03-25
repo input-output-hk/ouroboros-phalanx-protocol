@@ -1,116 +1,122 @@
----
-CPS: ??
-Title: Ouroboros Randomness Generation Sub-Protocol - The coin-flipping Problem
-Category: Consensus/Security
-Status: Proposed
-Authors:
-    - Nicolas Henin <nicolas.henin@iohk.io>
-    - Raphael Toledo <raphael.toledo@iohk.io>
-    - Peter Gaži <peter.gazi@iohk.io>
-Proposed Solutions: []
-Discussions:
-    - https://github.com/cardano-foundation/CIPs/pull/1009
-Created: 2025-10-03
-License: Apache-2.0
----
+## Ouroboros Randomness Generation Sub-Protocol - The coin-flipping Problem
 
-⚠️ **IMPORTANT NOTICE** ⚠️  
+### Cardano Problem Definition (CPD) 
 
-🚨 **This repository is now frozen.** Further development, discussions, and updates are happening in the **official CIP repository**.  
+This document is a **Cardano Problem Definition (CPD)**, from which the [**Cardano Problem Statement (CPS): Ouroboros Randomness Generation Sub-Protocol – The Coin-Flipping Problem**](../Readme.md) is derived.  
 
-🔗 **Follow the latest updates here:** [https://github.com/cardano-foundation/CIPs/pull/1009](https://github.com/cardano-foundation/CIPs/pull/1008)  
+While the **CPS** is being structured for formal submission with a focus on accessibility, and alignment with the **CIP process**, this **CPD** retains the full depth of technical material that shaped the problem understanding. It preserves detailed modeling, cost definitions, and adversarial analysis that could not be fully included in the **CPS** due to scope and formatting constraints. 
 
-Please ensure all contributions, comments, and discussions take place in the official repository. 🚀  
+The **CPD** thus complements the **CPS** by serving as its technical foundation and extended reference, providing the complete analytical context behind the identified problem.
 
-----
+### Abstract
 
-## Abstract
+A well-designed consensus protocol is inherently **modular**, comprising multiple sub-protocols that collectively ensure **security**, **efficiency**, and **decentralization**. Among these, the **Randomness Generation Sub-Protocol** is pivotal in tackling the *Coin-Flipping Problem*—the challenge of generating **fair**, **unbiased**, and **unpredictable** randomness in a distributed environment.
 
-<!-- A short (\~200 word) description of the target goals and the technical obstacles to those goals. -->
+This issue is especially critical in **Ouroboros**, where randomness underpins essential sub-protocols like **leader election**. A **robust** and **tamper-resistant** randomness mechanism is vital to maintaining the protocol’s **security**, **fairness**, and **integrity**.
 
-A well-designed consensus protocol is inherently modular, consisting of multiple sub-protocols that collectively ensure security, efficiency, and decentralization. Among these, the Randomness Generation Sub-Protocol is crucial in addressing the Coin-Flipping Problem — the challenge of generating fair, unbiased, and unpredictable randomness in a distributed setting.
+This **CPD** delineates this challenge within the context of *Ouroboros Praos*, analyzing its approach and its vulnerability to *grinding attacks*, where adversaries attempt to manipulate leader election outcomes. The document offers:
 
-The objective of this CPS is to formally document the Coin-Flipping Problem and coordinate the development of CIPs aimed at mitigating and, if possible, fully resolving this challenge within the Ouroboros protocol.
+- An **analysis** of attack vectors, their **economic** and **computational** prerequisites, and Cardano’s current **resilience**.
+- A **quantification** of attack feasibility, highlighting escalation beyond a **20% stake threshold**.
+- **Pivotal questions**: *Is manipulation occurring? What is Cardano’s vulnerability? How might threats be mitigated?*
 
-This problem is particularly critical in **Ouroboros**, where randomness serves as a foundation for key sub-protocols such as **leader election**. Ensuring a **robust and tamper-resistant** randomness mechanism is essential to preserving the **security, fairness, and integrity** of the protocol.
+Rather than prescribing specific solutions, this CPD urges the **Cardano community** to take **responsibility** for addressing these risks, potentially through advancements in *detection*, *stake distribution*, or *protocol design*. It establishes a **rigorous foundation** for understanding these issues and solicits **collaborative efforts** to bolster *Ouroboros’ resilience* against evolving adversarial strategies.
 
-To uphold Cardano’s **decentralized ethos**, the community must proactively mitigate these risks and **reduce the feasibility of biasing strategies**. Addressing this challenge requires answering key questions:
 
-- **Is Cardano currently being manipulated?**  
-  Strengthening **detection mechanisms**, such as **self-mixing analysis** and **forking manipulation detection**, can help **identify potential exploits** and assess ongoing threats.
+### Summary of Findings
 
-- **Are we sufficiently disincentivizing randomness manipulation?**  
-  Enhancing **stake operator diversity** and reinforcing incentives for **decentralization** will make manipulation **economically unviable**, fostering a **resilient and distributed** stake pool ecosystem.
+This **CPD** undertakes a thorough examination of the *Randomness Generation Sub-Protocol* within the *Ouroboros framework*, focusing on the *Coin-Flipping Problem* and its implications for the **security** of the *Cardano blockchain*. The principal findings are as follows:
 
-- **How vulnerable is Cardano to these attacks, and what are the potential consequences?**  
-  Improving **risk quantification** will provide deeper insight into **attack feasibility, vulnerabilities, and potential security gaps** within the protocol.
+- **Randomness Mechanism**: *Ouroboros Praos* utilizes **VRFs** for efficient randomness generation, yet this design exposes vulnerabilities to *grinding attacks*, wherein adversaries manipulate *nonce values* to influence **leader election** processes.
+- **Attack Feasibility**: The likelihood and impact of successful attacks rise significantly when an adversary controls **>20% of total stake** (~**4.36 billion ADA**, March 2025), while lesser stakes (e.g., **5%**) render such efforts statistically improbable over extended periods.
+- **Economic Considerations**: Acquiring substantial stake entails a **significant financial commitment**—on the order of **billions of USD** for a 20% share—further complicated by potential **asset devaluation** if an attack undermines network integrity.
+- **Computational Requirements**: Scenario analysis across varying grinding depths ($\rho$) reveals a spectrum of feasibility:
+  - Minor attacks (e.g., **$\rho=20$**, costing ~**$56**) are readily achievable.
+  - Significant manipulations (e.g., **$\rho=50$**, costing ~**$3.1 billion**) demand resources ranging from *feasible* to *borderline infeasible*, contingent upon adversary capabilities.
+  - The cost disparity between the most resource-intensive scenario (*Owl Survey*) and the least (*Ant Glance*) is substantial, with a consistent **$\Delta \log_{10}(\text{Cost (USD)}) \sim 6.3$**, indicating *Owl Survey* costs approximately **$10^{6.3}$ times more** than *Ant Glance*, driven by the significant influence of **$T_{\text{eval}}$** (evaluation complexity) and **$w_T$** (target window scope).
 
-Beyond **detection, assessment, and quantification**, **protocol-level enhancements** must be explored to directly **reduce manipulation opportunities** and strengthen incentives for honest participation.
+<div align="center">
+<img src="./image/grinding_depth_scenarios_cost_with_feasibility_layers_gradient.png" alt="Grinding Depth Scenarios with Feasibility Thresholds"/>
+</div>
 
-Finally, it is essential to recognize that **adversarial capabilities continually evolve**, making this an **ongoing challenge** that demands sustained **research, adaptation, and community-driven innovation**.
+
+The table below delineates the **$\rho$ values** at which each scenario transitions across feasibility categories, illustrating the computational and economic thresholds:
+
+| **Feasibility Category**                  | **🔵 Ant Glance** | **🟠 Ant Patrol** | **🟢 Owl Stare** | **🔴 Owl Survey** |
+|--------------------------------------------|-------------------|-------------------|------------------|-------------------|
+| **🟢 🌱 Trivial for Any Adversary**        | $[0, 49)$         | $[0, 47)$         | $[0, 27)$        | $[0, 27)$         |
+| **🟡 💰 Feasible with Standard Resources** | $[49, 59)$        | $[47, 57)$        | $[27, 34)$       | $[27, 34)$        |
+| **🟠 🏭 Possible with Large-Scale Infrastructure** | $[59, 73)$ | $[57, 71)$        | $[34, 48)$       | $[34, 48)$        |
+| **🔴 🚫 Borderline Infeasible**            | $[73, 87)$        | $[71, 85)$       | $[48, 62)$       | $[48, 62)$        |
+| **🔴 🚫 Infeasible**                      | $[87, 256)$       | $[85, 256)$       | $[62, 256)$      | $[62, 256)$       |
+
+
+✏️ **Note**: For a detailed explanation of these scenarios and their feasibility thresholds, refer to **[Section 3.5 - Scenarios](https://github.com/cardano-foundation/CIPs/pull/1009#35-scenarios)** within this CPD.
+
+This document deliberately avoids advocating specific countermeasures, instead presenting these findings to highlight **extant vulnerabilities** and their **associated costs**. It is incumbent upon the **Cardano community** to assess and address these challenges, potentially through:
+- Development of **enhanced detection mechanisms**,
+- Improvement of **stake pool diversity**, or
+- Introduction of **protocol-level innovations**.
+
+**Stakeholders** are invited to engage with this CPD in its entirety to **validate the analysis**, **deepen their comprehension**, and **assume ownership** of subsequent solutions. Contributions are welcomed via the ongoing discourse at [**https://github.com/cardano-foundation/CIPs/pull/1009**](https://github.com/cardano-foundation/CIPs/pull/1009), aimed at collectively **fortifying the Ouroboros protocol**.
+
 
 ## Table of Contents
 
-- [**Problem**](#problem)
-  - [**1. Preliminaries**](#1-preliminaries)
-    - [1.1 Fundamental Properties](#11-fundamental-properties)
-      + [1.1.1 Transaction Ledger Properties](#111-transaction-ledger-properties)
-        * [1.1.1.1 Persistence with the security parameter k](#1111-persistence-with-the-security-parameter--textk-in-mathbbn-)
-        * [1.1.1.2 Liveness with the transaction confirmation time parameter u](#1112-liveness-with-the-transaction-confirmation-time-parameter--textu-in-mathbbn-)
-      + [1.1.2 Chain Properties](#112-chain-properties)
-        * [1.1.2.1 Common Prefix (CP)](#1121-common-prefix-cp)
-        * [1.1.2.2 Existential Chain Quality (∃CQ)](#1122-existential-chain-quality-cq)
-        * [1.1.2.3 Chain Growth (CG)](#1123-chain-growth-cg)
-    - [1.2 The Coin-Flipping Problem](#12-the-coin-flipping-problem)
-      + [1.2.1 Defining the Problem](#121-defining-the-problem)
-      + [1.2.2 Strategies for Randomness Generation](#122-strategies-for-randomness-generation)
-      + [1.2.3 The Historical Evolution of Ouroboros Randomness Generation](#123-the-historical-evolution-of-ouroboros-randomness-generation)
-      + [1.2.4 Comparing Ouroboros Randomness Generation with Ethereum](#124-comparing-ouroboros-randomness-generation-with-ethereum)
-      + [1.2.5 Conclusion: The reasons behind Ouroboros Praos](#125-conclusion-the-reasons-behind-ouroboros-praos)
-    - [1.3 Leader Election in Praos](#13-leader-election-in-praos)
-      + [1.3.1 Oblivious Leader Selection](#131-oblivious-leader-selection)
-      + [1.3.2 Application of Verifiable Random Function (VRF)](#132-application-of-verifiable-random-function-vrf)
-      + [1.3.3 Epoch Structure](#133-epoch-structure)
-      + [1.3.4 Epoch & Phases Length](#134-epoch--phases-length)
-      + [1.3.5 The Randomness Generation Sub-Protocol](#135-the-randomness-generation-sub-protocol)
-    - [1.4 Forks, Rollbacks, Finality and Settlement Times](#14-forks-rollbacks-finality-and-settlement-times)
-  - [**2. The Grinding Attack Algorithm**](#2-the-grinding-attack-algorithm)
-    - [2.1 Randomness Manipulation Objectives](#21-randomness-manipulation-objectives)
-      + [2.1.1 Exposure](#211-exposure)
-      + [2.1.2 Slot Leader Distribution Selection](#212-slot-leader-distribution-selection)
-      + [2.1.3 Potential Outcomes of Grinding Attacks](#213-potential-outcomes-of-grinding-attacks)
-    - [2.2 Non-Exhaustive Manipulation Strategy List](#22-non-exhaustive-manipulation-strategy-list)
-      + [2.2.1 System Model](#221-system-model)
-      + [2.2.2 Self Mixing Strategy](#222-self-mixing-strategy)
-      + [2.2.3 Forking Strategies](#223-forking-strategies)
-  - [**3. The Cost of Grinding: Adversarial Effort and Feasibility**](#3-the-cost-of-grinding-adversarial-effort-and-feasibility)
-    - [3.1 Definitions](#31-definitions)
-      + [3.1.1 α-heavy and Heaviness](#311-α-heavy-and-heaviness)
-      + [3.1.2 Grinding Power g](#312-grinding-power-g)
-      + [3.1.3 Grinding Windows](#314-grinding-windows)
-        * [3.1.3.1 Opportunity Windows](#3141-opportunity-windows-wo)
-        * [3.1.3.2 Target Window](#3142-target-window-wt)
-    - [3.2 Entry Ticket: Acquiring Stake to Play the Lottery](#32-entry-ticket-acquiring-stake-to-play-the-lottery)
-    - [3.3 Cost of a Grinding Attempt](#33-cost-of-a-grinding-attempt)
-      + [3.3.1 Nonce Generation](#331-nonce-generation)
-      + [3.3.2 Slot Leader Distribution Evaluation](#332-slot-leader-distribution-evaluation)
-      + [3.3.3 Strategic Benefit Evaluation](#333-strategic-benefit-evaluation)
-      + [3.3.4 Total Estimated Time per Grinding Attempt](#334-total-estimated-time-per-grinding-attempt)
-    - [3.4 Cost of a Grinding Attack](#34-cost-of-a-grinding-attack)
-      + [3.4.1 Formula](#341-formula)
-      + [3.4.2 Estimated Formula Using Mainnet Cardano Parameters](#342-estimated-formula-using-mainnet-cardano-parameters)
-    - [3.5 Scenarios](#35-scenarios)
-    - [3.6 Grinding Power Computational Feasibility](#36-grinding-power-computational-feasibility)
-- [**Goals**](#goals)
-- [**Open Questions**](#open-questions)
-- [**References**](#references)
-- [**Copyright**](#copyright)
+- [**1. Preliminaries**](#1-preliminaries)
+  - [1.1 Fundamental Properties](#11-fundamental-properties)
+    + [1.1.1 Transaction Ledger Properties](#111-transaction-ledger-properties)
+      * [1.1.1.1 Persistence with the security parameter k](#1111-persistence-with-the-security-parameter--textk-in-mathbbn-)
+      * [1.1.1.2 Liveness with the transaction confirmation time parameter u](#1112-liveness-with-the-transaction-confirmation-time-parameter--textu-in-mathbbn-)
+    + [1.1.2 Chain Properties](#112-chain-properties)
+      * [1.1.2.1 Common Prefix (CP)](#1121-common-prefix-cp)
+      * [1.1.2.2 Existential Chain Quality (∃CQ)](#1122-existential-chain-quality-cq)
+      * [1.1.2.3 Chain Growth (CG)](#1123-chain-growth-cg)
+  - [1.2 The Coin-Flipping Problem](#12-the-coin-flipping-problem)
+    + [1.2.1 Defining the Problem](#121-defining-the-problem)
+    + [1.2.2 Strategies for Randomness Generation](#122-strategies-for-randomness-generation)
+    + [1.2.3 The Historical Evolution of Ouroboros Randomness Generation](#123-the-historical-evolution-of-ouroboros-randomness-generation)
+    + [1.2.4 Comparing Ouroboros Randomness Generation with Ethereum](#124-comparing-ouroboros-randomness-generation-with-ethereum)
+    + [1.2.5 Conclusion: The reasons behind Ouroboros Praos](#125-conclusion-the-reasons-behind-ouroboros-praos)
+  - [1.3 Leader Election in Praos](#13-leader-election-in-praos)
+    + [1.3.1 Oblivious Leader Selection](#131-oblivious-leader-selection)
+    + [1.3.2 Application of Verifiable Random Function (VRF)](#132-application-of-verifiable-random-function-vrf)
+    + [1.3.3 Epoch Structure](#133-epoch-structure)
+    + [1.3.4 Epoch & Phases Length](#134-epoch--phases-length)
+    + [1.3.5 The Randomness Generation Sub-Protocol](#135-the-randomness-generation-sub-protocol)
+  - [1.4 Forks, Rollbacks, Finality and Settlement Times](#14-forks-rollbacks-finality-and-settlement-times)
+- [**2. The Grinding Attack Algorithm**](#2-the-grinding-attack-algorithm)
+  - [2.1 Randomness Manipulation Objectives](#21-randomness-manipulation-objectives)
+    + [2.1.1 Exposure](#211-exposure)
+    + [2.1.2 Slot Leader Distribution Selection](#212-slot-leader-distribution-selection)
+    + [2.1.3 Potential Outcomes of Grinding Attacks](#213-potential-outcomes-of-grinding-attacks)
+  - [2.2 Non-Exhaustive Manipulation Strategy List](#22-non-exhaustive-manipulation-strategy-list)
+    + [2.2.1 System Model](#221-system-model)
+    + [2.2.2 Self Mixing Strategy](#222-self-mixing-strategy)
+    + [2.2.3 Forking Strategies](#223-forking-strategies)
+- [**3. The Cost of Grinding: Adversarial Effort and Feasibility**](#3-the-cost-of-grinding-adversarial-effort-and-feasibility)
+  - [3.1 Definitions](#31-definitions)
+    + [3.1.1 α-heavy and Heaviness](#311-α-heavy-and-heaviness)
+    + [3.1.2 Grinding Power g](#312-grinding-power-g)
+    + [3.1.3 Grinding Windows](#314-grinding-windows)
+      * [3.1.3.1 Opportunity Windows](#3141-opportunity-windows-wo)
+      * [3.1.3.2 Target Window](#3142-target-window-wt)
+  - [3.2 Entry Ticket: Acquiring Stake to Play the Lottery](#32-entry-ticket-acquiring-stake-to-play-the-lottery)
+  - [3.3 Cost of a Grinding Attempt](#33-cost-of-a-grinding-attempt)
+    + [3.3.1 Nonce Generation](#331-nonce-generation)
+    + [3.3.2 Slot Leader Distribution Evaluation](#332-slot-leader-distribution-evaluation)
+    + [3.3.3 Strategic Benefit Evaluation](#333-strategic-benefit-evaluation)
+    + [3.3.4 Total Estimated Time per Grinding Attempt](#334-total-estimated-time-per-grinding-attempt)
+  - [3.4 Cost of a Grinding Attack](#34-cost-of-a-grinding-attack)
+    + [3.4.1 Formula](#341-formula)
+    + [3.4.2 Estimated Formula Using Mainnet Cardano Parameters](#342-estimated-formula-using-mainnet-cardano-parameters)
+  - [3.5 Scenarios](#35-scenarios)
+  - [3.6 Grinding Power Computational Feasibility](#36-grinding-power-computational-feasibility)
 
-  
-## Problem
+- [**4. References**](#4-references)  
+- [**5. Copyright**](#5-copyright)  
 
-To fully grasp the context and accurately assess the level of vulnerability, it is crucial to **clearly define how the Praos protocol handles randomness** and eliminate any ambiguity in its implementation. This precise understanding will then serve as a foundation for **identifying and defining these potential attack vectors**. We will refer to these types of attacks as Grinding Attacks throughout this document.
-
+These entries can be integrated into your existing Table of Contents, replacing the unnumbered versions, to maintain consistency with the section headers in your document.
 ## 1. Preliminaries
 
 This section introduces the pertinent parts of the Cardano proof- of-stake consensus protocol. We focus on randomness generation and leader selection and omit irrelevant protocol details.
@@ -1494,48 +1500,7 @@ The cost difference between the most expensive scenario (Owl Survey) and the che
 | **🔴 🚫 Infeasible**                      | $[87, 256)$    | $[85, 256)$    | $[62, 256)$   | $[62, 256)$    |
 
 
----
-
-## Goals
-
-<!-- A list of goals and non-goals a project is pursuing, ranked by importance. These goals should help understand the design space for the solution and what the underlying project is ultimately trying to achieve.
-
-Goals may also contain requirements for the project. For example, they may include anything from a deadline to a budget (in terms of complexity or time) to security concerns.
-
-Finally, goals may also serve as evaluation metrics to assess how good a proposed solution is. -->
-
-    
-The goal is to **mitigate or completely eliminate grinding attacks** on the protocol by introducing **targeted protocol enhancements** to address this issue. Two approaches are actively being explored to address the **Randomness Manipulation Problem**:  
-
-- **Complete Elimination of Grinding Attacks** – Ongoing research aims to make the protocol fully resistant to such attacks. One notable example is *[Efficient Random Beacons with Adaptive Security for Ungrindable Blockchains](https://eprint.iacr.org/2021/1698.pdf).*  
-- **Partial Mitigation by Increasing Attack Complexity** – While full protection may not yet be feasible, making such attacks **computationally and economically prohibitive** can significantly reduce their viability. This approach is the basis of the **Phalanx CIP** (Coming soon)].   
-
-However, while **fully protecting the protocol from Randomness Manipulation attacks** may not yet be feasible, it is crucial to advance in the following areas:  
-
-- **Risk Quantification** : Assessing the **profitability and feasibility of attacks**, along with **refining risk assessment models**, will provide deeper insights into vulnerabilities and their potential impact on the protocol's security and stability.  
-
-- **Transparency on Manipulations** : **Enhancing detection mechanisms**, such as **self-mixing analysis** and **forking manipulation detection**, can help identify potential exploits and assess ongoing threats in real time.  
-
-- **Game Theory & Economic Disincentives** –   
-  **Promoting stake operator diversity** and **strengthening decentralization incentives** will reduce the economic viability of manipulation, fostering a more **resilient and distributed** stake pool ecosystem.  
-
-We strongly encourage the community to actively engage in addressing this challenge by contributing research, proposing solutions, and participating in discussions. Collaborative efforts will be crucial in refining detection mechanisms, strengthening protocol resilience, and ensuring the long-term security and fairness of Ouroboros.
-
-## Open Questions
-<!-- A set of questions to which any proposed solution should find an answer. Questions should help guide solutions design by highlighting some foreseen vulnerabilities or design flaws. Solutions in the form of CIP should thereby include these questions as part of their 'Rationale' section and provide an argued answer to each. -->
-
-<!-- OPTIONAL SECTIONS: see CIP-9999 > Specification > CPS > Structure table -->
-
-- *How vulnerable is Cardano to randomness manipulation, and what are the potential consequences?*  
-- *Is Cardano currently being manipulated?*  
-- *Are we effectively discouraging randomness manipulation?*  
-- *How does handling the worst-case scenario of a grinding attack impact the security parameter $K$ in the Ouroboros consensus protocol?*  
-- *Who stands to benefit from a grinding attack?*  
-- *What are the practical limits of a grinding attack given the current computational power available on the market?*  
-- *Are these randomness manipulation strategies economically viable?*  
-
-
-## References 
+## 4. References 
  
 - [KRD017 - Ouroboros- A provably secure proof-of-stake blockchain protocol](https://eprint.iacr.org/2016/889.pdf)
 - [DGKR18 -  Ouroboros Praos/ An adaptively-secure, semi-synchronous proof-of-stake blockchain](https://eprint.iacr.org/2017/573.pdf)
@@ -1546,8 +1511,6 @@ We strongly encourage the community to actively engage in addressing this challe
 - [Security of Proof-of-Stake Blockchains](https://search.worldcat.org/title/1336590866)
 
 
-## Copyright
-<!-- The CIP must be explicitly licensed under acceptable copyright terms.  Uncomment the one you wish to use (delete the other one) and ensure it matches the License field in the header: -->
+## 5. Copyright
 
-This CIP is licensed under [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/legalcode).
-<!-- This CIP is licensed under [Apache-2.0](http://www.apache.org/licenses/LICENSE-2.0). -->
+This CIP is licensed under [Apache-2.0](http://www.apache.org/licenses/LICENSE-2.0).
