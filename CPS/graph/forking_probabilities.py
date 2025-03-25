@@ -44,6 +44,23 @@ def number_attempts(w):
 def expectation(w,x,s):
     return proba_attempts(w, x, s) * number_attempts_adv(w, x)
 
+def expectation_g_over_w(w,x,s):
+  return proba_attempts(w, x, s) * number_attempts_adv(w, x) / w
+  
+# Expected number of grinding attempts for an interval of size w blocks,
+# and x blocks controlled by the adversary with stake s:
+def window_expectation(w,x,s):
+  return w  *proba_attempts(w,x,s)
+    # acc = Decimal(w)
+    # if x == w:
+    #   acc = acc * Decimal(s)**w
+    # else:
+    #   for i in range(1, w-x+1):
+    #     acc = acc * Decimal(w+1-i) / Decimal(i) * Decimal(s) * Decimal(1-s)
+    #   for i in range(w-x+1, x+1):
+    #     acc = acc * Decimal(w+1-i) / Decimal(i) * Decimal(s)
+    # return acc
+
 # The expected number of grinding attempt for an interval of size d
 # and an adversary with s stake:
 # C(w, s) = Sum_{d=1}^w ( Sum_{x=d/2}^d B_{d,s}(x) * S(d,x) )
@@ -55,7 +72,33 @@ def eg(s, precision=10, cores=2):
   results = Parallel(n_jobs=cores)(delayed(expectation)(w, x, s) for x in range(math.ceil(w/2),w+1))
   for res in results:
     p += res
- return (s, Decimal(1-s) * p)  
+ return (s, Decimal(1-s) * p)
+
+
+# The expected length of the opportunity window for an adversary with s stake:
+# C(w, s) = Sum_{d=1}^w ( Sum_{x=d/2}^d B_{d,s}(x) * w )
+# For Praos, s ~= 21600 * 4 / 10, but this number is too high for scipy
+# This function can still be used to show the convergence with increasingly high s however
+def ew(s, precision=10, cores=2):
+ p = Decimal(0)
+ for w in range(1, precision):
+  results = Parallel(n_jobs=cores)(delayed(window_expectation)(w, x, s) for x in range(math.ceil(w/2),w+1))
+  for res in results:
+    p += res
+ return (s, Decimal(1-s) * p)
+
+
+# The expected length of the opportunity window for an adversary with s stake:
+# C(w, s) = Sum_{d=1}^w ( Sum_{x=d/2}^d B_{d,s}(x) * w )
+# For Praos, s ~= 21600 * 4 / 10, but this number is too high for scipy
+# This function can still be used to show the convergence with increasingly high s however
+def egw(s, precision=10, cores=2):
+ p = Decimal(0)
+ for w in range(1, precision):
+  results = Parallel(n_jobs=cores)(delayed(expectation_g_over_w)(w, x, s) for x in range(math.ceil(w/2),w+1))
+  for res in results:
+    p += res
+ return (s, Decimal(1-s) * p / Decimal(0.05))
 
 # Computes and print the expectation of grinding attempts for all adversaries
 def all_egs(precision=10, cores=1):
@@ -67,6 +110,26 @@ def all_egs(precision=10, cores=1):
  print("\nTable of grinding attempts")
  print(tabulate(table, headers, tablefmt='orgtbl'))
 
+
+# Computes and print the expectation of grinding attempts for all adversaries
+def all_egws(precision=10, cores=1):
+ results = Parallel(n_jobs=cores)(delayed(egw)(s, precision) for s in stakes)
+ res = sorted(results, key=lambda x : x[0])
+ # Printing tables (use tabulate's option tablefmt="plain" to have no lines)
+ headers = ["stake (%)"] + ["{:.1f}%".format(s*100) for s in stakes]
+ table = [["E(g/w)"] + ["{0:.2E}".format(r[1]) for r in res]]
+ print("\nTable of grinding attempts")
+ print(tabulate(table, headers, tablefmt='orgtbl'))
+
+# Computes and print the expectation of grinding attempts for all adversaries
+def all_ews(precision=10, cores=1):
+ results = Parallel(n_jobs=cores)(delayed(ew)(s, precision) for s in stakes)
+ res = sorted(results, key=lambda x : x[0])
+ # Printing tables (use tabulate's option tablefmt="plain" to have no lines)
+ headers = ["stake (%)"] + ["{:.1f}%".format(s*100) for s in stakes]
+ table = [["E(w)"] + ["{0:.2E}".format(r[1]) for r in res]]
+ print("\nTable of opportunity window")
+ print(tabulate(table, headers, tablefmt='orgtbl'))
 
 def proba_diff(diff, s, precision=10):
  ps = []
@@ -102,7 +165,67 @@ def tables(precision=10, cores=1):
  table_year = [[pows[i]] + ["{:.2E}".format(5./(float(el)*365.0)) if float(el) !=0 else "-" for el in row] for (i,row) in enumerate(table)]
  print("\nTable of frequencies (year)")
  print(tabulate(table_year, headers, tablefmt='orgtbl'))
+ 
+def chernoff_bound(k,n,p):
+  a = Decimal(1.0) *Decimal(k) / Decimal(n)
+  a_bar = Decimal(1) - a
+  p_bar = Decimal(1) - Decimal(p)
+  rel_entropy = a * Decimal(math.log(a/Decimal(p))) + a_bar * Decimal(math.log(a_bar/p_bar))
+  return Decimal(math.exp(Decimal(-1.0) * n * rel_entropy))
 
+# Computes an approximation of the cumulative distribution function
+def cdf(k,n,p):
+  assert(k <= n*p)
+  return chernoff_bound(k,n,p)
+
+# Computes an approximation of the survival function
+def sf(k,n,p):
+  assert(k >= n*p)
+  return chernoff_bound(n-k, n, 1.0-p)
+  
+def approx_ew(s):
+  # There is on average 21,600 blocks in an epoch and the active coefficient
+  # ratio f=0.05 and s from s-CQ correspond to 4/10th of an epoch
+  acc_upper = Decimal(3) # if i <= 2 the chernoff bound will fail as log(0) is not defined
+  acc_lower = Decimal(0)
+  for i in range(3, math.ceil(4*21600/10)+1):
+    ki = math.floor(i/2)+1.0
+    chernoff = sf(ki, i, s)
+    acc_upper += Decimal(i)*chernoff
+    acc_lower += Decimal(i / math.sqrt(8*ki*(1-ki/i))) * chernoff
+  factor = Decimal((1-s)/0.05)
+  acc_upper *= factor
+  acc_lower *= factor
+  return s, min(172800, acc_lower), min(172800, acc_upper)
+
+def approx_ews(cores=1):
+  results = Parallel(n_jobs=cores)(delayed(approx_ew)(s) for s in stakes)
+  tuples = sorted(results, key=lambda x: x[0])
+  res_table = []
+  for i in range(2):
+    res_table.append( [e[1+i] for e in tuples])
+  # Printing tables (use tabulate's option tablefmt="plain" to have no lines)
+  headers =  ["{:.1f}%".format(s*100) for s in stakes]
+  table = []
+  # Table in hours and minute
+  # for res_row in res_table:
+  #   row = []
+  #   for el in res_row:
+  #     e = round(el)
+  #     if e >= 3600:
+  #       hours = math.floor(e / 3600)
+  #       mins = math.ceil((e - 3600 * hours)/60)
+  #       row += [str(hours)+"h"+str(mins)]
+  #     else:
+  #       if e >= 60:
+  #         mins = math.ceil(e/60)
+  #         row += [str(mins)+"min"]
+  #       else:
+  #         row += [str(e)+"s"]
+  #   table.append(row)
+  table = [["lower bound w_o"] + res_table[0], ["upper bound w_o"] + res_table[1]]
+  print("\nTable of upper bound of opportunity windows")
+  print(tabulate(table, headers, tablefmt='orgtbl'))
 
 def parseArguments():
     # Create argument parser
@@ -128,7 +251,11 @@ if __name__ == '__main__':
   print("Printing forking's figures with precision={}".format(precision))
   
   # Run function
-  all_egs(precision, cores)
+  all_ews(precision, cores)
+  # approx_ews(cores)
   
-  # Run tables
-  tables(precision, cores)
+  # # Run function
+  # all_egws(precision, cores)
+  
+  # # Run tables
+  # tables(precision, cores)

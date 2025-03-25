@@ -793,8 +793,6 @@ The grinding power for a given interval of size $w$ is the sum of $g_w(X)(X_A)$ 
 ```math
 g_w = \sum_{X_A \geq \frac{w}{2}}^{w} g_w(X_A)
 ```
-Similarly, we define the **grinding depth**, $\rho$, as the logarithm of the grinding power: $\rho = \log_2 g$, and bound it by $0 \leq \rho \leq 256$. It determines the **entropy reduction** caused by an adversary's nonce manipulation, directly impacting the protocol's resistance to randomness biasing, that is the number of bits of randomness an adversary can manipulate.
-
 In a simplified model where the multi-slot leader feature is not considered, the probability an adversary with $\text{stake}_A \in (0,1)$ stake controls $X_A$ out of $w$ blocks is:
 
 ```math
@@ -817,6 +815,9 @@ We can now define the expected grinding power $\mathbb{E}(g)$:
 
 In **Cardano mainnet**, the nonce size used in the randomness beacon is **256 bits**, meaning the theoretical maximum grinding power is $g_{\max} = 2^{256}$. However, practical grinding power is typically limited by computational constraints and stake distribution dynamics.
 
+Similarly, we define the **grinding depth**, $\rho$, as the logarithm of the grinding power: $\rho = \log_2 g$, and bound it by $0 \leq \rho \leq 256$. It determines the **entropy reduction** caused by an adversary's nonce manipulation, directly impacting the protocol's resistance to randomness biasing, that is the number of bits of randomness an adversary can manipulate.
+
+
 #### 3.1.3 Grinding Windows
 
 #### 3.1.3.1 Opportunity Windows $w_O$
@@ -833,17 +834,13 @@ For simplicity, we consider that a honest block is produced at slot $S_2 + 1$. A
 \frac{X_A(w)}{f} \leq w_O \leq \frac{w}{f} \text{ when w is A-heavy}
 ```
 
-**N.B.** Contrary to the grinding power that is upper-bounded by $2^{256}$, the grinding window is not.
+Similarly to the grinding power, we can define the expected grinding window as:
+
+**N.B.** Contrary to the grinding power that is upper-bounded by $2^{256}$, the grinding window is upper bounded by the $s$-CQ period.
 
 - **Parameters**:
   - $f$: Active slot coefficient (e.g., $\frac{1}{20}$), the fraction of slots with a leader.
   - Slot duration = 1 second.
-
-<div align="center">
-<img src="./image/grinding-depth-vs-opportunity-window.png" alt=""/>
-</div>
-
-✏️ **Note**: The code to generate this graph is available at ➡️ [this link](./graph/window0_graph.py).
 
 Let's consider the worst case where the adversary controls all trailing slots ($g = 1 \Leftrightarrow w=X_A(w)$):
 - **$w = 16$**:
@@ -857,6 +854,27 @@ Let's consider the worst case where the adversary controls all trailing slots ($
   - Starts at $S_2 - w + 1 = 259,200 - 256 + 1 = 258,945$, ends at $259,200 + 20 = 259,220$.
 
 This sizing ensures the adversary has time to act before honest chain growth threatens even a length-1 chain, providing a practical and conservative bound for grinding feasibility.
+
+```math
+\begin{align*}
+\mathbb{E}(w_O) &= \frac{1-\text{stake}_A}{f} \sum_{d=1}^s \sum_{X_A \geq d/2}^{d} d \cdot P(\text{$\exists X_A \in d$})\\
+                &= \frac{1-\text{stake}_A}{f} \sum_{d=1}^s d \cdot P(X_A \geq \lfloor \frac{d}{2} \rfloor +1)\\
+\end{align*}
+```
+
+Using Chernoff inequality, we have
+```math
+\frac{1-\text{stake}_A}{f} \sum_{d=1}^s \frac{d \cdot \Gamma_{\lceil d / 2\rceil + 1,d,1- \text{stake}_A}}{\sqrt{8 \cdot d \cdot \frac{\lceil d / 2\rceil + 1}{d} (1 - \frac{\lceil d / 2\rceil + 1}{d}) }}  \quad\leq\quad \mathbb{E}(w_O) \quad\leq\quad \frac{1-\text{stake}_A}{f} \sum_{d=1}^s d \cdot \Gamma_{\lceil d / 2\rceil + 1,d,1- \text{stake}_A}\\
+\text{ with } \Gamma_{k,n,p} = e^{(-n \cdot D(\frac{k}{n} || p ))}\ \text{ where }\ D(\frac{k}{n} ||p) =  \frac{k}{n} \cdot ln(\frac{k}{np}) + (1 - \frac{k}{n})\cdot ln(\frac{1- \frac{k}{n}}{1-p})\\
+
+``` 
+
+We display here the average grinding window as function of adversarial stake $\text{stake}_A$:
+
+| $\text{stake}_A$ (%)   |    0.5       |     1     |     2     |     5      |     10     |     20     |     25     |     30      |     33       |     40     |     45    |     49    |
+| :--------------------: | :-------:    | :------:  | :-------: | :--------: | :--------: | :--------: | :--------: | :---------: | :----------: | :--------: | :-------: | :-------: |
+| $E(w_O)_\text{min}$    |  0s      	  | 0s        | 0s      	| 1s    	   | 3s      	  | 25s     	 | 2min    	  |  3min   	  |  5min   	   |  31min     | 4h35   	  | 48h       |
+| $E(w_O)_\text{max}$    |  1min    	  | 1min      | 1min    	| 1min    	 | 2min   	  | 3min     	 | 6min    	  |  16min   	  |  34min   	   |  5h49      | 48h     	| 48h       |
 
 ##### 3.1.3.2 Target Window $w_T$
 
@@ -982,15 +1000,12 @@ We display here the probabilities of an adversary with a stake of $\text{stake}_
 </details>
 </br>
 
-
-
 <div align="center">
-<!-- <img src="grinding_forking_probabilities.png" alt="" /> -->
 <img src="grinding_forking_years.png" alt="" />
 </div>
 
 
-We now tabulatethe grinding power's expectation when looking at different precision $s$. While the expectation converges quickly for small stake, smaller than 20\%, we can note it significicantly rises afterwards.
+We now tabulate the grinding power's expectation when looking at different precision $s$. While the expectation converges quickly for small stake, smaller than 20\%, we can note it significicantly rises afterwards.
  $\text{precision} \text{ vs stake}_A$ |   0.5% |   1.0% |   2.0% |   5.0% |   10.0% |   20.0% |    25.0% |    30.0% |     33.0% |     40.0% |     45.0% |     49.0% |
 | :----------------------------------: | :----: | :----: | :----: | :----: | :-----: | :-----: | :------: | :------: | :-------: | :-------: | :-------: | :-------: |
 | 16                                   | 0.0203 | 0.0414 | 0.0857 |  0.242 |   0.636 |    3.49 |     8.86 |       22 |      36.8 |       108 |       209 |       334 |
@@ -1007,14 +1022,18 @@ We can approximate the expected grinding power as an exponential function of the
 <img src="./image/grinding_moment.png" alt="" />
 </div>
 
-<!-- 
-<img src="./image/proba_controlling_majority_x_blocks.png" alt="" width="500"/>
-<img src="./image/table-legend.png" alt="" width="500"/>
--->
 
-The details of the calculations underlying this table can be found in the following Google Spreadsheet: [Details of Calculations](https://docs.google.com/spreadsheets/d/1DGG4tXTngc2Zu5_IMlWsPoARksgBEMbTCyqBAgKHe7E/edit?gid=0#gid=0).
+We finally show the average opportunity grinding window figures, in blocks, for different precisions where we can see the same behavior.
 
-For example, with **5% adversarial stake**, it would take about **1800 years** in average for an adversary to obtain an advantage of of exactly 4 blocks at the critical juncture.
+|  $\text{precision} \text{ vs stake}_A$ | 0.5%      | 1.0%      | 2.0%      | 5.0%      | 10.0%     | 20.0%     | 25.0%      | 30.0%      | 33.0%       | 40.0%       | 45.0%       | 49.0%       |
+| :------------------------------------: | :-------: | :-------: | :-------: | :-------: | :-------: | :--------: | :--------: | :---------: | :---------: | :---------: | :-------: | :---------: |
+|                                     10 | 0.0257 | 0.0527 |  0.111 |  0.329 |   0.881 |    2.96 |    4.51 |    6.32 |    7.47 |    10.1 |    11.7 |    12.7  |
+|                                     50 | 0.0257 | 0.0527 |  0.111 |   0.33 |    0.91 |    4.15 |    8.97 |    20.9 |    35.6 |     114 |     215 |     307 |
+|                                    100 | 0.0257 | 0.0527 |  0.111 |   0.33 |    0.91 |    4.15 |       9 |    21.8 |    40.5 |     216 |     638 |    1,170 |
+|                                    200 | 0.0257 | 0.0527 |  0.111 |   0.33 |    0.91 |    4.15 |       9 |    21.8 |    40.8 |     290 |    1,590 |    4,350 |
+|                                    500 | 0.0257 | 0.0527 |  0.111 |   0.33 |    0.91 |    4.15 |       9 |    21.8 |    40.8 |     306 |    3,480 |   23,700 |
+|                                   1000 | 0.0257 | 0.0527 |  0.111 |   0.33 |    0.91 |    4.15 |       9 |    21.8 |    40.8 |     306 |    4,260 |   80,200 |
+
 
 ####  The Results
 
@@ -1059,7 +1078,7 @@ Since the VRF outputs can be precomputed, we can discard them from the computati
 We make the assumption that hashing $n$ inputs takes as much time as hashing $n$ times two inputs, that is that the finalization step of a hashing function is not significant. We also look at the worst case scenario, for simplification, and assume that $g = 2^{X_A(w)}$.
 
 ```math
-T_{\text{nonce}}^\rho =  T_{\text{BLAKE2b}} \cdot \frac{\sum_i i  \cdot \binom{\rho + i}{\rho}}{2^\rho} = \frac{\rho}{2} \cdot T_{\text{BLAKE2b}}
+T_{\text{nonce}}^\rho =  T_{\text{BLAKE2b}} \cdot \frac{\sum_i i  \cdot \binom{\rho + i}{\rho}}{\sum_i \binom{\rho + i}{\rho}} \approx 2(\rho - 1) \cdot T_{\text{BLAKE2b}}
 ```
 **N.B.** We may drop the superscript $\rho$ for readibility.
 
@@ -1128,14 +1147,14 @@ T_{\text{grinding}} = T_{\text{nonce}} + T_{\text{distribution}} + T_{\text{eval
 
 Expanding each term:
 
-- **Nonce Generation:** : $T_{\text{nonce}} = \frac{\rho}{2} \cdot T_{\text{BLAKE2b}}$
+- **Nonce Generation:** : $T_{\text{nonce}} \approx 2 (\rho -1) \cdot T_{\text{BLAKE2b}}$
 - **Slot Leader Verification** : $T_{\text{verify}} = w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} )$
 - **Strategic Evaluation** : $T_{\text{eval}}$ (attack-dependent term)
 
 Final expression:
 
 ```math
-T_{\text{grinding}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}}
+T_{\text{grinding}} \approx 2 (\rho -1) T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}}
 ```
 
 Where:
@@ -1152,10 +1171,10 @@ Where:
 
 A **grinding attack** consists of multiple grinding attempts executed within the **grinding opportunity window** $w_O$. Since each grinding attempt takes time to compute, the feasibility of the attack depends on whether the total computation can be completed within this window.
 
-We define the **total attack time** as:
+We define the average **total attack time** as:
 
 ```math
-T_{\text{attack}} = \frac{2^{\rho} \cdot T_{\text{grinding}}}{N_{\text{CPU}}}
+T_{\text{attack}} =  \frac{2^{\rho} \cdot T_{\text{grinding}}}{N_{\text{CPU}}}
 ```
 
 where:
@@ -1166,9 +1185,9 @@ where:
 For the attack to be feasible, this total time must fit within the **grinding opportunity window** $w_O$:
 
 ```math
-\frac{2^{\rho} \cdot T_{\text{grinding}}}{N_{\text{CPU}}} \leq w_O
+T_\text{attack} \leq w_O
 ```
-which leads to the lower bound on computational power ($N_CPU$) : 
+which leads to the lower bound on computational power ($N_\text{CPU}$) : 
 
 ```math
 N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot T_{\text{grinding}}}{w_O}\right \rceil
@@ -1178,13 +1197,13 @@ N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot T_{\text{grinding}}}{w_O}\
 From **Section 3.3**, the per-attempt grinding time is:
 
 ```math
-T_{\text{grinding}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}}
+T_{\text{grinding}} \approx 2 (\rho -1) T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}}
 ```
 
 Substituting this into the inequality:
 
 ```math
-N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right)}{w_O} \right \rceil
+N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot \left( 2 (\rho -1) T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right)}{w_O} \right \rceil
 ```
 
 
@@ -1192,32 +1211,23 @@ N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\
 From previous sections, the **grinding opportunity window** is:
 
 ```math
-\frac{X_A(w)}{f} \leq w_O \leq \frac{w}{f}
+\frac{X_A(w)}{f} \leq w_O \leq \frac{w}{f} \text{ when w is heavy}
 ```
 
 Substituting this into our equation:
+ <!-- \frac{1-\text{stake}_A}{f} \sum_{d=1}^s \sum_{X_A \geq d/2}^{d} d \cdot P(\text{$\exists X_A \in d$})\
+&= (1-\text{stake}_A) \sum_{d=1}^s \sum_{X_A \geq d/2}^{d} g_d(X_A) \cdot P(\text{$\exists X_A \in d$}) -->
+
+
 
 ```math
 \begin{align*}
-N_{\text{CPU}} &\geq  \left \lceil f \cdot \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right)}{w} \right \rceil\\
-& \geq  \left \lceil f \cdot \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right)}{2\cdot \rho - 1} \right \rceil \text{ as } w < 2 \cdot \rho - 1\\
-& >  \left \lceil f \cdot 2^{\rho-1} \cdot T_{\text{BLAKE2b}} + \frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right) \right \rceil
-\end{align*}
-```
-We end up with this final expression : 
-```math
-\begin{align*}
-N_{\text{CPU}} >  \left \lceil f \cdot 2^{\rho-1} \cdot T_{\text{BLAKE2b}} + \frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right) \right \rceil
+N_{\text{CPU}} &\geq  \left \lceil \frac{f \cdot 2^{\rho}}{w}   \cdot \left( 2 (\rho -1) T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right) \right \rceil\\
+&\geq  \left \lceil \frac{5 \cdot f }{N} \cdot 2^{\rho-1}  \cdot \left( 2 (\rho -1) T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right) \right \rceil \text{ as } w \leq s = \frac{4\cdot N}{10}
 \end{align*}
 ```
 
 ### 3.4.2 Estimated Formula Using Mainnet Cardano Parameters
-
-Starting from the final expression at the end of the last section:
-
-```math
-N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho-1} \cdot T_{\text{BLAKE2b}} + \frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right) \right \rceil 
-```
 
 #### Applying Cardano Mainnet Parameters
 Using Cardano’s mainnet values:
@@ -1228,30 +1238,12 @@ Using Cardano’s mainnet values:
 
 Since the eligibility check is negligible, set $T_{\text{eligibility}} \approx 0$:
 
-Substitute into the expression:
-
-- First term: $f \cdot 2^{\rho-1} \cdot T_{\text{BLAKE2b}} = 0.05 \cdot 2^{\rho-1} \cdot 10^{-8} = 5 \cdot 10^{-10} \cdot 2^{\rho-1}$,
-- Second term: $\frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right) = \frac{0.05}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot (10^{-6} + 0) + T_{\text{eval}} \right) = \frac{0.05 \cdot 2^{\rho-1}}{\rho} \cdot (10^{-6} w_T + T_{\text{eval}})$.
-
 Thus, the expression becomes:
 
 ```math
-N_{\text{CPU}} > \left \lceil 5 \cdot 10^{-10} \cdot 2^{\rho-1} + \frac{5 \cdot 10^{-2} \cdot 2^{\rho-1}}{\rho} \cdot (10^{-6} w_T + T_{\text{eval}}) \right \rceil 
+N_{\text{CPU}} > \left \lceil 5.79 \cdot 10^{-7} \cdot  2^{\rho-1} \left( 2 \cdot 10^{-8} \cdot (\rho -1) + 10^{-6} w_T + T_{\text{eval}} \right  ) \right\rceil 
 ```
-
-Simplify:
-
-```math
-N_{\text{CPU}} > \left \lceil 5 \cdot 10^{-10} \cdot 2^{\rho-1} + \frac{5 \cdot 10^{-8} \cdot 2^{\rho-1}}{\rho} \cdot w_T + \frac{5 \cdot 10^{-2} \cdot 2^{\rho-1}}{\rho} \cdot T_{\text{eval}} \right \rceil 
-```
-
-#### Final Expression
-The estimated number of CPUs required is:
-
-```math
-N_{\text{CPU}} > \left \lceil 5 \cdot 10^{-10} \cdot 2^{\rho-1} + \frac{5 \cdot 10^{-14} \cdot 2^{\rho-1}}{\rho} \cdot w_T + \frac{5 \cdot 10^{-2} \cdot 2^{\rho-1}}{\rho} \cdot T_{\text{eval}} \right \rceil 
-```
-
+Where
 - $\rho$: The number of blocks controlled by the adversary.
 - $w_T$: The target window (in seconds), ranging from short (e.g., 3600 s) to a full epoch (e.g., 432,000 s), as defined in [Section 3.5 - Scenarios](#35-scenarios).
 - $T_{\text{eval}}$: The strategic evaluation time (in seconds), varying from 0 to 1, as explored in [Section 3.5 - Scenarios](#35-scenarios).
@@ -1270,21 +1262,23 @@ Following the computational model from [Section 3.4.2 - Estimated Formula Using 
 | **Owl Stare**   | 1 (High)                             | 1h (3600 s)         | An owl staring intently at a small area with keen focus, representing complex evaluation (high $T_{\text{eval}} $) with advanced effort and a narrow observation scope (small $w_T$). |
 | **Owl Survey**  | 1 (High)                             | 5d (432,000 s)      | An owl surveying a wide range with strategic awareness, representing complex evaluation (high $T_{\text{eval}} $) with advanced effort and a broad observation scope (large $w_T$). |
 
-The $N_{\text{CPU}}$ formulas are derived by substituting the respective $w_T$ and $T_{\text{eval}}$ values from each scenario into the base expression : 
-```math 
-N_{\text{CPU}} > \left \lceil 5 \cdot 10^{-10} \cdot 2^{\rho-1} + \frac{5 \cdot 10^{-14} \cdot 2^{\rho-1}}{\rho} \cdot w_T + \frac{5 \cdot 10^{-2} \cdot 2^{\rho-1}}{\rho} \cdot T_{\text{eval}} \right \rceil
-```
-
 | **Scenario**    | **$N_{\text{CPU}}$ Formula**                                                                                     |
 |-----------------|-----------------------------------------------------------------------------------------------------------------|
-| **Ant Glance**  | $5\cdot10^{-10}\cdot2^{\rho-1} + 1.8\cdot10^{-11}\cdot2^{\rho-1}$ |
-| **Ant Patrol**  | $5\cdot10^{-10}\cdot2^{\rho-1} + 2.16\cdot10^{-9}\cdot2^{\rho-1}$ |
-| **Owl Stare**   | $5\cdot10^{-10}\cdot2^{\rho-1} + 1.8\cdot10^{-11}\cdot2^{\rho-1} + 5\cdot10^{-2}\cdot\frac{2^{\rho-1}}{\rho}$ |
-| **Owl Survey**  | $5\cdot10^{-10}\cdot2^{\rho-1} + 2.16\cdot10^{-9}\cdot2^{\rho-1} + 5\cdot10^{-2}\cdot\frac{2^{\rho-1}}{\rho}$ |
+| **Ant Glance**  | $\left \lceil 5.79 \cdot 10^{-7} \cdot  2^{\rho-1} \left( 2 \cdot 10^{-8} \cdot (\rho -1) + 0.004 \right  ) \right\rceil$ |
+| **Ant Patrol**  | $\left \lceil 5.79 \cdot 10^{-7} \cdot  2^{\rho-1} \left( 2 \cdot 10^{-8} \cdot (\rho -1) + 0.432 \right  ) \right\rceil$ |
+| **Owl Stare**   | $\left \lceil 5.79 \cdot 10^{-7} \cdot  2^{\rho-1} \left( 2 \cdot 10^{-8} \cdot (\rho -1) + 1.004 \right  ) \right\rceil$ |
+| **Owl Survey**  | $\left \lceil 5.79 \cdot 10^{-7} \cdot  2^{\rho-1} \left( 2 \cdot 10^{-8} \cdot (\rho -1) + 1.432 \right  ) \right\rceil$ |
 
-<div align="center">
+ 
+TODO: Add new graph
+<!-- <div align="center">
 <img src="./image/grinding-depth-vs-NCPU.png" alt="" />
-</div>
+</div> -->
+
+
+| $\rho$                                                                               |   32    |   64    |    128  |   256   |
+| :----------------------------------------------------------------------------------: | :----:  | :----:  | :----:  | :----:  |
+| $\text{log}\left(N_\text{CPU}^{Owl Survey} - N_\text{CPU}^{Ant Glance}\right)_{10 }$ | 3.25    | 12.9    |   32.15 |  70.68  |
 
 ✏️ **Note**: The code to generate this graph is available at ➡️ [this link](./graph/scenario_cpu_graph.py).
 
@@ -1329,7 +1323,7 @@ The table below summarizes the feasibility for `Owl Survey` ($T_{\text{eval}} = 
 - **Cost**: Assumes $0.01$ per CPU-hour, scaled for the runtime $w_O = 20 (2\rho - 1)$ seconds.
 - **Feasibility**: Assessed based on computational and economic viability, considering global computing resources (e.g., $\sim 10^{12}$ CPUs in modern data centers, $\sim 10^{15}$ CPUs globally as of March 11, 2025).
 
-
+TODO: Update computation
 <details>
 <summary>📌 Example Calculation for ρ = 50 (Owl Survey)</summary>
 
@@ -1477,9 +1471,10 @@ This falls within $\log_{10} 9$ to 12, corresponding to **Borderline Infeasible*
 - [iRender Pricing Information Competitive Cloud Rates](https://www.irender.com/pricing)
 
 
-<div align="center">
+TODO update picture
+<!-- <div align="center">
 <img src="./image/grinding_depth_scenarios_cost_with_feasibility_layers_gradient.png" alt="Grinding Depth Scenarios with Feasibility Thresholds"/>
-</div>
+</div> -->
 
 ✏️ **Note**: The code to generate this graph is available at ➡️ [this link](./graph/scenario_cost-graph.py).
 
