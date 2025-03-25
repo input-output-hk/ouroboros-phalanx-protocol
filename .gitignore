@@ -1,0 +1,6 @@
+
+# OS-generated files
+.DS_Store          # macOS-specific file for folder attributes, ignored recursively
+**/.DS_Store       # Explicitly ignore .DS_Store in all subdirectories
+Thumbs.db          # Windows-specific thumbnail cache
+
