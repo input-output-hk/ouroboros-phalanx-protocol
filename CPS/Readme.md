@@ -146,19 +146,16 @@ The *Coin-Flipping Problem* 🎲 within the **Ouroboros protocol** ⚙️ poses 
 
 ## FAQ (Frequently Asked Questions)
 
-The *Coin-Flipping Problem* 🎲 in the **Ouroboros protocol** ⚙️ prompts common queries about its implications for Cardano’s **security** 🔒 and **decentralization** 🌐. Informed by the [**CPD**](./CPD/Readme.md) 📑, these FAQs clarify key aspects for the **Cardano community** 🌍:
+The *Coin-Flipping Problem* 🎲 in the **Ouroboros protocol** ⚙️ prompts common queries about its implications for Cardano’s **security** 🔒 and **decentralization** 🌐. Informed by the [**CPD**](./CPD/Readme.md), these FAQs clarify key aspects for the **Cardano community** 🌍:
 
-
-
-|-----------------------------------------------------------------------------------------------|
-| [**How might future computational advancements, like quantum computing, impact grinding attack feasibility?** 💻](#faq1) |
-| [**What trade-offs arise between enhancing randomness security and maintaining protocol scalability or performance?** ⚖️](#faq2) |
-| [**How can the protocol adapt to colluding adversaries controlling multiple stake pools without centralized detection?** 🤝](#faq3) |
-| [**What role could off-chain mechanisms play in mitigating randomness manipulation?** 🌐](#faq4) |
-| [**How do grinding attacks interact with other Ouroboros vulnerabilities like long-range attacks or selfish mining?** 🔗](#faq5) |
-| [**What are the implications of grinding attacks on user trust and adoption if manipulation becomes detectable?** 🤔](#faq6) |
-| [**How frequently should randomness mechanisms be re-evaluated to stay ahead of adversarial capabilities?** ⏳](#faq7) |
-| [**Could randomness manipulation disproportionately affect specific network participants like small stake pools or end-users?** 📊](#faq8) |
+- [**How might future computational advancements, like quantum computing, impact grinding attack feasibility?**](#faq1)
+- [**What trade-offs arise between enhancing randomness security and maintaining protocol scalability or performance?**](#faq2)
+- [**How can the protocol adapt to colluding adversaries controlling multiple stake pools without centralized detection?** ](#faq3)
+- [**What role could off-chain mechanisms play in mitigating randomness manipulation?**](#faq4)
+- [**How do grinding attacks interact with other Ouroboros vulnerabilities like long-range attacks or selfish mining?**](#faq5)
+- [**What are the implications of grinding attacks on user trust and adoption if manipulation becomes detectable?**](#faq6) 
+- [**How frequently should randomness mechanisms be re-evaluated to stay ahead of adversarial capabilities?**](#faq7) 
+- [**Could randomness manipulation disproportionately affect specific network participants like small stake pools or end-users?**](#faq8) 
 
 ### Answers
 
