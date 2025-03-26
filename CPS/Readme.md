@@ -148,7 +148,8 @@ The *Coin-Flipping Problem* 🎲 within the **Ouroboros protocol** ⚙️ poses 
 
 The *Coin-Flipping Problem* 🎲 in the **Ouroboros protocol** ⚙️ prompts common queries about its implications for Cardano’s **security** 🔒 and **decentralization** 🌐. Informed by the [**CPD**](./CPD/Readme.md) 📑, these FAQs clarify key aspects for the **Cardano community** 🌍:
 
-| **Question**                                                                                   |
+### Questions 
+||
 |-----------------------------------------------------------------------------------------------|
 | [**How might future computational advancements, like quantum computing, impact grinding attack feasibility?** 💻](#faq1) |
 | [**What trade-offs arise between enhancing randomness security and maintaining protocol scalability or performance?** ⚖️](#faq2) |
@@ -161,33 +162,28 @@ The *Coin-Flipping Problem* 🎲 in the **Ouroboros protocol** ⚙️ prompts co
 
 ### Answers
 
----
-#### FAQ1: [**How might future computational advancements, like quantum computing, impact grinding attack feasibility?** 💻](#faq1)
+#### FAQ1 
+
+[**How might future computational advancements, like quantum computing, impact grinding attack feasibility?** 💻](#faq1)
+
 As **computational technology** advances, particularly **quantum computing**, **grinding attacks** could become more feasible by exponentially enhancing **grinding power** and reducing **cryptographic costs** (e.g., **VRF computation**), beyond the CPS’s current **CPU-based limits** (e.g., $\rho < 64$).  
 
 However, **quantum computing’s** primary threat isn’t grinding-specific—it could compromise **signing primitives** (e.g., deriving **private keys** to impersonate **randomness contributors**), though **key registration delays** prevent on-the-fly key creation. More immediate concerns arise from **hardware evolution** (e.g., faster **cores**, **FPGAs**, **ASICs**), which could significantly boost **attack feasibility**, requiring continuous **security parameter updates** despite debates over **Moore’s law** slowing.
 
----
 #### FAQ2: [**What trade-offs arise between enhancing randomness security and maintaining protocol scalability or performance?** ⚖️](#faq2)
 Enhancing **randomness security**, as in the **Phalanx CIP**, introduces **computational overhead** for honest **stake pool operators (SPOs)** per block, though **adversaries** face exponentially higher costs ($2^\rho$ attempts per **grinding attack**).  
 
 The **trade-off** hinges on mitigation scope—e.g., deterring 10%, 20%, or 40% **stake adversaries**—balancing increased **latency** or **communication overhead** (Section 1.2.2) against **performance**. **Cryptographic primitives** (e.g., **VDFs**, **threshold signatures**) vary not in **computation cost** but in **on-chain space**, **security assumptions** (RSA vs. discrete log), and **maintainability** (group sampling frequency). Simulations with the **consensus team** aim to optimize **thresholds**, minimizing impact on honest **SPOs** while deterring attacks effectively.
-
----
 
 #### FAQ3: [**How can the protocol adapt to colluding adversaries controlling multiple stake pools without centralized detection?** 🤝](#faq3)
 The CPS models **colluding adversaries** as a single entity with **aggregated stake**, where splitting **stake** across pools doesn’t alter their collective **grinding power** or **lottery odds**.  
 
 This abstraction sidesteps **detection challenges**, which resemble a **game theory problem** requiring **decentralized monitoring** (e.g., **fork evolution patterns** to spot suspicious behavior). While the CPS notes the need for enhanced **monitoring**, detecting **collusion** in a **decentralized system** is complex and may warrant a separate CPS. The **community** is encouraged to explore solutions, potentially inspiring a future **CIP** to address this gap without **centralized oversight**.
 
----
-
 #### FAQ4: [**What role could off-chain mechanisms play in mitigating randomness manipulation?** 🌐](#faq4)
 While the CPS focuses on **protocol-level fixes**, **off-chain mechanisms** like **community governance** (e.g., voting to penalize actors) and **monitoring tools** (e.g., analytics for suspicious patterns) could complement **technical safeguards**.  
 
 The high **stake entry barrier** (over 20%, **4.36 billion ADA**, Section 3.2) already deters attacks via **game-theoretic disincentives**—successful **manipulation** risks devaluing the **adversary’s investment**. Adding **transparency** through **off-chain tools**, which are cost-effective to build, could enhance **deterrence**, though defining responses to detected attacks (with **evidence**) remains a complex, potentially contentious issue for future **community exploration**.
-
----
 
 #### FAQ5: [**How do grinding attacks interact with other Ouroboros vulnerabilities like long-range attacks or selfish mining?** 🔗](#faq5)
 **Grinding attacks**, analyzed in isolation in the CPS (Section 2), can amplify other **Ouroboros vulnerabilities**. By manipulating **randomness**, **adversaries** can select favorable **slot leader distributions**, boosting **long-range attacks** (rewriting history via a longer fork) or **selfish mining** (withholding blocks for disproportionate rewards).  
@@ -204,14 +200,10 @@ Rather than a fixed **cadence**, **responsiveness** to detected **manipulation**
 
 The **Phalanx CIP** introduces **evolvability**, raising **grinding costs** adaptively, while **community reactivity**—rather than delayed updates—ensures **resilience**. No purely **parametric consensus fix** exists yet, making **awareness** and rapid response critical to staying ahead.
 
----
-
 #### FAQ8: [**Could randomness manipulation disproportionately affect specific network participants like small stake pools or end-users?** 📊](#faq8)
 **Randomness manipulation** through **grinding** could disproportionately harm **small stake pools** and **end-users**. For **SPOs** with <20% **stake** (Section 3.2), manipulation by larger actors might reduce their **block production chances**, skewing **rewards** and risking **centralization**.  
 
 **End-users** could face longer **settlement times** or **rollbacks** (Section 2.1.3), degrading **usability**. While affecting all participants, **adversaries** might target specific pools’ **slots**, though **long-term impacts** on small **SPOs** may normalize. This underscores the need for targeted **protections** to maintain **fairness** across the network.
-
----
 
 ## Copyright
 
