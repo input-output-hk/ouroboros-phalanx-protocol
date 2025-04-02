@@ -804,7 +804,7 @@ Similarly, we define the **grinding depth**, $\rho$, as the logarithm of the gri
 In a simplified model where the multi-slot leader feature is not considered, the probability an adversary with $\text{stake}_A \in (0,1)$ stake controls $X_A$ out of $w$ blocks is:
 
 ```math
-P(\text{$\exists X_A \in w$}) = \binom{w}{X_A}\ \text{stake}_A^{X_A}\ (1 - \text{stake}_A)^{w-X_A}
+P(\exists X_A \in w) = \binom{w}{X_A}\ \text{stake}_A^{X_A}\ (1 - \text{stake}_A)^{w-X_A}
 ``` 
 
 where:
@@ -817,7 +817,7 @@ We can now define the expected grinding power $\mathbb{E}(g)$:
 ```math
 \begin{align*}
 \mathbb{E}(g) &= \sum_{t=n-s+1}^n g_{n-t} \cdot P(\text{\{slot T is honest and slots T+1..N are A-heavy\}}) \\
-&= (1-\text{stake}_A) \sum_{d=1}^s \sum_{X_A \geq d/2}^{d} g_d(X_A) \cdot P(\text{$\exists X_A \in d$})
+&= (1-\text{stake}_A) \sum_{d=1}^s \sum_{X_A \geq d/2}^{d} g_d(X_A) \cdot P(\exists X_A \in d)
 \end{align*}
 ``` 
 
@@ -1514,3 +1514,4 @@ The cost difference between the most expensive scenario (Owl Survey) and the che
 ## 5. Copyright
 
 This CIP is licensed under [Apache-2.0](http://www.apache.org/licenses/LICENSE-2.0).
+READ
