@@ -2,7 +2,7 @@
 
 ### Cardano Problem Definition (CPD) 
 
-This document is a **Cardano Problem Definition (CPD)**, from which the [**Cardano Problem Statement (CPS): Ouroboros Randomness Generation Sub-Protocol – The Coin-Flipping Problem**](../Readme.md) is derived.  
+This document is a **Cardano Problem Definition (CPD)**, from which the [**Cardano Problem Statement (CPS): Ouroboros Randomness Manipulation**](../README.md) is derived.  
 
 While the **CPS** is being structured for formal submission with a focus on accessibility, and alignment with the **CIP process**, this **CPD** retains the full depth of technical material that shaped the problem understanding. It preserves detailed modeling, cost definitions, and adversarial analysis that could not be fully included in the **CPS** due to scope and formatting constraints. 
 
@@ -662,7 +662,7 @@ However, **longer forks** can have **harmful consequences**. For example, if an 
 This section describes the grinding attack, detailing its objectives, mechanics, and the adversary’s strategy to maximize its effectiveness.
 
 ## 2.1 Randomness Manipulation
-We descrive here the grinding attack Cardano's randomness generation protocol suffers from, from passively waiting for its chance or actively maximizing its attack surface, to choosing the best attack vector - stake distribution - to achieve its goal, be it maximizing rewards to controlling target blocks.
+We describe here the grinding attack Cardano's randomness generation protocol suffers from, from passively waiting for its chance or actively maximizing its attack surface, to choosing the best attack vector - stake distribution - to achieve its goal, be it maximizing rewards to controlling target blocks.
 
 ### 2.1.1 Exposure 
 
@@ -670,7 +670,7 @@ In its current version, Praos has a vulnerability where an adversary can manipul
 
 At the conclusion of Phase 2, when the $\eta^\text{candidate}_{e}$ nonce is determined, the distribution of slot leaders for the next epoch becomes deterministic in a private manner. This means that, at this point, the adversary gains precise knowledge of the slots in which they will be elected but lacks detailed knowledge of the slot distribution for honest participants.
 
-For example, if the adversary acts as the slot leader immediately before this phase transition, they can choose whether to produce a block or not. This decision grants them the ability to compute and compare two valid nonces - one with one fewer VRF update than the other -, evaluate different slot leader distributions for the upcoming epoch and potentially maximize their future gains at the cost of lesser rewards at this epoch. The more blocks the adversary controls before Phase 2's end, the more nonces they may _grind_ and choose from, and the more critical the atatck becomes. In essence, the adversary gains access to up to $2^x$ possible combinations of slot leader distributions, where $x$ denotes the number of controlled leader slots at this particular stage of the protocol.
+For example, if the adversary acts as the slot leader immediately before this phase transition, they can choose whether to produce a block or not. This decision grants them the ability to compute and compare two valid nonces - one with one fewer VRF update than the other -, evaluate different slot leader distributions for the upcoming epoch and potentially maximize their future gains at the cost of lesser rewards at this epoch. The more blocks the adversary controls before Phase 2's end, the more nonces they may _grind_ and choose from, and the more critical the attack becomes. In essence, the adversary gains access to up to $2^x$ possible combinations of slot leader distributions, where $x$ denotes the number of controlled leader slots at this particular stage of the protocol.
 
 <div align="center">
 <img src="./image/grinding-opportunity-window.png" alt="" />
