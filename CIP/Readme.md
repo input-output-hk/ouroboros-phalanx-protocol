@@ -164,14 +164,14 @@ false & \text{otherwise.}
 ##### **The $`\phi^\text{stream}`$ Definition**  
 
    - It is reset at the $`\text{pre-}\eta`$ Synchronizations
+   - For every slot $`t`$, a $`\phi_t^\text{evolving}`$ is produced 
    - For every block produced within the blockchain tree, a unique $`\phi^\text{evolving}`$ is appended in the block header :
 
 ```math
    \phi^{\text{stream}}_{t+1} =
    \begin{cases}
    \eta^\text{stream}_{t} & \text{when } t = \text{pre-}\eta\text{ synchronization}, \\
-   \Phi(\phi^{\text{stream}}_{t})  & \text{when t = Active Slot} \\
-   \phi^{\text{stream}}_{t}  & \text{otherwise.}
+   \Phi(\phi^{\text{stream}}_{t})  \\
    \end{cases}
 ```
 
