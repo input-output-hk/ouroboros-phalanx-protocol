@@ -177,7 +177,7 @@ false & \text{otherwise.}
 
 ##### **The $`\eta`$** Generations
    - This is the final nonce $`\eta_\text{e}`$ used to determine participant eligibility during epoch $`e`$.  
-   - It originates from $`\phi^{\text{stream}}_{t}`$ at $`\text{pre-}\eta_\text{e+1}`$ Synchronization  XOR with $`\eta^\text{stream}_t`$ $`\text{when } t = \text{end of epoch}_\text{e-3}`$   
+   - It originates from $`\phi^{\text{stream}}_{t}`$ at $`\text{pre-}\eta_\text{e+1}`$ Synchronization  ⭒ with $`\eta^\text{stream}_t`$ $`\text{when } t = \text{end of epoch}_\text{e-3}`$   
 
 ```math
 \eta_\text{e} = \eta^\text{stream}_{epoch_\text{e-3}} ⭒ \phi^\text{stream}_t , \quad \text{when } t = \text{pre-}\eta_\text{e+1}\text{ synchronization } 
