@@ -128,18 +128,20 @@ In **Φalanx** , the randomness generation and leader election flows are modifie
 
 ### 2. The Randomness Generation Sub-Protocol 
 
-The Randomness Generation sub-protocol operates with two parallel streams: $`\eta^\text{stream}`$ and $`\phi^\text{stream}`$, which synchronize at the conclusion of the **Include Honest Contribution** Phase (akka Phase 2).  
+The Randomness Generation sub-protocol operates with two parallel streams: $`\eta^\text{stream}`$ and $`\phi^\text{stream}`$, which synchronize at the conclusion of the **Include Honest Contribution** Phase (akka Phase 2) :  
+
+![alt text](image.png)
 
 ##### **The $`\eta^\text{stream}`$ Definition** 
-   - Exist in Praos already and will be kept in Phalanx  
-   - **Sampling Rate**  : For every block produced within the blockchain tree, a unique $`\eta^\text{stream}`$ is appended in the block header :
+   - Already present in Praos and retained in Phalanx 
+   - Updated with every block produced in the blockchain tree, a $`\eta^\text{stream}`$ captures intermediate values $`\eta^\text{evolving}_t`$ in the block headers, defined as follows:
 
 ```math
-   \eta^{\text{stream}}_{t+1} =
+   \eta^{\text{evolving}}_{t+1} =
    \begin{cases}
    \text{ProtocolParameter}_\text{extraEntropy} & \text{when } t = 0, \\
-   \eta^{\text{stream}}_{t} ⭒ VRF^\text{Output}_\text{t+1} & \text{when BlockProduced}(t) \\
-   \eta^{\text{stream}}_{t}  & \text{otherwise.}
+   \eta^{\text{evolving}}_{t} ⭒ VRF^\text{Output}_\text{t+1} & \text{when BlockProduced}(t) \\
+   \eta^{\text{evolving}}_{t}  & \text{otherwise.}
    \end{cases}
    
 ```
@@ -159,30 +161,45 @@ false & \text{otherwise.}
 
 ##### **The $`\text{pre-}\eta`$ Synchronizations**  
 
-- To generate $`\eta_\text{e}`$ for epoch $`e`$, the stream $`\phi^\text{stream}`$ is reset with the value of $`\eta^\text{stream}`$ at the end of Phase 2 in $`\text{epoch}_{e-2}`$. The value of $`\eta^\text{stream}`$ at that moment is referred to as $`\text{pre-}\eta_e`$.
- 
-##### **The $`\phi^\text{stream}`$ Definition**  
+- To generate $`\eta_\text{e}`$ for epoch $`e`$, the stream $`\phi^\text{stream}`$ is reset with the value of $`\eta^\text{stream}`$ at the end of Phase 2 in $`\text{epoch}_{e-2}`$. 
+- This specific value of $`\eta^\text{stream}`$ is referred to as **$`\text{pre-}\eta_e`$**.
 
-   - It is reset at the $`\text{pre-}\eta`$ Synchronizations
-   - For every slot $`t`$, a $`\phi_t^\text{evolving}`$ is produced 
-   - For every block produced within the blockchain tree, a unique $`\phi^\text{evolving}`$ is appended in the block header :
+
+##### **The $`\phi^\text{stream}`$ Definition**
+
+- The stream $`\phi^\text{stream}`$ is reset during each $`\text{pre-}\eta`$ synchronization.  
+- At the synchronization point $`\text{pre-}\eta_{e+1}`$, the stream must guarantee delivery of $`\phi^\text{evolving}_e`$, defined as:
+  
+  $$
+  \phi^\text{evolving}_e = \Phi^i(\text{pre-}\eta_e)
+  $$
+
+- The stream depends on the selected cryptographic primitive and it is parametrizable with:
+  - $i$: the total number of $`\Phi`$ iterations,
+  - $T_\phi$: the computational cost per iteration (adaptable to reflect market-available computing power).
+
+- For each block produced within the blockchain tree, a unique $`\phi^\text{evolving}`$ value is appended to the block header:
 
 ```math
-   \phi^{\text{stream}}_{t+1} =
-   \begin{cases}
-   \eta^\text{stream}_{t} & \text{when } t = \text{pre-}\eta\text{ synchronization}, \\
-   \Phi(\phi^{\text{stream}}_{t})  \\
-   \end{cases}
+\phi^{\text{evolving}}_{t+1} =
+\begin{cases}
+\eta^\text{evolving}_{t} & \text{if } t \text{ is a } \text{pre-}\eta \text{ synchronization point}, \\
+\Phi^k(\phi^{\text{evolving}}_{t}) & \text{if BlockProduced}(t),\ \text{with } k \text{ depending on the chosen strategy}, \\
+\phi^{\text{evolving}}_{t} & \text{otherwise.}
+\end{cases}
 ```
+
+**Note**: The distribution strategies for $`\Phi`$ will be detailed in the design [section](toprovidelink.com) of this document.
+
 
 ##### **The $`\eta`$** Generations
    - This is the final nonce $`\eta_\text{e}`$ used to determine participant eligibility during epoch $`e`$.  
-   - It originates from $`\phi^{\text{stream}}_{t}`$ at $`\text{pre-}\eta_\text{e+1}`$ Synchronization  ⭒ with $`\eta^\text{stream}_t`$ $`\text{when } t = \text{end of epoch}_\text{e-3}`$   
+   - It originates from the operation ⭒ with  $`\phi^{\text{stream}}_{t}`$ at $`\text{pre-}\eta_\text{e+1}`$ Synchronization and $`\eta^\text{stream}_t`$ $`\text{when } t = \text{end of epoch}_\text{e-3}`$   
 
 ```math
-\eta_\text{e} = \eta^\text{stream}_{epoch_\text{e-3}} ⭒ \phi^\text{stream}_t , \quad \text{when } t = \text{pre-}\eta_\text{e+1}\text{ synchronization } 
+\eta_\text{e} = \eta^\text{stream}_{epoch_\text{e-3}} ⭒ \phi^\text{evolving}_e , \quad \text{when } t = \text{pre-}\eta_\text{e+1}\text{ synchronization } 
 ```
-**N.B** : $`\text{pre-}\eta_\text{e+1}`$ synchronization occurs $`\text{when } t = \text{end of phase 2 at epoch}_\text{e-1}`$
+**Note** : $`\text{pre-}\eta_\text{e+1}`$ synchronization occurs $`\text{when } t = \text{end of phase 2 at epoch}_\text{e-1}`$
 
 ### 3. The Φ Cryptographic Primitive
 
@@ -413,13 +430,141 @@ Todo
 It must also explain how the proposal affects the backward compatibility of existing solutions when applicable. If the proposal responds to a CPS, the 'Rationale' section should explain how it addresses the CPS, and answer any questions that the CPS poses for potential solutions.
 -->
 
-### 1. Cryptographic Primitive Selection
+### 1. Cryptographic Primitive 
+
+#### 1.1 Evaluation
 
 Work in Progress in [google doc](https://docs.google.com/document/d/13TZF2jYLoKPjs6Aa9tLA4t9TtxqhBB7qMIZCy9SWKR4/edit?tab=t.0)
 
 [Consolidation of this google doc - Anti-Grinding: the Cryptography](https://docs.google.com/document/d/1zXMdoIlwnVSYjz46jxXuNPIWi-xPXxUjltF-8g7TJTc/edit?tab=t.0#heading=h.wefcmsmvzoy5)
 
-### 2. Performance Impacts on Consensus & Ledger Repository
+#### 1.2. Selection Rationale
+
+
+### 2. Adaptive Strategies for Efficient $\Phi$ Computation
+
+#### 2.1 Challenge to solve 
+
+How can we ensure that, for a given epoch $e$, Stake Pool Operators (SPOs) can efficiently perform the $i$ iterations of $`\Phi`$ required to deterministically produce $`\phi^\text{evolving}_e`$, thereby enabling a more secure computation of $`\eta_e`$ than in the current Praos protocol?
+
+<div align="center">
+<img src="./image-2.png" alt="" width="800"/>
+</div>
+
+
+#### 2.2 Solution Properties
+
+To ensure robust and efficient production of $`\phi^\text{evolving}_e`$, candidate strategies should aim to satisfy the following **SCALE** properties — prioritized in the order shown:
+
+- **S**uccess Probability — Maximize the likelihood of deterministically producing $`\phi^\text{evolving}_e`$ without falling back to the Praos protocol.  
+- **C**ompactness — Minimize block header size increase.  
+- **A**vailability — Minimize additional latency in block diffusion.  
+- **L**ightweight Execution — minimize redundant or wasteful iterations of $`\Phi`$ among the SPOs.  
+- **E**quity in Effort — ensure computational fairness: stake holders compute proportionally to their stake.
+
+These properties define the design space for secure, performant, and fair execution of $`\Phi`$ in each epoch.
+
+#### 2.3 Computation Participation
+
+Regarding SPO participation in the protocol, we identify three possible models:
+
+- **Centralized**: A single entity is responsible for the entire process. This model is strongly discouraged, as it introduces a textbook case of a single point of failure, undermining both resilience and decentralization.
+- **Federated**: A selected subset of SPOs participates in the process. While this model improves over the centralized approach, it raises concerns of collusion, particularly the possibility of intentionally omitting the final iteration and reverting to the default Praos protocol. Additionally, participants could become targeted by adversaries, and governance mechanisms must be introduced to manage entry and exit from this privileged role.
+- **Decentralized**: All SPOs participate in the additional computation phase. Unsurprisingly in our context, this is the most robust model, leveraging the existing infrastructure of SPOs who are already running the network and receiving rewards. 
+
+Taking the decentralized approach, SPOs are expected to collectively compute the $i^{\text{th}}$ iteration of $\Phi$. 
+The key question, then, is **how can we design effective incentives to ensure that this task is performed reliably and in a timely manner?**
+
+
+#### 2.4 Game-Theoretic Enforcement: No Timely Iteration, No Block Reward
+
+We will reuse the existing game-theoretic framework for block production in Praos and require each stake pool operator (SPO), upon producing a block, to provide a proof of work performed—specifically, a proof that they have computed the *x*‑th iteration of $\Phi$.  
+Two approaches have been designed and considered : the **slot-interval-based approach** and the **block-based approach**.
+
+##### 2.4.1 Slot-interval-based approach 
+
+In this approach, the epoch-size equivalent period is divided into $i$ intervals. Within each interval, the first block produced must include a proof of work performed in order to be considered valid. Subsequent blocks produced within the same interval are exempt from this requirement. This Computation phase is followed by an ∃CQ (Existential Chain Quality) phase. This final phase ensures, within our theoretical model, that the computation of $\phi^\text{evolving}_e$ is guaranteed to complete. In practice, to ensure liveness in edge cases, the protocol reverts to standard Praos behavior, using $\text{pre-}\eta_e$ as $\eta_e$.  
+
+On mainnet, the parameter $s$ (Minimum Honest Block Inclusion Interval) is defined as $\frac{k}{f}$ within a segment of $\frac{10.k}{f}$ slots. This leaves a remaining window of $\frac{9.k}{f}$ slots allocated to the Computation Phase:
+
+<div align="center"><img src="./image-4.png" alt="" width="800"/></div>
+
+
+##### 2.4.2 Block-based approach
+
+In this approach, each newly produced block must include one additional iteration of $\Phi$ compared to the previous block in the chain. Over a period equivalent to one epoch, we expect a minimum of $i$ blocks to be appended to the chain. This value $i$ corresponds to the number of iterations we aim to compute for $\Phi$ during that period.
+
+To maximize the likelihood of deterministically producing $\phi^\text{evolving}_e$ without falling back to the Praos protocol, we require that the full iteration chain completes with probability at least $1 - 2^{-\epsilon}$, where $\epsilon$ is typically set to 128.
+
+To achieve this, we consider the number of honest blocks $N_h$ expected given an adversarial stake $s_a$ (assuming a coalition of adversaries can be modeled as a single adversary holding the combined stake). In practice, we may wish to concentrate computation in fewer blocks to account for network noise or timing uncertainties. To model this flexibility, we introduce the parameter $\alpha$, where $0 < \alpha \leq 1$, representing the fraction of $N_h$ that will actively contribute to the computation.
+
+The duration of anti-grinding computation assigned per block is then defined as:
+
+$$
+\frac{T \cdot f}{N_h \cdot \alpha}
+$$
+
+where:
+- $T$ is the total duration of the computation window (in slots),
+- $f$ is the active slot coefficient,
+- and $1 - \alpha$ represents the tolerated margin of failure.
+
+The value $N_h$, the minimum number of honest blocks required in an epoch, is defined as the solution to the following equation:
+
+$$
+\Pr(X_h > N_h) = F(N_h, N_s, f \cdot (1 - s_a)) = 1 - 2^{-\epsilon}
+$$
+
+which is equivalent to:
+
+$$
+\Pr(X_h \leq N_h) = F(N_s - N_h, N_s, 1 - f \cdot (1 - s_a)) = 2^{-\epsilon}
+$$
+
+and thus:
+
+$$
+-\log_2(\Pr(X_h \leq N_h)) = \epsilon
+$$
+
+
+###### Nₐ s.t. Pr(Xₐ < Nₐ) = F(Nₐ, 432,000, f * sₐ) = 1 - 2^-128
+
+| sₐ     | 0.005 | 0.01 | 0.02 | 0.05 | 0.1  | 0.2  | 0.25 | 0.3  | 0.33 | 0.4  | 0.45 | 0.49 | 0.5  |
+|--------|-------|------|------|------|------|------|------|------|------|------|------|------|------|
+| ε = 128|   269 |  434 |  730 | 1537 | 2794 | 5204 | 6384 | 7554 | 8252 | 9872 |11024 |11942 |12171 |
+
+---
+
+###### Nₕ s.t. Pr(Xₕ > Nₕ) = F(432,000 - Nₕ, 432,000, 1 - f * (1 - sₐ)) = 1 - 2^-128
+
+| sₐ     | 0.005 | 0.01 | 0.02 | 0.05 | 0.1  | 0.2  | 0.25 | 0.3  | 0.33 | 0.4  | 0.45 | 0.49 | 0.5  |
+|--------|-------|------|------|------|------|------|------|------|------|------|------|------|------|
+| ε = 128| 19645 |19541 |18713 |17680 |15618 |14590 |13563 |12949 |11517 |10498 | 9685 | 9482 |
+
+
+![alt text](image-6.png)
+
+Empirically, assuming an adversarial stake of approximately 45%, requiring at least **10,000 honestly produced blocks** to derive the final value of $`\phi^\text{evolving}_e`$ appears to be a reasonable and secure choice.
+In practice, to ensure liveness in edge cases, the protocol reverts to standard Praos behavior, using $\text{pre-}\eta_e$ as $\eta_e$.  
+
+##### 2.4.3 Slot Leader Schedule Visibility
+
+Regardless of the chosen approach, each SPO knows their complete private schedule for $\Phi$ computation as soon as the slot leader distribution is revealed. Within this epoch-size equivalent period:
+
+- During the interval $[0, \frac{4k}{f})$: they are still in $epoch_{\text{e-2}}$, which means they know their schedule **$\frac{6k}{f}$ slots in advance**. However, they do **not** yet know $\text{pre-}\eta_e$, so they **cannot start computing** before synchronization occurs.
+
+- During the interval $[\frac{4k}{f}, \frac{10k}{f})$: they are now in $epoch_{\text{e-1}}$, and the slot leader distribution for this epoch becomes available only **at the $\frac{4k}{f}$‑th slot**.
+
+The following visual highlights this situation:
+
+<div align="center"><img src="./image-5.png" alt="" width="1000"/></div>
+
+One significant advantage of this approach is that, once SPOs are aware of their slot assignments, they also know—well in advance—which iteration of $\Phi$ they are responsible for. This allows them to prepare optimally, regardless of how block production unfolds.
+The primary drawback, however, is the duplication of iteration proofs in block headers for blocks produced within the same slot interval. This results in unnecessary redundancy and increased on-chain storage requirements.
+
+
+### 3. Performance Impacts on Consensus & Ledger Repository
 
 Todo : Simulation of Phalanx for Honest Participant for refining $\Phi_{\text{min}}$ and $\Phi_{\text{max}}$ defined in Specification.
 
