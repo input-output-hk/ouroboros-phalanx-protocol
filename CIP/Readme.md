@@ -534,7 +534,7 @@ $$
 |--------|-------|------|------|------|------|------|------|------|------|------|------|------|------|
 | ε = 128|   269 |  434 |  730 | 1537 | 2794 | 5204 | 6384 | 7554 | 8252 | 9872 |11024 |11942 |12171 |
 
----
+
 
 ###### Nₕ s.t. Pr(Xₕ > Nₕ) = F(432,000 - Nₕ, 432,000, 1 - f * (1 - sₐ)) = 1 - 2^-128
 
@@ -548,21 +548,31 @@ $$
 Empirically, assuming an adversarial stake of approximately 45%, requiring at least **10,000 honestly produced blocks** to derive the final value of $`\phi^\text{evolving}_e`$ appears to be a reasonable and secure choice.
 In practice, to ensure liveness in edge cases, the protocol reverts to standard Praos behavior, using $\text{pre-}\eta_e$ as $\eta_e$.  
 
-##### 2.4.3 Slot Leader Schedule Visibility
+##### 2.4.3 Slot Leader Schedule Visibility & $\text{pre-}\eta_e$ instability
 
-Regardless of the chosen approach, each SPO knows their complete private schedule for $\Phi$ computation as soon as the slot leader distribution is revealed. Within this epoch-size equivalent period:
+**Regardless of the chosen approach**, each SPO knows their complete private schedule for $`\Phi`$ computation as soon as the slot leader distribution is revealed. Within this epoch-sized period:
+- **During the interval $[0, \frac{4k}{f})$:**
+  - SPOs are still operating in $`epoch_{\text{e-2}}`$, which means they know their schedule **$\frac{6k}{f}$ slots in advance**.
+  - However, they do **not** yet know $`\text{pre-}\eta_e`$, so **they cannot begin computing** until synchronization occurs.
+  - At this stage, $`\text{pre-}\eta_e`$ is still a **candidate value**, meaning that multiple forks may exist, each potentially initiating different instances of $`\Phi`$. By the end of this interval, **one fork will be selected**, and the corresponding $`\text{pre-}\eta_e`$ will be retained.
 
-- During the interval $[0, \frac{4k}{f})$: they are still in $epoch_{\text{e-2}}$, which means they know their schedule **$\frac{6k}{f}$ slots in advance**. However, they do **not** yet know $\text{pre-}\eta_e$, so they **cannot start computing** before synchronization occurs.
+- **During the interval $[\frac{4k}{f}, \frac{10k}{f})$:**
+  - SPOs are now in $`epoch_{\text{e-1}}`$.
+  - The slot leader distribution for this epoch becomes available **only at the $`\frac{4k}{f}`$-th slot** 
+  - At this point, $`\text{pre-}\eta_e`$ is **stable**, and SPOs can begin the **deterministic iteration of $`\Phi`$** accordingly.
 
-- During the interval $[\frac{4k}{f}, \frac{10k}{f})$: they are now in $epoch_{\text{e-1}}$, and the slot leader distribution for this epoch becomes available only **at the $\frac{4k}{f}$‑th slot**.
 
 The following visual highlights this situation:
 
-<div align="center"><img src="./image-5.png" alt="" width="1000"/></div>
+<div align="center"><img src="./image-7.png" alt="" width="1000"/></div>
 
-One significant advantage of this approach is that, once SPOs are aware of their slot assignments, they also know—well in advance—which iteration of $\Phi$ they are responsible for. This allows them to prepare optimally, regardless of how block production unfolds.
-The primary drawback, however, is the duplication of iteration proofs in block headers for blocks produced within the same slot interval. This results in unnecessary redundancy and increased on-chain storage requirements.
 
+
+
+
+##### 2.4.4 Comparative Analysis of the Two Approaches
+
+pro and cons 
 
 ### 3. Performance Impacts on Consensus & Ledger Repository
 
