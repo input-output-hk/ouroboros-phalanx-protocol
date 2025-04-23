@@ -445,7 +445,7 @@ Work in Progress in [google doc](https://docs.google.com/document/d/13TZF2jYLoKP
 
 #### 2.1 Challenge to solve 
 
-How can we ensure that, for a given epoch $e$, Stake Pool Operators (SPOs) can efficiently perform the $i$ iterations of $`\Phi`$ required to deterministically produce $`\phi^\text{evolving}_e`$, thereby enabling a more secure computation of $`\eta_e`$ than in the current Praos protocol?
+**How can we ensure that, for a given epoch $e$, Stake Pool Operators (SPOs) can efficiently perform the $i$ iterations of $`\Phi`$ required to deterministically produce $`\phi^\text{evolving}_e`$, thereby enabling a more secure computation of $`\eta_e`$ than in the current Praos protocol?**
 
 <div align="center">
 <img src="./image-2.png" alt="" width="800"/>
@@ -478,7 +478,8 @@ The key question, then, is **how can we design effective incentives to ensure th
 
 #### 2.4 Game-Theoretic Enforcement: No Timely Iteration, No Block Reward
 
-We will reuse the existing game-theoretic framework for block production in Praos and require each stake pool operator (SPO), upon producing a block, to provide a proof of work performed—specifically, a proof that they have computed the *x*‑th iteration of $\Phi$.  
+We will reuse the existing game-theoretic framework for block production in Praos and require each stake pool operator (SPO), upon producing a block, to provide a proof of work performed—specifically, a proof that they have computed the *x*‑th iteration of $\Phi$. 
+
 Two approaches have been designed and considered : the **slot-interval-based approach** and the **block-based approach**.
 
 ##### 2.4.1 Slot Leader Schedule Visibility & $\text{pre-}\eta_e$ instability
@@ -511,7 +512,7 @@ On mainnet, the parameter $s$ (Minimum Honest Block Inclusion Interval) is defin
 
 ##### Maximizing Availability
 
-Given the framework defined above, how can we ensure that each SPO neither compromises the Availability property nor fails to produce their block on time?
+**Given the framework defined above, how can we ensure that each SPO neither compromises the Availability property nor fails to produce their block on time?**
 
 To ensure timely block production, we prioritize **Availability** over **Lightweight Execution**. Specifically, stake pool operators (SPOs) must pre-compute a sufficient portion of their computation pipeline in advance.
 We can formalize this with an algorithm where : 
