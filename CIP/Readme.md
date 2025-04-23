@@ -548,18 +548,16 @@ We can formalize this with an algorithm where :
 ```math
 \Phi_{\text{Margin}} < \frac{\text{Margin Interval}}{\text{Remaining Interval}}
 ```
+<br/><br/>
 
 **How does the current algorithm behave during the $\text{pre-}\eta_e$ instability period and throughout the epoch transition described above?** <br/>
 **Does it continue to uphold the **SCALE** properties under these conditions?**
 
-The answer is **yes**, provided that the **$T_\Phi$** remains relatively low.  
-However, as this cost increases, sudden rollbacks affecting the $\text{pre-}\eta_e$ seed may, under certain conditions, disrupt the immediate slot leaders' ability to produce timely blocks.
+The answer is **yes**, provided that the **$T_\Phi$** remains relatively low. However, as this cost increases, sudden rollbacks affecting the $\text{pre-}\eta_e$ seed may, under certain conditions, disrupt the immediate slot leaders' ability to produce timely blocks.
 
-The **worst-case scenario** occurs when a rollback happens **at the very end of a computation interval**, and the **next scheduled slot leader** is positioned just after the **beginning of the following interval**.  
-In such a case, when $T_\Phi$ is large enough, the **Availability** property may be compromised: block production could be **delayed**, leading to **increased latency in block diffusion**, or worse, the block may arrive **too late** and be **rejected** by the network.
+The **worst-case scenario** occurs when a rollback happens **at the very end of a computation interval**, and the **next scheduled slot leader** is positioned just after the **beginning of the following interval**. In such a case, when $T_\Phi$ is large enough, the **Availability** property may be compromised: block production could be **delayed**, leading to **increased latency in block diffusion**, or worse, the block may arrive **too late** and be **rejected** by the network.
 
-To better understand this risk under concrete conditions, the table below illustrates how the **Accumulated Computation Time is distributed across intervals**  
-(i.e., the ratio $T_\Phi / \text{Interval size}$, expressed in seconds) on **Mainnet** under this approach:
+To better understand this risk under concrete conditions, the table below illustrates how the **Accumulated Computation Time is distributed across intervals** (i.e., the ratio $T_\Phi / \text{Interval size}$, expressed in seconds) on **Mainnet** under this approach:
 
 | $\Phi_{\text{power}}$ | Accumulated Computation Time | R = 5 (i = 3888)     | R = 10 (i = 1944)    | R = 20 (i = 972)     | R = 30 (i = 648)     | R = 50 (i = 388)      |
 |------------------------|-------------------------------|------------------------|------------------------|------------------------|------------------------|-------------------------|
@@ -575,8 +573,8 @@ To better understand this risk under concrete conditions, the table below illust
 | 0.9                    | 2 days 35 minutes            | 45.0s / 100s          | 90.0s / 200s          | 180.0s / 400s         | 270.0s / 600s         | 450.9s / 1000s         |
 | 1.0                    | 2 days 6 hours               | 50.0s / 100s          | 100.0s / 200s         | 200.0s / 400s         | 300.0s / 600s         | 501.0s / 1000s         |
 
-The higher the value of $R$, the less likely this worst-case scenario will occur, as the computation load is spread over more intervals.  
-However, when such a situation does happen, the **amount of work required to catch up increases**, potentially impacting **multiple consecutive blocks**.  
+The higher the value of $R$, the less likely this worst-case scenario will occur, as the computation load is spread over more intervals. However, when such a situation does happen, the **amount of work required to catch up increases**, potentially impacting **multiple consecutive blocks**.  
+
 For example, at full $\Phi_{\text{power}}$ capacity, the delay can range from **50 to 500 seconds**, which corresponds to **2.5 to 25 blocks** on mainnet.
 
 A solution is to apply an **exponential function** to modulate the amount of $T_\Phi$ executed in each interval, progressively increasing it over the period $[0, \frac{4k}{f})$, and reaching a **stable, consistent pace** during the final segment $[\frac{4k}{f}, \frac{10k}{f})$. This function should closely approximate the **probability curve of $\text{pre-}\eta_e$ stabilization**, allowing computation efforts to align with the growing certainty that the seed will remain unchanged.
@@ -587,8 +585,8 @@ if a rollback happens in that case, **$T_\Phi$** remains relatively low and the 
 **How does the current algorithm behave throughout the epoch transition described above?**  <br/>
 **Does it continue to uphold the _SCALE_ properties under these conditions?**
 
-The answer is **yes**, because the protocol only requires a window of $3k/f$ slots to guarantee **Chain Growth from Common Prefix** ("CG from CP"), while in our case, we have a visibility window of $4k/f$ slots.  
-This provides an additional $k/f$ slots of buffer — a significant margin in the context of the algorithm described above — which can be leveraged to **adapt preemptive computations** accordingly.  
+The answer is **yes**, because the protocol only requires a window of $3k/f$ slots to guarantee **Chain Growth from Common Prefix** ("CG from CP"), while in our case, we have a visibility window of $4k/f$ slots.  This provides an additional $k/f$ slots of buffer — a significant margin in the context of the algorithm described above — which can be leveraged to **adapt preemptive computations** accordingly. 
+
 As a result, even during the epoch transition, the algorithm preserves the essential properties of **Success Probability** and **Availability**, maintaining compliance with the **SCALE** design goals.
 
 <details>
@@ -599,10 +597,10 @@ As a result, even during the epoch transition, the algorithm preserves the essen
 
 Within these $3k/f$ slots, there are expected to be approximately $3k/2$ adversarial slots, assuming an adversary of strength close to $1/2$. Consequently, with overwhelming probability, there will be at least $k$ adversarial slots in this period.
 
-
 Now, if the honest chain were to grow by fewer than $k$ blocks during this interval, it would signal an imminent $k$-common-prefix (k-CP) violation. The adversary could, at that point, maintain a private chain of length $k$ starting from the beginning of this interval. By simply waiting for the honest chain to reach a length of $k$ blocks, the adversary could present two disjoint chains of $k$ blocks each within the same epoch, thereby violating the k-CP property.
 
 This reasoning assumes an adversary strength near $1/2$, but it is worth noting that the weaker the adversary, the better the chain growth (CG) properties.
+
 </details>
 
 **TODO** : Updating the above formulas by adding this exponential feature on $T_\Phi$
