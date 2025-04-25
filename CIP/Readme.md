@@ -551,7 +551,7 @@ We can formalize this with an algorithm where :
 ```
 <br/><br/>
 
-**How does the current algorithm behave during the $\text{pre-}\eta_e$ instability period and throughout the epoch transition described above?** <br/>
+**How does the current algorithm behave during the $\text{pre-}\eta_e$ instability period ?** <br/>
 **Does it continue to uphold the **SCALE** properties under these conditions?**
 
 The answer is **yes**, provided that the **$T_\Phi$** remains relatively low. However, as this cost increases, sudden rollbacks affecting the $\text{pre-}\eta_e$ seed may, under certain conditions, disrupt the immediate slot leaders' ability to produce timely blocks.
@@ -603,8 +603,16 @@ Now, if the honest chain were to grow by fewer than $k$ blocks during this inter
 This reasoning assumes an adversary strength near $1/2$, but it is worth noting that the weaker the adversary, the better the chain growth (CG) properties.
 
 </details>
+<br/>
 
-**TODO** : Updating the above formulas by adding this exponential feature on $T_\Phi$
+
+**How does the current algorithm behave throughout the Computation/∃CQ Transition?**  
+**Does it continue to uphold the _SCALE_ properties under these conditions?**
+
+Although the **probability** that an **adversary** is the **slot leader** in enough **consecutive blocks** just before the **transition** is low, it could still result in an **honest participant** in the **∃CQ transition** having to compute a **substantial number of iterations** between the **last block produced** and the **final iteration** of $\Phi$. If, for any reason, the **honest participant** does not have enough time to complete this **critical final iteration** during the **∃CQ phase**, it would **undermine the primary goal** of this **Ouroboros enhancement** — and we would be forced to **fall back to the original Praos protocol**.
+
+As in the **$\text{pre-}\eta_e$ instability period**, we propose to apply a **modulation function** to control the number of $T_\Phi$ iterations executed within each interval. Specifically, we aim to **progressively reduce** the **computational load** over the period $[\frac{4k}{f},\frac{9k}{f})$, ensuring that the **number of iterations remains negligible** for an **honest participant** during the **∃CQ phase**. In doing so, we **preserve the _SCALE_ properties** under these **transitional conditions**.
+
 
 ##### 2.4.3 Block-based approach
 
@@ -614,16 +622,14 @@ To maximize the likelihood of deterministically producing $\phi^\text{evolving}_
 
 To achieve this, we consider the number of honest blocks $N_h$ expected given an adversarial stake $s_a$ (assuming a coalition of adversaries can be modeled as a single adversary holding the combined stake). In practice, we may wish to concentrate computation in fewer blocks to account for network noise or timing uncertainties. To model this flexibility, we introduce the parameter $\alpha$, where $0 < \alpha \leq 1$, representing the fraction of $N_h$ that will actively contribute to the computation.
 
-
-
 The duration of anti-grinding computation assigned per block is then defined as:
 
 $$
-\frac{T \cdot f}{N_h \cdot \alpha}
+T_\Phi = \frac{\text{Accumulated Computation} \cdot f}{N_h \cdot \alpha}
 $$
 
 where:
-- $T$ is the total duration of the computation window (in slots),
+- $\text{Accumulated Computation}$ is the total duration of the computation window (in slots),
 - $f$ is the active slot coefficient,
 - and $1 - \alpha$ represents the tolerated margin of failure.
 
@@ -666,13 +672,6 @@ $$
 Empirically, assuming an adversarial stake of approximately 45%, requiring at least **10,000 honestly produced blocks** to derive the final value of $`\phi^\text{evolving}_e`$ appears to be a reasonable and secure choice.
 In practice, to ensure liveness in edge cases, the protocol reverts to standard Praos behavior, using $\text{pre-}\eta_e$ as $\eta_e$.  
 
-
-
-
-
-##### 2.4.4 Comparative Analysis of the Two Approaches
-
-pro and cons 
 
 ### 3. Performance Impacts on Consensus & Ledger Repository
 
