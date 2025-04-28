@@ -14,22 +14,36 @@ Created: 2025-10-03
 License: Apache-2.0
 ---
 
+
 ## Table of Contents
 
 - [**Abstract**](#abstract)
 - [**Motivation: Why is this CIP necessary?**](#motivation-why-is-this-cip-necessary)
-- [**Specification**](#specification)
-  - [**1. The Flow**](#1-the-flow)
-  - [**2. The Randomness Generation Sub-Protocol**](#2-the-randomness-generation-sub-protocol)
-  - [**3. The Φ Cryptographic Primitive**](#3-the-φ-cryptographic-primitive)
-  - [**4. Balancing Honest and Adversarial Computation**](#4-balancing-honest-and-adversarial-computation)
+- [**Specification / The Φalanx Sub-Protocol**](#specification--the-φalanx-sub-protocol)
+  - [**1. High-Level Changes Relative to Praos**](#1-high-level-changes-compared-to-praos)
+  - [**2. The Streams**](#2-the-streams)
+    - [**2.1 The $`\eta^\text{stream}`$ Definition**](#21-the-ηstream-definition)
+    - [**2.2 The $`\text{pre-}\eta`$ Synchronizations**](#22-the-pre-η-synchronizations)
+    - [**2.3 The $`\phi^\text{stream}`$ Definition**](#23-the-φstream-definition)
+    - [**2.4 The $`\eta`$ Generations**](#24-the-η-generations)
+  - [**3. $k(\text{pre-η},t)$ & Distribution of $\Phi$ Iterations**](#3-kpre-ηt--distribution-of-φ-iterations)
+    - [**3.1 Challenge to solve**](#31-challenge-to-solve)
+    - [**3.2 Solution Properties S.C.A.L.E**](#32-solution-properties)
+    - [**3.3 Computation Participation**](#33-computation-participation)
+    - [**3.4 Slot Leader Schedule Visibility & $\text{pre-}\eta_e$ instability**](#34-slot-leader-schedule-visibility--pre-ηe-instability)
+    - [**3.5 Game-Theoretic Enforcement: No Timely Iteration, No Block Reward**](#35-game-theoretic-enforcement-no-timely-iteration-no-block-reward)
+    - [**3.6 Availability Maximization**](#36-availability-maximization)
+    - [**3.7 $k(\text{pre-η},t)$ Definition**](#37-kpre-ηt-definition)
+    - [**3.8 Agda Mechanization**](#38-agda-mechanization)
+  - [**4. The Φ Cryptographic Primitive**](#4-the-φ-cryptographic-primitive)
+  - [**5. Operability, Maintainability & Modularity**](#5-operability-maintainability--modularity)
+- [**Rationale: How This CIP Achieves Its Goals**](#rationale-how-this-cip-achieves-its-goals)
+  - [**1. Increased Grinding Resistance Quantification**](#1-increased-grinding-resistance-quantification)
+  - [**2. $\Phi$ Iterations & Distribution alternatives**](#2-φ-iterations--distribution-alternatives)
+  - [**3. Choice of The Cryptographic Primitive**](#3-choice-of-the-cryptographic-primitive)
+  - [**4. Φalanx's Efficiency Limits**](#4-φalanxs-efficiency-limits)
   - [**5. Adversarial Cost Overhead**](#5-adversarial-cost-overhead)
-  - [**6. Operability, Maintainability & Modularity**](#6-operability-maintainability--modularity)
-  - [**7. Agda Mechanization**](#7-agda-mechanization)
-- [**Rationale: How does this CIP achieve its goals?**](#rationale-how-does-this-cip-achieve-its-goals)
-  - [**1. Cryptographic Primitive Selection**](#1-cryptographic-primitive-selection)
-  - [**2. Performance Impacts on Consensus & Ledger Repository**](#2-performance-impacts-on-consensus--ledger-repository)
-  - [**3. Maintainability**](#3-maintainability)
+  
 - [**Path to Active**](#path-to-active)
   - [**Acceptance Criteria**](#acceptance-criteria)
   - [**Implementation Plan**](#implementation-plan)
@@ -75,37 +89,7 @@ These findings indicate that, under current protocol parameters, grinding attack
 
 This CIP addresses the critical question: **Can we increase the computational cost of grinding attempts to shrink these vulnerable intervals, thereby deterring adversaries effectively?** Φalanx proposes a solution by introducing a computationally intensive mechanism that disproportionately burdens attackers while remaining manageable for honest participants. By elevating the resource threshold required for successful attacks, as analyzed in [CPS Section 3.4 - Cost of a Grinding Attack](https://github.com/input-output-hk/ouroboros-anti-grinding-design/blob/main/CPS/Readme.md#34-cost-of-a-grinding-attack), this CIP aims to shift the feasibility curve, making randomness manipulation prohibitively expensive and strengthening the protocol’s resilience against such threats.
 
-The analysis in [Section 4 - Adversarial Cost Overhead](#4-adversarial-cost-overhead) demonstrates that Φalanx significantly increases the computational cost of grinding attacks, with a $\Delta \log_{10}(\text{Cost (USD)}) \approx 15.2$ at $\rho = 50$ between the most resource-intensive Phalanx scenario (Owl Survey $\Phi_{\text{max}}$) and the least resource-intensive Praos scenario (Ant Glance Praos). Notably, all Phalanx scenarios overlap closely in a $\log_{10}$ approximation, meaning the attack cost is largely independent of the adversary’s strategy, simplifying the assessment of attack feasibility. This allows us to focus on a unified cost model moving forward. Consequently, Phalanx shrinks the vulnerable $\rho$ intervals, as shown in the tables below, which compare the original Praos feasibility ranges with the updated Phalanx ranges for $\Phi_{\text{min}}$ and $\Phi_{\text{max}}$, including the delta improvements ($\Delta \rho$) for each Praos scenario. A positive $\Delta \rho$ indicates that Phalanx increases the cost by making attacks infeasible at lower $\rho$ values, thereby reinforcing the value of this CIP in enhancing Cardano’s security.
-
-#### Original Praos Feasibility Ranges
-| **Feasibility Category**                  | **🔵 Ant Glance** | **🟠 Ant Patrol** | **🟢 Owl Stare** | **🔴 Owl Survey** |
-|--------------------------------------------|-------------------|-------------------|------------------|-------------------|
-| **🟢 🌱 Trivial for Any Adversary**        | $[0, 49)$         | $[0, 47)$         | $[0, 27)$        | $[0, 27)$         |
-| **🟡 💰 Feasible with Standard Resources** | $[49, 59)$        | $[47, 57)$        | $[27, 34)$       | $[27, 34)$        |
-| **🟠 🏭 Possible with Large-Scale Infrastructure** | $[59, 73)$ | $[57, 71)$        | $[34, 48)$       | $[34, 48)$        |
-| **🔴 🚫 Borderline Infeasible**            | $[73, 87)$        | $[71, 85)$       | $[48, 62)$       | $[48, 62)$        |
-| **🔴 🚫 Infeasible**                      | $[87, 256)$       | $[85, 256)$       | $[62, 256)$      | $[62, 256)$       |
-
-#### Phalanx with $\Phi_{\text{min}}$
-| **Feasibility Category**                  | **Phalanx $\Phi_{\text{min}}$** | **🔵 Ant Glance** | **🟠 Ant Patrol** | **🟢 Owl Stare** | **🔴 Owl Survey** |
-|--------------------------------------------|-------------------------------|-------------------|-------------------|------------------|-------------------|
-| **🟢 🌱 Trivial for Any Adversary**        | $[0, 10)$                     | +39               | +37               | +17              | +17               |
-| **🟡 💰 Feasible with Standard Resources** | $[10, 15)$                    | +44               | +42               | +19              | +19               |
-| **🟠 🏭 Possible with Large-Scale Infrastructure** | $[15, 20)$            | +53               | +51               | +28              | +28               |
-| **🔴 🚫 Borderline Infeasible**            | $[20, 25)$                    | +62               | +60               | +37              | +37               |
-| **🔴 🚫 Infeasible**                      | $[25, 256)$                   | +62               | +60               | +37              | +37               |
-
-#### Phalanx with $\Phi_{\text{max}}$
-| **Feasibility Category**                  | **Phalanx $\Phi_{\text{max}}$** | **🔵 Ant Glance** | **🟠 Ant Patrol** | **🟢 Owl Stare** | **🔴 Owl Survey** |
-|--------------------------------------------|-------------------------------|-------------------|-------------------|------------------|-------------------|
-| **🟢 🌱 Trivial for Any Adversary**        | $[0, 5)$                      | +44               | +42               | +22              | +22               |
-| **🟡 💰 Feasible with Standard Resources** | $[5, 10)$                     | +49               | +47               | +24              | +24               |
-| **🟠 🏭 Possible with Large-Scale Infrastructure** | $[10, 15)$            | +58               | +56               | +33              | +33               |
-| **🔴 🚫 Borderline Infeasible**            | $[15, 20)$                    | +67               | +65               | +42              | +42               |
-| **🔴 🚫 Infeasible**                      | $[20, 256)$                   | +67               | +65               | +42              | +42               |
-
-
-## Specification
+## Specification / The Φalanx Sub-Protocol
 
 <!-- The technical specification should describe the proposed improvement in sufficient technical detail. In particular, it should provide enough information that an implementation can be performed solely on the basis of the design in the CIP. This is necessary to facilitate multiple, interoperable implementations. This must include how the CIP should be versioned, if not covered under an optional Versioning main heading. If a proposal defines structure of on-chain data it must include a CDDL schema in its specification.-->
 
@@ -116,7 +100,7 @@ To achieve this, every honest participant is required to perform a designated co
 By enforcing this computational burden, we **drastically reduce the feasible number of grinding attempts** an adversary with a fixed resource budget can execute, making randomness manipulation **more expensive and significantly less practical**.
  
 
-### 1. The Flow
+### 1. High-Level Changes Relative to Praos
 
 In **Φalanx** , the randomness generation and leader election flows are modified as follows:
 
@@ -126,13 +110,14 @@ In **Φalanx** , the randomness generation and leader election flows are modifie
 2. The **honest contribution inclusion phase**, which originally resulted in a **ηₑ candidate**, is also **shifted back by one epoch**, aligning with the adjusted **stake distribution stabilization**. This value is now referred to as the **pre-ηₑ candidate**, signifying its role as an **intermediate randomness nonce** in the sub-protocol.  
 3. The **ηₑ (randomness eta nonce)** undergoes an **additional sequence of incremental hashing** using a **new deterministic** **cryptographic primitive Φ (Phi)**, applied over a duration equivalent to a full epoch.
 
-### 2. The Randomness Generation Sub-Protocol 
+
+### 2. The Streams 
 
 The Randomness Generation sub-protocol operates with two parallel streams: $`\eta^\text{stream}`$ and $`\phi^\text{stream}`$, which synchronize at the conclusion of the **Include Honest Contribution** Phase (akka Phase 2) :  
 
 ![alt text](image.png)
 
-##### **The $`\eta^\text{stream}`$ Definition** 
+#### 2.1 **The $`\eta^\text{stream}`$ Definition** 
    - Already present in Praos and retained in Phalanx 
    - Updated with every block produced in the blockchain tree, a $`\eta^\text{stream}`$ captures intermediate values $`\eta^\text{evolving}_t`$ in the block headers, defined as follows:
 
@@ -159,40 +144,39 @@ false & \text{otherwise.}
 | $` VRF^\text{Output}_\text{i} `$ | The **VRF output** generated by the $` \text{slot}_\text{i} `$ Leader and included in the block header |
 | $a⭒b$    | The concatenation of $a$ and $b$ , followed by a BLAKE2b-256 hash computation.
 
-##### **The $`\text{pre-}\eta`$ Synchronizations**  
+
+#### 2.2 The $`\text{pre-}\eta`$ Synchronizations  
 
 - To generate $`\eta_\text{e}`$ for epoch $`e`$, the stream $`\phi^\text{stream}`$ is reset with the value of $`\eta^\text{stream}`$ at the end of Phase 2 in $`\text{epoch}_{e-2}`$. 
 - This specific value of $`\eta^\text{stream}`$ is referred to as **$`\text{pre-}\eta_e`$**.
 
 
-##### **The $`\phi^\text{stream}`$ Definition**
+#### 2.3 The $`\phi^\text{stream}`$ Definition
 
+- The stream depends on the selected cryptographic primitive and it is parametrizable with $i$, the total number of $`\Phi`$ iterations,
 - The stream $`\phi^\text{stream}`$ is reset during each $`\text{pre-}\eta`$ synchronization.  
 - At the synchronization point $`\text{pre-}\eta_{e+1}`$, the stream must guarantee delivery of $`\phi^\text{evolving}_e`$, defined as:
   
-  $$
-  \phi^\text{evolving}_e = \Phi^i(\text{pre-}\eta_e)
-  $$
-
-- The stream depends on the selected cryptographic primitive and it is parametrizable with:
-  - $i$: the total number of $`\Phi`$ iterations,
-  - $T_\phi$: the computational cost per iteration (adaptable to reflect market-available computing power).
-
-- For each block produced within the blockchain tree, a unique $`\phi^\text{evolving}`$ value is appended to the block header:
-
 ```math
-\phi^{\text{evolving}}_{t+1} =
-\begin{cases}
-\eta^\text{evolving}_{t} & \text{if } t \text{ is a } \text{pre-}\eta \text{ synchronization point}, \\
-\Phi^k(\phi^{\text{evolving}}_{t}) & \text{if BlockProduced}(t),\ \text{with } k \text{ depending on the chosen strategy}, \\
-\phi^{\text{evolving}}_{t} & \text{otherwise.}
-\end{cases}
+  \phi^\text{evolving}_e = \Phi^i(\text{pre-}\eta_e)
 ```
 
-**Note**: The distribution strategies for $`\Phi`$ will be detailed in the design [section](toprovidelink.com) of this document.
+- For each block produced within the blockchain tree, a unique $`ϕ^\text{evolving}`$ value is appended to the block header:
+
+```math
+ϕ^{\text{evolving}}_{t+1} =
+\begin{cases}
+\text{pre-η} = η^\text{evolving}_{t} & \text{if } t \text{ is a } \text{pre-}η \text{ synchronization point}, \\
+Φ^\text{k(pre-η,t)}(ϕ^{\text{evolving}}_{t}) & \text{if BlockProduced}(t), \\
+ϕ^{\text{evolving}}_{t} & \text{otherwise.}
+\end{cases}
+```
+| **where** ||
+|---------------|-----------------|
+| $k(\text{pre-η},t)$ | Function that spreads the $\Phi$ iterations to preserve the _SCALE_ properties|
 
 
-##### **The $`\eta`$** Generations
+#### 2.4 The $`\eta`$** Generations
    - This is the final nonce $`\eta_\text{e}`$ used to determine participant eligibility during epoch $`e`$.  
    - It originates from the operation ⭒ with  $`\phi^{\text{stream}}_{t}`$ at $`\text{pre-}\eta_\text{e+1}`$ Synchronization and $`\eta^\text{stream}_t`$ $`\text{when } t = \text{end of epoch}_\text{e-3}`$   
 
@@ -201,7 +185,177 @@ false & \text{otherwise.}
 ```
 **Note** : $`\text{pre-}\eta_\text{e+1}`$ synchronization occurs $`\text{when } t = \text{end of phase 2 at epoch}_\text{e-1}`$
 
-### 3. The Φ Cryptographic Primitive
+
+### 3. $k(\text{pre-η},t)$ & Distribution of $\Phi$ Iterations
+
+#### 3.1 Challenge to solve 
+
+**How can we ensure that, for a given epoch $e$, Stake Pool Operators (SPOs) can efficiently perform the $i$ iterations of $`\Phi`$ required to deterministically produce $`\phi^\text{evolving}_e`$, thereby enabling a more secure computation of $`\eta_e`$ than in the current Praos protocol?**
+
+<div align="center">
+<img src="./image-2.png" alt="" width="800"/>
+</div>
+
+#### 3.2  Solution Properties S.C.A.L.E
+
+To ensure robust and efficient production of $`\phi^\text{evolving}_e`$,  $k(\text{pre-η},t)$ should aim to satisfy the following **SCALE** properties — prioritized in the order shown:
+
+- **S**uccess Probability — Maximize the likelihood of deterministically producing $`\phi^\text{evolving}_e`$ without falling back to the Praos protocol.  
+- **C**ompactness — Minimize block header size increase.  
+- **A**vailability — Minimize additional latency in block diffusion.  
+- **L**ightweight Execution — minimize redundant or wasteful iterations of $`\Phi`$ among the SPOs.  
+- **E**quity in Effort — ensure computational fairness: stake holders compute proportionally to their stake.
+
+These properties define the design space for secure, performant, and fair execution of $`\Phi`$ in each epoch.
+
+#### 3.3 Computation Participation
+
+Regarding SPO participation in the protocol, we identify three possible models:
+
+- **Centralized**: A single entity is responsible for the entire process. This model is strongly discouraged, as it introduces a textbook case of a single point of failure, undermining both resilience and decentralization.
+- **Federated**: A selected subset of SPOs participates in the process. While this model improves over the centralized approach, it raises concerns of collusion, particularly the possibility of intentionally omitting the final iteration and reverting to the default Praos protocol. Additionally, participants could become targeted by adversaries, and governance mechanisms must be introduced to manage entry and exit from this privileged role.
+- **Decentralized**: All SPOs participate in the additional computation phase. Unsurprisingly in our context, this is the most robust model, leveraging the existing infrastructure of SPOs who are already running the network and receiving rewards. 
+
+Taking the decentralized approach, SPOs are expected to collectively compute the $i^{\text{th}}$ iteration of $\Phi$. 
+The key question, then, is **how can we design effective incentives to ensure that this task is performed reliably and in a timely manner?**
+
+#### 3.4 Slot Leader Schedule Visibility & $\text{pre-}\eta_e$ instability
+
+**Regardless of the chosen approach**, each SPO knows their complete private schedule for $`\Phi`$ computation as soon as the slot leader distribution is revealed. Within this epoch-sized period:
+- **During the interval $[0, \frac{4k}{f})$:**
+  - SPOs are still operating in $`epoch_{\text{e-2}}`$, which means they know their schedule **$\frac{6k}{f}$ slots in advance**.
+  - However, at this point, $\text{pre-}\eta_e$ remains a *candidate value* — not yet finalized. Multiple forks may still exist, each potentially initiating a distinct instance of $\Phi$.
+  - As such, early iterations of $\Phi$ are **speculative**. If the canonical chain later stabilizes on a different fork than the one used during early computations, the associated $\text{pre-}\eta_e$ will change, and the corresponding $\Phi$ computation must be **discarded and restarted**.
+  - **In short**, the closer we approach the fork stabilization point, the **higher the probability** that the selected $\text{pre-}\eta_e$ will remain, but rollback is still possible within this window.
+
+- **During the interval $[\frac{4k}{f}, \frac{10k}{f})$:**
+  - SPOs are now in $`epoch_{\text{e-1}}`$.
+  - Although the slot leader distribution is guaranteed to be finalized at the $\frac{4k}{f}$-th slot, SPOs gain increasing probabilistic confidence as they approach this point that no further changes will occur. As a result, they can begin to take **relatively safe preemptive actions** based on the expected future slot leader distribution, especially when close to the stabilization boundary.
+  - From this slot onward, $\text{pre-}\eta_e$ is fully stable, and all SPOs will execute $\Phi$ using the same seed, ensuring deterministic and aligned computations.
+
+
+The following visual highlights this situation:
+
+<div align="center"><img src="./image-7.png" alt="" width="1000"/></div>
+
+
+#### 3.5 Game-Theoretic Enforcement: No Timely Iteration, No Block Reward
+
+We will reuse the existing game-theoretic framework for block production in Praos and require each stake pool operator (SPO), upon producing a block, to provide a proof of work performed—specifically, a proof that they have computed the *x*‑th iteration of $\Phi$. 
+
+In this approach, the epoch-size equivalent period is divided into $i$ intervals. Within each interval, the first block produced must include a proof of work performed in order to be considered valid. Subsequent blocks produced within the same interval are exempt from this requirement. This Computation phase is followed by an ∃CQ (Existential Chain Quality) phase. This final phase ensures, within our theoretical model, that the computation of $\phi^\text{evolving}_e$ is guaranteed to complete. In practice, to ensure liveness in edge cases, the protocol reverts to standard Praos behavior, using $\text{pre-}\eta_e$ as $\eta_e$.  
+
+On mainnet, the parameter $s$ (Minimum Honest Block Inclusion Interval) is defined as $\frac{k}{f}$ within a segment of $\frac{10.k}{f}$ slots. This leaves a remaining window of $\frac{9.k}{f}$ slots allocated to the Computation Phase:
+
+<div align="center"><img src="./image-4.png" alt="" width="800"/></div>
+
+#### 3.6 Availability Maximization 
+
+**Given the framework defined above, how can we ensure that each SPO neither compromises the Availability property nor fails to produce their block on time?**
+
+To ensure timely block production, we prioritize **Availability** over **Lightweight Execution**. Specifically, stake pool operators (SPOs) must pre-compute a sufficient portion of their computation pipeline in advance.
+We can formalize this with an algorithm where : 
+1. We define a parameter $\Phi_{\text{power}} \in [0, 1]$, representing the fraction of $\Phi$'s maximal computational cost that is actually applied to the network. A value of $\Phi_{\text{power}} = 0$ corresponds to no overhead, while $\Phi_{\text{power}} = 1$ corresponds to **half of the maximum theoretical cost** we could impose on the adversary, ensuring that honest SPOs are granted **at least twice the time required** to perform each iteration under worst-case assumptions.
+2. We predefined a thresold $\Phi_{\text{margin}} \in [0.1]$ such as $\Phi_{\text{margin}} < \frac{\text{Margin Interval}}{\text{Remaining Interval}}$. If we don't have enough margin time, we should start computing the remaining iteration of $\Phi$ **locally**.
+3. Finally, let's define a parameter $R$ (Redundancy), the expected number of blocks per $\Phi$ interval. 
+
+![alt text](image-9.png)
+
+
+
+```math
+\text{Accumulated Computation Time} = \Phi_{\text{power}} \cdot \frac{9k}{2f}, \quad \text{Interval size} = \frac{R}{f}, \quad \text{Total Φ Iterations = i} = \frac{9k/f}{R/f} = \frac{9k}{R} , \quad T_\Phi = \frac{\text{Accumulated Computation Time}}{i}
+```
+```math
+\text{startInterval}(slot) = \left\lfloor \frac{\text{slot}}{i} \right\rfloor \cdot i , \quad \text{endInterval}(slot) = \left( \left\lfloor \frac{\text{slot}}{i} \right\rfloor + 1 \right) \cdot i - 1
+```
+```math
+
+\text{\#MissedIterations} = \text{endInterval(lastBlockProducedSlot)} - \text{endInterval(currentSlot)} 
+```
+```math
+
+\text{\#UpcomingIterations} = \text{endInterval(currentSlot)} - \text{endInterval(nextSlotLeader)} 
+```
+```math
+
+\text{Remaining Interval} = \text{currentSlot} - \text{nextSlotLeader} 
+```
+```math
+
+\text{Margin Interval} =  \text{Remaining Interval} -  (\text{\#MissedIterations}  +  \text{\#UpcomingIterations}) \cdot T_\Phi
+```
+```math
+\Phi_{\text{Margin}} < \frac{\text{Margin Interval}}{\text{Remaining Interval}}
+```
+<br/><br/>
+
+**How does the current algorithm behave during the $\text{pre-}\eta_e$ instability period ?** <br/>
+**Does it continue to uphold the **SCALE** properties under these conditions?**
+
+The answer is **yes**, provided that the **$T_\Phi$** remains relatively low. However, as this cost increases, sudden rollbacks affecting the $\text{pre-}\eta_e$ seed may, under certain conditions, disrupt the immediate slot leaders' ability to produce timely blocks.
+
+The **worst-case scenario** occurs when a rollback happens **at the very end of a computation interval**, and the **next scheduled slot leader** is positioned just after the **beginning of the following interval**. In such a case, when $T_\Phi$ is large enough, the **Availability** property may be compromised: block production could be **delayed**, leading to **increased latency in block diffusion**, or worse, the block may arrive **too late** and be **rejected** by the network.
+
+To better understand this risk under concrete conditions, the table below illustrates how the **Accumulated Computation Time is distributed across intervals** (i.e., the ratio $T_\Phi / \text{Interval size}$, expressed in seconds) on **Mainnet** under this approach:
+
+| $\Phi_{\text{power}}$ | Accumulated Computation Time | R = 5 (i = 3888)     | R = 10 (i = 1944)    | R = 20 (i = 972)     | R = 30 (i = 648)     | R = 50 (i = 388)      |
+|------------------------|-------------------------------|------------------------|------------------------|------------------------|------------------------|-------------------------|
+| 0.0                    | 0 minutes                    | 0.0s / 100s           | 0.0s / 200s           | 0.0s / 400s           | 0.0s / 600s           | 0.0s / 1000s           |
+| 0.1                    | 5 hours 24 minutes           | 5.0s / 100s           | 10.0s / 200s          | 20.0s / 400s          | 30.0s / 600s          | 50.1s / 1000s          |
+| 0.2                    | 10 hours 48 minutes          | 10.0s / 100s          | 20.0s / 200s          | 40.0s / 400s          | 60.0s / 600s          | 100.2s / 1000s         |
+| 0.3                    | 16 hours 12 minutes          | 15.0s / 100s          | 30.0s / 200s          | 60.0s / 400s          | 90.0s / 600s          | 150.3s / 1000s         |
+| 0.4                    | 21 hours 36 minutes          | 20.0s / 100s          | 40.0s / 200s          | 80.0s / 400s          | 120.0s / 600s         | 200.4s / 1000s         |
+| 0.5                    | 1 day 3 hours                | 25.0s / 100s          | 50.0s / 200s          | 100.0s / 400s         | 150.0s / 600s         | 250.5s / 1000s         |
+| 0.6                    | 1 day 8 hours 24 minutes     | 30.0s / 100s          | 60.0s / 200s          | 120.0s / 400s         | 180.0s / 600s         | 300.6s / 1000s         |
+| 0.7                    | 1 day 13 hours 48 minutes    | 35.0s / 100s          | 70.0s / 200s          | 140.0s / 400s         | 210.0s / 600s         | 350.7s / 1000s         |
+| 0.8                    | 1 day 19 hours 12 minutes    | 40.0s / 100s          | 80.0s / 200s          | 160.0s / 400s         | 240.0s / 600s         | 400.8s / 1000s         |
+| 0.9                    | 2 days 35 minutes            | 45.0s / 100s          | 90.0s / 200s          | 180.0s / 400s         | 270.0s / 600s         | 450.9s / 1000s         |
+| 1.0                    | 2 days 6 hours               | 50.0s / 100s          | 100.0s / 200s         | 200.0s / 400s         | 300.0s / 600s         | 501.0s / 1000s         |
+
+The higher the value of $R$, the less likely this worst-case scenario will occur, as the computation load is spread over more intervals. However, when such a situation does happen, the **amount of work required to catch up increases**, potentially impacting **multiple consecutive blocks**.  
+
+For example, at full $\Phi_{\text{power}}$ capacity, the delay can range from **50 to 500 seconds**, which corresponds to **2.5 to 25 blocks** on mainnet.
+
+A solution is to apply an **exponential function** to modulate the amount of $T_\Phi$ executed in each interval, progressively increasing it over the period $[0, \frac{4k}{f})$, and reaching a **stable, consistent pace** during the final segment $[\frac{4k}{f}, \frac{10k}{f})$. This function should closely approximate the **probability curve of $\text{pre-}\eta_e$ stabilization**, allowing computation efforts to align with the growing certainty that the seed will remain unchanged.
+
+if a rollback happens in that case, **$T_\Phi$** remains relatively low and the **SCALE** properties are preserved.
+
+
+**How does the current algorithm behave throughout the epoch transition described above?**  <br/>
+**Does it continue to uphold the _SCALE_ properties under these conditions?**
+
+The answer is **yes**, because the protocol only requires a window of $3k/f$ slots to guarantee **Chain Growth from Common Prefix** ("CG from CP"), while in our case, we have a visibility window of $4k/f$ slots.  This provides an additional $k/f$ slots of buffer — a significant margin in the context of the algorithm described above — which can be leveraged to **adapt preemptive computations** accordingly. 
+
+As a result, even during the epoch transition, the algorithm preserves the essential properties of **Success Probability** and **Availability**, maintaining compliance with the **SCALE** design goals.
+
+<details>
+  <summary> 📌📌 <i> Rationale about "CG from CP" Property </i> – <b>  Expand to view the content.</b>
+ </summary>
+
+**This argument, known as "CG from CP," proceeds as follows:**
+
+Within these $3k/f$ slots, there are expected to be approximately $3k/2$ adversarial slots, assuming an adversary of strength close to $1/2$. Consequently, with overwhelming probability, there will be at least $k$ adversarial slots in this period.
+
+Now, if the honest chain were to grow by fewer than $k$ blocks during this interval, it would signal an imminent $k$-common-prefix (k-CP) violation. The adversary could, at that point, maintain a private chain of length $k$ starting from the beginning of this interval. By simply waiting for the honest chain to reach a length of $k$ blocks, the adversary could present two disjoint chains of $k$ blocks each within the same epoch, thereby violating the k-CP property.
+
+This reasoning assumes an adversary strength near $1/2$, but it is worth noting that the weaker the adversary, the better the chain growth (CG) properties.
+
+</details>
+<br/>
+
+**How does the current algorithm behave throughout the Computation/∃CQ Transition?**  
+**Does it continue to uphold the _SCALE_ properties under these conditions?**
+
+Although the **probability** that an **adversary** is the **slot leader** in enough **consecutive blocks** just before the **transition** is low, it could still result in an **honest participant** in the **∃CQ transition** having to compute a **substantial number of iterations** between the **last block produced** and the **final iteration** of $\Phi$. If, for any reason, the **honest participant** does not have enough time to complete this **critical final iteration** during the **∃CQ phase**, it would **undermine the primary goal** of this **Ouroboros enhancement** — and we would be forced to **fall back to the original Praos protocol**.
+
+As in the **$\text{pre-}\eta_e$ instability period**, we propose to apply a **modulation function** to control the number of $T_\Phi$ iterations executed within each interval. Specifically, we aim to **progressively reduce** the **computational load** over the period $[\frac{4k}{f},\frac{9k}{f})$, ensuring that the **number of iterations remains negligible** for an **honest participant** during the **∃CQ phase**. In doing so, we **preserve the _SCALE_ properties** under these **transitional conditions**.
+
+#### 3.7. $k(\text{pre-η},t)$ Definition 
+
+#### 3.8. Agda Mechanization
+
+### 4. The Φ Cryptographic Primitive
 
 The Φ cryptographic primitive is a critical component of the Φalanx protocol, designed to increase the computational cost of grinding attacks while remaining efficient for honest participants. To achieve this, Φ must adhere to a set of well-defined properties that ensure its security, efficiency, and practical usability within the Cardano ecosystem. These properties are outlined in the table below :
 
@@ -216,8 +370,33 @@ The Φ cryptographic primitive is a critical component of the Φalanx protocol, 
 | **Adaptive Security**     | Function and its parameters should be easily reconfigurable to accommodate evolving threats, such as advances in computational power or new cryptographic attacks. |
 
 
+### 5. Operability, Maintainability & Modularity
 
-### 4. Balancing Honest and Adversarial Computation
+
+A **fundamental requirement** for the **cryptographic scheme** in **Φalanx** is that it must be both easily **operable** and **maintainable** to ensure **long-term usability** within the **Cardano ecosystem**.
+
+As previously illustrated, the **chain of computation** can be conceptualized as a **challenge** that resets at the start of each **epoch** using a **preseed**. This process can be broken down into **smaller, self-contained puzzles** that are completed with each **block** or a **subset of blocks**. Consequently, we need to identify a **function** that satisfies three **key criteria**:  
+1. it must be **straightforward to set up**, minimizing **implementation complexity**;  
+2. it must possess a **sufficiently large domain space** to enable **secure resets** without compromising **randomness**;  
+3. it must support **division into intermediate steps** or allow **seamless chaining**, facilitating **efficient computation across blocks**. For example, this could be achieved by **iterating a hash function**, where the **preseed** serves as the **initial seed**, and each block reveals the output after processing a **portion of the computation**.
+
+Additionally, we require the ability to **periodically reassess** and seamlessly **update the security parameters** or even **replace the cryptographic function** itself in response to **emerging vulnerabilities** or **rapid advancements in hardware**. For instance, the selected **hash function** would need its **security parameters adjusted** regularly to account for **hardware evolution** and might require a complete **transition**—such as from the **SHA2** to the **SHA3 family**—if significant **weaknesses** are identified.
+
+These properties collectively underscore the **modularity** that both the **cryptographic function** and the **Φalanx protocol** must exhibit to ensure **adaptability**, **efficiency**, and **resilience over time**.
+
+## Rationale: how does this CIP achieve its goals?
+<!-- The rationale fleshes out the specification by describing what motivated the design and what led to particular design decisions. It should describe alternate designs considered and related work. The rationale should provide evidence of consensus within the community and discuss significant objections or concerns raised during the discussion.
+
+It must also explain how the proposal affects the backward compatibility of existing solutions when applicable. If the proposal responds to a CPS, the 'Rationale' section should explain how it addresses the CPS, and answer any questions that the CPS poses for potential solutions.
+-->
+
+### 1. Increased Grinding Resistance Quantification
+### 2. $\Phi$ Iterations & Distribution alternatives 
+### 3. Choice of The Cryptographic Primitive
+##  4. Φalanx's Efficiency Limits
+
+# Dump Not organized yet
+---- 
 
 By incorporating additional **computation** after aggregating all **VRF contributions**, we require each **honest participant** to perform a portion of the **calculation** within a reasonable timeframe, while imposing an **exponential computational overhead** on **adversaries** within a constrained window. Our objective is to select the **duration** of this computation such that, in the **best-case scenarios**, it completely **prevents attacks**, and in the **worst-case scenarios**, it **deters adversaries** from initiating an attack. To achieve this, we have identified four key goals when parameterizing **Φalanx**:
 
@@ -405,30 +584,6 @@ This **simplification** allows us to **revisit and improve** the **feasibility c
 
 These **tables** demonstrates a **significant improvement** over the **Praos scenarios**. For **$\Phi_{\text{min}}$**, the "**Trivial**" range shrinks to **$\rho < 10$** (a **reduction of up to 39** for **Ant Glance Praos**), and the "**Possible**" range is limited to **$\rho < 20$** (a **reduction of up to 53**). For **$\Phi_{\text{max}}$**, the effect is even more pronounced, with the "**Trivial**" range reduced to **$\rho < 5$** (a **reduction of up to 44**) and the "**Possible**" range to **$\rho < 15$** (a **reduction of up to 58**). These substantial **$\Delta \rho$ values** indicate that **Phalanx significantly raises the bar** for **grinding attacks**, pushing the **feasibility thresholds** to much **lower $\rho$ values** across all **scenarios**. This makes such **attacks economically and computationally prohibitive** for **adversaries**, even those with **significant resources**, thereby **enhancing the security** of the **Ouroboros Praos protocol**.
 
-### 6. Operability, Maintainability & Modularity
-
-
-A **fundamental requirement** for the **cryptographic scheme** in **Φalanx** is that it must be both easily **operable** and **maintainable** to ensure **long-term usability** within the **Cardano ecosystem**.
-
-As previously illustrated, the **chain of computation** can be conceptualized as a **challenge** that resets at the start of each **epoch** using a **preseed**. This process can be broken down into **smaller, self-contained puzzles** that are completed with each **block** or a **subset of blocks**. Consequently, we need to identify a **function** that satisfies three **key criteria**:  
-1. it must be **straightforward to set up**, minimizing **implementation complexity**;  
-2. it must possess a **sufficiently large domain space** to enable **secure resets** without compromising **randomness**;  
-3. it must support **division into intermediate steps** or allow **seamless chaining**, facilitating **efficient computation across blocks**. For example, this could be achieved by **iterating a hash function**, where the **preseed** serves as the **initial seed**, and each block reveals the output after processing a **portion of the computation**.
-
-Additionally, we require the ability to **periodically reassess** and seamlessly **update the security parameters** or even **replace the cryptographic function** itself in response to **emerging vulnerabilities** or **rapid advancements in hardware**. For instance, the selected **hash function** would need its **security parameters adjusted** regularly to account for **hardware evolution** and might require a complete **transition**—such as from the **SHA2** to the **SHA3 family**—if significant **weaknesses** are identified.
-
-These properties collectively underscore the **modularity** that both the **cryptographic function** and the **Φalanx protocol** must exhibit to ensure **adaptability**, **efficiency**, and **resilience over time**.
-
-
-### 7. Agda Mechanization
-
-Todo  
-
-## Rationale: how does this CIP achieve its goals?
-<!-- The rationale fleshes out the specification by describing what motivated the design and what led to particular design decisions. It should describe alternate designs considered and related work. The rationale should provide evidence of consensus within the community and discuss significant objections or concerns raised during the discussion.
-
-It must also explain how the proposal affects the backward compatibility of existing solutions when applicable. If the proposal responds to a CPS, the 'Rationale' section should explain how it addresses the CPS, and answer any questions that the CPS poses for potential solutions.
--->
 
 ### 1. Cryptographic Primitive 
 
@@ -443,175 +598,6 @@ Work in Progress in [google doc](https://docs.google.com/document/d/13TZF2jYLoKP
 
 ### 2. Adaptive Strategies for Efficient $\Phi$ Computation
 
-#### 2.1 Challenge to solve 
-
-**How can we ensure that, for a given epoch $e$, Stake Pool Operators (SPOs) can efficiently perform the $i$ iterations of $`\Phi`$ required to deterministically produce $`\phi^\text{evolving}_e`$, thereby enabling a more secure computation of $`\eta_e`$ than in the current Praos protocol?**
-
-<div align="center">
-<img src="./image-2.png" alt="" width="800"/>
-</div>
-
-
-#### 2.2 Solution Properties
-
-To ensure robust and efficient production of $`\phi^\text{evolving}_e`$, candidate strategies should aim to satisfy the following **SCALE** properties — prioritized in the order shown:
-
-- **S**uccess Probability — Maximize the likelihood of deterministically producing $`\phi^\text{evolving}_e`$ without falling back to the Praos protocol.  
-- **C**ompactness — Minimize block header size increase.  
-- **A**vailability — Minimize additional latency in block diffusion.  
-- **L**ightweight Execution — minimize redundant or wasteful iterations of $`\Phi`$ among the SPOs.  
-- **E**quity in Effort — ensure computational fairness: stake holders compute proportionally to their stake.
-
-These properties define the design space for secure, performant, and fair execution of $`\Phi`$ in each epoch.
-
-#### 2.3 Computation Participation
-
-Regarding SPO participation in the protocol, we identify three possible models:
-
-- **Centralized**: A single entity is responsible for the entire process. This model is strongly discouraged, as it introduces a textbook case of a single point of failure, undermining both resilience and decentralization.
-- **Federated**: A selected subset of SPOs participates in the process. While this model improves over the centralized approach, it raises concerns of collusion, particularly the possibility of intentionally omitting the final iteration and reverting to the default Praos protocol. Additionally, participants could become targeted by adversaries, and governance mechanisms must be introduced to manage entry and exit from this privileged role.
-- **Decentralized**: All SPOs participate in the additional computation phase. Unsurprisingly in our context, this is the most robust model, leveraging the existing infrastructure of SPOs who are already running the network and receiving rewards. 
-
-Taking the decentralized approach, SPOs are expected to collectively compute the $i^{\text{th}}$ iteration of $\Phi$. 
-The key question, then, is **how can we design effective incentives to ensure that this task is performed reliably and in a timely manner?**
-
-
-#### 2.4 Game-Theoretic Enforcement: No Timely Iteration, No Block Reward
-
-We will reuse the existing game-theoretic framework for block production in Praos and require each stake pool operator (SPO), upon producing a block, to provide a proof of work performed—specifically, a proof that they have computed the *x*‑th iteration of $\Phi$. 
-
-Two approaches have been designed and considered : the **slot-interval-based approach** and the **block-based approach**.
-
-##### 2.4.1 Slot Leader Schedule Visibility & $\text{pre-}\eta_e$ instability
-
-**Regardless of the chosen approach**, each SPO knows their complete private schedule for $`\Phi`$ computation as soon as the slot leader distribution is revealed. Within this epoch-sized period:
-- **During the interval $[0, \frac{4k}{f})$:**
-  - SPOs are still operating in $`epoch_{\text{e-2}}`$, which means they know their schedule **$\frac{6k}{f}$ slots in advance**.
-  - However, at this point, $\text{pre-}\eta_e$ remains a *candidate value* — not yet finalized. Multiple forks may still exist, each potentially initiating a distinct instance of $\Phi$.
-  - As such, early iterations of $\Phi$ are **speculative**. If the canonical chain later stabilizes on a different fork than the one used during early computations, the associated $\text{pre-}\eta_e$ will change, and the corresponding $\Phi$ computation must be **discarded and restarted**.
-  - **In short**, the closer we approach the fork stabilization point, the **higher the probability** that the selected $\text{pre-}\eta_e$ will remain, but rollback is still possible within this window.
-
-- **During the interval $[\frac{4k}{f}, \frac{10k}{f})$:**
-  - SPOs are now in $`epoch_{\text{e-1}}`$.
-  - Although the slot leader distribution is guaranteed to be finalized at the $\frac{4k}{f}$-th slot, SPOs gain increasing probabilistic confidence as they approach this point that no further changes will occur. As a result, they can begin to take **relatively safe preemptive actions** based on the expected future slot leader distribution, especially when close to the stabilization boundary.
-  - From this slot onward, $\text{pre-}\eta_e$ is fully stable, and all SPOs will execute $\Phi$ using the same seed, ensuring deterministic and aligned computations.
-
-
-The following visual highlights this situation:
-
-<div align="center"><img src="./image-7.png" alt="" width="1000"/></div>
-
-
-##### 2.4.2 Slot-interval-based approach 
-
-In this approach, the epoch-size equivalent period is divided into $i$ intervals. Within each interval, the first block produced must include a proof of work performed in order to be considered valid. Subsequent blocks produced within the same interval are exempt from this requirement. This Computation phase is followed by an ∃CQ (Existential Chain Quality) phase. This final phase ensures, within our theoretical model, that the computation of $\phi^\text{evolving}_e$ is guaranteed to complete. In practice, to ensure liveness in edge cases, the protocol reverts to standard Praos behavior, using $\text{pre-}\eta_e$ as $\eta_e$.  
-
-On mainnet, the parameter $s$ (Minimum Honest Block Inclusion Interval) is defined as $\frac{k}{f}$ within a segment of $\frac{10.k}{f}$ slots. This leaves a remaining window of $\frac{9.k}{f}$ slots allocated to the Computation Phase:
-
-<div align="center"><img src="./image-4.png" alt="" width="800"/></div>
-
-##### Maximizing Availability
-
-**Given the framework defined above, how can we ensure that each SPO neither compromises the Availability property nor fails to produce their block on time?**
-
-To ensure timely block production, we prioritize **Availability** over **Lightweight Execution**. Specifically, stake pool operators (SPOs) must pre-compute a sufficient portion of their computation pipeline in advance.
-We can formalize this with an algorithm where : 
-1. We define a parameter $\Phi_{\text{power}} \in [0, 1]$, representing the fraction of $\Phi$'s maximal computational cost that is actually applied to the network. A value of $\Phi_{\text{power}} = 0$ corresponds to no overhead, while $\Phi_{\text{power}} = 1$ corresponds to **half of the maximum theoretical cost** we could impose on the adversary, ensuring that honest SPOs are granted **at least twice the time required** to perform each iteration under worst-case assumptions.
-2. We predefined a thresold $\Phi_{\text{margin}} \in [0.1]$ such as $\Phi_{\text{margin}} < \frac{\text{Margin Interval}}{\text{Remaining Interval}}$. If we don't have enough margin time, we should start computing the remaining iteration of $\Phi$ **locally**.
-3. Finally, let's define a parameter $R$ (Redundancy), the expected number of blocks per $\Phi$ interval. 
-
-![alt text](image-9.png)
-
-
-
-```math
-\text{Accumulated Computation Time} = \Phi_{\text{power}} \cdot \frac{9k}{2f}, \quad \text{Interval size} = \frac{R}{f}, \quad \text{Total Φ Iterations = i} = \frac{9k/f}{R/f} = \frac{9k}{R} , \quad T_\Phi = \frac{\text{Accumulated Computation Time}}{i}
-```
-```math
-\text{startInterval}(slot) = \left\lfloor \frac{\text{slot}}{i} \right\rfloor \cdot i , \quad \text{endInterval}(slot) = \left( \left\lfloor \frac{\text{slot}}{i} \right\rfloor + 1 \right) \cdot i - 1
-```
-```math
-
-\text{\#MissedIterations} = \text{endInterval(lastBlockProducedSlot)} - \text{endInterval(currentSlot)} 
-```
-```math
-
-\text{\#UpcomingIterations} = \text{endInterval(currentSlot)} - \text{endInterval(nextSlotLeader)} 
-```
-```math
-
-\text{Remaining Interval} = \text{currentSlot} - \text{nextSlotLeader} 
-```
-```math
-
-\text{Margin Interval} =  \text{Remaining Interval} -  (\text{\#MissedIterations}  +  \text{\#UpcomingIterations}) \cdot T_\Phi
-```
-```math
-\Phi_{\text{Margin}} < \frac{\text{Margin Interval}}{\text{Remaining Interval}}
-```
-<br/><br/>
-
-**How does the current algorithm behave during the $\text{pre-}\eta_e$ instability period ?** <br/>
-**Does it continue to uphold the **SCALE** properties under these conditions?**
-
-The answer is **yes**, provided that the **$T_\Phi$** remains relatively low. However, as this cost increases, sudden rollbacks affecting the $\text{pre-}\eta_e$ seed may, under certain conditions, disrupt the immediate slot leaders' ability to produce timely blocks.
-
-The **worst-case scenario** occurs when a rollback happens **at the very end of a computation interval**, and the **next scheduled slot leader** is positioned just after the **beginning of the following interval**. In such a case, when $T_\Phi$ is large enough, the **Availability** property may be compromised: block production could be **delayed**, leading to **increased latency in block diffusion**, or worse, the block may arrive **too late** and be **rejected** by the network.
-
-To better understand this risk under concrete conditions, the table below illustrates how the **Accumulated Computation Time is distributed across intervals** (i.e., the ratio $T_\Phi / \text{Interval size}$, expressed in seconds) on **Mainnet** under this approach:
-
-| $\Phi_{\text{power}}$ | Accumulated Computation Time | R = 5 (i = 3888)     | R = 10 (i = 1944)    | R = 20 (i = 972)     | R = 30 (i = 648)     | R = 50 (i = 388)      |
-|------------------------|-------------------------------|------------------------|------------------------|------------------------|------------------------|-------------------------|
-| 0.0                    | 0 minutes                    | 0.0s / 100s           | 0.0s / 200s           | 0.0s / 400s           | 0.0s / 600s           | 0.0s / 1000s           |
-| 0.1                    | 5 hours 24 minutes           | 5.0s / 100s           | 10.0s / 200s          | 20.0s / 400s          | 30.0s / 600s          | 50.1s / 1000s          |
-| 0.2                    | 10 hours 48 minutes          | 10.0s / 100s          | 20.0s / 200s          | 40.0s / 400s          | 60.0s / 600s          | 100.2s / 1000s         |
-| 0.3                    | 16 hours 12 minutes          | 15.0s / 100s          | 30.0s / 200s          | 60.0s / 400s          | 90.0s / 600s          | 150.3s / 1000s         |
-| 0.4                    | 21 hours 36 minutes          | 20.0s / 100s          | 40.0s / 200s          | 80.0s / 400s          | 120.0s / 600s         | 200.4s / 1000s         |
-| 0.5                    | 1 day 3 hours                | 25.0s / 100s          | 50.0s / 200s          | 100.0s / 400s         | 150.0s / 600s         | 250.5s / 1000s         |
-| 0.6                    | 1 day 8 hours 24 minutes     | 30.0s / 100s          | 60.0s / 200s          | 120.0s / 400s         | 180.0s / 600s         | 300.6s / 1000s         |
-| 0.7                    | 1 day 13 hours 48 minutes    | 35.0s / 100s          | 70.0s / 200s          | 140.0s / 400s         | 210.0s / 600s         | 350.7s / 1000s         |
-| 0.8                    | 1 day 19 hours 12 minutes    | 40.0s / 100s          | 80.0s / 200s          | 160.0s / 400s         | 240.0s / 600s         | 400.8s / 1000s         |
-| 0.9                    | 2 days 35 minutes            | 45.0s / 100s          | 90.0s / 200s          | 180.0s / 400s         | 270.0s / 600s         | 450.9s / 1000s         |
-| 1.0                    | 2 days 6 hours               | 50.0s / 100s          | 100.0s / 200s         | 200.0s / 400s         | 300.0s / 600s         | 501.0s / 1000s         |
-
-The higher the value of $R$, the less likely this worst-case scenario will occur, as the computation load is spread over more intervals. However, when such a situation does happen, the **amount of work required to catch up increases**, potentially impacting **multiple consecutive blocks**.  
-
-For example, at full $\Phi_{\text{power}}$ capacity, the delay can range from **50 to 500 seconds**, which corresponds to **2.5 to 25 blocks** on mainnet.
-
-A solution is to apply an **exponential function** to modulate the amount of $T_\Phi$ executed in each interval, progressively increasing it over the period $[0, \frac{4k}{f})$, and reaching a **stable, consistent pace** during the final segment $[\frac{4k}{f}, \frac{10k}{f})$. This function should closely approximate the **probability curve of $\text{pre-}\eta_e$ stabilization**, allowing computation efforts to align with the growing certainty that the seed will remain unchanged.
-
-if a rollback happens in that case, **$T_\Phi$** remains relatively low and the **SCALE** properties are preserved.
-
-
-**How does the current algorithm behave throughout the epoch transition described above?**  <br/>
-**Does it continue to uphold the _SCALE_ properties under these conditions?**
-
-The answer is **yes**, because the protocol only requires a window of $3k/f$ slots to guarantee **Chain Growth from Common Prefix** ("CG from CP"), while in our case, we have a visibility window of $4k/f$ slots.  This provides an additional $k/f$ slots of buffer — a significant margin in the context of the algorithm described above — which can be leveraged to **adapt preemptive computations** accordingly. 
-
-As a result, even during the epoch transition, the algorithm preserves the essential properties of **Success Probability** and **Availability**, maintaining compliance with the **SCALE** design goals.
-
-<details>
-  <summary> 📌📌 <i> Rationale about "CG from CP" Property </i> – <b>  Expand to view the content.</b>
- </summary>
-
-**This argument, known as "CG from CP," proceeds as follows:**
-
-Within these $3k/f$ slots, there are expected to be approximately $3k/2$ adversarial slots, assuming an adversary of strength close to $1/2$. Consequently, with overwhelming probability, there will be at least $k$ adversarial slots in this period.
-
-Now, if the honest chain were to grow by fewer than $k$ blocks during this interval, it would signal an imminent $k$-common-prefix (k-CP) violation. The adversary could, at that point, maintain a private chain of length $k$ starting from the beginning of this interval. By simply waiting for the honest chain to reach a length of $k$ blocks, the adversary could present two disjoint chains of $k$ blocks each within the same epoch, thereby violating the k-CP property.
-
-This reasoning assumes an adversary strength near $1/2$, but it is worth noting that the weaker the adversary, the better the chain growth (CG) properties.
-
-</details>
-<br/>
-
-
-**How does the current algorithm behave throughout the Computation/∃CQ Transition?**  
-**Does it continue to uphold the _SCALE_ properties under these conditions?**
-
-Although the **probability** that an **adversary** is the **slot leader** in enough **consecutive blocks** just before the **transition** is low, it could still result in an **honest participant** in the **∃CQ transition** having to compute a **substantial number of iterations** between the **last block produced** and the **final iteration** of $\Phi$. If, for any reason, the **honest participant** does not have enough time to complete this **critical final iteration** during the **∃CQ phase**, it would **undermine the primary goal** of this **Ouroboros enhancement** — and we would be forced to **fall back to the original Praos protocol**.
-
-As in the **$\text{pre-}\eta_e$ instability period**, we propose to apply a **modulation function** to control the number of $T_\Phi$ iterations executed within each interval. Specifically, we aim to **progressively reduce** the **computational load** over the period $[\frac{4k}{f},\frac{9k}{f})$, ensuring that the **number of iterations remains negligible** for an **honest participant** during the **∃CQ phase**. In doing so, we **preserve the _SCALE_ properties** under these **transitional conditions**.
 
 
 ##### 2.4.3 Block-based approach
