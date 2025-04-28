@@ -42,7 +42,6 @@ License: Apache-2.0
   - [**2. $\Phi$ Iterations & Distribution alternatives**](#2-φ-iterations--distribution-alternatives)
   - [**3. Choice of The Cryptographic Primitive**](#3-choice-of-the-cryptographic-primitive)
   - [**4. Φalanx's Efficiency Limits**](#4-φalanxs-efficiency-limits)
-  - [**5. Adversarial Cost Overhead**](#5-adversarial-cost-overhead)
   
 - [**Path to Active**](#path-to-active)
   - [**Acceptance Criteria**](#acceptance-criteria)
