@@ -19,30 +19,29 @@ License: Apache-2.0
 
 - [**Abstract**](#abstract)
 - [**Motivation: Why is this CIP necessary?**](#motivation-why-is-this-cip-necessary)
-- [**Specification / The Φalanx Sub-Protocol**](#specification--the-φalanx-sub-protocol)
-  - [**1. High-Level Changes Relative to Praos**](#1-high-level-changes-compared-to-praos)
+- [**Specification / The Φalanx Sub-Protocol**](#specification--the-phalanx-sub-protocol)
+  - [**1. High-Level Changes Relative to Praos**](#1-high-level-changes-relative-to-praos)
   - [**2. The Streams**](#2-the-streams)
-    - [**2.1 The $`\eta^\text{stream}`$ Definition**](#21-the-ηstream-definition)
-    - [**2.2 The $`\text{pre-}\eta`$ Synchronizations**](#22-the-pre-η-synchronizations)
-    - [**2.3 The $`\phi^\text{stream}`$ Definition**](#23-the-φstream-definition)
-    - [**2.4 The $`\eta`$ Generations**](#24-the-η-generations)
-  - [**3. $k(\text{pre-η},t)$ & Distribution of $\Phi$ Iterations**](#3-kpre-ηt--distribution-of-φ-iterations)
+    - [**2.1 The η stream**](#21-the-eta-stream)
+    - [**2.2 The pre-η Synchronizations**](#22-the-pre-eta-synchronizations)
+    - [**2.3 The φ stream**](#23-the-phi-stream)
+    - [**2.4 The η Generations**](#24-the-eta-generations)
+  - [**3.Distribution of Φ Iterations**](#3-distribution-of-phi-iterations)
     - [**3.1 Challenge to solve**](#31-challenge-to-solve)
-    - [**3.2 Solution Properties S.C.A.L.E**](#32-solution-properties)
+    - [**3.2 Solution Properties S.C.A.L.E**](#32-solution-properties-scale)
     - [**3.3 Computation Participation**](#33-computation-participation)
-    - [**3.4 Slot Leader Schedule Visibility & $\text{pre-}\eta_e$ instability**](#34-slot-leader-schedule-visibility--pre-ηe-instability)
+    - [**3.4 Slot Leader Schedule Visibility & pre-ηₑ instability**](#34-slot-leader-schedule-visibility--pre-eta-e-instability)
     - [**3.5 Game-Theoretic Enforcement: No Timely Iteration, No Block Reward**](#35-game-theoretic-enforcement-no-timely-iteration-no-block-reward)
     - [**3.6 Availability Maximization**](#36-availability-maximization)
-    - [**3.7 $k(\text{pre-η},t)$ Definition**](#37-kpre-ηt-definition)
+    - [**3.7 Shape Function**](#37-shape-function)
     - [**3.8 Agda Mechanization**](#38-agda-mechanization)
-  - [**4. The Φ Cryptographic Primitive**](#4-the-φ-cryptographic-primitive)
+  - [**4. The Φ Cryptographic Primitive**](#4-the-phi-cryptographic-primitive)
   - [**5. Operability, Maintainability & Modularity**](#5-operability-maintainability--modularity)
 - [**Rationale: How This CIP Achieves Its Goals**](#rationale-how-this-cip-achieves-its-goals)
   - [**1. Increased Grinding Resistance Quantification**](#1-increased-grinding-resistance-quantification)
-  - [**2. $\Phi$ Iterations & Distribution alternatives**](#2-φ-iterations--distribution-alternatives)
+  - [**2. Φ Iterations & Distribution alternatives**](#2-phi-iterations--distribution-alternatives)
   - [**3. Choice of The Cryptographic Primitive**](#3-choice-of-the-cryptographic-primitive)
-  - [**4. Φalanx's Efficiency Limits**](#4-φalanxs-efficiency-limits)
-  
+  - [**4. Φalanx's Efficiency Limits**](#4-phalanxs-efficiency-limits)
 - [**Path to Active**](#path-to-active)
   - [**Acceptance Criteria**](#acceptance-criteria)
   - [**Implementation Plan**](#implementation-plan)
@@ -116,7 +115,7 @@ The Randomness Generation sub-protocol operates with two parallel streams: $`\et
 
 ![alt text](image.png)
 
-#### 2.1 **The $`\eta^\text{stream}`$ Definition** 
+#### 2.1 **The $`\eta^\text{stream}`$** 
    - Already present in Praos and retained in Phalanx 
    - Updated with every block produced in the blockchain tree, a $`\eta^\text{stream}`$ captures intermediate values $`\eta^\text{evolving}_t`$ in the block headers, defined as follows:
 
@@ -150,7 +149,7 @@ false & \text{otherwise.}
 - This specific value of $`\eta^\text{stream}`$ is referred to as **$`\text{pre-}\eta_e`$**.
 
 
-#### 2.3 The $`\phi^\text{stream}`$ Definition
+#### 2.3 The $`\phi^\text{stream}`$
 
 - The stream depends on the selected cryptographic primitive and it is parametrizable with $i$, the total number of $`\Phi`$ iterations,
 - The stream $`\phi^\text{stream}`$ is reset during each $`\text{pre-}\eta`$ synchronization.  
@@ -159,20 +158,8 @@ false & \text{otherwise.}
 ```math
   \phi^\text{evolving}_e = \Phi^i(\text{pre-}\eta_e)
 ```
+- Between 2 consecutive resets, a subset of the blocks produced must append to their block header a unique intermediate value $\phi^\text{evolving}_x$, where $x \in {0, 1, \dotsc, i-1}$ denotes the progression index of the $\Phi$ computation(See the [**Distribution of Φ Iterations Approach**](#3-distribution-of-phi-iterations) below).
 
-- For each block produced within the blockchain tree, a unique $`ϕ^\text{evolving}`$ value is appended to the block header:
-
-```math
-ϕ^{\text{evolving}}_{t+1} =
-\begin{cases}
-\text{pre-η} = η^\text{evolving}_{t} & \text{if } t \text{ is a } \text{pre-}η \text{ synchronization point}, \\
-Φ^\text{k(pre-η,t)}(ϕ^{\text{evolving}}_{t}) & \text{if BlockProduced}(t), \\
-ϕ^{\text{evolving}}_{t} & \text{otherwise.}
-\end{cases}
-```
-| **where** ||
-|---------------|-----------------|
-| $k(\text{pre-η},t)$ | Function that spreads the $\Phi$ iterations to preserve the _SCALE_ properties|
 
 
 #### 2.4 The $`\eta`$** Generations
@@ -185,7 +172,7 @@ false & \text{otherwise.}
 **Note** : $`\text{pre-}\eta_\text{e+1}`$ synchronization occurs $`\text{when } t = \text{end of phase 2 at epoch}_\text{e-1}`$
 
 
-### 3. $k(\text{pre-η},t)$ & Distribution of $\Phi$ Iterations
+### 3. Distribution of $\Phi$ Iterations
 
 #### 3.1 Challenge to solve 
 
@@ -260,8 +247,6 @@ We can formalize this with an algorithm where :
 
 ![alt text](image-9.png)
 
-
-
 ```math
 \text{Accumulated Computation Time} = \Phi_{\text{power}} \cdot \frac{9k}{2f}, \quad \text{Interval size} = \frac{R}{f}, \quad \text{Total Φ Iterations = i} = \frac{9k/f}{R/f} = \frac{9k}{R} , \quad T_\Phi = \frac{\text{Accumulated Computation Time}}{i}
 ```
@@ -287,6 +272,7 @@ We can formalize this with an algorithm where :
 ```math
 \Phi_{\text{Margin}} < \frac{\text{Margin Interval}}{\text{Remaining Interval}}
 ```
+
 <br/><br/>
 
 **How does the current algorithm behave during the $\text{pre-}\eta_e$ instability period ?** <br/>
@@ -316,7 +302,7 @@ The higher the value of $R$, the less likely this worst-case scenario will occur
 
 For example, at full $\Phi_{\text{power}}$ capacity, the delay can range from **50 to 500 seconds**, which corresponds to **2.5 to 25 blocks** on mainnet.
 
-A solution is to apply an **exponential function** to modulate the amount of $T_\Phi$ executed in each interval, progressively increasing it over the period $[0, \frac{4k}{f})$, and reaching a **stable, consistent pace** during the final segment $[\frac{4k}{f}, \frac{10k}{f})$. This function should closely approximate the **probability curve of $\text{pre-}\eta_e$ stabilization**, allowing computation efforts to align with the growing certainty that the seed will remain unchanged.
+A solution is to apply an **exponential function** to modulate the amount of $T_\Phi$ executed in each interval (an **On-Ramp** function ) , progressively increasing it over the period $[0, \frac{4k}{f})$, and reaching a **stable, consistent pace** during the final segment $[\frac{4k}{f}, \frac{10k}{f})$. This function should closely approximate the **probability curve of $\text{pre-}\eta_e$ stabilization**, allowing computation efforts to align with the growing certainty that the seed will remain unchanged.
 
 if a rollback happens in that case, **$T_\Phi$** remains relatively low and the **SCALE** properties are preserved.
 
@@ -348,9 +334,65 @@ This reasoning assumes an adversary strength near $1/2$, but it is worth noting 
 
 Although the **probability** that an **adversary** is the **slot leader** in enough **consecutive blocks** just before the **transition** is low, it could still result in an **honest participant** in the **∃CQ transition** having to compute a **substantial number of iterations** between the **last block produced** and the **final iteration** of $\Phi$. If, for any reason, the **honest participant** does not have enough time to complete this **critical final iteration** during the **∃CQ phase**, it would **undermine the primary goal** of this **Ouroboros enhancement** — and we would be forced to **fall back to the original Praos protocol**.
 
-As in the **$\text{pre-}\eta_e$ instability period**, we propose to apply a **modulation function** to control the number of $T_\Phi$ iterations executed within each interval. Specifically, we aim to **progressively reduce** the **computational load** over the period $[\frac{4k}{f},\frac{9k}{f})$, ensuring that the **number of iterations remains negligible** for an **honest participant** during the **∃CQ phase**. In doing so, we **preserve the _SCALE_ properties** under these **transitional conditions**.
+As in the **$\text{pre-}\eta_e$ instability period**, we propose to apply a **modulation function** (an **Ramp-Off** function ) to control the number of $T_\Phi$ iterations executed within each interval. Specifically, we aim to **progressively reduce** the **computational load** over the period $[\frac{4k}{f},\frac{9k}{f})$, ensuring that the **number of iterations remains negligible** for an **honest participant** during the **∃CQ phase**. In doing so, we **preserve the _SCALE_ properties** under these **transitional conditions**.
 
-#### 3.7. $k(\text{pre-η},t)$ Definition 
+
+### 3.7. Shape Function
+
+
+To uphold the **_SCALE_** properties under all operational conditions described above, the flat baseline:
+
+```math
+T_\Phi = \frac{\text{Accumulated Computation Time}}{i}
+```
+
+is replaced by a modulated function $T_\Phi(j)$ that varies with the **iteration index** $j \in \{0, 1, \dotsc, i - 1\}$, where $j = 0$ corresponds to the initial pre-$\eta$ value and $j = i - 1$ to the iteration before the final one delivering $`\phi^\text{evolving}_e`$.
+
+This modulation allows the protocol to adapt the computational effort per Φ iteration according to the structural phases of the period — ramping up during early uncertainty, concentrating effort where the protocol is stable, and easing off near the transition into the ∃CQ phase. 
+
+This modulation shapes the amount of computation assigned to each $\Phi$ iteration, ensuring alignment with the **temporal characteristics** of the segment:
+
+- During the **initial phase** ($[0, \frac{3k}{f}]$ slots), where the value $\text{pre-}\eta_e$ may still be unstable, the function should **ramp up gradually**, minimizing disruption to early slot leaders.
+- In the **central computation window**, the protocol is stable with reliable leader schedules. The function should assign **strong and consistent effort** to maximize the computation of $\Phi$.
+- In the **final portion** ($[\frac{3k}{f}, \frac{9k}{f}]$), computational effort should **taper off smoothly**, ensuring availability near the ∃CQ security threshold and avoiding performance degradation as the computation concludes.
+
+#### Smoothstep Construction
+
+To avoid any discontinuities or derivative discontinuities between phases, the computation profile is defined as a smooth, symmetric bell curve using the **product of two quintic smoothstep functions**:
+
+```math
+x_j = \frac{j}{i - 1}
+```
+
+```math
+T_\Phi(j) = \frac{\text{Accumulated Computation Time}}{S} \cdot \text{smoothstep}(x_j) \cdot \text{smoothstep}(1 - x_j)
+```
+
+with:
+
+```math
+\text{smoothstep}(x) = 6x^5 - 15x^4 + 10x^3
+```
+
+This function satisfies the following:
+- $T_\Phi(0) = T_\Phi(i-2) = 0$
+- $\frac{dT_\Phi}{dj} = 0$ at both boundaries
+- The peak is centered, smooth, and strictly inside the interval.
+
+#### Normalization
+
+The total accumulated time is preserved via a scaling constant:
+
+```math
+S = \sum_{j=0}^{i-1} \text{smoothstep}(x_j) \cdot \text{smoothstep}(1 - x_j)
+```
+
+```math
+\sum_{j=0}^{i-1} T_\Phi(j) = \text{Accumulated Computation Time}
+```
+The resulting function can be visualized as a **continuous bell curve** concentrated at the center of the epoch’s computation window : 
+
+![alt text](image-8.png)
 
 #### 3.8. Agda Mechanization
 
