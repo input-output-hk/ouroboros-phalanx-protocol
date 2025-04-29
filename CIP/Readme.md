@@ -36,12 +36,11 @@ License: Apache-2.0
     - [**3.7 Shape Function**](#37-shape-function)
     - [**3.8 Agda Mechanization**](#38-agda-mechanization)
   - [**4. The Φ Cryptographic Primitive**](#4-the-phi-cryptographic-primitive)
-  - [**5. Operability, Maintainability & Modularity**](#5-operability-maintainability--modularity)
+  - [**5. Recommended Parameterization**](#5-recommended-parameterization)
 - [**Rationale: How This CIP Achieves Its Goals**](#rationale-how-this-cip-achieves-its-goals)
-  - [**1. Increased Grinding Resistance Quantification**](#1-increased-grinding-resistance-quantification)
-  - [**2. Φ Iterations & Distribution alternatives**](#2-phi-iterations--distribution-alternatives)
+  - [**1. $Φ_\text{power}$ & Adversarial Cost Overhead**](#1-φ_textpower--adversarial-cost-overhead)
+  - [**2. Distribution of Φ Iterations Alternatives**](#2-φ-iterations--distribution-alternatives)
   - [**3. Choice of The Cryptographic Primitive**](#3-choice-of-the-cryptographic-primitive)
-  - [**4. Φalanx's Efficiency Limits**](#4-phalanxs-efficiency-limits)
 - [**Path to Active**](#path-to-active)
   - [**Acceptance Criteria**](#acceptance-criteria)
   - [**Implementation Plan**](#implementation-plan)
@@ -398,6 +397,8 @@ The resulting function can be visualized as a **continuous bell curve** concentr
 
 ### 4. The Φ Cryptographic Primitive
 
+ (incomplete section -- add the specific primitive selected and all its characteristics )
+
 The Φ cryptographic primitive is a critical component of the Φalanx protocol, designed to increase the computational cost of grinding attacks while remaining efficient for honest participants. To achieve this, Φ must adhere to a set of well-defined properties that ensure its security, efficiency, and practical usability within the Cardano ecosystem. These properties are outlined in the table below :
 
 | **Property**              | **Description**                                                                                                   |
@@ -411,19 +412,9 @@ The Φ cryptographic primitive is a critical component of the Φalanx protocol, 
 | **Adaptive Security**     | Function and its parameters should be easily reconfigurable to accommodate evolving threats, such as advances in computational power or new cryptographic attacks. |
 
 
-### 5. Operability, Maintainability & Modularity
+### 5. Recommended Parameterization
 
 
-A **fundamental requirement** for the **cryptographic scheme** in **Φalanx** is that it must be both easily **operable** and **maintainable** to ensure **long-term usability** within the **Cardano ecosystem**.
-
-As previously illustrated, the **chain of computation** can be conceptualized as a **challenge** that resets at the start of each **epoch** using a **preseed**. This process can be broken down into **smaller, self-contained puzzles** that are completed with each **block** or a **subset of blocks**. Consequently, we need to identify a **function** that satisfies three **key criteria**:  
-1. it must be **straightforward to set up**, minimizing **implementation complexity**;  
-2. it must possess a **sufficiently large domain space** to enable **secure resets** without compromising **randomness**;  
-3. it must support **division into intermediate steps** or allow **seamless chaining**, facilitating **efficient computation across blocks**. For example, this could be achieved by **iterating a hash function**, where the **preseed** serves as the **initial seed**, and each block reveals the output after processing a **portion of the computation**.
-
-Additionally, we require the ability to **periodically reassess** and seamlessly **update the security parameters** or even **replace the cryptographic function** itself in response to **emerging vulnerabilities** or **rapid advancements in hardware**. For instance, the selected **hash function** would need its **security parameters adjusted** regularly to account for **hardware evolution** and might require a complete **transition**—such as from the **SHA2** to the **SHA3 family**—if significant **weaknesses** are identified.
-
-These properties collectively underscore the **modularity** that both the **cryptographic function** and the **Φalanx protocol** must exhibit to ensure **adaptability**, **efficiency**, and **resilience over time**.
 
 ## Rationale: how does this CIP achieve its goals?
 <!-- The rationale fleshes out the specification by describing what motivated the design and what led to particular design decisions. It should describe alternate designs considered and related work. The rationale should provide evidence of consensus within the community and discuss significant objections or concerns raised during the discussion.
@@ -431,10 +422,10 @@ These properties collectively underscore the **modularity** that both the **cryp
 It must also explain how the proposal affects the backward compatibility of existing solutions when applicable. If the proposal responds to a CPS, the 'Rationale' section should explain how it addresses the CPS, and answer any questions that the CPS poses for potential solutions.
 -->
 
-### 1. Increased Grinding Resistance Quantification
+### 1. $Φ_\text{power}$ & Adversarial Cost Overhead
 ### 2. $\Phi$ Iterations & Distribution alternatives 
-### 3. Choice of The Cryptographic Primitive
-##  4. Φalanx's Efficiency Limits
+### 3. Choice of The Cryptographic Primitive 
+
 
 # Dump Not organized yet
 ---- 
