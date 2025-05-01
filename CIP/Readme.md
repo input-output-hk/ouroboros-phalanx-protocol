@@ -232,7 +232,7 @@ The following visual highlights this situation:
 
 #### 3.5 Game-Theoretic Enforcement: No Timely Iteration, No Block Reward
 
-We will reuse the existing game-theoretic framework for block production in Praos and require each stake pool operator (SPO), upon producing a block, to provide a proof of work performed—specifically, a proof that they have computed the *x*‑th iteration of $\Phi$. 
+We will reuse the existing game-theoretic framework for block production in Praos and require each stake pool operator (SPO), upon producing a block, to provide a proof of computation performed—specifically, a proof that they have computed the *x*‑th iteration of $\Phi$. 
 
 In this approach, the epoch-size equivalent period is divided into $i$ intervals. Within each interval, the first block produced must include a proof of work performed in order to be considered valid. Subsequent blocks produced within the same interval are exempt from this requirement. This Computation phase is followed by an ∃CQ (Existential Chain Quality) phase. This final phase ensures, within our theoretical model, that the computation of $\phi^\text{evolving}_e$ is guaranteed to complete. In practice, to ensure liveness in edge cases, the protocol reverts to standard Praos behavior, using $\text{pre-}\eta_e$ as $\eta_e$.  
 
@@ -253,7 +253,7 @@ We can formalize this with an algorithm where :
 ![alt text](image-9.png)
 
 ```math
-\text{Accumulated Computation Time} = \Phi_{\text{power}} \cdot \frac{9k}{2f}, \quad \text{Interval size} = \frac{R}{f}, \quad \text{Total Φ Iterations = i} = \frac{9k/f}{R/f} = \frac{9k}{R} , \quad T_\Phi = \frac{\text{Accumulated Computation Time}}{i}
+T_\Phi = \Phi_{\text{power}} \cdot \frac{9k}{2f}, \quad \text{Interval size} = \frac{R}{f}, \quad \text{Total Φ Iterations = i} = \frac{9k/f}{R/f} = \frac{9k}{R} , \quad T_\phi = \frac{T_\Phi}{i}
 ```
 ```math
 \text{startInterval}(slot) = \left\lfloor \frac{\text{slot}}{i} \right\rfloor \cdot i , \quad \text{endInterval}(slot) = \left( \left\lfloor \frac{\text{slot}}{i} \right\rfloor + 1 \right) \cdot i - 1
@@ -307,7 +307,7 @@ The higher the value of $R$, the less likely this worst-case scenario will occur
 
 For example, at full $\Phi_{\text{power}}$ capacity, the delay can range from **50 to 500 seconds**, which corresponds to **2.5 to 25 blocks** on mainnet.
 
-A solution is to apply an **exponential function** to modulate the amount of $T_\Phi$ executed in each interval (an **On-Ramp** function ) , progressively increasing it over the period $[0, \frac{4k}{f})$, and reaching a **stable, consistent pace** during the final segment $[\frac{4k}{f}, \frac{10k}{f})$. This function should closely approximate the **probability curve of $\text{pre-}\eta_e$ stabilization**, allowing computation efforts to align with the growing certainty that the seed will remain unchanged.
+A solution is to apply an **exponential function** to modulate the amount of $T_\phi$ executed in each interval (an **On-Ramp** function ) , progressively increasing it over the period $[0, \frac{4k}{f})$, and reaching a **stable, consistent pace** during the final segment $[\frac{4k}{f}, \frac{10k}{f})$. This function should closely approximate the **probability curve of $\text{pre-}\eta_e$ stabilization**, allowing computation efforts to align with the growing certainty that the seed will remain unchanged.
 
 if a rollback happens in that case, **$T_\Phi$** remains relatively low and the **SCALE** properties are preserved.
 
@@ -339,19 +339,13 @@ This reasoning assumes an adversary strength near $1/2$, but it is worth noting 
 
 Although the **probability** that an **adversary** is the **slot leader** in enough **consecutive blocks** just before the **transition** is low, it could still result in an **honest participant** in the **∃CQ transition** having to compute a **substantial number of iterations** between the **last block produced** and the **final iteration** of $\Phi$. If, for any reason, the **honest participant** does not have enough time to complete this **critical final iteration** during the **∃CQ phase**, it would **undermine the primary goal** of this **Ouroboros enhancement** — and we would be forced to **fall back to the original Praos protocol**.
 
-As in the **$\text{pre-}\eta_e$ instability period**, we propose to apply a **modulation function** (an **Ramp-Off** function ) to control the number of $T_\Phi$ iterations executed within each interval. Specifically, we aim to **progressively reduce** the **computational load** over the period $[\frac{4k}{f},\frac{9k}{f})$, ensuring that the **number of iterations remains negligible** for an **honest participant** during the **∃CQ phase**. In doing so, we **preserve the _SCALE_ properties** under these **transitional conditions**.
+As in the **$\text{pre-}\eta_e$ instability period**, we propose to apply a **modulation function** (an **Ramp-Off** function ) to control the number of $T_\phi$ iterations executed within each interval. Specifically, we aim to **progressively reduce** the **computational load** over the period $[\frac{4k}{f},\frac{9k}{f})$, ensuring that the **number of iterations remains negligible** for an **honest participant** during the **∃CQ phase**. In doing so, we **preserve the _SCALE_ properties** under these **transitional conditions**.
 
 
 ### 3.7. Shape Function
 
 
-To uphold the **_SCALE_** properties under all operational conditions described above, the flat baseline:
-
-```math
-T_\Phi = \frac{\text{Accumulated Computation Time}}{i}
-```
-
-is replaced by a modulated function $T_\Phi(j)$ that varies with the **iteration index** $j \in \{0, 1, \dotsc, i - 1\}$, where $j = 0$ corresponds to the initial pre-$\eta$ value and $j = i - 1$ to the iteration before the final one delivering $`\phi^\text{evolving}_e`$.
+To uphold the **_SCALE_** properties under all operational conditions described above, the flat baseline : $T_\phi = \frac{T_\Phi}{i}$ is replaced by a modulated function $T_\phi(j)$ that varies with the **iteration index** $j \in \{0, 1, \dotsc, i - 1\}$, where $j = 0$ corresponds to the initial pre-$\eta$ value and $j = i - 1$ to the iteration before the final one delivering $`\phi^\text{evolving}_e`$.
 
 This modulation allows the protocol to adapt the computational effort per Φ iteration according to the structural phases of the period — ramping up during early uncertainty, concentrating effort where the protocol is stable, and easing off near the transition into the ∃CQ phase. 
 
@@ -370,7 +364,7 @@ x_j = \frac{j}{i - 1}
 ```
 
 ```math
-T_\Phi(j) = \frac{\text{Accumulated Computation Time}}{S} \cdot \text{smoothstep}(x_j) \cdot \text{smoothstep}(1 - x_j)
+T_\phi(j) = \frac{T_\Phi}{S} \cdot \text{smoothstep}(x_j) \cdot \text{smoothstep}(1 - x_j)
 ```
 
 with:
@@ -380,8 +374,8 @@ with:
 ```
 
 This function satisfies the following:
-- $T_\Phi(0) = T_\Phi(i-2) = 0$
-- $\frac{dT_\Phi}{dj} = 0$ at both boundaries
+- $T_\phi(0) = T_\phi(i-1) = 0$
+- $\frac{dT_\phi}{dj} = 0$ at both boundaries
 - The peak is centered, smooth, and strictly inside the interval.
 
 #### Normalization
@@ -393,7 +387,7 @@ S = \sum_{j=0}^{i-1} \text{smoothstep}(x_j) \cdot \text{smoothstep}(1 - x_j)
 ```
 
 ```math
-\sum_{j=0}^{i-1} T_\Phi(j) = \text{Accumulated Computation Time}
+\sum_{j=0}^{i-1} T_\phi(j) = T_\Phi
 ```
 The resulting function can be visualized as a **continuous bell curve** concentrated at the center of the epoch’s computation window : 
 
@@ -420,6 +414,15 @@ The Φ cryptographic primitive is a critical component of the Φalanx protocol, 
 
 ### 5. Recommended Parameterization
 
+**(To be completed)**
+
+We currently identify the following key parameters:
+
+- $\Phi_{\text{power}}$
+- $\Phi_{\text{margin}}$
+- $R$
+- (To be added: parameters related to the cryptographic primitive)
+
 
 
 ## Rationale: how does this CIP achieve its goals?
@@ -429,28 +432,20 @@ It must also explain how the proposal affects the backward compatibility of exis
 -->
 
 ### 1. $Φ_\text{power}$ & Adversarial Cost Overhead
-### 2. $\Phi$ Iterations & Distribution alternatives 
-### 3. Choice of The Cryptographic Primitive 
+#### 1.1 Cost Overhead of a grinding attempt
 
 
-# Dump Not organized yet
----- 
-
-By incorporating additional **computation** after aggregating all **VRF contributions**, we require each **honest participant** to perform a portion of the **calculation** within a reasonable timeframe, while imposing an **exponential computational overhead** on **adversaries** within a constrained window. Our objective is to select the **duration** of this computation such that, in the **best-case scenarios**, it completely **prevents attacks**, and in the **worst-case scenarios**, it **deters adversaries** from initiating an attack. To achieve this, we have identified four key goals when parameterizing **Φalanx**:
-
-- Ensure a **reasonable cost** for honest participants.  
-- Maintain a **prohibitive cost** for adversaries.  
-- Prevent **small-scale attacks**.  
-- Deter, where feasible, **medium- to large-scale attacks**.
-
-In **Φalanx**, we introduce an additional **computational cost**, $T_\Phi$, for each **grinding attempt**, which arises from the new $\Phi$ **cryptographic primitive** applied across all blocks in an epoch. This cost is defined as:
+In **Φalanx**, we introduce an additional **computational cost**, denoted $T_\Phi$, for each **grinding attempt**. This cost represents the total cumulative effort required to compute $i$ iterations of the $\Phi$ primitive. It is defined as follows:
 
 ```math
-T_\Phi = \frac{10k \cdot T_\phi}{f}
+T_\Phi = \Phi_{\text{power}} \cdot  \frac{1}{2} \cdot \frac{9k}{f}
 ```
 
-Where:  
-- $10k/f = 432,000$ slots (number of **slots in an epoch**, with $k = 2,160$, $f = 0.05$),  
+where:  
+- $k$ is the common prefix parameter,  
+- $T_\phi$ is the time to compute a single iteration of the $\Phi$ primitive, and  
+- $f$ is the active slot coefficient.
+- $9k/f = 432,000$ slots (number of **slots in an epoch**, with $k = 2,160$, $f = 0.05$),  
 - $T_\phi$: **Time to compute** an iteration $\phi$ of the $\Phi$ function per block.
 
 This additional cost directly impacts the total estimated **time per grinding attempt**, as originally defined in [CPS Section 3.3.4 - Total Estimated Time per Grinding Attempt](https://github.com/input-output-hk/ouroboros-anti-grinding-design/blob/main/CPS/Readme.md#334-total-estimated-time-per-grinding-attempt). The baseline grinding time in **Praos** is:
@@ -486,6 +481,17 @@ Where:
 - $T_{\text{eval}}$ is the **nonce selection and evaluation time** (**attack-specific**).
 
 The introduction of $T_\Phi$ substantially increases the **computational burden** for adversaries, as they must **recompute** the $\Phi$ function across the entire epoch for each of the $2^\rho$ possible **nonces** evaluated during a grinding attack. In contrast, for **honest participants**, this computation is **distributed** across the epoch, ensuring it remains **manageable and efficient**. Consequently, the selection of $T_\phi$ is **pivotal** in achieving the four goals outlined above, effectively **balancing** the computational load to **deter adversaries** while preserving **efficiency** for honest participants. To determine an optimal range for $T_\phi$, **simulations** will be conducted with varying $T_\Phi$ values to evaluate the range within which the **properties of the consensus layer** remain preserved.
+
+
+#### 1.2 Cost Overhead of a grinding attack  
+
+### 2. $\Phi$ Iterations & Distribution alternatives 
+### 3. Choice of The Cryptographic Primitive 
+
+
+# Dump Not organized yet
+---- 
+
 
 
 ### 5. Adversarial Cost Overhead
