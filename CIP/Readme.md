@@ -247,7 +247,7 @@ On mainnet, the parameter $s$ (Minimum Honest Block Inclusion Interval) is defin
 To ensure timely block production, we prioritize **Availability** over **Lightweight Execution**. Specifically, stake pool operators (SPOs) must pre-compute a sufficient portion of their computation pipeline in advance.
 We can formalize this with an algorithm where : 
 1. We define a parameter $\Phi_{\text{power}} \in [0, 1]$, representing the fraction of $\Phi$'s maximal computational cost that is actually applied to the network. A value of $\Phi_{\text{power}} = 0$ corresponds to no overhead, while $\Phi_{\text{power}} = 1$ corresponds to **half of the maximum theoretical cost** we could impose on the adversary, ensuring that honest SPOs are granted **at least twice the time required** to perform each iteration under worst-case assumptions.
-2. We predefined a thresold $\Phi_{\text{margin}} \in [0.1]$ such as $\Phi_{\text{margin}} < \frac{\text{Margin Interval}}{\text{Remaining Interval}}$. If we don't have enough margin time, we should start computing the remaining iteration of $\Phi$ **locally**.
+2. We predefined a threshold $\Phi_{\text{margin}} \in [0.1]$ such as $\Phi_{\text{margin}} < \frac{\text{Margin Interval}}{\text{Remaining Interval}}$. If we don't have enough margin time, we should start computing the remaining iteration of $\Phi$ **locally**.
 3. Finally, let's define a parameter $R$ (Redundancy), the expected number of blocks per $\Phi$ interval. 
 
 ![alt text](image-9.png)
@@ -280,7 +280,7 @@ T_\Phi = \Phi_{\text{power}} \cdot \frac{9k}{2f}, \quad \text{Interval size} = \
 
 <br/><br/>
 
-**How does the current algorithm behave during the $\text{pre-}\eta_e$ instability period ?** <br/>
+**How does the Phalanx algorithm behave during the $\text{pre-}\eta_e$ instability period ?** <br/>
 **Does it continue to uphold the **SCALE** properties under these conditions?**
 
 The answer is **yes**, provided that the **$T_\Phi$** remains relatively low. However, as this cost increases, sudden rollbacks affecting the $\text{pre-}\eta_e$ seed may, under certain conditions, disrupt the immediate slot leaders' ability to produce timely blocks.
@@ -303,7 +303,7 @@ To better understand this risk under concrete conditions, the table below illust
 | 0.9                    | 2 days 35 minutes            | 45.0s / 100s          | 90.0s / 200s          | 180.0s / 400s         | 270.0s / 600s         | 450.9s / 1000s         |
 | 1.0                    | 2 days 6 hours               | 50.0s / 100s          | 100.0s / 200s         | 200.0s / 400s         | 300.0s / 600s         | 501.0s / 1000s         |
 
-The higher the value of $R$, the less likely this worst-case scenario will occur, as the computation load is spread over more intervals. However, when such a situation does happen, the **amount of work required to catch up increases**, potentially impacting **multiple consecutive blocks**.  
+The higher the value of $R$, the less likely this worst-case scenario will occur, as the computation load is spread over longer intervals. However, when such a situation does happen, the **amount of work required to catch up increases**, potentially impacting **multiple consecutive blocks**.  
 
 For example, at full $\Phi_{\text{power}}$ capacity, the delay can range from **50 to 500 seconds**, which corresponds to **2.5 to 25 blocks** on mainnet.
 
@@ -312,7 +312,7 @@ A solution is to apply an **exponential function** to modulate the amount of $T_
 if a rollback happens in that case, **$T_\Phi$** remains relatively low and the **SCALE** properties are preserved.
 
 
-**How does the current algorithm behave throughout the epoch transition described above?**  <br/>
+**How does the Phalanx algorithm behave throughout the epoch transition described above?**  <br/>
 **Does it continue to uphold the _SCALE_ properties under these conditions?**
 
 The answer is **yes**, because the protocol only requires a window of $3k/f$ slots to guarantee **Chain Growth from Common Prefix** ("CG from CP"), while in our case, we have a visibility window of $4k/f$ slots.  This provides an additional $k/f$ slots of buffer — a significant margin in the context of the algorithm described above — which can be leveraged to **adapt preemptive computations** accordingly. 
@@ -334,7 +334,7 @@ This reasoning assumes an adversary strength near $1/2$, but it is worth noting 
 </details>
 <br/>
 
-**How does the current algorithm behave throughout the Computation/∃CQ Transition?**  
+**How does the Phalanx algorithm behave throughout the Computation/∃CQ Transition?**  
 **Does it continue to uphold the _SCALE_ properties under these conditions?**
 
 Although the **probability** that an **adversary** is the **slot leader** in enough **consecutive blocks** just before the **transition** is low, it could still result in an **honest participant** in the **∃CQ transition** having to compute a **substantial number of iterations** between the **last block produced** and the **final iteration** of $\Phi$. If, for any reason, the **honest participant** does not have enough time to complete this **critical final iteration** during the **∃CQ phase**, it would **undermine the primary goal** of this **Ouroboros enhancement** — and we would be forced to **fall back to the original Praos protocol**.
@@ -357,7 +357,7 @@ This modulation shapes the amount of computation assigned to each $\Phi$ iterati
 
 #### Smoothstep Construction
 
-To avoid any discontinuities or derivative discontinuities between phases, the computation profile is defined as a smooth, symmetric bell curve using the **product of two quintic smoothstep functions**:
+The computation profile is defined as a smooth, symmetric bell curve using the **product of two quintic smoothstep functions**:
 
 ```math
 x_j = \frac{j}{i - 1}
