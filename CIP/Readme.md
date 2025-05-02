@@ -17,41 +17,45 @@ License: Apache-2.0
 
 ## Table of Contents
 
-- [**Abstract**](#abstract)
-- [**Motivation: Why is this CIP necessary?**](#motivation-why-is-this-cip-necessary)
-- [**Specification / The Φalanx Sub-Protocol**](#specification--the-phalanx-sub-protocol)
-  - [**1. High-Level Changes Relative to Praos**](#1-high-level-changes-relative-to-praos)
-  - [**2. The Streams**](#2-the-streams)
-    - [**2.1 The η stream**](#21-the-eta-stream)
-    - [**2.2 The pre-η Synchronizations**](#22-the-pre-eta-synchronizations)
-    - [**2.3 The φ stream**](#23-the-phi-stream)
-    - [**2.4 The η Generations**](#24-the-eta-generations)
-  - [**3.Distribution of Φ Iterations**](#3-distribution-of-phi-iterations)
-    - [**3.1 Challenge to solve**](#31-challenge-to-solve)
-    - [**3.2 Solution Properties S.C.A.L.E**](#32-solution-properties-scale)
-    - [**3.3 Computation Participation**](#33-computation-participation)
-    - [**3.4 Slot Leader Schedule Visibility & pre-ηₑ instability**](#34-slot-leader-schedule-visibility--pre-eta-e-instability)
-    - [**3.5 Game-Theoretic Enforcement: No Timely Iteration, No Block Reward**](#35-game-theoretic-enforcement-no-timely-iteration-no-block-reward)
-    - [**3.6 Availability Maximization**](#36-availability-maximization)
-    - [**3.7 Shape Function**](#37-shape-function)
-    - [**3.8 Agda Mechanization**](#38-agda-mechanization)
-  - [**4. The Φ Cryptographic Primitive**](#4-the-phi-cryptographic-primitive)
-  - [**5. Recommended Parameterization**](#5-recommended-parameterization)
-- [**Rationale: How This CIP Achieves Its Goals**](#rationale-how-this-cip-achieves-its-goals)
-  - [**1. $Φ_\text{power}$ & Adversarial Cost Overhead**](#1-φ_textpower--adversarial-cost-overhead)
-  - [**2. Distribution of Φ Iterations Alternatives**](#2-φ-iterations--distribution-alternatives)
-  - [**3. Why Choose a VDF Over Other Cryptographic Primitives?**](#3-choice-of-the-cryptographic-primitive)
-  - [**4 Resource requirements**](#resource-requirements)
-      - [**4.1 Network**](#network)
-      - [**4.2 Cost**](#cost)
-      - [**4.3 Persistent storage**](#persistent-storage)
-      - [**4.4 CPU**](#cpu)
-      - [**4.5 Memory**](memory)
-- [**Path to Active**](#path-to-active)
-  - [**Acceptance Criteria**](#acceptance-criteria)
-  - [**Implementation Plan**](#implementation-plan)
-- [**Copyright**](#copyright)
-
+- [Abstract](#abstract)
+- [Motivation: Why is this CIP necessary?](#motivation-why-is-this-cip-necessary)
+- [Specification / The Φalanx Sub-Protocol](#specification--the-phalanx-sub-protocol)
+  - [1. High-Level Changes Relative to Praos](#1-high-level-changes-relative-to-praos)
+  - [2. The Streams](#2-the-streams)
+    - [2.1 The η stream](#21-the-eta-stream)
+    - [2.2 The pre-η Synchronizations](#22-the-pre-eta-synchronizations)
+    - [2.3 The φ stream](#23-the-phi-stream)
+    - [2.4 The η Generations](#24-the-eta-generations)
+  - [3. Distribution of Φ Iterations](#3-distribution-of-phi-iterations)
+    - [3.1 Challenge to solve](#31-challenge-to-solve)
+    - [3.2 Solution Properties S.C.A.L.E](#32-solution-properties-scale)
+    - [3.3 Computation Participation](#33-computation-participation)
+    - [3.4 Slot Leader Schedule Visibility & pre-η Instability](#34-slot-leader-schedule-visibility--pre-eta-instability)
+    - [3.5 Game-Theoretic Enforcement: No Timely Iteration, No Block Reward](#35-game-theoretic-enforcement-no-timely-iteration-no-block-reward)
+    - [3.6 Availability Property Maximization](#36-availability-property-maximization)
+    - [3.7 Shape Function](#37-shape-function)
+    - [3.8 Agda Mechanization](#38-agda-mechanization)
+  - [4. The Φ Cryptographic Primitive](#4-the-phi-cryptographic-primitive)
+  - [5. Recommended Parameterization](#5-recommended-parameterization)
+- [Rationale: How This CIP Achieves Its Goals](#rationale-how-this-cip-achieves-its-goals)
+  - [1. Φ_power & Adversarial Cost Overhead](#1-phi-power--adversarial-cost-overhead)
+    - [1.1 Cost Overhead of a Grinding Attempt](#11-cost-overhead-of-a-grinding-attempt)
+    - [1.2 Cost Overhead of a Grinding Attack](#12-cost-overhead-of-a-grinding-attack)
+      - [1.2.1 Formula](#121-formula)
+      - [1.2.2 Estimated Formula Using Mainnet Cardano Parameters](#122-estimated-formula-using-mainnet-cardano-parameters)
+      - [1.2.3 Φ_power & Scenarios](#123-phi_textpower--scenarios)
+  - [2. Distribution of Φ Iterations Alternatives](#2-distribution-of-phi-iterations-alternatives)
+  - [3. Why Choose a VDF Over Other Cryptographic Primitives?](#3-why-choose-a-vdf-over-other-cryptographic-primitives)
+  - [4. Resource Requirements](#4-resource-requirements)
+    - [4.1 Network](#41-network)
+    - [4.2 Cost](#42-cost)
+    - [4.3 Persistent Storage](#43-persistent-storage)
+    - [4.4 CPU](#44-cpu)
+    - [4.5 Memory](#45-memory)
+- [Path to Active](#path-to-active)
+  - [Acceptance Criteria](#acceptance-criteria)
+  - [Implementation Plan](#implementation-plan)
+- [Copyright](#copyright)
 ## Abstract
 
 <!-- A short (\\\~200 word) description of the proposed solution and the technical issue being addressed. \-->
@@ -76,11 +80,11 @@ The CPD analysis in [Section 3.5 - Scenarios](../CPS/CPD/README.md#35-scenarios)
 
 | **Feasibility Category**                  | **🔵 Ant Glance** | **🟠 Ant Patrol** | **🟢 Owl Stare** | **🔴 Owl Survey** |
 |--------------------------------------------|-------------------|-------------------|------------------|-------------------|
-| **🟢 🌱 Trivial for Any Adversary**        | $[0, 49)$         | $[0, 47)$         | $[0, 27)$        | $[0, 27)$         |
-| **🟡 💰 Feasible with Standard Resources** | $[49, 59)$        | $[47, 57)$        | $[27, 34)$       | $[27, 34)$        |
-| **🟠 🏭 Possible with Large-Scale Infrastructure** | $[59, 73)$ | $[57, 71)$        | $[34, 48)$       | $[34, 48)$        |
-| **🔴 🚫 Borderline Infeasible**            | $[73, 87)$        | $[71, 85)$       | $[48, 62)$       | $[48, 62)$        |
-| **🔴 🚫 Infeasible**                      | $[87, 256)$       | $[85, 256)$       | $[62, 256)$      | $[62, 256)$       |
+| **🟢 🌱 Trivial for Any Adversary**        | $[0, 33.2)$       | $[0, 26.3)$       | $[0, 25)$        | $[0, 24.5)$       |
+| **🟡 💰 Feasible with Standard Resources** | $[33.2, 46.4)$    | $[26.3, 39.5)$    | $[25, 38.3)$     | $[24.5, 37.8)$    |
+| **🟠 🏭 Possible with Large-Scale Infrastructure** | $[46.4, 56.4)$ | $[39.5, 49.5)$ | $[38.3, 48.2)$ | $[37.8, 47.7)$ |
+| **🔴 🚫 Borderline Infeasible**            | $[56.4, 66.3)$    | $[49.5, 59.5)$    | $[48.2, 58.2)$   | $[47.7, 57.7)$    |
+| **🔴 🚫 Infeasible**                      | $[66.3, 256)$     | $[59.5, 256)$     | $[58.2, 256)$    | $[57.7, 256)$     |
 
 This vulnerability is visually depicted in the graph below, which plots the logarithmic cost (in USD) of grinding attacks against grinding depth ($\rho$) for each scenario. The shaded feasibility layers indicate the economic thresholds where attacks become trivial, feasible, possible, borderline infeasible, or infeasible. The consistent gap of $\Delta \log_{10}(\text{Cost (USD)}) \approx 6.3$ between the least (Ant Glance) and most (Owl Survey) resource-intensive scenarios highlights how evaluation complexity ($T_{\text{eval}}$) and observation scope ($w_T$) significantly amplify attack costs :
 
@@ -240,7 +244,7 @@ On mainnet, the parameter $s$ (Minimum Honest Block Inclusion Interval) is defin
 
 <div align="center"><img src="./image-4.png" alt="" width="800"/></div>
 
-#### 3.6 Availability Maximization 
+#### 3.6 Availability Property Maximization 
 
 **Given the framework defined above, how can we ensure that each SPO neither compromises the Availability property nor fails to produce their block on time?**
 
@@ -425,7 +429,7 @@ We currently identify the following key parameters:
 
 
 
-## Rationale: how does this CIP achieve its goals?
+## Rationale: How does this CIP achieve its goals?
 <!-- The rationale fleshes out the specification by describing what motivated the design and what led to particular design decisions. It should describe alternate designs considered and related work. The rationale should provide evidence of consensus within the community and discuss significant objections or concerns raised during the discussion.
 
 It must also explain how the proposal affects the backward compatibility of existing solutions when applicable. If the proposal responds to a CPS, the 'Rationale' section should explain how it addresses the CPS, and answer any questions that the CPS poses for potential solutions.
@@ -434,21 +438,22 @@ It must also explain how the proposal affects the backward compatibility of exis
 ### 1. $Φ_\text{power}$ & Adversarial Cost Overhead
 #### 1.1 Cost Overhead of a grinding attempt
 
-
 In **Φalanx**, we introduce an additional **computational cost**, denoted $T_\Phi$, for each **grinding attempt**. This cost represents the total cumulative effort required to compute $i$ iterations of the $\Phi$ primitive. It is defined as follows:
 
 ```math
-T_\Phi = \Phi_{\text{power}} \cdot  \frac{1}{2} \cdot \frac{9k}{f}
+T_\Phi = \Phi_{\text{power}} \cdot \frac{1}{2} \cdot \frac{9k}{f}
 ```
 
 where:  
+- $T_\Phi$ is the total cost (in seconds, assuming 1 slot ≈ 1 second) for a single grinding attempt under Φalanx,  
+- $\Phi_{\text{power}} \in [0,1]$ is a tunable parameter controlling the difficulty of computing the $\Phi$ function,  
+- $\frac{1}{2}$ is a deliberate margin: honest participants are guaranteed **twice the time** adversaries have to perform the $\Phi$ iterations,  
 - $k$ is the common prefix parameter,  
-- $T_\phi$ is the time to compute a single iteration of the $\Phi$ primitive, and  
-- $f$ is the active slot coefficient.
-- $9k/f = 432,000$ slots (number of **slots in an epoch**, with $k = 2,160$, $f = 0.05$),  
-- $T_\phi$: **Time to compute** an iteration $\phi$ of the $\Phi$ function per block.
+- $f$ is the active slot coefficient,  
+- $\frac{9k}{f}$ defines the number of slots within the **Computation Phase** (e.g., $388,\!800$ slots when $k = 2,\!160$ and $f = 0.05$).
 
-This additional cost directly impacts the total estimated **time per grinding attempt**, as originally defined in [CPS Section 3.3.4 - Total Estimated Time per Grinding Attempt](https://github.com/input-output-hk/ouroboros-anti-grinding-design/blob/main/CPS/Readme.md#334-total-estimated-time-per-grinding-attempt). The baseline grinding time in **Praos** is:
+
+This additional cost directly impacts the total estimated **time per grinding attempt**, as originally defined in [CPD Section 3.3.4 - Total Estimated Time per Grinding Attempt](../CPS/CPD/README.md#334-total-estimated-time-per-grinding-attempt). The baseline grinding time in **Praos** is:
 
 ```math
 T_{\text{grinding}}^{\text{Praos}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}}
@@ -457,19 +462,19 @@ T_{\text{grinding}}^{\text{Praos}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cd
 With **Φalanx**, the total grinding time per attempt is updated to include $T_\Phi$:
 
 ```math
-T_{\text{grinding}}^{\text{Phalanx}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_\Phi
+T_{\text{grinding}}^{\text{Phalanx}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_\Phi 
 ```
 
 Substituting $T_\Phi$ with the expression above, the final grinding time per attempt under **Φalanx** becomes:
 
 ```math
-T_{\text{grinding}}^{\text{Phalanx}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + \frac{10k \cdot T_\phi}{f}
+T_{\text{grinding}}^{\text{Phalanx}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + \Phi_{\text{power}} \cdot \frac{1}{2} \cdot \frac{9k }{f}
 ```
 
-With **Cardano mainnet parameters** ($k = 2,160$, $f = 0.05$), this simplifies to:
+With **Cardano mainnet parameters** ($k = 2,\!160$, $f = 0.05$), this simplifies to:
 
 ```math
-T_{\text{grinding}}^{\text{Phalanx}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + 432,000 \cdot T_\phi
+T_{\text{grinding}}^{\text{Phalanx}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + \Phi_{\text{power}} \cdot 1.944 \cdot 10^5 
 ```
 
 Where:  
@@ -477,86 +482,231 @@ Where:
 - $T_{\text{eligibility}}$ is the **eligibility check time**,  
 - $T_{\text{BLAKE2b}}$ is the time for the **hashing operation**,  
 - $w_T$ is the **target window size** (seconds),  
-- $\rho$ is the **grinding power**,  
+- $\rho$ is the **grinding depth**,  
 - $T_{\text{eval}}$ is the **nonce selection and evaluation time** (**attack-specific**).
 
-The introduction of $T_\Phi$ substantially increases the **computational burden** for adversaries, as they must **recompute** the $\Phi$ function across the entire epoch for each of the $2^\rho$ possible **nonces** evaluated during a grinding attack. In contrast, for **honest participants**, this computation is **distributed** across the epoch, ensuring it remains **manageable and efficient**. Consequently, the selection of $T_\phi$ is **pivotal** in achieving the four goals outlined above, effectively **balancing** the computational load to **deter adversaries** while preserving **efficiency** for honest participants. To determine an optimal range for $T_\phi$, **simulations** will be conducted with varying $T_\Phi$ values to evaluate the range within which the **properties of the consensus layer** remain preserved.
+
+The introduction of $T_\Phi$ substantially increases the **computational burden** for adversaries, as they must **recompute** the $\Phi^i$ function for each of the $2^\rho$ possible **nonces** evaluated during a grinding attack. In contrast, for **honest participants**, this computation is **distributed** across the epoch, ensuring it remains **manageable and efficient**. 
 
 
-#### 1.2 Cost Overhead of a grinding attack  
+### 1.2 Cost Overhead of a Grinding Attack
 
-### 2. $\Phi$ Iterations & Distribution alternatives 
-### 3. Choice of The Cryptographic Primitive 
-
-
-# Dump Not organized yet
----- 
-
-
-
-### 5. Adversarial Cost Overhead
-
-Building on the updated **grinding time formula** introduced in [Section 4 - **Balancing Honest and Adversarial Computation**](#4-balancing-honest-and-adversarial-computation), which incorporates the additional **computational cost** $T_\Phi$, we now analyze how this cost impacts the overall **feasibility of grinding attacks** across a range of theoretical $T_\phi$ values. As established, the total **grinding time per attempt** under **Φalanx** is:
+Building on the updated **grinding time formula** introduced in the previous section, which incorporates the additional **computational cost** $T_\Phi$, we can now revise the formula for a grinding attack from [CPD Section 3.4.1 - Formula](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021/CPS/CPD/README.md#341-formula), where we defined a total attack time that must fit within the **grinding opportunity window** $w_O$:
 
 ```math
-T_{\text{grinding}}^{\text{Phalanx}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + 432,000 \cdot T_\phi
+\frac{2^{\rho} \cdot T_{\text{grinding}}^{\text{Phalanx}}}{N_{\text{CPU}}} \leq w_O
+```
+which leads to the lower bound on computational power ($N_\text{CPU}$) : 
+
+```math
+N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot T_{\text{grinding}}^{\text{Phalanx}}}{w_O} \right \rceil
 ```
 
-This increased **grinding time** directly affects the number of **CPUs** ($N_{\text{CPU}}$) required for an **adversary** to execute a grinding attack within the **grinding opportunity window** $w_O$, as originally derived in [CPS Section 3.4.1 - Formula](https://github.com/input-output-hk/ouroboros-anti-grinding-design/blob/main/CPS/Readme.md#341-formula). By varying $T_\phi$, we can explore how the **computational overhead scales** and assess its effectiveness in **deterring adversaries**, aligning with the goals of **balancing honest and adversarial computation** outlined in Section 4.
+#### 1.2.1 Formula
 
-For a grinding attack with **grinding depth** $\rho$, the adversary must evaluate $2^\rho$ possible **nonces**, each requiring the **recomputation** of the $\Phi$ function across the entire epoch. Thus, the total additional **cost for the attack** is $2^\rho \cdot T_\Phi$. Incorporating this into the formula, the updated **computational requirement** becomes:
+##### Expanding $T_{\text{grinding}}^{\text{Phalanx}}$
+From **Section 1.1**, the per-attempt grinding time under **Φalanx** is:
 
 ```math
-N_{\text{CPU}} > \left \lceil 2^\rho \cdot T_\Phi + 5 \times 10^{-10} \times 2^{\rho-1} + \frac{5 \times 10^{-14} \times 2^{\rho-1}}{\rho} \cdot w_T + \frac{5 \times 10^{-2} \times 2^{\rho-1}}{\rho} \cdot T_{\text{eval}} \right \rceil
+T_{\text{grinding}}^{\text{Phalanx}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + \Phi_{\text{power}} \cdot \frac{1}{2} \cdot \frac{9k }{f}
 ```
 
-To evaluate the **impact of Φalanx** on grinding attack **feasibility**, we revisit the four **scenarios** defined in [CPS Section 3.5 - Scenarios](https://github.com/input-output-hk/ouroboros-anti-grinding-design/blob/main/CPS/Readme.md#35-scenarios)—**Ant Glance**, **Ant Patrol**, **Owl Stare**, and **Owl Survey**—and extend them to include **Φalanx-enhanced versions**. These scenarios use an **animal-inspired metaphor** to reflect **evaluation complexity** ($T_{\text{eval}}$) and **observation scope** ($w_T$), providing a basis for comparing the **computational cost** under **Praos**. We incorporate the additional **computational cost** $T_\Phi$, with $T_\phi$ values of **$100 \, \text{ms}$** ($0.1 \, \text{s}$) for $\Phi_{\text{min}}$ (where $T_\Phi = 4.32 \times 10^4 \, \text{s}$) and **$1 \, \text{s}$** for $\Phi_{\text{max}}$ (where $T_\Phi = 4.32 \times 10^5 \, \text{s}$).
-
-
-
-| **Scenario**            | **$T_{\text{eval}}$ (Complexity)** | **$w_T$ (Scope)**       | **Description**                                                                 |
-|--------------------------|------------------------------------|-------------------------|---------------------------------------------------------------------------------|
-| **Ant Glance Praos**     | $0 \text{s}$                           | $1  \text{h}$  | An **ant** quickly **glancing** at a small spot, representing **simple evaluation** (low $T_{\text{eval}}$) with **basic effort** and a **narrow observation scope** (small $w_T$). |
-| **Ant Glance $\Phi_{\text{min}}$** | $0 \text{s}$                           | $1  \text{h}$  | An **ant glancing** with **Phalanx’s minimal** $\Phi$ cost, adding **moderate effort** due to $T_\Phi = 4.32 \times 10^4  \text{s}$. |
-| **Ant Glance $\Phi_{\text{max}}$** | $0 \text{s}$                           | $1  \text{h}$  | An **ant glancing** with **Phalanx’s maximal** $\Phi$ cost, **significantly increasing effort** due to $T_\Phi = 4.32 \times 10^5  \text{s}$. |
-| **Ant Patrol Praos**     | $0 \text{s}$                           | $5  \text{d}$  | An **ant patrolling** a **wide area** over time with **simple instincts**, representing **simple evaluation** (low $T_{\text{eval}}$) with **basic effort** and a **broad observation scope** (large $w_T$). |
-| **Ant Patrol $\Phi_{\text{min}}$** | $0 \text{s}$                           | $5  \text{d}$  | An **ant patrolling** with **Phalanx’s minimal** $\Phi$ cost, adding **moderate effort** across the **wide scope**. |
-| **Ant Patrol $\Phi_{\text{max}}$** | $0 \text{s}$                           | $5  \text{d}$  | An **ant patrolling** with **Phalanx’s maximal** $\Phi$ cost, **significantly increasing effort** across the **wide scope**. |
-| **Owl Stare Praos**      | $1 \text{s}$                          | $1  \text{h}$  | An **owl staring intently** at a **small area** with **keen focus**, representing **complex evaluation** (high $T_{\text{eval}}$) with **advanced effort** and a **narrow observation scope** (small $w_T$). |
-| **Owl Stare $\Phi_{\text{min}}$**  | $1 \text{s}$                          | $1 \text{h}$  | An **owl staring** with **Phalanx’s minimal** $\Phi$ cost, adding **moderate effort** to its **complex evaluation**. |
-| **Owl Stare $\Phi_{\text{max}}$**  | $1 \text{s}$                          | $1 \text{h}$  | An **owl staring** with **Phalanx’s maximal** $\Phi$ cost, **significantly increasing effort** in its **complex evaluation**. |
-| **Owl Survey Praos**     | $1 \text{s}$                          | $5  \text{d}$ | An **owl surveying** a **wide range** with **strategic awareness**, representing **complex evaluation** (high $T_{\text{eval}}$) with **advanced effort** and a **broad observation scope** (large $w_T$). |
-| **Owl Survey $\Phi_{\text{min}}$** | $1 \text{s}$                          | $5 \text{d}$ | An **owl surveying** with **Phalanx’s minimal** $\Phi$ cost, adding **moderate effort** across the **broad scope**. |
-| **Owl Survey $\Phi_{\text{max}}$** | $1 \text{s}$                          | $5 \text{d}$ | An **owl surveying** with **Phalanx’s maximal** $\Phi$ cost, **significantly increasing effort** across the **broad scope**. |
-
-
-The **$N_{\text{CPU}}$ formulas** are derived by **substituting** the respective **$w_T$** and **$T_{\text{eval}}$ values** from each **scenario** into the **base expression** from **Section 4**:
+Substituting this into the inequality:
 
 ```math
-N_{\text{CPU}} > \left \lceil 5 \times 10^{-10} \times 2^{\rho-1} + \frac{5 \times 10^{-14} \times 2^{\rho-1}}{\rho} \cdot w_T + \frac{5 \times 10^{-2} \times 2^{\rho-1}}{\rho} \cdot T_{\text{eval}} + 4.32 \times 10^4 \times 2^\rho \right \rceil \quad \text{for } \Phi_{\text{min}}
+N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + \Phi_{\text{power}} \cdot \frac{1}{2} \cdot \frac{9k }{f} \right)}{w_O} \right \rceil
+```
+
+##### Expanding $w_O$ in Terms of $\rho$ and $f$
+From previous sections, the **grinding opportunity window** is defined as:
+
+```math
+\frac{X_A(w)}{f} \leq w_O \leq \frac{w}{f}
+```
+
+Assuming the upper bound $w_O = \frac{w}{f}$ (worst-case scenario for the adversary), and noting that $w < 2 \cdot \rho - 1$ as per [CPD Section 3.4.1](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021/CPD#341-formula), we substitute $w_O$:
+
+```math
+N_{\text{CPU}} \geq \left \lceil f \cdot \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + \Phi_{\text{power}} \cdot \frac{1}{2} \cdot \frac{9k }{f} \right)}{w} \right \rceil
+```
+
+Since $w < 2 \cdot \rho - 1$, we can use this bound to simplify:
+
+```math
+N_{\text{CPU}} \geq \left \lceil f \cdot \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + \Phi_{\text{power}} \cdot \frac{1}{2} \cdot \frac{9k }{f} \right)}{2 \cdot \rho - 1} \right \rceil
+```
+
+To derive a more explicit expression, we distribute the terms:
+
+```math
+N_{\text{CPU}} \geq \left \lceil f \cdot 2^{\rho} \cdot \frac{\frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + \Phi_{\text{power}} \cdot \frac{1}{2} \cdot \frac{9k \cdot T_\phi}{f}}{2 \cdot \rho - 1} \right \rceil
+```
+
+Simplify by breaking it down:
+
+```math
+N_{\text{CPU}} \geq \left \lceil f \cdot 2^{\rho} \cdot \left( \frac{\frac{\rho}{2} T_{\text{BLAKE2b}}}{2 \cdot \rho - 1} + \frac{w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} )}{2 \cdot \rho - 1} + \frac{T_{\text{eval}}}{2 \cdot \rho - 1} + \frac{\Phi_{\text{power}} \cdot \frac{1}{2} \cdot \frac{9k }{f}}{2 \cdot \rho - 1} \right) \right \rceil
+```
+
+This can be rewritten as:
+
+```math
+N_{\text{CPU}} \geq \left \lceil f \cdot 2^{\rho} \cdot \left( \frac{\rho T_{\text{BLAKE2b}}}{2 (2 \cdot \rho - 1)} + \frac{w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} )}{2 \cdot \rho - 1} + \frac{T_{\text{eval}}}{2 \cdot \rho - 1} + \frac{\Phi_{\text{power}} \cdot 9k }{2 f \cdot (2 \cdot \rho - 1)} \right) \right \rceil
+```
+
+To align with the form provided in the query, we aim for a lower bound expression. Recognizing that $2 \cdot \rho - 1 \approx 2 \rho$ for large $\rho$, we approximate:
+
+```math
+N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho-1} \cdot T_{\text{BLAKE2b}} + f \cdot 2^{\rho} \cdot \frac{w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}}}{2 \cdot \rho - 1} + f \cdot 2^{\rho} \cdot \frac{\Phi_{\text{power}} \cdot 9k }{2 f \cdot (2 \cdot \rho - 1)} \right \rceil
+```
+
+Further simplifying:
+
+```math
+N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho-1} \cdot T_{\text{BLAKE2b}} + \frac{f \cdot 2^{\rho}}{2 \cdot \rho - 1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + \Phi_{\text{power}} \cdot \frac{9k }{f} \right) \right \rceil
+```
+
+For large $\rho$, $\frac{2^{\rho}}{2 \cdot \rho - 1} \approx \frac{2^{\rho}}{2 \rho} = \frac{2^{\rho-1}}{\rho}$, so:
+
+```math
+N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho-1} \cdot T_{\text{BLAKE2b}} + \frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + \Phi_{\text{power}} \cdot \frac{9k }{f} \right) \right \rceil
+```
+
+Finally, we can express the $\Phi$ term more explicitly:
+
+```math
+N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho-1} \cdot T_{\text{BLAKE2b}} + \frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right) + \frac{\Phi_{\text{power}} \cdot 9k \cdot 2^{\rho-1}}{\rho} \right \rceil
+```
+
+#### 1.2.2 Estimated Formula Using Mainnet Cardano Parameters
+
+Starting from the final expression at the end of the last section:
+
+```math
+N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho-1} \cdot T_{\text{BLAKE2b}} + \frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right) + \frac{\Phi_{\text{power}} \cdot 9k \cdot 2^{\rho-1}}{\rho} \right \rceil
+```
+
+#### Applying Cardano Mainnet Parameters
+Using Cardano’s mainnet values:
+- $T_{\mathsf{VRF}} = 10^{-6}$ seconds (1 microsecond) – Time to evaluate a Verifiable Random Function.
+- $T_{\text{BLAKE2b}} = 10^{-8}$ seconds (0.01 microseconds) – Time for a BLAKE2b-256 hash operation.
+- $f = \frac{1}{20} = 0.05$ – Active slot coefficient.
+- $k = 2160$
+- Slot duration = 1 second.
+
+Since the eligibility check is negligible, set $T_{\text{eligibility}} \approx 0$:
+
+Substitute into the expression:
+
+- First term: $f \cdot 2^{\rho-1} \cdot T_{\text{BLAKE2b}} = 0.05 \cdot 2^{\rho-1} \cdot 10^{-8} = 5 \cdot 10^{-10} \cdot 2^{\rho-1}$,
+- Second term: $\frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right) = \frac{0.05}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot (10^{-6} + 0) + T_{\text{eval}} \right) = \frac{0.05 \cdot 2^{\rho-1}}{\rho} \cdot (10^{-6} w_T + T_{\text{eval}})$.
+- Third term (with $k = 2160$):
+
+```math
+  \frac{9 \cdot 2160 \cdot \Phi_{\text{power}} \cdot 2^{\rho - 1}}{\rho} = \frac{1.9440 \cdot 10^4 \cdot\Phi_{\text{power}} \cdot 2^{\rho - 1}}{\rho} \approx  \frac{10^4 \cdot\Phi_{\text{power}} \cdot 2^{\rho}}{\rho}
+```
+
+The estimated number of CPUs required is:
+
+```math
+N_{\text{CPU}} > \left \lceil
+5 \cdot 10^{-10} \cdot 2^{\rho - 1} +
+\frac{5 \cdot 10^{-8} \cdot 2^{\rho - 1}}{\rho} \cdot w_T +
+\frac{5 \cdot 10^{-2} \cdot 2^{\rho - 1}}{\rho} \cdot T_{\text{eval}} +
+\frac{10^4\cdot \Phi_{\text{power}} \cdot 2^{\rho}}{\rho}
+\right \rceil
+```
+
+
+#### 1.2.3 $\Phi_\text{power}$ & Scenarios
+
+
+This increased **grinding time** directly affects the number of **CPUs** ($N_{\text{CPU}}$) required for an **adversary** to execute a grinding attack within the **grinding opportunity window** $w_O$. 
+
+By varying $\Phi_{\text{power}}$, we can explore how the **computational overhead scales** and assess its effectiveness in **deterring adversaries**. To  evaluate the **impact of Φalanx** on grinding attack feasibility, we introduce an additional dimension to our analysis by incorporating extreme values of $\Phi_{\text{power}}$. 
+
+These extremes—ranging from a minimal computational burden to the maximum feasible overhead—allow us to test the protocol's robustness across a wide spectrum of adversarial conditions. By extending the four scenarios defined in [CPD Section 3.5 - Scenarios](https://github.com/input-output-hk/ouroboros-anti-grinding-design/blob/main/CPS/Readme.md#35-scenarios)—**Ant Glance**, **Ant Patrol**, **Owl Stare**, and **Owl Survey**—with Φalanx-enhanced versions, we can quantify how these computational costs reshape the feasibility of attacks compared to the baseline **Praos** protocol.
+
+These scenarios use an **animal-inspired metaphor** to reflect **evaluation complexity** ($T_{\text{eval}}$) and **observation scope** ($w_T$), providing a basis for comparing the **computational cost** under **Praos**. We incorporate the additional **computational cost** $T_\Phi$, with:
+  - **$\Phi^\text{power}_\text{min}$**: 2% capacity ($\Phi_{\text{power}} = 0.02$), which yields an accumulated time of $T_\Phi = 3.888 \times 10^3 \, \text{seconds}$ (approximately 1 hour and 5 minutes).
+  - **$\Phi^\text{power}_\text{max}$**: 100% capacity ($\Phi_{\text{power}} = 1$), which yields an accumulated time of $T_\Phi = 1.944 \times 10^5 \, \text{seconds}$ (approximately 54 hours or 2 days and 6 hours).
+
+The table below summarizes the **Accumulated Computation Time** ($T_\Phi$) for various $\Phi_{\text{power}}$ values, illustrating the range of computational overheads introduced by Φalanx:
+
+| $\Phi_{\text{power}}$ | Accumulated Computation Time |
+|-----------------------|------------------------------|
+| 0.0                   | 0 minutes                    |
+| 0.02                  | 1 hour 5 minutes             |
+| 0.05                  | 2 hours 42 minutes           |
+| 0.1                   | 5 hours 24 minutes           |
+| 0.2                   | 10 hours 48 minutes          |
+| 0.3                   | 16 hours 12 minutes          |
+| 0.4                   | 21 hours 36 minutes          |
+| 0.5                   | 1 day 3 hours                |
+| 0.6                   | 1 day 8 hours 24 minutes     |
+| 0.7                   | 1 day 13 hours 48 minutes    |
+| 0.8                   | 1 day 19 hours 12 minutes    |
+| 0.9                   | 2 days 35 minutes            |
+| 1.0                   | 2 days 6 hours               |
+
+The table highlights the computational burden for $`\Phi^\text{power}_\text{min} = 0.02`$ and $`\Phi^\text{power}_\text{max} = 1.0`$, which we use to extend the scenarios. 
+
+The following table summarizes the scenarios, including their $T_{\text{eval}}$ (evaluation complexity) and $w_T$ (observation scope), and extends them to Φalanx-enhanced versions with the additional computational cost $T_\Phi$:
+
+| **Scenario**            | **$T_{\text{eval}}$ (Complexity)** | **$w_T$ (Scope)** | **Description**                                                                 |
+|--------------------------|------------------------------------|-------------------|---------------------------------------------------------------------------------|
+| **Ant Glance Praos**     | $0 \, \text{s}$                   | $1 \, \text{h}$  | An **ant** quickly **glancing** at a small spot, representing **simple evaluation** (low $T_{\text{eval}}$) with **basic effort** and a **narrow observation scope** (small $w_T$). |
+| **Ant Glance $\Phi^\text{power}_\text{min}$** | $0 \, \text{s}$                   | $1 \, \text{h}$  | An **ant glancing** with **Phalanx’s minimal** $\Phi$ cost, adding **moderate effort** due to $T_\Phi = 3.888 \times 10^3 \, \text{s}$. |
+| **Ant Glance $\Phi^\text{power}_\text{max}$** | $0 \, \text{s}$                   | $1 \, \text{h}$  | An **ant glancing** with **Phalanx’s maximal** $\Phi$ cost, **significantly increasing effort** due to $T_\Phi = 1.944 \times 10^5 \, \text{s}$. |
+| **Ant Patrol Praos**     | $0 \, \text{s}$                   | $5 \, \text{d}$  | An **ant patrolling** a **wide area** over time with **simple instincts**, representing **simple evaluation** (low $T_{\text{eval}}$) with **basic effort** and a **broad observation scope** (large $w_T$). |
+| **Ant Patrol $\Phi^\text{power}_\text{min}$** | $0 \, \text{s}$                   | $5 \, \text{d}$  | An **ant patrolling** with **Phalanx’s minimal** $\Phi$ cost, adding **moderate effort** due to $T_\Phi = 3.888 \times 10^3 \, \text{s}$. |
+| **Ant Patrol $\Phi^\text{power}_\text{max}$** | $0 \, \text{s}$                   | $5 \, \text{d}$  | An **ant patrolling** with **Phalanx’s maximal** $\Phi$ cost, **significantly increasing effort** due to $T_\Phi = 1.944 \times 10^5 \, \text{s}$. |
+| **Owl Stare Praos**      | $1 \, \text{s}$                  | $1 \, \text{h}$  | An **owl staring intently** at a **small area** with **keen focus**, representing **complex evaluation** (high $T_{\text{eval}}$) with **advanced effort** and a **narrow observation scope** (small $w_T$). |
+| **Owl Stare $\Phi^\text{power}_\text{min}$** | $1 \, \text{s}$                  | $1 \, \text{h}$  | An **owl staring** with **Phalanx’s minimal** $\Phi$ cost, adding **moderate effort** due to $T_\Phi = 3.888 \times 10^3 \, \text{s}$. |
+| **Owl Stare $\Phi^\text{power}_\text{max}$** | $1 \, \text{s}$                  | $1 \, \text{h}$  | An **owl staring** with **Phalanx’s maximal** $\Phi$ cost, **significantly increasing effort** due to $T_\Phi = 1.944 \times 10^5 \, \text{s}$. |
+| **Owl Survey Praos**     | $1 \, \text{s}$                  | $5 \, \text{d}$  | An **owl surveying** a **wide range** with **strategic awareness**, representing **complex evaluation** (high $T_{\text{eval}}$) with **advanced effort** and a **broad observation scope** (large $w_T$). |
+| **Owl Survey $\Phi^\text{power}_\text{min}$** | $1 \, \text{s}$                  | $5 \, \text{d}$  | An **owl surveying** with **Phalanx’s minimal** $\Phi$ cost, adding **moderate effort** due to $T_\Phi = 3.888 \times 10^3 \, \text{s}$. |
+| **Owl Survey $\Phi^\text{power}_\text{max}$** | $1 \, \text{s}$                  | $5 \, \text{d}$  | An **owl surveying** with **Phalanx’s maximal** $\Phi$ cost, **significantly increasing effort** due to $T_\Phi = 1.944 \times 10^5 \, \text{s}$. |
+
+
+The **$N_{\text{CPU}}$ formulas** are derived by **substituting** the respective **$w_T$** and **$T_{\text{eval}}$ values** from each **scenario** into the **base expression** from **Section 1.2.2**:
+
+```math
+N_{\text{CPU}} > \left \lceil
+5 \cdot 10^{-10} \cdot 2^{\rho - 1} +
+\frac{5 \cdot 10^{-8} \cdot 2^{\rho - 1}}{\rho} \cdot w_T +
+\frac{5 \cdot 10^{-2} \cdot 2^{\rho - 1}}{\rho} \cdot T_{\text{eval}} +
+\frac{200 \cdot 2^\rho}{\rho}
+\right \rceil \quad \text{for } \Phi^\text{power}_\text{min}
 ```
 
 ```math
-N_{\text{CPU}} > \left \lceil 5 \times 10^{-10} \times 2^{\rho-1} + \frac{5 \times 10^{-14} \times 2^{\rho-1}}{\rho} \cdot w_T + \frac{5 \times 10^{-2} \times 2^{\rho-1}}{\rho} \cdot T_{\text{eval}} + 4.32 \times 10^5 \times 2^\rho \right \rceil \quad \text{for } \Phi_{\text{max}}
+N_{\text{CPU}} > \left \lceil
+5 \cdot 10^{-10} \cdot 2^{\rho - 1} +
+\frac{5 \cdot 10^{-8} \cdot 2^{\rho - 1}}{\rho} \cdot w_T +
+\frac{5 \cdot 10^{-2} \cdot 2^{\rho - 1}}{\rho} \cdot T_{\text{eval}} +
+\frac{10^4 \cdot 2^\rho}{\rho}
+\right \rceil \quad \text{for } \Phi^\text{power}_\text{max}
 ```
 
 | **Scenario**            | **$N_{\text{CPU}}$ Formula**                                                                                     |
 |--------------------------|-----------------------------------------------------------------------------------------------------------------|
-| **Ant Glance Praos**     | $5 \times 10^{-10} \times 2^{\rho-1} + 1.8 \times 10^{-11} \times 2^{\rho-1}$                                  |
-| **Ant Glance $\Phi_{\text{min}}$** | $5 \times 10^{-10} \times 2^{\rho-1} + 1.8 \times 10^{-11} \times 2^{\rho-1} + 4.32 \times 10^4 \times 2^\rho$  |
-| **Ant Glance $\Phi_{\text{max}}$** | $5 \times 10^{-10} \times 2^{\rho-1} + 1.8 \times 10^{-11} \times 2^{\rho-1} + 4.32 \times 10^5 \times 2^\rho$  |
-| **Ant Patrol Praos**     | $5 \times 10^{-10} \times 2^{\rho-1} + 2.16 \times 10^{-9} \times 2^{\rho-1}$                                  |
-| **Ant Patrol $\Phi_{\text{min}}$** | $5 \times 10^{-10} \times 2^{\rho-1} + 2.16 \times 10^{-9} \times 2^{\rho-1} + 4.32 \times 10^4 \times 2^\rho$  |
-| **Ant Patrol $\Phi_{\text{max}}$** | $5 \times 10^{-10} \times 2^{\rho-1} + 2.16 \times 10^{-9} \times 2^{\rho-1} + 4.32 \times 10^5 \times 2^\rho$  |
-| **Owl Stare Praos**      | $5 \times 10^{-10} \times 2^{\rho-1} + 1.8 \times 10^{-11} \times 2^{\rho-1} + 5 \times 10^{-2} \times \frac{2^{\rho-1}}{\rho}$ |
-| **Owl Stare $\Phi_{\text{min}}$**  | $5 \times 10^{-10} \times 2^{\rho-1} + 1.8 \times 10^{-11} \times 2^{\rho-1} + 5 \times 10^{-2} \times \frac{2^{\rho-1}}{\rho} + 4.32 \times 10^4 \times 2^\rho$ |
-| **Owl Stare $\Phi_{\text{max}}$**  | $5 \times 10^{-10} \times 2^{\rho-1} + 1.8 \times 10^{-11} \times 2^{\rho-1} + 5 \times 10^{-2} \times \frac{2^{\rho-1}}{\rho} + 4.32 \times 10^5 \times 2^\rho$ |
-| **Owl Survey Praos**     | $5 \times 10^{-10} \times 2^{\rho-1} + 2.16 \times 10^{-9} \times 2^{\rho-1} + 5 \times 10^{-2} \times \frac{2^{\rho-1}}{\rho}$ |
-| **Owl Survey $\Phi_{\text{min}}$** | $5 \times 10^{-10} \times 2^{\rho-1} + 2.16 \times 10^{-9} \times 2^{\rho-1} + 5 \times 10^{-2} \times \frac{2^{\rho-1}}{\rho} + 4.32 \times 10^4 \times 2^\rho$ |
-| **Owl Survey $\Phi_{\text{max}}$** | $5 \times 10^{-10} \times 2^{\rho-1} + 2.16 \times 10^{-9} \times 2^{\rho-1} + 5 \times 10^{-2} \times \frac{2^{\rho-1}}{\rho} + 4.32 \times 10^5 \times 2^\rho$ |
+| **Ant Glance Praos**     | $5 \cdot 10^{-10} \cdot 2^{\rho - 1} + 1.8 \cdot 10^{-4} \cdot \frac{2^{\rho - 1}}{\rho}$                      |
+| **Ant Glance $\Phi^\text{power}_\text{min}$** | $5 \cdot 10^{-10} \cdot 2^{\rho - 1} + 1.8 \cdot 10^{-4} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{200 \cdot 2^\rho}{\rho}$ |
+| **Ant Glance $\Phi^\text{power}_\text{max}$** | $5 \cdot 10^{-10} \cdot 2^{\rho - 1} + 1.8 \cdot 10^{-4} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{10^4 \cdot 2^\rho}{\rho}$ |
+| **Ant Patrol Praos**     | $5 \cdot 10^{-10} \cdot 2^{\rho - 1} + 2.16 \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho}$                     |
+| **Ant Patrol $\Phi^\text{power}_\text{min}$** | $5 \cdot 10^{-10} \cdot 2^{\rho - 1} + 2.16 \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{200 \cdot 2^\rho}{\rho}$ |
+| **Ant Patrol $\Phi^\text{power}_\text{max}$** | $5 \cdot 10^{-10} \cdot 2^{\rho - 1} + 2.16 \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{10^4 \cdot 2^\rho}{\rho}$ |
+| **Owl Stare Praos**      | $5 \cdot 10^{-10} \cdot 2^{\rho - 1} + 1.8 \cdot 10^{-4} \cdot \frac{2^{\rho - 1}}{\rho} + 5 \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho}$ |
+| **Owl Stare $\Phi^\text{power}_\text{min}$** | $5 \cdot 10^{-10} \cdot 2^{\rho - 1} + 1.8 \cdot 10^{-4} \cdot \frac{2^{\rho - 1}}{\rho} + 5 \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{200 \cdot 2^\rho}{\rho}$ |
+| **Owl Stare $\Phi^\text{power}_\text{max}$** | $5 \cdot 10^{-10} \cdot 2^{\rho - 1} + 1.8 \cdot 10^{-4} \cdot \frac{2^{\rho - 1}}{\rho} + 5 \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{10^4 \cdot 2^\rho}{\rho}$ |
+| **Owl Survey Praos**     | $5 \cdot 10^{-10} \cdot 2^{\rho - 1} + 2.16 \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho} + 5 \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho}$ |
+| **Owl Survey $\Phi^\text{power}_\text{min}$** | $5 \cdot 10^{-10} \cdot 2^{\rho - 1} + 2.16 \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho} + 5 \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{200 \cdot 2^\rho}{\rho}$ |
+| **Owl Survey $\Phi^\text{power}_\text{max}$** | $5 \cdot 10^{-10} \cdot 2^{\rho - 1} + 2.16 \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho} + 5 \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{10^4 \cdot 2^\rho}{\rho}$ |
 
 
-The **graph below** illustrates the **logarithmic cost** (in **USD**) of **grinding attacks** across **Praos** and **Phalanx scenarios** as a function of **grinding depth** ($\rho$). **Solid lines** represent the **original Praos scenarios**, **dashed lines** represent **Phalanx with** $\Phi_{\text{min}}$, and **dotted lines** represent **Phalanx with** $\Phi_{\text{max}}$. The **shaded feasibility layers** indicate **economic thresholds** where attacks become **trivial**, **feasible**, **possible**, **borderline infeasible**, or **infeasible**, as defined in [**CPS Section 3.6 – Grinding Power Computational Feasibility**](https://github.com/input-output-hk/ouroboros-anti-grinding-design/blob/main/CPS/Readme.md#36-grinding-power-computational-feasibility). The $\Delta \log_{10}(\text{Cost (USD)}) \approx 15.2$ at $\rho = 50$ between the **most resource-intensive Phalanx scenario** (**Owl Survey** $\Phi_{\text{max}}$) and the **least resource-intensive Praos scenario** (**Ant Glance Praos**) highlights the **significant cost increase** introduced by **Phalanx**.
+The **graph below** illustrates the **logarithmic cost** (in **USD**) of **grinding attacks** across **Praos** and **Phalanx scenarios** as a function of **grinding depth** ($\rho$). **Solid lines** represent the **original Praos scenarios** (Ant Glance, Ant Patrol, Owl Stare, and Owl Survey), **dashed lines** represent **Phalanx with** $`\Phi^\text{power}_\text{min}`$ ($`\Phi_{\text{power}} = 0.02`$), and **dotted lines** represent **Phalanx with** $`\Phi^\text{power}_\text{max}$ ($\Phi_{\text{power}} = 1.0`$). The **shaded feasibility layers** indicate **economic thresholds** where attacks become **trivial**, **feasible**, **possible**, **borderline infeasible**, or **infeasible**, as defined in [**CPD Section 3.6 – Grinding Power Computational Feasibility**](https://github.com/input-output-hk/ouroboros-anti-grinding-design/blob/main/CPS/Readme.md#36-grinding-power-computational-feasibility). 
+
 
 <div align="center">
 <img src="./image/grinding_depth_scenarios_cost_praos_vs_phalanx.png" alt="Cost of Grinding Attacks: Praos vs Phalanx Scenarios"/>
@@ -566,68 +716,62 @@ The **graph below** illustrates the **logarithmic cost** (in **USD**) of **grind
 
 ### **Interpretation of the Graph**
 
-A **key observation** from the **graph** is that all **Phalanx scenarios**—whether $\Phi_{\text{min}}$ or $\Phi_{\text{max}}$—**overlap closely** in a $\log_{10}$ approximation across the range of $\rho$ values. This **overlap** is a **significant advantage** because it indicates that the **computational cost** of a **grinding attack** under **Phalanx** is largely **independent of the adversary’s strategy** (i.e., the choice of **scenario**, which varies by $T_{\text{eval}}$ and $w_T$). In other words, regardless of whether an **adversary** opts for a **simple strategy** like **Ant Glance** or a **complex one** like **Owl Survey**, the $\log_{10}$ **cost of the attack** remains **effectively the same** under **Phalanx**. This **uniformity** simplifies our reasoning about **adversarial behavior**: we no longer need to analyze **distinct scenarios** to assess the **feasibility of grinding attacks**. Moving forward, we can focus on a **single cost model** for **Phalanx**, treating the **attack cost** as a function of $\rho$ and the $\Phi$ parameter ($T_\phi$), without differentiating between **strategic variations**.
+The graph provides several key insights into the cost dynamics of grinding attacks under the Phalanx protocol compared to Praos, with deltas that remain consistent across all $\rho$ values due to the logarithmic scale:
+
+- **Moderate Cost Variation Within Phalanx Scenarios**:
+  Within the **Phalanx** protocol, the cost difference between different $`\Phi_{\text{power}}`$ levels for the same scenario is relatively moderate. For instance:
+  - The delta between $`\Phi^\text{power}_\text{max}`$ and $`\Phi^\text{power}_\text{min}`$ for the Owl Survey scenario is approximately 1.7 in $`\log_{10}(\text{Cost USD})`$, as annotated at $\rho=50$. This difference is consistent for all $\rho$ values.
+
+- **Substantial Cost Increase Compared to Praos**:
+  The cost difference between **Phalanx** and **Praos** is significantly larger, highlighting the increased computational burden imposed by Phalanx:
+  - The delta between Owl Survey under Phalanx with $`\Phi^\text{power}_\text{min}`$ and the original Owl Survey Praos is approximately 3.75 in $`\log_{10}(\text{Cost USD})`$, as annotated at $\rho=100$. This difference is consistent across all $\rho$ values.
+
+- **Impact Across Adversarial Strategies**:
+  When comparing Phalanx for a complex scenario like Owl Survey with Praos for a simpler scenario like Ant Glance, the cost difference further underscores Phalanx's effectiveness:
+  - The delta between Owl Survey under Phalanx with $`\Phi^\text{power}_\text{min}`$ and Ant Glance Praos is approximately 6.35 in $`\log_{10}(\text{Cost USD})`$, as annotated at $\rho=150$. This difference is consistent for all $\rho$ values.
+
+- **Uniformity Across Scenarios**:
+  The close overlap of cost curves for different scenarios under the same $\Phi_{\text{power}}$ indicates that the **computational cost** of a **grinding attack** under **Phalanx** is largely **independent of the adversary’s strategy** (i.e., the choice of **scenario**, which varies by $T_{\text{eval}}$ and $w_T$). This **uniformity** simplifies our reasoning about **adversarial behavior**: we no longer need to analyze **distinct scenarios** to assess the **feasibility of grinding attacks**. Moving forward, we can focus on a **single cost model** for **Phalanx**, treating the **attack cost** as a function of $\rho$ and the $\Phi_\text{power}$ parameter, without differentiating between **strategic variations**.
 
 ### **Impact on Feasibility Categories**
 
-This **simplification** allows us to **revisit and improve** the **feasibility category table** presented in the **Motivation section**, which originally detailed the $\rho$ ranges for each **Praos scenario**. With **Phalanx**, the **overlap of scenarios** enables us to **consolidate** the analysis into a **single set** of **feasibility ranges** based on the $\Phi_{\text{min}}$ and $\Phi_{\text{max}}$ configurations. The **tables below** first present the **original Praos feasibility ranges**, followed by the **updated categories for Phalanx**, reflecting the **increased computational cost** and the **unified cost model**. The **Phalanx tables** include the **delta improvements** ($\Delta \rho$) for each **Praos scenario**, showing the **reduction** in the **upper bound** of each **feasibility category** compared to the **original Praos ranges**. A **positive** $\Delta \rho$ indicates that **Phalanx increases the cost** by making **attacks infeasible at lower** $\rho$ values.
+This **simplification** allows us to **revisit and improve** the **feasibility category table** presented in the **Motivation section**, which originally detailed the $\rho$ ranges for each **Praos scenario**. With **Phalanx**, the **overlap of scenarios** enables us to **consolidate** the analysis into a **single set** of **feasibility ranges** based on the $`\Phi^\text{power}_{\text{min}}`$ and $`\Phi^\text{power}_{\text{max}}`$ configurations. The **tables below** first present the **original Praos feasibility ranges**, followed by the **updated categories for Phalanx**, reflecting the **increased computational cost** and the **unified cost model**. The **Phalanx tables** include the **delta improvements** ($\Delta \rho$) for each **Praos scenario**, showing the **reduction** in the **upper bound** of each **feasibility category** compared to the **original Praos ranges**. A **positive** $\Delta \rho$ indicates that **Phalanx increases the cost** by making **attacks infeasible at lower** $\rho$ values.
 
 
-#### Original Praos Feasibility Ranges
-| **Feasibility Category**                  | **🔵 Ant Glance** | **🟠 Ant Patrol** | **🟢 Owl Stare** | **🔴 Owl Survey** |
-|--------------------------------------------|-------------------|-------------------|------------------|-------------------|
-| **🟢 🌱 Trivial for Any Adversary**        | $[0, 49)$         | $[0, 47)$         | $[0, 27)$        | $[0, 27)$         |
-| **🟡 💰 Feasible with Standard Resources** | $[49, 59)$        | $[47, 57)$        | $[27, 34)$       | $[27, 34)$        |
-| **🟠 🏭 Possible with Large-Scale Infrastructure** | $[59, 73)$ | $[57, 71)$        | $[34, 48)$       | $[34, 48)$        |
-| **🔴 🚫 Borderline Infeasible**            | $[73, 87)$        | $[71, 85)$       | $[48, 62)$       | $[48, 62)$        |
-| **🔴 🚫 Infeasible**                      | $[87, 256)$       | $[85, 256)$       | $[62, 256)$      | $[62, 256)$       |
-
-#### Phalanx with $\Phi_{\text{min}}$
-| **Feasibility Category**                  | **Phalanx $\Phi_{\text{min}}$** | **🔵 Ant Glance** | **🟠 Ant Patrol** | **🟢 Owl Stare** | **🔴 Owl Survey** |
-|--------------------------------------------|-------------------------------|-------------------|-------------------|------------------|-------------------|
-| **🟢 🌱 Trivial for Any Adversary**        | $[0, 10)$                     | +39               | +37               | +17              | +17               |
-| **🟡 💰 Feasible with Standard Resources** | $[10, 15)$                    | +44               | +42               | +19              | +19               |
-| **🟠 🏭 Possible with Large-Scale Infrastructure** | $[15, 20)$            | +53               | +51               | +28              | +28               |
-| **🔴 🚫 Borderline Infeasible**            | $[20, 25)$                    | +62               | +60               | +37              | +37               |
-| **🔴 🚫 Infeasible**                      | $[25, 256)$                   | +62               | +60               | +37              | +37               |
-
-#### Phalanx with $\Phi_{\text{max}}$
-| **Feasibility Category**                  | **Phalanx $\Phi_{\text{max}}$** | **🔵 Ant Glance** | **🟠 Ant Patrol** | **🟢 Owl Stare** | **🔴 Owl Survey** |
-|--------------------------------------------|-------------------------------|-------------------|-------------------|------------------|-------------------|
-| **🟢 🌱 Trivial for Any Adversary**        | $[0, 5)$                      | +44               | +42               | +22              | +22               |
-| **🟡 💰 Feasible with Standard Resources** | $[5, 10)$                     | +49               | +47               | +24              | +24               |
-| **🟠 🏭 Possible with Large-Scale Infrastructure** | $[10, 15)$            | +58               | +56               | +33              | +33               |
-| **🔴 🚫 Borderline Infeasible**            | $[15, 20)$                    | +67               | +65               | +42              | +42               |
-| **🔴 🚫 Infeasible**                      | $[20, 256)$                   | +67               | +65               | +42              | +42               |
-
-</br>
-
-<details>
-  <summary>📌📌 <i>Delta Improvement Calculations</i> – <b>Expand to view the content</b>.</summary>
-  <p>
-
-- **Trivial**:
-  - $\Phi_{\text{min}}$: Ant Glance: $49 - 10 = 39$, Ant Patrol: $47 - 10 = 37$, Owl Stare: $27 - 10 = 17$, Owl Survey: $27 - 10 = 17$
-  - $\Phi_{\text{max}}$: Ant Glance: $49 - 5 = 44$, Ant Patrol: $47 - 5 = 42$, Owl Stare: $27 - 5 = 22$, Owl Survey: $27 - 5 = 22$
-- **Feasible**:
-  - $\Phi_{\text{min}}$: Ant Glance: $59 - 15 = 44$, Ant Patrol: $57 - 15 = 42$, Owl Stare: $34 - 15 = 19$, Owl Survey: $34 - 15 = 19$
-  - $\Phi_{\text{max}}$: Ant Glance: $59 - 10 = 49$, Ant Patrol: $57 - 10 = 47$, Owl Stare: $34 - 10 = 24$, Owl Survey: $34 - 10 = 24$
-- **Possible**:
-  - $\Phi_{\text{min}}$: Ant Glance: $73 - 20 = 53$, Ant Patrol: $71 - 20 = 51$, Owl Stare: $48 - 20 = 28$, Owl Survey: $48 - 20 = 28$
-  - $\Phi_{\text{max}}$: Ant Glance: $73 - 15 = 58$, Ant Patrol: $71 - 15 = 56$, Owl Stare: $48 - 15 = 33$, Owl Survey: $48 - 15 = 33$
-- **Borderline Infeasible**:
-  - $\Phi_{\text{min}}$: Ant Glance: $87 - 25 = 62$, Ant Patrol: $85 - 25 = 60$, Owl Stare: $62 - 25 = 37$, Owl Survey: $62 - 25 = 37$
-  - $\Phi_{\text{max}}$: Ant Glance: $87 - 20 = 67$, Ant Patrol: $85 - 20 = 65$, Owl Stare: $62 - 20 = 42$, Owl Survey: $62 - 20 = 42$
-- **Infeasible**:
-  - The $\Delta \rho$ for the "Infeasible" category is the same as "Borderline Infeasible" since it reflects the shift in the upper bound of the previous category.
-
-  </p>
-</details>
-</br>
+<div align="center">
+<img src="./image/image-10.png" alt="Cost of Grinding Attacks: Praos vs Phalanx Scenarios"/>
+</div>
 
 
-These **tables** demonstrates a **significant improvement** over the **Praos scenarios**. For **$\Phi_{\text{min}}$**, the "**Trivial**" range shrinks to **$\rho < 10$** (a **reduction of up to 39** for **Ant Glance Praos**), and the "**Possible**" range is limited to **$\rho < 20$** (a **reduction of up to 53**). For **$\Phi_{\text{max}}$**, the effect is even more pronounced, with the "**Trivial**" range reduced to **$\rho < 5$** (a **reduction of up to 44**) and the "**Possible**" range to **$\rho < 15$** (a **reduction of up to 58**). These substantial **$\Delta \rho$ values** indicate that **Phalanx significantly raises the bar** for **grinding attacks**, pushing the **feasibility thresholds** to much **lower $\rho$ values** across all **scenarios**. This makes such **attacks economically and computationally prohibitive** for **adversaries**, even those with **significant resources**, thereby **enhancing the security** of the **Ouroboros Praos protocol**.
+✏️ **Note**: The **code** to generate this **graph** is available at ➡️ [**this link**](./graph/scenario-cost-cross-thresholds.py).
 
+
+#### Feasibility Ranges 
+
+| **Feasibility Category**                  | **🔵 Ant Glance** | **🟠 Ant Patrol** | **🟢 Owl Stare** | **🔴 Owl Survey** | **Phalanx $\Phi^\text{power}_{\text{min}}$** | **Phalanx $\Phi^\text{power}_{\text{max}}$** |
+|-------------------------------------------|-------------------|-------------------|------------------|-------------------|-------------------------------|-------------------------------|
+| **🟢 🌱 Trivial for Any Adversary**        | $[0, 33.2)$       | $[0, 26.3)$       | $[0, 25)$        | $[0, 24.5)$       | $[0, 12)$                     | $[0, 6.4)$                    |
+| **🟡 💰 Feasible with Standard Resources** | $[33.2, 46.4)$    | $[26.3, 39.5)$    | $[25, 38.3)$     | $[24.5, 37.8)$    | $[12, 25.2)$                  | $[6.4, 19.6)$                 |
+| **🟠 🏭 Possible with Large-Scale Infrastructure** | $[46.4, 56.4)$ | $[39.5, 49.5)$ | $[38.3, 48.2)$ | $[37.8, 47.7)$ | $[25.2, 35.2)$                | $[19.6, 29.6)$                |
+| **🔴 🚫 Borderline Infeasible**            | $[56.4, 66.3)$    | $[49.5, 59.5)$    | $[48.2, 58.2)$   | $[47.7, 57.7)$    | $[35.2, 45.2)$                | $[29.6, 39.5)$                |
+| **🔴 🚫 Infeasible**                      | $[66.3, 256)$     | $[59.5, 256)$     | $[58.2, 256)$    | $[57.7, 256)$     | $[45.2, 256)$                 | $[39.5, 256)$                 |
+
+#### Improvements by Phalanx
+
+| **Scenario**       | **$\Phi^\text{power}_{\text{min}}$ $\Delta \rho$**  | **$\Phi^\text{power}_{\text{max}}$ $\Delta \rho$**       
+|--------------------|------------------------------------|----------------------------|
+| **🔵 Ant Glance**  | +21.2        | +26.8 |
+| **🟠 Ant Patrol**  | +14.3         | +19.9 |
+| **🟢 Owl Stare**   | +13.0        |+18.7 |
+| **🔴 Owl Survey**  | +12.5        |+18.2 |
+
+
+<br/>
+
+
+These **tables** demonstrate a **significant improvement** over the **Praos scenarios**. For **$\Phi^\text{power}_{\text{min}}$**, the "**Trivial**" range shrinks to **$\rho < 12$** (a **reduction of up to 21.2** for **Ant Glance Praos**), and the "**Possible**" range is limited to **$\rho < 35.2$** (a **reduction of up to 21.2** for **Ant Glance Praos**). For **$\Phi^\text{power}_{\text{max}}$**, the effect is even more pronounced, with the "**Trivial**" range reduced to **$\rho < 6.4$** (a **reduction of up to 26.8** for **Ant Glance Praos**) and the "**Possible**" range to **$\rho < 29.6$** (a **reduction of up to 26.8** for **Ant Glance Praos**). These substantial **$\Delta \rho$ values** indicate that **Phalanx significantly raises the bar** for **grinding attacks**, pushing the **feasibility thresholds** to much **lower $\rho$ values** across all **scenarios**. This makes such **attacks economically and computationally prohibitive** for **adversaries**, even those with **significant resources**, thereby **enhancing the security** of the **Ouroboros Praos protocol**.
+
+# DRAFT Land BELOW
 
 ### 1. Cryptographic Primitive 
 
