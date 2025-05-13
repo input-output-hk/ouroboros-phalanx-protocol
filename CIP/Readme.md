@@ -363,7 +363,31 @@ The higher the value of $R$, the less likely this worst-case scenario will occur
 
 For example, at full $\Phi_{\text{power}}$ capacity, the delay can range from **50 to 500 seconds**, which corresponds to **2.5 to 25 blocks** on mainnet.
 
-A solution is to **relax the block validity requirements** when the gap between the last slot of the previous interval and the first slot leader of the current interval $x$ is **less than** the allocated computation time $T^x_\phi$. In this case, the **remaining slot leaders** within the interval—those whose gap exceeds $T^x_\phi$—are expected to provide the proof of the $x^{\text{th}}$ iteration of $\Phi$.
+A solution is to **relax the block validity requirements** when the gap between the last slot of the previous interval and the first slot leader of the current interval $x$ is **less than** the allocated computation time $T^x_\phi$. In this case, the **remaining slot leaders** within the interval—those whose gap exceeds $T^x_\phi$—are expected to provide the proof of the $x^{\text{th}}$ iteration of $\Phi$ :
+
+📐 Let
+
+* $s_{\text{prev}} \in \mathbb{N}$: relative slot of the **last produced block** in the previous interval
+* $s_{\text{next}} \in \mathbb{N}$: relative slot of the **next slot leader** in the current interval
+* $T^x_\phi \in \mathbb{N}$: allowed computation time for the $x^{\text{th}}$ iteration of $\Phi$, in slot units
+* $\Delta s = s_{\text{next}} - s_{\text{prev}}$
+* $k \in \mathbb{N}$: security parameter
+* $f \in (0, 1]$: active slot coefficient
+
+
+✅ Rule for Proof Requirement
+
+A proof is required **if and only if** the following conditions hold simultaneously:
+
+$$
+\begin{aligned}
+s_{\text{prev}} > \frac{3k}{f}  \quad
+\text{Or} \quad &\Delta s \geq T^x_\phi 
+\end{aligned}
+$$
+
+Otherwise, no proof is required.
+
 
 ###### 3.6.3.2 Resilience to Consecutive Blockless Intervals
 
