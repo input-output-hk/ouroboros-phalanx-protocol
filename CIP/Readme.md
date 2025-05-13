@@ -244,17 +244,151 @@ On mainnet, the parameter $s$ (Minimum Honest Block Inclusion Interval) is defin
 
 <div align="center"><img src="./image-4.png" alt="" width="800"/></div>
 
-#### 3.6 Availability Property Maximization 
+#### 3.6 The Algorithm 
 
-**Given the framework defined above, how can we ensure that each SPO neither compromises the Availability property nor fails to produce their block on time?**
+###### 3.6.1 Introduction
+**How can we ensure that each SPO uphold the **SCALE** properties and in particular neither compromises the Availability property nor fails to produce their block on time?**
 
 To ensure timely block production, we prioritize **Availability** over **Lightweight Execution**. Specifically, stake pool operators (SPOs) must pre-compute a sufficient portion of their computation pipeline in advance.
 We can formalize this with an algorithm where : 
+
 1. We define a parameter $\Phi_{\text{power}} \in [0, 1]$, representing the fraction of $\Phi$'s maximal computational cost that is actually applied to the network. A value of $\Phi_{\text{power}} = 0$ corresponds to no overhead, while $\Phi_{\text{power}} = 1$ corresponds to **half of the maximum theoretical cost** we could impose on the adversary, ensuring that honest SPOs are granted **at least twice the time required** to perform each iteration under worst-case assumptions.
 2. We predefined a threshold $\Phi_{\text{margin}} \in [0.1]$ such as $\Phi_{\text{margin}} < \frac{\text{Margin Interval}}{\text{Remaining Interval}}$. If we don't have enough margin time, we should start computing the remaining iteration of $\Phi$ **locally**.
-3. Finally, let's define a parameter $R$ (Redundancy), the expected number of blocks per $\Phi$ interval. 
+3. Finally, let's define a parameter $R$ (Redundancy), the expected number of blocks per interval. 
+
+###### 3.6.2 Intervals 
+
+An **interval**, in this context, is a split unit within the computation phase. If we define `i` intervals within a cycle, this implies that the function $\Phi$ is applied `i` times to progressively derive $\phi^\text{evolving}_e$. Each interval represents a **milestone** at which the network is expected to collectively demonstrate that it has computed up to a certain iteration of $\Phi$. 
+They are defined by the **redundancy parameter $R$**, which specifies the expected number of blocks per interval as follows:
+
+
+<div align="center"><img src="./image-10.png" alt="" width="800"/></div>
+
+
+
+Each interval is characterized by:
+
+- a **size** (in slots), derived from the redundancy parameter `R` and the active slot coefficient `f`:
+    ```math
+    \text{Interval size} = \frac{R}{f}
+    ```
+
+- a **start slot** and **end slot** for a given slot `t`, defined as:
+    ```math
+    \text{startInterval}(t) = \left\lfloor \frac{t}{\text{Interval size}} \right\rfloor \cdot \text{Interval size}
+    ```
+    ```math
+    \text{endInterval}(t) = \left( \left\lfloor \frac{t}{\text{Interval size}} \right\rfloor + 1 \right) \cdot \text{Interval size} - 1
+    ```
+
+- an **expected publication**: within each interval, at least *one block produced* must include  
+    a proof of the corresponding intermediate output:
+    ```math
+    \phi_x = \Phi^x(\text{pre-}\eta_e)
+    ```
+
+- the **total number of intervals** within a cycle is derived by the Computation Phase and the Interval Size :
+
+```math
+  \text{\#Intervals} = \frac{\text{Computation Phase Size}}{\text{Interval Size}} = \frac{9k/f}{R/f} = \frac{9k}{R}
+```
+
+###### 3.6.2 Iterations of $\Phi$
+
+For each interval $x$, where $x \in \{0, 1, \dots, i\}$, slot leaders are expected to compute the $x^\text{th}$ iteration of the cryptographic primitive $\Phi$. Each interval represents a discrete step in the evolution of the progressive value $\phi^\text{evolving}_e$.
+
+**• Total Number of $\Phi$ Iterations**
+Since there is exactly one iteration per interval, the total number of iterations equals the number of intervals:
+
+$$
+\#\text{Iterations} = i = \#\text{Intervals}
+$$
+
+
+**• Total Accumulated Computation Time**
+We introduce a parameter $\Phi_{\text{power}} \in [0, 1]$, which quantifies the proportion of the maximum allowable computational budget that is actually exercised by the network.
+
+* $\Phi_{\text{power}} = 0$: no additional computation (no overhead),
+* $\Phi_{\text{power}} = 1$: corresponds to **half** of the maximum cost we would theoretically impose on an adversary. This ensures that **honest slot producers (SPOs)** always have **at least twice the time needed** to complete an iteration, even under worst-case conditions.
+
+The total time allocated to all $\Phi$ computations across the computation phase is given by:
+
+$$
+T_\Phi = \Phi_{\text{power}} \cdot \frac{1}{2} \cdot \text{Computation Phase Size} = \Phi_{\text{power}} \cdot \frac{1}{2} \cdot \frac{9k}{f}
+$$
+
+**• Computation Time per Iteration**
+
+Let $T_\phi^x$ denote the time allocated to the $x^\text{th}$ iteration of the primitive $\Phi$. The value of $T_\phi^x$ varies smoothly across iterations, ranging from 0 up to a maximum value determined by the interval length and the configuration of $\Phi_{\text{power}}$. When $\Phi_{\text{power}} = 1$, the maximum time per iteration is:
+
+$$
+T_\phi^\text{max} = \frac{\text{Interval Size}}{2}
+$$
+
+The **total accumulated computation time** over all iterations is simply the sum of the per-iteration durations:
+
+$$
+T_\Phi = \sum_{x=1}^{i} T_\phi^x
+$$
+
+The graph below illustrates this iteration computation time across the full range of intervals:
+
+<div align="center"><img src="./image-11.png" alt="" width="800"/></div>
+
+###### 3.6.3 Scheduling
+
+###### 3.6.3.1 Handling the $\frac{3 \cdot k}{f}$ $\text{pre-}\eta_e$ instability period : Proof Requirement Relaxation
+
+Over the first $\frac{3 \cdot k}{f}$ slots, sudden rollbacks affecting the $\text{pre-}\eta_e$ seed may, under certain conditions, disrupt the immediate slot leaders' ability to produce timely blocks.
+
+The **worst-case scenario** occurs when a rollback happens **at the very end of a computation interval**, and the **next scheduled slot leader** is positioned just after the **beginning of the following interval**. In such a case, when $T^x_\phi$ is large enough, the **Availability** property may be compromised: block production could be **delayed**, leading to **increased latency in block diffusion**, or worse, the block may arrive **too late** and be **rejected** by the network.
+
+To better understand this risk under concrete conditions, the table below illustrates how the **Accumulated Computation Time is distributed across intervals** (i.e., the ratio $T_\Phi / \text{Interval size}$, expressed in seconds) on **Mainnet** under this approach:
+
+| $\Phi_{\text{power}}$ | Accumulated Computation Time | R = 5 (i = 3888)     | R = 10 (i = 1944)    | R = 20 (i = 972)     | R = 30 (i = 648)     | R = 50 (i = 388)      |
+|------------------------|-------------------------------|------------------------|------------------------|------------------------|------------------------|-------------------------|
+| 0.0                    | 0 minutes                    | 0.0s / 100s           | 0.0s / 200s           | 0.0s / 400s           | 0.0s / 600s           | 0.0s / 1000s           |
+| 0.1                    | 5 hours 24 minutes           | 5.0s / 100s           | 10.0s / 200s          | 20.0s / 400s          | 30.0s / 600s          | 50.1s / 1000s          |
+| 0.2                    | 10 hours 48 minutes          | 10.0s / 100s          | 20.0s / 200s          | 40.0s / 400s          | 60.0s / 600s          | 100.2s / 1000s         |
+| 0.3                    | 16 hours 12 minutes          | 15.0s / 100s          | 30.0s / 200s          | 60.0s / 400s          | 90.0s / 600s          | 150.3s / 1000s         |
+| 0.4                    | 21 hours 36 minutes          | 20.0s / 100s          | 40.0s / 200s          | 80.0s / 400s          | 120.0s / 600s         | 200.4s / 1000s         |
+| 0.5                    | 1 day 3 hours                | 25.0s / 100s          | 50.0s / 200s          | 100.0s / 400s         | 150.0s / 600s         | 250.5s / 1000s         |
+| 0.6                    | 1 day 8 hours 24 minutes     | 30.0s / 100s          | 60.0s / 200s          | 120.0s / 400s         | 180.0s / 600s         | 300.6s / 1000s         |
+| 0.7                    | 1 day 13 hours 48 minutes    | 35.0s / 100s          | 70.0s / 200s          | 140.0s / 400s         | 210.0s / 600s         | 350.7s / 1000s         |
+| 0.8                    | 1 day 19 hours 12 minutes    | 40.0s / 100s          | 80.0s / 200s          | 160.0s / 400s         | 240.0s / 600s         | 400.8s / 1000s         |
+| 0.9                    | 2 days 35 minutes            | 45.0s / 100s          | 90.0s / 200s          | 180.0s / 400s         | 270.0s / 600s         | 450.9s / 1000s         |
+| 1.0                    | 2 days 6 hours               | 50.0s / 100s          | 100.0s / 200s         | 200.0s / 400s         | 300.0s / 600s         | 501.0s / 1000s         |
+
+The higher the value of $R$, the less likely this worst-case scenario will occur, as the computation load is spread over longer intervals. However, when such a situation does happen, the **amount of work required to catch up increases**, potentially impacting **multiple consecutive blocks**.  
+
+For example, at full $\Phi_{\text{power}}$ capacity, the delay can range from **50 to 500 seconds**, which corresponds to **2.5 to 25 blocks** on mainnet.
+
+A solution is to **relax the block validity requirements** when the gap between the last slot of the previous interval and the first slot leader of the current interval $x$ is **less than** the allocated computation time $T^x_\phi$. In this case, the **remaining slot leaders** within the interval—those whose gap exceeds $T^x_\phi$—are expected to provide the proof of the $x^{\text{th}}$ iteration of $\Phi$.
+
+###### 3.6.3.2 Resilience to Consecutive Blockless Intervals
+
+- when 
+- Interval : an interval in that context is a split unit of the computation phase , if we say there is i iterations of $Phi$ to deliver $\phi^\text{evolving}_e$, they represent milestones where we expect the network to proove they have computed the iterations of Phi to a certain number x.
+    - Size
+    - start 
+    - end
+- Iteration
+  - Accumulated Computation Time  $T_\Phi$: 
+  - Total $\Phi$ Iterations : 
+  - Computation Time $T_\phi$
+- Scheduling
+  - Current Slot
+  - Next Slot Leader
+  - Missed Past-Iterations
+  - Upcoming Iterations
+  - Remaining Interval
+  - Margin Interval : 
 
 ![alt text](image-9.png)
+
+```math
+ \text{\#Intervals} = \frac{9k/f}{R/f} = \frac{\text{Computation Phase Size }}{\text{Interval Size}} = \frac{9k}{R} 
+```
 
 ```math
 T_\Phi = \Phi_{\text{power}} \cdot \frac{9k}{2f}, \quad \text{Interval size} = \frac{R}{f}, \quad \text{Total Φ Iterations = i} = \frac{9k/f}{R/f} = \frac{9k}{R} , \quad T_\phi = \frac{T_\Phi}{i}

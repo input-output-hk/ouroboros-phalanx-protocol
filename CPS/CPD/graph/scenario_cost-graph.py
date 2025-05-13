@@ -15,16 +15,16 @@ w_O_hours = w_O / 3600  # Convert to hours for cost calculation
 
 # Define N_CPU functions for each scenario based on the developed formulas
 def ant_glance(rho):
-    return 5e-10 * 2**(rho - 1) + 1.8e-11 * 2**(rho - 1)
+    return 5e-10 * 2**(rho - 1) + 1.8e-4 * 2**(rho - 1) / rho
 
 def ant_patrol(rho):
-    return 5e-10 * 2**(rho - 1) + 2.16e-9 * 2**(rho - 1)
+    return 5e-10 * 2**(rho - 1) + 2.16e-2 * 2**(rho - 1) / rho
 
 def owl_stare(rho):
-    return 5e-10 * 2**(rho - 1) + 1.8e-11 * 2**(rho - 1) + 5e-2 * 2**(rho - 1) / rho
+    return 5e-10 * 2**(rho - 1) + 1.8e-4 * 2**(rho - 1) / rho + 5e-2 * 2**(rho - 1) / rho
 
 def owl_survey(rho):
-    return 5e-10 * 2**(rho - 1) + 2.16e-9 * 2**(rho - 1) + 5e-2 * 2**(rho - 1) / rho
+    return 5e-10 * 2**(rho - 1) + 2.16e-2 * 2**(rho - 1) / rho + 5e-2 * 2**(rho - 1) / rho
 
 # Compute N_CPU for each scenario
 n_cpu_ant_glance = ant_glance(rho)
