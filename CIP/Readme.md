@@ -31,9 +31,7 @@ License: Apache-2.0
     - [3.2 Solution Properties S.C.A.L.E](#32-solution-properties-scale)
     - [3.3 Computation Participation](#33-computation-participation)
     - [3.4 Slot Leader Schedule Visibility & pre-η Instability](#34-slot-leader-schedule-visibility--pre-eta-instability)
-    - [3.5 Game-Theoretic Enforcement: No Timely Iteration, No Block Reward](#35-game-theoretic-enforcement-no-timely-iteration-no-block-reward)
-    - [3.6 Availability Property Maximization](#36-availability-property-maximization)
-    - [3.7 Shape Function](#37-shape-function)
+    - [3.5 The Algorithm](#35-the-algorithm)
     - [3.8 Agda Mechanization](#38-agda-mechanization)
   - [4. The Φ Cryptographic Primitive](#4-the-phi-cryptographic-primitive)
   - [5. Recommended Parameterization](#5-recommended-parameterization)
@@ -44,18 +42,16 @@ License: Apache-2.0
       - [1.2.1 Formula](#121-formula)
       - [1.2.2 Estimated Formula Using Mainnet Cardano Parameters](#122-estimated-formula-using-mainnet-cardano-parameters)
       - [1.2.3 Φ_power & Scenarios](#123-phi_textpower--scenarios)
-  - [2. Distribution of Φ Iterations Alternatives](#2-distribution-of-phi-iterations-alternatives)
-  - [3. Why Choose a VDF Over Other Cryptographic Primitives?](#3-why-choose-a-vdf-over-other-cryptographic-primitives)
-  - [4. Resource Requirements](#4-resource-requirements)
-    - [4.1 Network](#41-network)
-    - [4.2 Cost](#42-cost)
-    - [4.3 Persistent Storage](#43-persistent-storage)
-    - [4.4 CPU](#44-cpu)
-    - [4.5 Memory](#45-memory)
+  - [2. Adaptive Strategies for Efficient Φ Computation](#2-adaptive-strategies-for-efficient-phi-computation)
+    - [2.4.3 Block-based approach](#243-block-based-approach)
+  - [3. Performance Impacts on Consensus & Ledger Repository](#3-performance-impacts-on-consensus--ledger-repository)
+  - [4. Maintainability](#4-maintainability)
 - [Path to Active](#path-to-active)
   - [Acceptance Criteria](#acceptance-criteria)
   - [Implementation Plan](#implementation-plan)
+- [References](#references)
 - [Copyright](#copyright)
+
 ## Abstract
 
 <!-- A short (\\\~200 word) description of the proposed solution and the technical issue being addressed. \-->
@@ -199,9 +195,12 @@ To ensure robust and efficient production of $`\phi^\text{evolving}_e`$,  $k(\te
 - **C**ompactness — Minimize block header size increase.  
 - **A**vailability — Minimize additional latency in block diffusion.  
 - **L**ightweight Execution — minimize redundant or wasteful iterations of $`\Phi`$ among the SPOs.  
-- **E**quity in Effort — ensure computational fairness: stake holders compute proportionally to their stake.
+- **E**agerness — Better to compute sooner than later.
 
-These properties define the design space for secure, performant, and fair execution of $`\Phi`$ in each epoch.
+These properties define the design space for secure, performant execution of $`\Phi`$ in each epoch.
+
+**How can we ensure that each SPO uphold the **SCALE** properties and in particular neither compromises the Availability property nor fails to produce their block on time due to the added Phalanx computation?**
+
 
 #### 3.3 Computation Participation
 
@@ -217,54 +216,32 @@ The key question, then, is **how can we design effective incentives to ensure th
 #### 3.4 Slot Leader Schedule Visibility & $\text{pre-}\eta_e$ instability
 
 **Regardless of the chosen approach**, each SPO knows their complete private schedule for $`\Phi`$ computation as soon as the slot leader distribution is revealed. Within this epoch-sized period:
-- **During the interval $[0, \frac{4k}{f})$:**
+- **During the interval $[0, \frac{3k}{f})$:**
   - SPOs are still operating in $`epoch_{\text{e-2}}`$, which means they know their schedule **$\frac{6k}{f}$ slots in advance**.
   - However, at this point, $\text{pre-}\eta_e$ remains a *candidate value* — not yet finalized. Multiple forks may still exist, each potentially initiating a distinct instance of $\Phi$.
   - As such, early iterations of $\Phi$ are **speculative**. If the canonical chain later stabilizes on a different fork than the one used during early computations, the associated $\text{pre-}\eta_e$ will change, and the corresponding $\Phi$ computation must be **discarded and restarted**.
   - **In short**, the closer we approach the fork stabilization point, the **higher the probability** that the selected $\text{pre-}\eta_e$ will remain, but rollback is still possible within this window.
 
+- **During the interval $[\frac{3k}{f},\frac{4k}{f})$:**
+  - SPOs are still operating in $`epoch_{\text{e-2}}`$, which means they know their schedule **$\frac{6k}{f}$ slots in advance**.
+  - From this slot onward, $\text{pre-}\eta_e$ is fully stable, and all SPOs will execute $\Phi$ using the same seed, ensuring deterministic and aligned computations.
+  - The slot leader distribution is finalized at $\frac{3k}{f}$-th slot, which means they know their schedule **$\frac{k}{f}$ slots in advance** for the next interval.
+
 - **During the interval $[\frac{4k}{f}, \frac{10k}{f})$:**
   - SPOs are now in $`epoch_{\text{e-1}}`$.
-  - Although the slot leader distribution is guaranteed to be finalized at the $\frac{4k}{f}$-th slot, SPOs gain increasing probabilistic confidence as they approach this point that no further changes will occur. As a result, they can begin to take **relatively safe preemptive actions** based on the expected future slot leader distribution, especially when close to the stabilization boundary.
-  - From this slot onward, $\text{pre-}\eta_e$ is fully stable, and all SPOs will execute $\Phi$ using the same seed, ensuring deterministic and aligned computations.
-
-
+  - Full visibility and full stability
+  
 The following visual highlights this situation:
 
-<div align="center"><img src="./image-7.png" alt="" width="1000"/></div>
+<div align="center"><img src="./image-12.png" alt="" width="1000"/></div>
 
 
-#### 3.5 Game-Theoretic Enforcement: No Timely Iteration, No Block Reward
+#### 3.5 The Algorithm 
 
-We will reuse the existing game-theoretic framework for block production in Praos and require each stake pool operator (SPO), upon producing a block, to provide a proof of computation performed—specifically, a proof that they have computed the *x*‑th iteration of $\Phi$. 
+We will reuse the existing game-theoretic framework for block production in Praos (No Timely Iteration, No Block Reward) and require each stake pool operator (SPO), upon producing a block, to provide **a proof of computation performed—specifically, a proof that they have computed the *x*‑th iteration of $\Phi$**. 
+In this approach, we divide the epoch-size equivalent period into $y$ intervals defined by the **redundancy parameter $R$**, which specifies the expected number of blocks per interval as follows:
 
-In this approach, the epoch-size equivalent period is divided into $i$ intervals. Within each interval, the first block produced must include a proof of work performed in order to be considered valid. Subsequent blocks produced within the same interval are exempt from this requirement. This Computation phase is followed by an ∃CQ (Existential Chain Quality) phase. This final phase ensures, within our theoretical model, that the computation of $\phi^\text{evolving}_e$ is guaranteed to complete. In practice, to ensure liveness in edge cases, the protocol reverts to standard Praos behavior, using $\text{pre-}\eta_e$ as $\eta_e$.  
-
-On mainnet, the parameter $s$ (Minimum Honest Block Inclusion Interval) is defined as $\frac{k}{f}$ within a segment of $\frac{10.k}{f}$ slots. This leaves a remaining window of $\frac{9.k}{f}$ slots allocated to the Computation Phase:
-
-<div align="center"><img src="./image-4.png" alt="" width="800"/></div>
-
-#### 3.6 The Algorithm 
-
-###### 3.6.1 Introduction
-**How can we ensure that each SPO uphold the **SCALE** properties and in particular neither compromises the Availability property nor fails to produce their block on time?**
-
-To ensure timely block production, we prioritize **Availability** over **Lightweight Execution**. Specifically, stake pool operators (SPOs) must pre-compute a sufficient portion of their computation pipeline in advance.
-We can formalize this with an algorithm where : 
-
-1. We define a parameter $\Phi_{\text{power}} \in [0, 1]$, representing the fraction of $\Phi$'s maximal computational cost that is actually applied to the network. A value of $\Phi_{\text{power}} = 0$ corresponds to no overhead, while $\Phi_{\text{power}} = 1$ corresponds to **half of the maximum theoretical cost** we could impose on the adversary, ensuring that honest SPOs are granted **at least twice the time required** to perform each iteration under worst-case assumptions.
-2. We predefined a threshold $\Phi_{\text{margin}} \in [0.1]$ such as $\Phi_{\text{margin}} < \frac{\text{Margin Interval}}{\text{Remaining Interval}}$. If we don't have enough margin time, we should start computing the remaining iteration of $\Phi$ **locally**.
-3. Finally, let's define a parameter $R$ (Redundancy), the expected number of blocks per interval. 
-
-###### 3.6.2 Intervals 
-
-An **interval**, in this context, is a split unit within the computation phase. If we define `i` intervals within a cycle, this implies that the function $\Phi$ is applied `i` times to progressively derive $\phi^\text{evolving}_e$. Each interval represents a **milestone** at which the network is expected to collectively demonstrate that it has computed up to a certain iteration of $\Phi$. 
-They are defined by the **redundancy parameter $R$**, which specifies the expected number of blocks per interval as follows:
-
-
-<div align="center"><img src="./image-10.png" alt="" width="800"/></div>
-
-
+<div align="center"><img src="./image-10.png" alt="" width="800"/></div> 
 
 Each interval is characterized by:
 
@@ -281,95 +258,71 @@ Each interval is characterized by:
     \text{endInterval}(t) = \left( \left\lfloor \frac{t}{\text{Interval size}} \right\rfloor + 1 \right) \cdot \text{Interval size} - 1
     ```
 
-- an **expected publication**: within each interval, at least *one block produced* must include  
-    a proof of the corresponding intermediate output:
-    ```math
-    \phi_x = \Phi^x(\text{pre-}\eta_e)
-    ```
+The core of the algorithm lies in how we distribute the iterations of $\Phi$ across these intervals. Ideally, we want to remain resilient—even in extreme cases such as a global outage causing **36 hours** (**30% of an epoch**) of consecutive downtime (see the [Cardano Disaster Recovery Plan](https://iohk.io/en/research/library/papers/cardano-disaster-recovery-plan)). To be optimal in the face of such rare but impactful events, we will adopt the strategy : **"Better Sooner Compute than Later."** 
 
-- the **total number of intervals** within a cycle is derived by the Computation Phase and the Interval Size :
+In practice, this means **front-loading the computation** as much as possible during the early intervals of the computation phase. If a sequence of blockless intervals occurs, it is the responsibility of the **next non-blockless interval** to publish the proof corresponding to the $x^{\text{th}}$ iteration—where $x - 1$ was the index of the last successfully revealed proof before the interruption.
 
-```math
-  \text{\#Intervals} = \frac{\text{Computation Phase Size}}{\text{Interval Size}} = \frac{9k/f}{R/f} = \frac{9k}{R}
-```
-
-###### 3.6.2 Iterations of $\Phi$
-
-For each interval $x$, where $x \in \{0, 1, \dots, i\}$, slot leaders are expected to compute the $x^\text{th}$ iteration of the cryptographic primitive $\Phi$. Each interval represents a discrete step in the evolution of the progressive value $\phi^\text{evolving}_e$.
-
-**• Total Number of $\Phi$ Iterations**
-Since there is exactly one iteration per interval, the total number of iterations equals the number of intervals:
-
-$$
-\#\text{Iterations} = i = \#\text{Intervals}
-$$
+Let’s define a reasonable upper bound for each interval: **allocate at most half of its duration** to the computation of a single iteration of $`\Phi`$ : 
+- $T_\phi^\text{max} = T_\phi =\frac{\text{Interval Size}}{2}$
+- For instance, if $R = 10$, then the interval size is $\text{IntervalSize} = \frac{R}{f} = \frac{10}{1/20} = 200 \text{ slots} \approx 200\text{s}$ and we set a single iteration of $\Phi$ at $T_\phi = 100\text{s}$ from the very first interval.
+- To **prevent an adversary from withholding a block** in the last interval (thus delaying the delivery of $`\phi^\text{evolving}_e`$), we define the final interval to be longer than the others—**long enough to ensure with 128-bit confidence** that **at least one block will be produced**. This requires approximately **1735 slots** of redundancy. We will call this period the **Cool-Down Phase**
 
 
-**• Total Accumulated Computation Time**
-We introduce a parameter $\Phi_{\text{power}} \in [0, 1]$, which quantifies the proportion of the maximum allowable computational budget that is actually exercised by the network.
+Let's define then a parameter $\Phi_{\text{power}} \in [0, 1]$, which quantifies the proportion of the maximum allowable computational budget that is actually exercised by the network.
 
 * $\Phi_{\text{power}} = 0$: no additional computation (no overhead),
-* $\Phi_{\text{power}} = 1$: corresponds to **half** of the maximum cost we would theoretically impose on an adversary. This ensures that **honest slot producers (SPOs)** always have **at least twice the time needed** to complete an iteration, even under worst-case conditions.
+* $\Phi_{\text{power}} = 1$: corresponds to the maximum cost we will impose on an adversary.
 
 The total time allocated to all $\Phi$ computations across the computation phase is given by:
 
 $$
-T_\Phi = \Phi_{\text{power}} \cdot \frac{1}{2} \cdot \text{Computation Phase Size} = \Phi_{\text{power}} \cdot \frac{1}{2} \cdot \frac{9k}{f}
+T_\Phi = \Phi_{\text{power}} \cdot \frac{1}{2} \cdot ((1-30\%) \cdot \text{Computation Phase} - \text{Cooldown Phase} - ) = \Phi_{\text{power}} \cdot \frac{1}{2} \cdot (\frac{7k}{f} - 1735)
 $$
 
-**• Computation Time per Iteration**
+To help visualize the computational implications of different $\Phi_{\text{power}}$ values, the table below provides:
 
-Let $T_\phi^x$ denote the time allocated to the $x^\text{th}$ iteration of the primitive $\Phi$. The value of $T_\phi^x$ varies smoothly across iterations, ranging from 0 up to a maximum value determined by the interval length and the configuration of $\Phi_{\text{power}}$. When $\Phi_{\text{power}} = 1$, the maximum time per iteration is:
+- the total accumulated computation time $T_\Phi$ expressed as a human-readable duration (1 slot ~ 1 sec),
+- the corresponding number of non-blockless intervals required to cover that budget, for various interval sizes $R$.
+- Each cell in the table indicates how many intervals are needed to cover $T_\Phi$, relative to the total available intervals of that size within the computation phase.
 
-$$
-T_\phi^\text{max} = \frac{\text{Interval Size}}{2}
-$$
+| $\Phi_{\text{power}}$ | $T_\Phi$              | R=5 (100 slots)     | R=10 (200 slots)    | R=30 (600 slots)   | R=50 (1000 slots)   |
+|------------------------|------------------------|-------------------|-------------------|-------------------|-------------------|
+| 0.0                    | 0 minute               | 0 / 3006          | 0 / 1503          | 0 / 501           | 0 / 300           |
+| 0.1                    | 4 hours 10 minutes     | 150 / 3006        | 75 / 1503         | 25 / 501          | 15 / 300          |
+| 0.2                    | 8 hours 21 minutes     | 301 / 3006        | 150 / 1503        | 50 / 501          | 30 / 300          |
+| 0.3                    | 12 hours 31 minutes    | 451 / 3006        | 226 / 1503        | 75 / 501          | 45 / 300          |
+| 0.4                    | 16 hours 42 minutes    | 601 / 3006        | 301 / 1503        | 100 / 501         | 60 / 300          |
+| 0.5                    | 20 hours 52 minutes    | 752 / 3006        | 376 / 1503        | 125 / 501         | 75 / 300          |
+| 0.6                    | 1 day 1 hour 3 minutes | 902 / 3006        | 451 / 1503        | 150 / 501         | 90 / 300          |
+| 0.7                    | 1 day 5 hours 13 min   | 1052 / 3006       | 526 / 1503        | 175 / 501         | 105 / 300         |
+| 0.8                    | 1 day 9 hours 24 min   | 1203 / 3006       | 601 / 1503        | 200 / 501         | 120 / 300         |
+| 0.9                    | 1 day 13 hours 34 min  | 1353 / 3006       | 676 / 1503        | 225 / 501         | 135 / 300         |
+| 1.0                    | 1 day 17 hours 45 min  | 1503 / 3006       | 751 / 1503        | 250 / 501         | 150 / 300         |
 
-The **total accumulated computation time** over all iterations is simply the sum of the per-iteration durations:
+Here are the durations of each interval size $R$, assuming 1 slot ≈ 1 second :
 
-$$
-T_\Phi = \sum_{x=1}^{i} T_\phi^x
-$$
+* **R = 5** → 100 slots → **1 minute 40 seconds**
+* **R = 10** → 200 slots → **3 minutes 20 seconds**
+* **R = 30** → 600 slots → **10 minutes**
+* **R = 50** → 1000 slots → **16 minutes 40 seconds**
 
-The graph below illustrates this iteration computation time across the full range of intervals:
+##### Proof Requirements
 
-<div align="center"><img src="./image-11.png" alt="" width="800"/></div>
+By default, in each interval, the first block produced must include a proof of work performed in order to be considered valid. Subsequent blocks produced within the same interval are exempt from this requirement. 
 
-###### 3.6.3 Scheduling
+However, during the first $\frac{3 \cdot k}{f}$ slots, sudden rollbacks affecting the $\text{pre-}\eta_e$ seed may, under certain conditions, disrupt the immediate slot leaders' ability to produce timely blocks.
 
-###### 3.6.3.1 Handling the $\frac{3 \cdot k}{f}$ $\text{pre-}\eta_e$ instability period : Proof Requirement Relaxation
-
-Over the first $\frac{3 \cdot k}{f}$ slots, sudden rollbacks affecting the $\text{pre-}\eta_e$ seed may, under certain conditions, disrupt the immediate slot leaders' ability to produce timely blocks.
-
-The **worst-case scenario** occurs when a rollback happens **at the very end of a computation interval**, and the **next scheduled slot leader** is positioned just after the **beginning of the following interval**. In such a case, when $T^x_\phi$ is large enough, the **Availability** property may be compromised: block production could be **delayed**, leading to **increased latency in block diffusion**, or worse, the block may arrive **too late** and be **rejected** by the network.
-
-To better understand this risk under concrete conditions, the table below illustrates how the **Accumulated Computation Time is distributed across intervals** (i.e., the ratio $T_\Phi / \text{Interval size}$, expressed in seconds) on **Mainnet** under this approach:
-
-| $\Phi_{\text{power}}$ | Accumulated Computation Time | R = 5 (i = 3888)     | R = 10 (i = 1944)    | R = 20 (i = 972)     | R = 30 (i = 648)     | R = 50 (i = 388)      |
-|------------------------|-------------------------------|------------------------|------------------------|------------------------|------------------------|-------------------------|
-| 0.0                    | 0 minutes                    | 0.0s / 100s           | 0.0s / 200s           | 0.0s / 400s           | 0.0s / 600s           | 0.0s / 1000s           |
-| 0.1                    | 5 hours 24 minutes           | 5.0s / 100s           | 10.0s / 200s          | 20.0s / 400s          | 30.0s / 600s          | 50.1s / 1000s          |
-| 0.2                    | 10 hours 48 minutes          | 10.0s / 100s          | 20.0s / 200s          | 40.0s / 400s          | 60.0s / 600s          | 100.2s / 1000s         |
-| 0.3                    | 16 hours 12 minutes          | 15.0s / 100s          | 30.0s / 200s          | 60.0s / 400s          | 90.0s / 600s          | 150.3s / 1000s         |
-| 0.4                    | 21 hours 36 minutes          | 20.0s / 100s          | 40.0s / 200s          | 80.0s / 400s          | 120.0s / 600s         | 200.4s / 1000s         |
-| 0.5                    | 1 day 3 hours                | 25.0s / 100s          | 50.0s / 200s          | 100.0s / 400s         | 150.0s / 600s         | 250.5s / 1000s         |
-| 0.6                    | 1 day 8 hours 24 minutes     | 30.0s / 100s          | 60.0s / 200s          | 120.0s / 400s         | 180.0s / 600s         | 300.6s / 1000s         |
-| 0.7                    | 1 day 13 hours 48 minutes    | 35.0s / 100s          | 70.0s / 200s          | 140.0s / 400s         | 210.0s / 600s         | 350.7s / 1000s         |
-| 0.8                    | 1 day 19 hours 12 minutes    | 40.0s / 100s          | 80.0s / 200s          | 160.0s / 400s         | 240.0s / 600s         | 400.8s / 1000s         |
-| 0.9                    | 2 days 35 minutes            | 45.0s / 100s          | 90.0s / 200s          | 180.0s / 400s         | 270.0s / 600s         | 450.9s / 1000s         |
-| 1.0                    | 2 days 6 hours               | 50.0s / 100s          | 100.0s / 200s         | 200.0s / 400s         | 300.0s / 600s         | 501.0s / 1000s         |
+The **worst-case scenario** occurs when a rollback happens **at the very end of a computation interval**, and the **next scheduled slot leader** is positioned just after the **beginning of the following interval**. In such a case, the **Availability** property may be compromised: block production could be **delayed**, leading to **increased latency in block diffusion**, or worse, the block may arrive **too late** and be **rejected** by the network. 
 
 The higher the value of $R$, the less likely this worst-case scenario will occur, as the computation load is spread over longer intervals. However, when such a situation does happen, the **amount of work required to catch up increases**, potentially impacting **multiple consecutive blocks**.  
 
-For example, at full $\Phi_{\text{power}}$ capacity, the delay can range from **50 to 500 seconds**, which corresponds to **2.5 to 25 blocks** on mainnet.
-
-A solution is to **relax the block validity requirements** when the gap between the last slot of the previous interval and the first slot leader of the current interval $x$ is **less than** the allocated computation time $T^x_\phi$. In this case, the **remaining slot leaders** within the interval—those whose gap exceeds $T^x_\phi$—are expected to provide the proof of the $x^{\text{th}}$ iteration of $\Phi$ :
+A solution is to **relax the block validity requirements** when the gap between the last slot of the previous interval and the first slot leader of the current interval is **less than** the allocated computation time $T_\phi$. In this case, the **remaining slot leaders** within the interval—those whose gap exceeds $T_\phi$—are expected to provide the proof of the $x^{\text{th}}$ iteration of $\Phi$ :
 
 📐 Let
 
 * $s_{\text{prev}} \in \mathbb{N}$: relative slot of the **last produced block** in the previous interval
 * $s_{\text{next}} \in \mathbb{N}$: relative slot of the **next slot leader** in the current interval
-* $T^x_\phi \in \mathbb{N}$: allowed computation time for the $x^{\text{th}}$ iteration of $\Phi$, in slot units
+* $T_\phi \in \mathbb{N}$: allowed computation time for an iteration of $\Phi$, in slot units
 * $\Delta s = s_{\text{next}} - s_{\text{prev}}$
 * $k \in \mathbb{N}$: security parameter
 * $f \in (0, 1]$: active slot coefficient
@@ -382,178 +335,22 @@ A proof is required **if and only if** the following conditions hold simultaneou
 $$
 \begin{aligned}
 s_{\text{prev}} > \frac{3k}{f}  \quad
-\text{Or} \quad &\Delta s \geq T^x_\phi 
+\text{Or} \quad &\Delta s \geq T_\phi 
 \end{aligned}
 $$
 
 Otherwise, no proof is required.
 
+##### Scheduling
 
-###### 3.6.3.2 Resilience to Consecutive Blockless Intervals
+We define a threshold parameter $\Phi\_{\text{margin}} \in (1, \infty)$ that represents the **minimum required interval lead** to safely defer computation. Specifically, we require:
 
-- when 
-- Interval : an interval in that context is a split unit of the computation phase , if we say there is i iterations of $Phi$ to deliver $\phi^\text{evolving}_e$, they represent milestones where we expect the network to proove they have computed the iterations of Phi to a certain number x.
-    - Size
-    - start 
-    - end
-- Iteration
-  - Accumulated Computation Time  $T_\Phi$: 
-  - Total $\Phi$ Iterations : 
-  - Computation Time $T_\phi$
-- Scheduling
-  - Current Slot
-  - Next Slot Leader
-  - Missed Past-Iterations
-  - Upcoming Iterations
-  - Remaining Interval
-  - Margin Interval : 
+$$
+\Phi_{\text{margin}} > \text{intervalIndex}(\text{nextSlotLeader}) - \text{intervalIndex}(\text{currentSlot})
+$$
 
-![alt text](image-9.png)
+If this margin condition is **not satisfied**—i.e., the next slot leader is too close—we proactively begin computing the **remaining iterations of $\Phi$ locally**, rather than waiting for proofs to arrive on-chain.
 
-```math
- \text{\#Intervals} = \frac{9k/f}{R/f} = \frac{\text{Computation Phase Size }}{\text{Interval Size}} = \frac{9k}{R} 
-```
-
-```math
-T_\Phi = \Phi_{\text{power}} \cdot \frac{9k}{2f}, \quad \text{Interval size} = \frac{R}{f}, \quad \text{Total Φ Iterations = i} = \frac{9k/f}{R/f} = \frac{9k}{R} , \quad T_\phi = \frac{T_\Phi}{i}
-```
-```math
-\text{startInterval}(slot) = \left\lfloor \frac{\text{slot}}{i} \right\rfloor \cdot i , \quad \text{endInterval}(slot) = \left( \left\lfloor \frac{\text{slot}}{i} \right\rfloor + 1 \right) \cdot i - 1
-```
-```math
-
-\text{\#MissedIterations} = \text{endInterval(lastBlockProducedSlot)} - \text{endInterval(currentSlot)} 
-```
-```math
-
-\text{\#UpcomingIterations} = \text{endInterval(currentSlot)} - \text{endInterval(nextSlotLeader)} 
-```
-```math
-
-\text{Remaining Interval} = \text{currentSlot} - \text{nextSlotLeader} 
-```
-```math
-
-\text{Margin Interval} =  \text{Remaining Interval} -  (\text{\#MissedIterations}  +  \text{\#UpcomingIterations}) \cdot T_\Phi
-```
-```math
-\Phi_{\text{Margin}} < \frac{\text{Margin Interval}}{\text{Remaining Interval}}
-```
-
-<br/><br/>
-
-**How does the Phalanx algorithm behave during the $\text{pre-}\eta_e$ instability period ?** <br/>
-**Does it continue to uphold the **SCALE** properties under these conditions?**
-
-The answer is **yes**, provided that the **$T_\Phi$** remains relatively low. However, as this cost increases, sudden rollbacks affecting the $\text{pre-}\eta_e$ seed may, under certain conditions, disrupt the immediate slot leaders' ability to produce timely blocks.
-
-The **worst-case scenario** occurs when a rollback happens **at the very end of a computation interval**, and the **next scheduled slot leader** is positioned just after the **beginning of the following interval**. In such a case, when $T_\Phi$ is large enough, the **Availability** property may be compromised: block production could be **delayed**, leading to **increased latency in block diffusion**, or worse, the block may arrive **too late** and be **rejected** by the network.
-
-To better understand this risk under concrete conditions, the table below illustrates how the **Accumulated Computation Time is distributed across intervals** (i.e., the ratio $T_\Phi / \text{Interval size}$, expressed in seconds) on **Mainnet** under this approach:
-
-| $\Phi_{\text{power}}$ | Accumulated Computation Time | R = 5 (i = 3888)     | R = 10 (i = 1944)    | R = 20 (i = 972)     | R = 30 (i = 648)     | R = 50 (i = 388)      |
-|------------------------|-------------------------------|------------------------|------------------------|------------------------|------------------------|-------------------------|
-| 0.0                    | 0 minutes                    | 0.0s / 100s           | 0.0s / 200s           | 0.0s / 400s           | 0.0s / 600s           | 0.0s / 1000s           |
-| 0.1                    | 5 hours 24 minutes           | 5.0s / 100s           | 10.0s / 200s          | 20.0s / 400s          | 30.0s / 600s          | 50.1s / 1000s          |
-| 0.2                    | 10 hours 48 minutes          | 10.0s / 100s          | 20.0s / 200s          | 40.0s / 400s          | 60.0s / 600s          | 100.2s / 1000s         |
-| 0.3                    | 16 hours 12 minutes          | 15.0s / 100s          | 30.0s / 200s          | 60.0s / 400s          | 90.0s / 600s          | 150.3s / 1000s         |
-| 0.4                    | 21 hours 36 minutes          | 20.0s / 100s          | 40.0s / 200s          | 80.0s / 400s          | 120.0s / 600s         | 200.4s / 1000s         |
-| 0.5                    | 1 day 3 hours                | 25.0s / 100s          | 50.0s / 200s          | 100.0s / 400s         | 150.0s / 600s         | 250.5s / 1000s         |
-| 0.6                    | 1 day 8 hours 24 minutes     | 30.0s / 100s          | 60.0s / 200s          | 120.0s / 400s         | 180.0s / 600s         | 300.6s / 1000s         |
-| 0.7                    | 1 day 13 hours 48 minutes    | 35.0s / 100s          | 70.0s / 200s          | 140.0s / 400s         | 210.0s / 600s         | 350.7s / 1000s         |
-| 0.8                    | 1 day 19 hours 12 minutes    | 40.0s / 100s          | 80.0s / 200s          | 160.0s / 400s         | 240.0s / 600s         | 400.8s / 1000s         |
-| 0.9                    | 2 days 35 minutes            | 45.0s / 100s          | 90.0s / 200s          | 180.0s / 400s         | 270.0s / 600s         | 450.9s / 1000s         |
-| 1.0                    | 2 days 6 hours               | 50.0s / 100s          | 100.0s / 200s         | 200.0s / 400s         | 300.0s / 600s         | 501.0s / 1000s         |
-
-The higher the value of $R$, the less likely this worst-case scenario will occur, as the computation load is spread over longer intervals. However, when such a situation does happen, the **amount of work required to catch up increases**, potentially impacting **multiple consecutive blocks**.  
-
-For example, at full $\Phi_{\text{power}}$ capacity, the delay can range from **50 to 500 seconds**, which corresponds to **2.5 to 25 blocks** on mainnet.
-
-A solution is to apply an **exponential function** to modulate the amount of $T_\phi$ executed in each interval (an **On-Ramp** function ) , progressively increasing it over the period $[0, \frac{4k}{f})$, and reaching a **stable, consistent pace** during the final segment $[\frac{4k}{f}, \frac{10k}{f})$. This function should closely approximate the **probability curve of $\text{pre-}\eta_e$ stabilization**, allowing computation efforts to align with the growing certainty that the seed will remain unchanged.
-
-if a rollback happens in that case, **$T_\Phi$** remains relatively low and the **SCALE** properties are preserved.
-
-
-**How does the Phalanx algorithm behave throughout the epoch transition described above?**  <br/>
-**Does it continue to uphold the _SCALE_ properties under these conditions?**
-
-The answer is **yes**, because the protocol only requires a window of $3k/f$ slots to guarantee **Chain Growth from Common Prefix** ("CG from CP"), while in our case, we have a visibility window of $4k/f$ slots.  This provides an additional $k/f$ slots of buffer — a significant margin in the context of the algorithm described above — which can be leveraged to **adapt preemptive computations** accordingly. 
-
-As a result, even during the epoch transition, the algorithm preserves the essential properties of **Success Probability** and **Availability**, maintaining compliance with the **SCALE** design goals.
-
-<details>
-  <summary> 📌📌 <i> Rationale about "CG from CP" Property </i> – <b>  Expand to view the content.</b>
- </summary>
-
-**This argument, known as "CG from CP," proceeds as follows:**
-
-Within these $3k/f$ slots, there are expected to be approximately $3k/2$ adversarial slots, assuming an adversary of strength close to $1/2$. Consequently, with overwhelming probability, there will be at least $k$ adversarial slots in this period.
-
-Now, if the honest chain were to grow by fewer than $k$ blocks during this interval, it would signal an imminent $k$-common-prefix (k-CP) violation. The adversary could, at that point, maintain a private chain of length $k$ starting from the beginning of this interval. By simply waiting for the honest chain to reach a length of $k$ blocks, the adversary could present two disjoint chains of $k$ blocks each within the same epoch, thereby violating the k-CP property.
-
-This reasoning assumes an adversary strength near $1/2$, but it is worth noting that the weaker the adversary, the better the chain growth (CG) properties.
-
-</details>
-<br/>
-
-**How does the Phalanx algorithm behave throughout the Computation/∃CQ Transition?**  
-**Does it continue to uphold the _SCALE_ properties under these conditions?**
-
-Although the **probability** that an **adversary** is the **slot leader** in enough **consecutive blocks** just before the **transition** is low, it could still result in an **honest participant** in the **∃CQ transition** having to compute a **substantial number of iterations** between the **last block produced** and the **final iteration** of $\Phi$. If, for any reason, the **honest participant** does not have enough time to complete this **critical final iteration** during the **∃CQ phase**, it would **undermine the primary goal** of this **Ouroboros enhancement** — and we would be forced to **fall back to the original Praos protocol**.
-
-As in the **$\text{pre-}\eta_e$ instability period**, we propose to apply a **modulation function** (an **Ramp-Off** function ) to control the number of $T_\phi$ iterations executed within each interval. Specifically, we aim to **progressively reduce** the **computational load** over the period $[\frac{4k}{f},\frac{9k}{f})$, ensuring that the **number of iterations remains negligible** for an **honest participant** during the **∃CQ phase**. In doing so, we **preserve the _SCALE_ properties** under these **transitional conditions**.
-
-
-### 3.7. Shape Function
-
-
-To uphold the **_SCALE_** properties under all operational conditions described above, the flat baseline : $T_\phi = \frac{T_\Phi}{i}$ is replaced by a modulated function $T_\phi(j)$ that varies with the **iteration index** $j \in \{0, 1, \dotsc, i - 1\}$, where $j = 0$ corresponds to the initial pre-$\eta$ value and $j = i - 1$ to the iteration before the final one delivering $`\phi^\text{evolving}_e`$.
-
-This modulation allows the protocol to adapt the computational effort per Φ iteration according to the structural phases of the period — ramping up during early uncertainty, concentrating effort where the protocol is stable, and easing off near the transition into the ∃CQ phase. 
-
-This modulation shapes the amount of computation assigned to each $\Phi$ iteration, ensuring alignment with the **temporal characteristics** of the segment:
-
-- During the **initial phase** ($[0, \frac{3k}{f}]$ slots), where the value $\text{pre-}\eta_e$ may still be unstable, the function should **ramp up gradually**, minimizing disruption to early slot leaders.
-- In the **central computation window**, the protocol is stable with reliable leader schedules. The function should assign **strong and consistent effort** to maximize the computation of $\Phi$.
-- In the **final portion** ($[\frac{3k}{f}, \frac{9k}{f}]$), computational effort should **taper off smoothly**, ensuring availability near the ∃CQ security threshold and avoiding performance degradation as the computation concludes.
-
-#### Smoothstep Construction
-
-The computation profile is defined as a smooth, symmetric bell curve using the **product of two quintic smoothstep functions**:
-
-```math
-x_j = \frac{j}{i - 1}
-```
-
-```math
-T_\phi(j) = \frac{T_\Phi}{S} \cdot \text{smoothstep}(x_j) \cdot \text{smoothstep}(1 - x_j)
-```
-
-with:
-
-```math
-\text{smoothstep}(x) = 6x^5 - 15x^4 + 10x^3
-```
-
-This function satisfies the following:
-- $T_\phi(0) = T_\phi(i-1) = 0$
-- $\frac{dT_\phi}{dj} = 0$ at both boundaries
-- The peak is centered, smooth, and strictly inside the interval.
-
-#### Normalization
-
-The total accumulated time is preserved via a scaling constant:
-
-```math
-S = \sum_{j=0}^{i-1} \text{smoothstep}(x_j) \cdot \text{smoothstep}(1 - x_j)
-```
-
-```math
-\sum_{j=0}^{i-1} T_\phi(j) = T_\Phi
-```
-The resulting function can be visualized as a **continuous bell curve** concentrated at the center of the epoch’s computation window : 
-
-![alt text](image-8.png)
 
 #### 3.8. Agda Mechanization
 
@@ -1024,6 +821,11 @@ Todo
 <!-- A plan to meet those criteria or `N/A` if an implementation plan is not applicable. -->
 Todo
 <!-- OPTIONAL SECTIONS: see CIP-0001 > Document > Structure table -->
+
+
+## References
+
+- [Cardano Disaster Recovery Plan](https://iohk.io/en/research/library/papers/cardano-disaster-recovery-plan) 
 
 ## Copyright
 <!-- The CIP must be explicitly licensed under acceptable copyright terms.  Uncomment the one you wish to use (delete the other one) and ensure it matches the License field in the header: -->
