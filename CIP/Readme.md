@@ -267,6 +267,48 @@ Let’s define a reasonable upper bound for each interval: **allocate at most ha
 - For instance, if $R = 10$, then the interval size is $\text{IntervalSize} = \frac{R}{f} = \frac{10}{1/20} = 200 \text{ slots} \approx 200\text{s}$ and we set a single iteration of $\Phi$ at $T_\phi = 100\text{s}$ from the very first interval.
 - To **prevent an adversary from withholding a block** in the last interval (thus delaying the delivery of $`\phi^\text{evolving}_e`$), we define the final interval to be longer than the others—**long enough to ensure with 128-bit confidence** that **at least one block will be produced**. This requires approximately **1735 slots** of redundancy. We will call this period the **Cool-Down Phase**
 
+<br>
+<details>
+<summary>🔍 Why 1735 Slots for the Cool-Down Phase?</summary>
+
+To **prevent an adversary from withholding a block** in the final interval—thus **delaying the delivery of** $`\phi^\text{evolving}_e`$—we extend the final interval's duration. This phase, which we refer to as the **Cool-Down Phase**, must be long enough to ensure with overwhelming probability that **at least one honest block is produced**.
+
+To quantify this requirement, we compute the minimum number of slots needed such that the **probability of observing at least one honest block** is greater than $1 - 2^{-128}$. This gives us **128-bit confidence**, matching common cryptographic security levels.
+
+Let $p_h$ be the probability that a slot contains at least one honest leader. The probability that all $n$ slots in a window fail to produce a single honest leader is:
+
+$$
+(1 - p_h)^n
+$$
+
+We want this to be less than $2^{-128}$:
+
+$$
+(1 - p_h)^n < 2^{-128}
+$$
+
+Taking natural logarithms on both sides:
+
+$$
+n \cdot \ln(1 - p_h) < -128 \cdot \ln(2)
+$$
+
+Solving for $n$:
+
+$$
+n > \frac{-128 \cdot \ln(2)}{\ln(1 - p_h)}
+$$
+
+Assuming a typical $p_h \approx 0.05$ (derived from the active slot coefficient $f = 1/20$ and a high honest participation rate), we get:
+
+$$
+n > \frac{-128 \cdot \ln(2)}{\ln(0.95)} \approx \frac{88.72}{-(-0.05129)} \approx 1730.8
+$$
+
+We round this up to **1735 slots** to ensure the bound is satisfied.
+
+</details>
+<br><br>
 
 Let's define then a parameter $\Phi_{\text{power}} \in [0, 1]$, which quantifies the proportion of the maximum allowable computational budget that is actually exercised by the network.
 
