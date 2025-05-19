@@ -270,7 +270,7 @@ Let’s define a reasonable upper bound for each interval: **allocate at most ha
 <br>
 <details>
 <summary>🔍 Why 1735 Slots for the Cool-Down Phase?</summary>
-
+<p> 
 
 To **prevent an adversary from withholding a block** in the final interval—thus **delaying the delivery of** $`\phi^\text{evolving}_e`$—we extend the final interval's duration. This phase, which we refer to as the **Cool-Down Phase**, must be long enough to ensure with overwhelming probability that **at least one honest block is produced**.
 
@@ -278,37 +278,37 @@ To quantify this requirement, we compute the minimum number of slots needed such
 
 Let $p_h$ be the probability that a slot contains at least one honest leader. The probability that all $n$ slots in a window fail to produce a single honest leader is:
 
-```math
-(1 - p_h)^n
-```
+<div align="center">
+$(1 - p_h)^n$
+</div>
 
 We want this to be less than $2^{-128}$:
 
-```math
-(1 - p_h)^n < 2^{-128}
-```
+<div align="center">
+$(1 - p_h)^n < 2^{-128}$
+</div>
 
 Taking natural logarithms on both sides:
 
-```math
-n \cdot \ln(1 - p_h) < -128 \cdot \ln(2)
-```
+<div align="center">
+$n \cdot \ln(1 - p_h) < -128 \cdot \ln(2)$
+</div>
 
 Solving for $n$:
 
-```math
-n > \frac{-128 \cdot \ln(2)}{\ln(1 - p_h)}
-```
+<div align="center">
+$n > \frac{-128 \cdot \ln(2)}{\ln(1 - p_h)}$
+</div>
 
 Assuming a typical $p_h \approx 0.05$ (derived from the active slot coefficient $f = 1/20$ and a high honest participation rate), we get:
 
-```math
-n > \frac{-128 \cdot \ln(2)}{\ln(0.95)} \approx \frac{88.72}{-(-0.05129)} \approx 1730.8
-```
+<div align="center">
+$n > \frac{-128 \cdot \ln(2)}{\ln(0.95)} \approx \frac{88.72}{-(-0.05129)} \approx 1730.8$
+</div>
 
 We round this up to **1735 slots** to ensure the bound is satisfied.
 
-
+</p> 
 </details>
 <br><br>
 
