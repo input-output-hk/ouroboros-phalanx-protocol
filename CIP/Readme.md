@@ -276,7 +276,7 @@ Let's define then a parameter $\Phi_{\text{power}} \in [0, 1]$, which quantifies
 The total time allocated to all $\Phi$ computations across the computation phase is given by:
 
 $$
-T_\Phi = \Phi_{\text{power}} \cdot \frac{1}{2} \cdot ((1-30\%) \cdot \text{Computation Phase} - \text{Cooldown Phase} - ) = \Phi_{\text{power}} \cdot \frac{1}{2} \cdot (\frac{7k}{f} - 1735)
+T_\Phi = \Phi_{\text{power}} \cdot \frac{1}{2} \cdot ((1-0.3) \cdot \text{Computation Phase} - \text{Cooldown Phase} - ) = \Phi_{\text{power}} \cdot \frac{1}{2} \cdot (\frac{7k}{f} - 1735)
 $$
 
 To help visualize the computational implications of different $\Phi_{\text{power}}$ values, the table below provides:
