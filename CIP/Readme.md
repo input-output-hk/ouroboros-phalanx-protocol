@@ -366,6 +366,7 @@ A solution is to **relax the block validity requirements** when the gap between 
 
 - $s_{\text{prev}} \in \mathbb{N}$: slot index of the **last block produced** in the previous interval  
 - $s_{\text{next}} \in \mathbb{N}$: slot index of the **next leader** in the current interval  
+- $s_{\text{first}} \in \mathbb{N} \cup \{\bot\}$: slot index of the **first block produced in the current interval with a proof**, if any  
 - $T_\phi \in \mathbb{N}$: maximum allowed **computation time** (in slots) for one iteration of $\Phi$  
 - $\Delta s \coloneqq s_{\text{next}} - s_{\text{prev}}$  
 - $k \in \mathbb{N}$: **common prefix** security parameter  
@@ -374,13 +375,24 @@ A solution is to **relax the block validity requirements** when the gap between 
 - $i_{\text{final}} \in \mathbb{N}$: total number of required iterations of $\Phi$  
 - $i_{\text{target}} \coloneqq i_{\text{last}} + 1$
 
+
 ✅ **Proof Production Rule**
 
-A block produced at slot $s_{\text{next}}$ **must include a proof for** $\Phi^{i_\text{target}}$ **if and only if**:
+A block produced at slot $s_{\text{next}}$ **must include a proof for** $\Phi^{i_{\text{target}}}$ **if and only if**:
 
-$$
-i_{\text{target}} \leq i_{\text{final}} \land \left( s_{\text{prev}} > \frac{3k}{f} \lor \Delta s \geq T_\phi \right)
-$$
+```math
+i_{\text{target}} \leq i_{\text{final}} \land 
+\left( (s_{\text{prev}} > \frac{3k}{f} \land s_{\text{first}} = \bot \lor s_{\text{first}} = s_{\text{next}})\lor (\Delta s \geq T_\phi \land s_{\text{first}} = \bot \lor s_{\text{first}} = s_{\text{next}}) \right) 
+```
+
+In plain English:
+
+1. **No more proofs are produced once all required iterations of** $`\Phi`$ **have been completed**. That is, if we’ve already computed and published all $`i_{\text{final}}`$ iterations, proof generation stops entirely.
+
+2. **During the unstable phase of the epoch** (i.e. when a rollback that changes $`pre\text{-η}_e`$ is still possible), the **first block** produced in an interval **must include a proof** for $`\Phi^{i_{\text{target}}}`$ if the time elapsed since the previous block ($`\Delta s`$) is **greater than or equal to** the amount of time needed to compute one iteration of $`\Phi`$ ($`T_\phi`$).
+   Any **subsequent blocks** within the same interval are **exempt from producing proofs**.
+
+3. **Once we are in the stable phase** of the epoch (i.e. past the first $`\frac{3k}{f}`$ slots), then in each interval, **only the first block produced is allowed to include a proof**. All others in the same interval must not.
 
 🚫 **Termination Condition**
 
