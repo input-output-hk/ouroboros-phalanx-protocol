@@ -362,28 +362,30 @@ The higher the value of $R$, the less likely this worst-case scenario will occur
 
 A solution is to **relax the block validity requirements** when the gap between the last slot of the previous interval and the first slot leader of the current interval is **less than** the allocated computation time $T_\phi$. In this case, the **remaining slot leaders** within the interval—those whose gap exceeds $T_\phi$—are expected to provide the proof of the $x^{\text{th}}$ iteration of $\Phi$ :
 
-📐 Let
+📐 **Let:**
 
-* $s_{\text{prev}} \in \mathbb{N}$: relative slot of the **last produced block** in the previous interval
-* $s_{\text{next}} \in \mathbb{N}$: relative slot of the **next slot leader** in the current interval
-* $T_\phi \in \mathbb{N}$: allowed computation time for an iteration of $\Phi$, in slot units
-* $\Delta s = s_{\text{next}} - s_{\text{prev}}$
-* $k \in \mathbb{N}$: security parameter
-* $f \in (0, 1]$: active slot coefficient
+- $s_{\text{prev}} \in \mathbb{N}$: slot index of the **last block produced** in the previous interval  
+- $s_{\text{next}} \in \mathbb{N}$: slot index of the **next leader** in the current interval  
+- $T_\phi \in \mathbb{N}$: maximum allowed **computation time** (in slots) for one iteration of $\Phi$  
+- $\Delta s \coloneqq s_{\text{next}} - s_{\text{prev}}$  
+- $k \in \mathbb{N}$: **common prefix** security parameter  
+- $f \in (0, 1]$: **active slot coefficient**  
+- $i_{\text{last}} \in \mathbb{N}$: index of the **last $\Phi$ iteration** whose proof has been published  
+- $i_{\text{final}} \in \mathbb{N}$: total number of required iterations of $\Phi$  
+- $i_{\text{target}} \coloneqq i_{\text{last}} + 1$
 
+✅ **Proof Production Rule**
 
-✅ Rule for Proof Requirement
-
-A proof is required **if and only if** the following conditions hold simultaneously:
+A block produced at slot $s_{\text{next}}$ **must include a proof for** $\Phi^{i_\text{target}}$ **if and only if**:
 
 $$
-\begin{aligned}
-s_{\text{prev}} > \frac{3k}{f}  \quad
-\text{Or} \quad &\Delta s \geq T_\phi 
-\end{aligned}
+i_{\text{target}} \leq i_{\text{final}} \land \left( s_{\text{prev}} > \frac{3k}{f} \lor \Delta s \geq T_\phi \right)
 $$
 
-Otherwise, no proof is required.
+🚫 **Termination Condition**
+
+If $i_{\text{target}} > i_{\text{final}}$ then **No further proofs are required.**
+
 
 ##### Scheduling
 
