@@ -882,6 +882,9 @@ Let's consider the worst case where the adversary controls all trailing slots ($
 
 This sizing ensures the adversary has time to act before honest chain growth threatens even a length-1 chain, providing a practical and conservative bound for grinding feasibility.
 
+<--- Raphael: Why do we add one block to guess the end of he grinding opportunity? We just said we controled all blocks till the end of the epoch.
+
+
 ##### 3.1.3.2 Target Window $w_T$
 
 Once the adversary obtains a potential **candidate nonce** ($\eta_e^{\text{candidate}}$) for epoch $e$, they can compute their private **slot leader distribution** for the entire epoch, spanning:  
