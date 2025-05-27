@@ -28,12 +28,12 @@ Rather than prescribing specific solutions, this CPD urges the **Cardano communi
 This **CPD** undertakes a thorough examination of the *Randomness Generation Sub-Protocol* within the *Ouroboros framework*, focusing on the *Coin-Flipping Problem* and its implications for the **security** of the *Cardano blockchain*. The principal findings are as follows:
 
 - **Randomness Mechanism**: *Ouroboros Praos* utilizes **VRFs** for efficient randomness generation, yet this design exposes vulnerabilities to *grinding attacks*, wherein adversaries manipulate *nonce values* to influence **leader election** processes.
-- **Attack Feasibility**: The likelihood and impact of successful attacks rise significantly when an adversary controls **>20% of total stake** (~**4.36 billion ADA**, March 2025), while lesser stakes (e.g., **5%**) render such efforts statistically improbable over extended periods.
+- **Attack Feasibility**: The likelihood and impact of successful attacks rise significantly when an adversary controls **>20% of total stake** (~**4.36 billion ADA**, March 2025), while lesser stakes (e.g. **5%**) render such efforts statistically improbable over extended periods.
 - **Economic Considerations**: Acquiring substantial stake entails a **significant financial commitment**—on the order of **billions of USD** for a 20% share—further complicated by potential **asset devaluation** if an attack undermines network integrity.
 - **Computational Requirements**: Scenario analysis across varying grinding depths ($\rho$) reveals a spectrum of feasibility:
-  - Minor attacks (e.g., **$\rho=20$**, costing ~**$56**) are readily achievable.
-  - Significant manipulations (e.g., **$\rho=50$**, costing ~**$3.1 billion**) demand resources ranging from *feasible* to *borderline infeasible*, contingent upon adversary capabilities.
-  - The cost disparity between the most resource-intensive scenario (*Owl Survey*) and the least (*Ant Glance*) is substantial, with a consistent **$\Delta \log_{10}(\text{Cost (USD)}) \sim 6.3$**, indicating *Owl Survey* costs approximately **$10^{6.3}$ times more** than *Ant Glance*, driven by the significant influence of **$T_{\text{eval}}$** (evaluation complexity) and **$w_T$** (target window scope).
+  - Minor attacks (e.g. manipulating **$\rho=20$** blocks costs ~**$56**) are readily achievable.
+  - Significant manipulations (e.g. **$\rho=50$** costs ~**$3.1 billion**) demand resources ranging from *feasible* to *borderline infeasible*, contingent upon adversary capabilities.
+  - The cost disparity between the most resource-intensive scenario (*Owl Survey*) and the least (*Ant Glance*) is substantial, with a consistent ratio of **$\Delta \log_{10}(\text{Cost (USD)}) \sim 6.3$**, indicating that the strongest attack here considered, the *Owl Survey* scenario, costs approximately **$10^{6.3}$ times more** than the base and weakest attack, *Ant Glance*, driven by the significant influence of the adversary's strategy evaluation, **$T_{\text{eval}}$** (simpled called the evaluation complexity), and their target window scope **$w_T$**.
 
 <div align="center">
 <img src="./image/grinding_depth_scenarios_cost_with_feasibility_layers_gradient.png" alt="Grinding Depth Scenarios with Feasibility Thresholds"/>
@@ -116,16 +116,15 @@ This document deliberately avoids advocating specific countermeasures, instead p
 - [**4. References**](#4-references)  
 - [**5. Copyright**](#5-copyright)  
 
-These entries can be integrated into your existing Table of Contents, replacing the unnumbered versions, to maintain consistency with the section headers in your document.
 ## 1. Preliminaries
 
-This section introduces the pertinent parts of the Cardano proof- of-stake consensus protocol. We focus on randomness generation and leader selection and omit irrelevant protocol details.
+This section introduces the pertinent parts of the Cardano proof-of-stake consensus protocol. We focus on the randomness generation and leader selection processes and omit irrelevant protocol details.
 
 ## 1.1 Fundamental Properties
 
-A protocol implements a robust transaction ledger if it maintains the ledger as a sequence of blocks, where each block is associated with a specific slot. Each slot can contain at most one ledger block, and this strict association ensures a well-defined and immutable ordering of transactions within the ledger. 
+A consensus protocol implements a robust transaction ledger if it maintains the ledger as a sequence of blocks, where each block is associated with a specific slot. Each slot can contain at most one ledger block, and this strict association ensures a well-defined and immutable ordering of transactions within the ledger. 
 
-The protocol must satisfy the following two critical properties (Persistence & Liveness), which ensure that blocks and transactions are securely committed and cannot be easily manipulated by adversaries. Persistence and liveness, can be derived to fundamental **chain properties** which are *used to explain how and why the leader election mechanism has been designed in this manner*. 
+The protocol must satisfy the two critical properties of _**Persistence**_ and _**Liveness**_, which ensure that blocks and transactions are securely committed and cannot be easily manipulated by adversaries. These can be derived from fundamental **chain properties** which are *used to explain how and why the leader election mechanism has been designed in this manner*. 
 
 | **Chain Property**                      | **Description**                                                                                                                    |
 |-----------------------------------------|------------------------------------------------------------------------------------------------------------------------------|
@@ -178,7 +177,7 @@ For example, if $\tau = 0.5$ and $s = 10$, then at least $\tau s = 0.5 \cdot 10 
 The **Coin-Flipping Problem** is a fundamental challenge in distributed systems that require a **fair, unbiased, and unpredictable** source of randomness—without allowing any single participant to manipulate the outcome.  
 
 ### **1.2.1 Defining the Problem**  
-Consider a scenario where multiple untrusted parties must **flip a coin** to reach a decision. The challenge is ensuring that:  
+Consider a scenario where multiple untrusted parties must **flip a coin** and use the outcome, the concatenation of heads or tails, to reach a decision. The challenge is ensuring that:  
 
 1. 🎲 The outcome remains **random and unpredictable**.  
 2. 🔒 No participant can **bias or influence** the result in their favor.  
@@ -191,33 +190,38 @@ Various cryptographic techniques exist to address the **coin-flipping problem** 
 
 | **Approach**              | **Pros** | **Cons** |
 |---------------------------|---------|---------|
-| **PVSS-Based Beacons** <br> _(Ouroboros Classic, RandHound, Scrape, HydRand)_ | ✔ Strong randomness guarantees—output is indistinguishable from uniform.<br> ✔ Resistant to last-mover bias—commitments prevent selective reveals. | ❌ High communication complexity—requires O(n²) messages.<br> ❌ Vulnerable to adaptive adversaries — who may corrupt committee members. |
-| **Threshold Signature-Based Beacons** <br> _(DFINITY)_ | ✔ Fast and non-interactive—requires only one round of communication.<br> ✔ Resistant to last-mover bias—output is deterministic. | ❌ Group setup complexity—requires distributed key generation (DKG).<br> ❌ No random number output in case of threshold signature generation failure. |
-| **Byzantine Agreement-Based Beacons** <br> _(Algorand)_ | ✔ Finality guarantees—randomness is confirmed before the next epoch.<br> ✔ Less entropy loss than Praos. | ❌ Requires multi-round communication—higher latency.<br> ❌ Not designed for eventual consensus—better suited for BA-based protocols. |
-| **"VRF"-Based Beacons** <br> _(Ethereum’s RANDAO Post-Merge, Ouroboros Praos, Genesis, Snow White)_ | ✔ Simple and efficient—low computational overhead.<br> ✔ Fully decentralized—any participant can contribute randomness. | ❌ Vulnerable to last-revealer bias—the last participant can manipulate the final output. |
+| **PVSS-Based Beacons** <br> _(Ouroboros Classic, RandHound, Scrape, HydRand)_ | ✔ Strong randomness guarantees — output is indistinguishable from uniform.<br> ✔ Resistant to last-mover bias — commitments prevent selective reveals. | ❌ High communication complexity — requires O(n²) messages.<br> ❌ Vulnerable to adaptive adversaries — who may corrupt committee members. |
+| **Threshold Signature-Based Beacons** <br> _(DFINITY)_ | ✔ Fast and non-interactive — requires only one round of communication.<br> ✔ Resistant to last-mover bias — output is deterministic. | ❌ Group setup complexity — requires distributed key generation (DKG).<br> ❌ No random number output in case of threshold signature generation failure. |
+| **Byzantine Agreement-Based Beacons** <br> _(Algorand)_ | ✔ Finality guarantees — randomness is confirmed before the next epoch.<br> ✔ Less entropy loss than Praos. | ❌ Requires multi-round communication — higher latency.<br> ❌ Not designed for eventual consensus — better suited for BA-based protocols. |
+| **"VRF"-Based Beacons** <br> _(Ethereum’s RANDAO Post-Merge, Ouroboros Praos, Genesis, Snow White)_ | ✔ Simple and efficient — low computational overhead.<br> ✔ Fully decentralized — any participant can contribute randomness. | ❌ Vulnerable to last-revealer bias — the last participant can manipulate the final output. |
 
 ### **1.2.3 The Historical Evolution of Ouroboros Randomness Generation**
 
 The **Ouroboros family of protocols** has evolved over time to optimize **randomness generation** while balancing **security, efficiency, and decentralization**. Initially, **Ouroboros Classic** used a **secure multi-party computation (MPC) protocol** with **Publicly Verifiable Secret Sharing (PVSS)** to ensure **unbiased randomness**. While providing **strong security guarantees**, PVSS required **quadratic message exchanges** between committee members, introducing **significant communication overhead**. This **scalability bottleneck** limited participation and hindered the decentralization of Cardano's consensus process.
 
-Recognizing these limitations, **Ouroboros Praos** moved to a **VRF-based randomness generation** mechanism where each individual randomness contribution is generated with VRFs. Here, each block includes a **VRF value** computed from a _determinitic_ message. The randomn nonce for an epoch is then derived from the **concatenation and hashing** of all these values from a **specific section of the previous epoch’s chain**. This significantly **reduces communication complexity to linear in the number of block producers**, making randomness generation **scalable and practical** while maintaining **adequate security properties**.
+Recognizing these limitations, **Ouroboros Praos** moved to a **VRF-based randomness generation** mechanism where each individual randomness contribution is generated with Verifiable Random Functions (VRFs). Here, each block includes a **VRF value**, that is a veriable random value that gas been _deterministically_ computed from a fixed message. The random nonce for an epoch is then derived from the **concatenation and hashing** of all these values from a **specific section of the previous epoch’s chain**. This significantly **reduces the communication complexity**, which now becomes **linear in the number of block producers**, making randomness generation **scalable and practical** while maintaining **adequate security properties**.
 
-However, this efficiency gain comes at a cost: it introduces a **limited avenue for randomness manipulation**. Adversaries can attempt **grinding attacks**, evaluating multiple **potential nonces** and selectively influencing randomness outcomes. While constrained, this trade-off necessitates further countermeasures to **limit adversarial influence** while maintaining protocol scalability.
+However, this efficiency gain comes at a cost: the random nonce is now _biasable_ as this protocol change introduces a **limited avenue for randomness manipulation**. Adversaries can attempt **grinding attacks**, evaluating multiple **potential nonces** and selectively influencing randomness outcomes. While constrained, this trade-off necessitates further countermeasures to **limit adversarial influence** while maintaining protocol scalability.
+
+
 
 ### **1.2.4 Comparing Ouroboros Randomness Generation with Ethereum**  
 
-Ethereum RANDAO protocol was first based on a **commit and reveal** approach where each block producer would commit to random values in a first period, i.e. publish the hash of a locally generated random value during block proposal, before revealing them in a second. As the latter period finished, all revealed values were combined, more specifically XORed, together to finally get the random nonce.
+Ethereum RANDAO protocol was first based on a **commit and reveal** approach where each block producer would commit to random values in a first period, i.e. publish the hash of a locally generated random value during block proposal, before revealing them afterwards. As the latter period finished, all revealed values were combined, more specifically XORed, together to finally get the random nonce.
 
-Ethereum's **Post-Merge RANDAO** protocol remains mostly the same, but instead of using a **commit-reveal** approach, each contributor generate randomness deterministically by using VRF, making these values verifiables. These values are finally, as before, sequentially aggregated using **XOR**, forming the final **randomness output** used in **validator shuffling** and **protocol randomness**.
+Ethereum's **Post-Merge RANDAO** protocol remains mostly the same, but instead of using a **commit-reveal** approach, each contributor generate randomness deterministically by using VRFs, making these values verifiable. These values are finally, as before, sequentially aggregated using **XOR**, forming the final **randomness output** used in **validator shuffling** and **protocol randomness**.
 This version of the protocol is very similar to Ouroboros Praos' where hashing is used instead of XOR to combine contributors' randomness together, and does not rely on commitees.
 
-While **decentralized** and **computationally lightweight**, RANDAO still suffers from **last-revealer bias**, where the **final proposers** in an epoch can **withhold their reveals** to manipulate randomness. As such, Ethereum has spent some time studying Verifiable Delayed Functions (VDFs) to prevent the last revealer attack. Subsequently, Ethereum decided **against integrating Verifiable Delay Functions**  due to feasibility concerns, including the difficulty of practical deployment and the risk of centralization stemming from specialized hardware dependencies. The instead opted for a **frequent reseeding mechanism** to strengthen the commitee selection in order to mitigate biases which, unfortunately does not fully eliminate **last-mover manipulation** concerns.
+While **decentralized** and **computationally lightweight**, RANDAO still suffers from **last-revealer bias**, where the **final proposers** in an epoch can **withhold their reveals** to manipulate randomness. As such, Ethereum has spent some time studying Verifiable Delayed Functions (VDFs) to prevent the last revealer attack by relying on its sequentiality property. Subsequently, Ethereum decided **against integrating Verifiable Delay Functions**  due to feasibility concerns, including the difficulty of practical deployment and the risk of centralization stemming from specialized hardware dependencies. They instead opted for a **frequent reseeding mechanism** to strengthen the commitee selection in order to mitigate biases which, unfortunately does not fully eliminate last-revealer manipulation concerns.
 
-VDFs are designed to provide **unpredictable, verifiable randomness** by requiring a **sequential computation delay** before revealing the output. This makes them **resistant to grinding attacks** since adversaries cannot efficiently evaluate multiple outcomes. However, they introduce **significant computational costs**, require specialized **hardware for efficient verification**, and demand **additional synchronization mechanisms**. 
+<details>
+<summary>📌📌 <i> More Details on VDFs </i> – <b>  Expand to view the content.</b></summary>
+VDFs are designed to provide **unpredictable, verifiable randomness** by requiring a **sequential computation delay** before revealing the output. This makes them **resistant to grinding attacks** since adversaries cannot efficiently evaluate multiple outcomes. However, they introduce **significant computational costs**, require specialized **hardware for efficient verification**, and demand **additional synchronization mechanisms**.
+</details>
 
 ### **1.2.5 Conclusion: The reasons behind Ouroboros Praos**
 
-Despite some **security trade-offs**, non-interactively combining **VRFs** was selected for Ouroboros Praos due to its **balance between efficiency, scalability, and security**. Unlike **PVSS**, we do not require a **multi-party commit-reveal process** or **quadratic communication overhead**.
+Despite some **security trade-offs**, non-interactively combining **VRFs** was selected for Ouroboros Praos due to its **balance between efficiency, scalability, and security**. Unlike **PVSS**, we do not require a **multi-party commit-reveal process** or have **quadratic communication overhead**.
 
 However, ongoing research continues to explore potential enhancements to **mitigate grinding risks**, including **hybrid randomness beacons** that combine **VRFs with cryptographic delay mechanisms**.
 
@@ -225,8 +229,8 @@ However, ongoing research continues to explore potential enhancements to **mitig
 
 ### 1.3.1 Oblivious Leader Selection
 
-As Explained into [DGKR18 -  Ouroboros Praos_ An adaptively-secure, semi-synchronous proof-of-stake blockchain](https://eprint.iacr.org/2017/573.pdf), Praos protocol possesses the following basic characteristics : 
-- **Privacy**: Only the selected leader knows they have been chosen as slot leader until they reveal themselves, often by publishing a proof. This minimizes the risk of targeted attacks against the leader since other network participants are unaware of the leader's identity during the selection process.
+As Explained into [DGKR18 -  Ouroboros Praos_ An adaptively-secure, semi-synchronous proof-of-stake blockchain](https://eprint.iacr.org/2017/573.pdf), Praos protocol presents the following basic characteristics : 
+- **Slot Leader Privacy**: Only the selected leader knows they have been chosen as slot leader until they reveal themselves, often by publishing a proof. This minimizes the risk of targeted attacks against the leader since other network participants are unaware of the leader's identity during the selection process.
 
 - **Verifiable Randomness**: The selection process uses verifiable randomness functions (VRFs) to ensure that the leader is chosen fairly, unpredictably, and verifiably. The VRF output acts as a cryptographic proof that the selection was both random and valid, meaning others can verify it without needing to know the leader in advance.
 
@@ -502,11 +506,12 @@ The structure of an epoch is often described by the ratio `3:3:4`:
 
 ### 1.3.5 The Randomness Generation Sub-Protocol 
 
-To select the slots leaders, which stake pool is eligible to produce and propose a slot's block, we need to rely on random numbers. As economic reward and transaction inclusion depends on these numbers, the generation of these number is of  critical importance to the protocol and its security. We show in this section how these random numbers, or _random nonces_ are defined.
+To select the slots leaders, which stake pool is eligible to produce and propose a slot's block, we need to rely on random numbers. As economic reward and transaction inclusion depends on these numbers, the generation of these number is of critical importance to the protocol and its security. We show in this section how these random numbers, or _random nonces_ are defined.
 
 #### **The $\eta^\text{evolving}$ Stream Definition**  
 
-The random nonces $\eta$ are defined iteratively from a genesis value, as the hash of the previous epoch's nonce and the VRF outputs published between the Phase 2 of consecutive epochs. We thus talk about _evolving nonces_ $\eta^\text{evolving}$ as their value can be updated with the VRF output comprised in each block.
+Contrary to [Section 1.2.3](#123-the-historical-evolution-of-ouroboros-randomness-generation), where we first defined the random nonce as the hash of all VRF outputs, we adopt an iterative approach for the randomness generation in practice.
+More particularly, the random nonces $\eta$ are defined iteratively from a genesis value, as the hash of the previous epoch's nonce and the VRF outputs published between the Phase 2 of consecutive epochs. We thus talk about _evolving nonces_ $\eta^\text{evolving}$ as their value can be updated with the VRF output comprised in each block.
 
 ```math
    \eta^{\text{evolving}}_{t+1} =
