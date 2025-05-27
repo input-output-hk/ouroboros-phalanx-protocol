@@ -1269,15 +1269,10 @@ Substituting this into our equation:
 
 ```math
 \begin{align*}
-N_{\text{CPU}} &\geq  \left \lceil f \cdot \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right)}{w} \right \rceil\\
-& \geq  \left \lceil f \cdot \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right)}{2\cdot \rho - 1} \right \rceil \text{ as } w < 2 \cdot \rho - 1\\
-& >  \left \lceil f \cdot 2^{\rho-1} \cdot T_{\text{BLAKE2b}} + \frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right) \right \rceil
-\end{align*}
-```
-We end up with this final expression : 
-```math
-\begin{align*}
-N_{\text{CPU}} >  \left \lceil f \cdot 2^{\rho-1} \cdot T_{\text{BLAKE2b}} + \frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right) \right \rceil
+N_{\text{CPU}} &\geq  \left \lceil \frac{f \cdot 2^{\rho}}{w} \cdot \left( \frac{\rho}{2} \cdot T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right) \right \rceil\\
+& \geq  \left \lceil \frac{f \cdot 2^{\rho}}{2 \rho - 1} \cdot \left( \frac{\rho}{2} \cdot T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right) \right \rceil \text{, as the interval is dominated, i.e. } w < 2 \cdot \rho - 1\\
+& \geq  \left \lceil f \cdot 2^{\rho-2} \cdot \left ( T_{\text{BLAKE2b}} + 2 \rho^{-1} \cdot \left [ w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right ] \right ) \right \rceil
+
 \end{align*}
 ```
 
@@ -1286,7 +1281,7 @@ N_{\text{CPU}} >  \left \lceil f \cdot 2^{\rho-1} \cdot T_{\text{BLAKE2b}} + \fr
 Starting from the final expression at the end of the last section:
 
 ```math
-N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho-1} \cdot T_{\text{BLAKE2b}} + \frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right) \right \rceil 
+N_{\text{CPU}}  \geq  \left \lceil f \cdot 2^{\rho-2} \cdot \left ( T_{\text{BLAKE2b}} + 2 \rho^{-1} \cdot \left [ w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right ] \right ) \right \rceil
 ```
 
 #### Applying Cardano Mainnet Parameters
