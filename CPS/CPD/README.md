@@ -901,6 +901,31 @@ We can moreover defined opportunity window with respect to the adversarial stake
 
 <--- Raphael: Add graph?
 
+<details>
+<summary>📌📌 <i> More Details on the expectation's computation$ </i> – <b>  Expand to view the content.</b></summary>
+
+To compute the expectation of the opportunity window, we need to find the earliest slot starting from the end of Phase 2, such that the adversary controls a majority of slots in that interval (and before the chain has been set, that is before $k$ slots).
+
+More particularly, if we define each slot as a Benoulli random variable $X_1, \dots, X_{S2}$ such that the slot is takes for value 1 — is owned by the adversary — with probability $p = \text{stake}_A$, we want to compute the expectation of the earliest position $P \in \{1, \dots, {S2}+1\}$ such that $\sum_{i=P}^{S2} X_i \geq \frac{{S2} - P + 1}{2}$.
+
+We can make the problem symmetric by defining $Y_i = 2 \cdot X_i -1$. In that case, $Y_i = 1$ wth probability $p$ and $Y_i = -1$ with probability $1-p$. We can rewrite the inequality then as,
+
+```math
+\begin{align*}
+\sum_{i=P}^{S2} X_i &\geq \frac{{S2} - P + 1}{2}\\
+\sum_{i=P}^{S2} \frac{Y_i - 1}{2} &\geq \frac{{S2} - P + 1}{2}\\
+\sum_{i=P}^{S2} Y_i &\geq 0
+\end{align*}
+```
+
+By re-indexing, with $T = {S2} - P + 1$ and $Z_j = Y_{k=j+1}$, we have,
+ $\sum_{j=1}^T Z_j \geq 0$.
+
+We can see this sum over $Z_i$ as finding the length of a Gambler's ruin problem with initial stake 0 and sole end condition that the stake becomes negative. As such, we have, $\mathbb{E}[T] = \frac{1}{1-2\cdot p} -1$ (we remove one as ruin is defined as the first time the stake equals $-1$).
+
+The position $P$ then becomes $\mathbb{E}[P] = {S2} + 1 - \mathbb{E}[T] \approx {S2} + 1 - \frac{2 \cdot p}{1 - 2 \cdot p}$ and the opportunity window is the duration of the interval from position $P$ to the end of the interval of size ${S2}$, hence $\mathbb{E}[w_O] = f^{-1} \cdot ({S2} - \mathbb{E}[p]) = f^{-1} \cdot \frac{2 \cdot p}{1 - 2 \cdot p}$.
+
+</details>
 
 
 ##### 3.1.3.2 Target Window $w_T$
