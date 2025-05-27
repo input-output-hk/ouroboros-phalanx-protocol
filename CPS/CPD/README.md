@@ -1400,78 +1400,23 @@ Let’s walk through the calculation for the Owl Survey scenario at $\rho=50$ to
 The formula for $N_{\text{CPU}}$ in the Owl Survey scenario, as given in [Section 3.5 - Scenarios](#35-scenarios), is:
 
 ```math
-N_{\text{CPU}} > \left \lceil 5 \times 10^{-10} \times 2^{\rho-1} + \frac{5 \times 10^{-14} \times 2^{\rho-1}}{\rho} \cdot w_T + \frac{5 \times 10^{-2} \times 2^{\rho-1}}{\rho} \cdot T_{\text{eval}} \right \rceil
+N_{\text{CPU}}  \geq  5 \cdot 10^{-10} \cdot 2^{\rho-2} + 7.16 \cdot 10^{-2} \cdot \frac{2^{\rho-1}}{\rho}
 ```
 
-Substitute the values $\rho=50$, $w_T=432,000$, and $T_{\text{eval}}=1$:
+For $\rho=50$, the expression becomes :
 
 ```math
-N_{\text{CPU}} > \left \lceil 5 \times 10^{-10} \times 2^{50-1} + \frac{5 \times 10^{-14} \times 2^{50-1}}{50} \times 432,000 + \frac{5 \times 10^{-2} \times 2^{50-1}}{50} \times 1 \right \rceil
-```
-
-#### Compute $2^{49}$
-
-First, calculate $2^{50-1}=2^{49}$:
-
-```math
-2^{49} = 2^{40} \times 2^{9} = (2^{10})^4 \times 2^9 = 1024^4 \times 512
-```
-
-```math
-1024^4 = (1024^2)^2 = (1,048,576)^2 \approx 1.0995 \times 10^{12}
-```
-
-```math
-2^{49} \approx 1.0995 \times 10^{12} \times 512 \approx 5.629 \times 10^{14}
-```
-
-#### First Term: $5 \times 10^{-10} \times 2^{49}$
-
-```math
-5 \times 10^{-10} \times 5.629 \times 10^{14} = 5 \times 5.629 \times 10^{-10} \times 10^{14} = 28.145 \times 10^4 = 2.8145 \times 10^5
-```
-
-#### Second Term: $\frac{5 \times 10^{-14} \times 2^{49}}{50} \times 432,000$
-
-```math
-\frac{5 \times 10^{-14} \times 5.629 \times 10^{14}}{50} \times 432,000 = \frac{5 \times 5.629 \times 10^{-14} \times 10^{14}}{50} \times 432,000
-```
-
-```math
-= \frac{28.145}{50} \times 432,000 = 0.5629 \times 432,000 \approx 243,172.8
-```
-
-#### Third Term: $\frac{5 \times 10^{-2} \times 2^{49}}{50} \times 1$
-
-```math
-\frac{5 \times 10^{-2} \times 5.629 \times 10^{14}}{50} = \frac{5 \times 5.629 \times 10^{-2} \times 10^{14}}{50} = \frac{28.145 \times 10^{12}}{50}
-```
-
-```math
-= 0.5629 \times 10^{12} = 5.629 \times 10^{11}
-```
-
-#### Sum the Terms
-
-```math
-2.8145 \times 10^5 + 243,172.8 = 524,322.8
-```
-
-```math
-524,322.8 + 5.629 \times 10^{11} \approx 5.629 \times 10^{11}
-```
-
-```math
-N_{\text{CPU}} > \left \lceil 5.629 \times 10^{11} \right \rceil = 5.629 \times 10^{11}
+\begin{align*}
+N_{\text{CPU}} &\geq  5 \cdot 10^{-10} \cdot 2^{48} + 7.16 \cdot 10^{-2} \cdot \frac{2^{49}}{50}\\
+               &\geq 8.06 \cdot 10^{11}
+\end{align*}
 ```
 
 In $\log_{10}$ scale:
 
 ```math
-\log_{10}(5.629 \times 10^{11}) = \log_{10}(5.629) + 11 \approx 0.7503 + 11 \approx 11.7503
+\log_{10}(5 \cdot 10^{-10} \cdot 2^{48} + 7.16 \cdot 10^{-2} \cdot \frac{2^{49}}{50}) \approx 11.906
 ```
-
-The table rounds this to $10^{13}$, which appears to be an error; the correct value is closer to $10^{11.75}$.
 
 ### Step 2: Compute the Estimated Cost in USD
 
@@ -1485,30 +1430,8 @@ The cost is calculated as:
 - **Runtime**: $w_O = 20 \times (2\rho - 1)$ seconds, with $\rho=50$:
 
 ```math
-w_O = 20 \times (2 \times 50 - 1) = 20 \times 99 = 1,980\,\text{seconds}
+\text{Cost (USD)} \approx 4.43 \times 10^9 = 4.43\,\text{billion} \approx 10^{9.65}
 ```
-
-Convert to hours:
-
-```math
-w_O^{\text{hours}} = \frac{1,980}{3,600} = 0.55\,\text{hours}
-```
-
-- **$N_{\text{CPU}}$**: $5.629 \times 10^{11}$,
-
-```math
-\text{Cost (USD)} = 5.629 \times 10^{11} \times 0.01 \times 0.55
-```
-
-```math
-= 5.629 \times 0.0055 \times 10^{11} = 0.03096 \times 10^{11} = 3.096 \times 10^9
-```
-
-```math
-\text{Cost (USD)} \approx 3.10 \times 10^9 = 3.10\,\text{billion}
-```
-
-This matches the table value of 3.10 billion USD.
 
 ### Step 3: Determine Feasibility
 
@@ -1520,13 +1443,8 @@ The feasibility thresholds are:
 - **Borderline Infeasible**: $1,000,000,000$ to $1,000,000,000,000$ ($\log_{10} 9$ to 12),
 - **Infeasible**: > $1,000,000,000,000$ ($\log_{10} > 12$).
 
-For a cost of $3.10 \times 10^9$:
 
-```math
-\log_{10}(3.10 \times 10^9) = \log_{10}(3.10) + 9 \approx 0.4914 + 9 = 9.4914
-```
-
-This falls within $\log_{10} 9$ to 12, corresponding to **Borderline Infeasible**. The table lists it as "Possible," which appears to be a categorization error based on the defined thresholds.
+This scenario is thus **Borderline Infeasible**. The table lists it as "Possible," which appears to be a categorization error based on the defined thresholds.
 
 </details>
 
