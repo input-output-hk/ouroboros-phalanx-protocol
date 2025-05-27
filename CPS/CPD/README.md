@@ -589,6 +589,8 @@ This leads to the following iterative hashing process:
 $\eta_e = \text{Hash}(\mathsf{VRF}_n || \text{Hash}(\mathsf{VRF}_{n-1} || \dots \text{Hash}(\eta_{e-1} || \mathsf{VRF}_1) \dots ))$
 </div>
 
+<--- Raphael: Shouldn't we add $\eta^\text{evolving}_{T_{\text{end}}^{\text{epoch}_{e-2}}}$?
+
 This approach contrasts with a simpler method, where only the **VRF outputs of Phase 1 and 2 of epoch** $`e-1`$ are hashed together with $`\eta_{e-1}`$:
 <div align="center">
 $\eta_e = \text{Hash}(\eta_{e-1} || \mathsf{VRF}_1 || \dots ||  \mathsf{VRF}_m)$ 
