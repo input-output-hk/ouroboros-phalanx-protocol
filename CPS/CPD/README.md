@@ -884,6 +884,22 @@ This sizing ensures the adversary has time to act before honest chain growth thr
 
 <--- Raphael: Why do we add one block to guess the end of he grinding opportunity? We just said we controled all blocks till the end of the epoch.
 
+We can moreover defined opportunity window with respect to the adversarial stake, $\text{stake}_A$. The expected opportunity window tends to,
+
+```math
+\mathbb{E}[w_O] \approx f^{-1} \cdot \left (\frac{2 \cdot \text{stake}_A}{1 - 2 \cdot \text{stake}_A} \right )
+```
+
+- **Parameters**:
+  - $f$: Active slot coefficient (e.g., $\frac{1}{20}$), the fraction of slots with a leader.
+  - $\text{stake}_A$ is the percentage of stake controlled by the adversary.
+  - Slot duration = 1 second.
+
+| $\text{stake}_A$ (%) |    0.5    |     1     |     2     |     5      |     10     |     20     |     25     |     30      |     33       |     40     |     45    |     49    |
+| :----------------------: | :-------:   | :------: | :-------: | :--------: | :--------: | :--------: | :--------: | :---------: | :----------: | :--------: | :-------: | :-------: |
+| $\mathbb{E}[w_O]$ (s)                      |  2.02E-01	 |4.08E-01	| 8.33E-01	| 2.22E00	 | 5.00E00	  | 13.33E00 	 | 2.00E01 	|  3.00E01	  |  3.88E01	   |  8.00E01  | 1.80E02	| 9.79E02  |
+
+
 
 ##### 3.1.3.2 Target Window $w_T$
 
