@@ -510,6 +510,8 @@ The structure of an epoch is often described by the ratio `3:3:4`:
 - **Phase 2** also occupies **3** parts of the epoch (adjusted slightly to ensure the total reaches **10** parts in total.). 
 - **Phase 3** takes up the remaining **4** parts of the epoch.
 
+Note that the third phase is only longer than the first one to complete the epoch duration. Consequently, we can assume that the CG property is already reached at the ninth part of an epoch. 
+
 
 ### 1.3.5 The Randomness Generation Sub-Protocol 
 
