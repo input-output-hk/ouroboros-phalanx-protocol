@@ -791,13 +791,13 @@ Both strategies undermine fairness in leader election, with **Preemptive Forking
 #### 3.1.1 $\alpha$-Heavy and Heaviness
 We define the heaviness of an interval as the percentage of blocks an adversary controls.
 Let $X_A(w)$ be the **number of adversarial blocks** and similarly $X_H(w)$ the **number of honest blocks** in the an interval of $w$ blocks.
-The **heaviness** of an interval of size $w$ is thus the ratio $\frac{X_A(w)}{w}$. Heaviness thus vary between 0, where the interval only comprises honest blocks, and 1 where the adversary control them all. 
+The **heaviness** of an interval of size $w$ is thus the ratio $\frac{X_A(w)}{w}$. Heaviness thus vary between 0, where the interval only comprises honest blocks, and 1, where the adversary control them all. 
 
-We say that the interval is $\mathbf{\alpha}$**-heavy** if $\frac{X_A(w)}{w} > \alpha$. We furthermore say that the adversary _dominates_ the interval if $\alpha > 0.5$. We shall look from now on to the longest suffix the adversary dominates at the critical juncture, hence the longest interval $w_\text{max}$ where $\alpha > 0.5$.
+We say that the interval is $\mathbf{\alpha}$**-heavy** if $\frac{X_A(w)}{w} \geq \alpha$. We furthermore say that the adversary _dominates_ the interval if $\alpha \geq 0.5$. We shall look from now on to the longest suffix the adversary dominates at the critical juncture, hence the longest interval $w_\text{max}$ where $\alpha \geq 0.5$.
 
 #### 3.1.2 Grinding Power g
 
-An **$\alpha$-heavy suffix** must be present at the critical juncture for a grinding attack to be considered. The heavier $w$ , for a fixed $w$, the greater the adversary’s grinding power.
+An **$\alpha$-heavy suffix** must be present at the critical juncture for a grinding attack to be considered. The heavier $w$, for a fixed $w$, the greater the adversary’s grinding power.
 
 The **grinding power** $g$ of an adversary $A$ is the number of distinct values that $A$ can choose from when determining for the epoch nonce $\eta$. This quantifies the adversary's ability to manipulate randomness by selectively withholding, recomputing, or biasing values. 
 
