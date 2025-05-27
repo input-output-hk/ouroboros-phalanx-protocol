@@ -845,9 +845,9 @@ In **Cardano mainnet**, the nonce size used in the randomness beacon is **256 bi
 
 The **grinding opportunity window** $w_O$ is the time interval at the end of Phase 2 during which an adversary, dominating a suffix of size $w$, can compute and reveal one of $g$ possible $\eta_e^\text{candidate}$ nonces before the honest chain outpaces their chosen chain.
 
-Phase 2 spans $S_2 = \frac{6k}{f}$ slots (with $f = \frac{1}{20}$, $k = 2,160$, $S_2 = 259,200$), ending at slot $S_2$, where $\eta_e^\text{candidate}$ is sampled from $\eta^\text{evolving}$ based on the VRF outputs of blocks up to that point ([see Section 1.3.5](#135-the-randomness-generation-sub-protocol)).
+The end of Phase 2 happens after $S_2 = \frac{6k}{f}$ slots, where $\eta_e^\text{candidate}$ is sampled from $\eta^\text{evolving}$ based on the VRF outputs of blocks up to that point ([see Section 1.3.5](#135-the-randomness-generation-sub-protocol)). Given the protocol parameters $f = \frac{1}{20}$ and $k = 2,160$, we have  $S_2 = 259,200$.
 
-Assuming the adversary controls the $X_A(w)$ slots (between slot numbered $S_2 - w + 1$ and $S_2$), they can manipulate $X_A(w)$ VRF outputs to generate up to $2^{X_A(w)}$ possible nonces by selectively revealing or withholding each output. After $S_2$, a chain with their chosen nonce —ranging in length from $X_H(w)$ (revealing no blocks, withholding all) to $w$ (revealing all)— is set.
+Assuming the adversary controls the $X_A(w)$ slots (between slot numbered $S_2 - w + 1$ and $S_2$), they can manipulate $X_A(w)$ VRF outputs to generate up to $2^{X_A(w)}$ possible nonces by selectively revealing or withholding each output. After $S_2$, a chain with their chosen nonce — ranging in length from $X_H(w)$ (revealing no blocks, withholding all) to $w$ (revealing all) — is set.
 
 For simplicity, we consider that a honest block is produced at slot $S_2 + 1$. As such, the grinding oppotunity window is bounded by,
 
@@ -855,7 +855,7 @@ For simplicity, we consider that a honest block is produced at slot $S_2 + 1$. A
 \frac{X_A(w)}{f} \leq w_O \leq \frac{w}{f} \text{ when w is A-heavy}
 ```
 
-**N.B.** Contrary to the grinding power that is upper-bounded by $2^{256}$, the grinding window is not.
+**N.B.** Contrary to the grinding power that is upper-bounded by $2^{256}$, the grinding window is bounded by $k$ of Chain Prefix (CP) property.
 
 - **Parameters**:
   - $f$: Active slot coefficient (e.g., $\frac{1}{20}$), the fraction of slots with a leader.
