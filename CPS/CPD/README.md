@@ -884,6 +884,7 @@ This sizing ensures the adversary has time to act before honest chain growth thr
 
 <--- Raphael: Why do we add one block to guess the end of he grinding opportunity? We just said we controled all blocks till the end of the epoch.
 
+
 We can moreover defined opportunity window with respect to the adversarial stake, $\text{stake}_A$. The expected opportunity window tends to,
 
 ```math
@@ -934,7 +935,6 @@ Once the adversary obtains a potential **candidate nonce** ($\eta_e^{\text{candi
 
 ```math
 \frac{10k}{f} = \frac{10 \cdot 2,160}{0.05} = 432,000 \text{ slots} = 5 \text{ days}
-
 ```
 
 We define the **grinding target window** $w_T$ as the slot interval an adversary targets based on their attack strategy, where $1 \leq w_T \leq 4.32 \cdot 10^5 \text{ slots}$.
