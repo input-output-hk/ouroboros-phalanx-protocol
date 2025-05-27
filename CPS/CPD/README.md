@@ -1291,30 +1291,23 @@ Using Cardano’s mainnet values:
 - $f = \frac{1}{20} = 0.05$ – Active slot coefficient.
 - Slot duration = 1 second.
 
-Since the eligibility check is negligible, set $T_{\text{eligibility}} \approx 0$:
-
-Substitute into the expression:
-
-- First term: $f \cdot 2^{\rho-1} \cdot T_{\text{BLAKE2b}} = 0.05 \cdot 2^{\rho-1} \cdot 10^{-8} = 5 \cdot 10^{-10} \cdot 2^{\rho-1}$,
-- Second term: $\frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right) = \frac{0.05}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot (10^{-6} + 0) + T_{\text{eval}} \right) = \frac{0.05 \cdot 2^{\rho-1}}{\rho} \cdot (10^{-6} w_T + T_{\text{eval}})$.
-
 Thus, the expression becomes:
 
 ```math
-N_{\text{CPU}} > \left \lceil 5 \cdot 10^{-10} \cdot 2^{\rho-1} + \frac{5 \cdot 10^{-2} \cdot 2^{\rho-1}}{\rho} \cdot (10^{-6} w_T + T_{\text{eval}}) \right \rceil 
+N_{\text{CPU}}  \geq  \left \lceil 5 \cdot 10^{-10} \cdot 2^{\rho-2} + 5 \cdot 10^{-8} \cdot w_T \cdot \rho^{-1} \cdot 2^{\rho-1}  + 5 \cdot 10^{-2} \cdot T_{\text{eval}} \cdot \rho^{-1} \cdot 2^{\rho-1} \right \rceil
 ```
 
-Simplify:
+where each step contributes as follows,
+- **Nonce Generation:** : $5 \cdot 10^{-10} \cdot 2^{\rho-2}$
+- **Slot Leader Verification** : $5 \cdot 10^{-8} \cdot w_T \cdot \rho^{-1} \cdot 2^{\rho-1} $
+- **Strategic Evaluation** : $5 \cdot 10^{-2} \cdot T_{\text{eval}} \cdot \rho^{-1} \cdot 2^{\rho-1}$
 
-```math
-N_{\text{CPU}} > \left \lceil 5 \cdot 10^{-10} \cdot 2^{\rho-1} + \frac{5 \cdot 10^{-8} \cdot 2^{\rho-1}}{\rho} \cdot w_T + \frac{5 \cdot 10^{-2} \cdot 2^{\rho-1}}{\rho} \cdot T_{\text{eval}} \right \rceil 
-```
 
 #### Final Expression
 The estimated number of CPUs required is:
 
 ```math
-N_{\text{CPU}} > \left \lceil 5 \cdot 10^{-10} \cdot 2^{\rho-1} + \frac{5 \cdot 10^{-14} \cdot 2^{\rho-1}}{\rho} \cdot w_T + \frac{5 \cdot 10^{-2} \cdot 2^{\rho-1}}{\rho} \cdot T_{\text{eval}} \right \rceil 
+N_{\text{CPU}}  \geq  \left \lceil 5 \cdot 10^{-10} \cdot 2^{\rho-2} + 5 \cdot 10^{-8} \cdot \frac{w_T \cdot 2^{\rho-1}}{\rho}  + 5 \cdot 10^{-2} \cdot \frac{T_{\text{eval}} \cdot 2^{\rho-1}}{\rho} \right \rceil
 ```
 
 - $\rho$: The number of blocks controlled by the adversary.
@@ -1337,7 +1330,7 @@ Following the computational model from [Section 3.4.2 - Estimated Formula Using 
 
 The $N_{\text{CPU}}$ formulas are derived by substituting the respective $w_T$ and $T_{\text{eval}}$ values from each scenario into the base expression : 
 ```math 
-N_{\text{CPU}} > \left \lceil 5 \cdot 10^{-10} \cdot 2^{\rho-1} + \frac{5 \cdot 10^{-14} \cdot 2^{\rho-1}}{\rho} \cdot w_T + \frac{5 \cdot 10^{-2} \cdot 2^{\rho-1}}{\rho} \cdot T_{\text{eval}} \right \rceil
+N_{\text{CPU}}  \geq  \left \lceil 5 \cdot 10^{-10} \cdot 2^{\rho-2} + 5 \cdot 10^{-8} \cdot \frac{w_T \cdot 2^{\rho-1}}{\rho}  + 5 \cdot 10^{-2} \cdot \frac{T_{\text{eval}} \cdot 2^{\rho-1}}{\rho} \right \rceil
 ```
 
 | **Scenario**    | **$N_{\text{CPU}}$ Formula**                                                                                     |
