@@ -865,6 +865,8 @@ For simplicity, we consider that a honest block is produced at slot $S_2 + 1$. A
 <img src="./image/grinding-depth-vs-opportunity-window.png" alt=""/>
 </div>
 
+<--- Raphael: Redo graph so that w is the horizontal scale and $w_O$ the vertical one. The best case (for us) is when $\alpha = 0.5$ and the worst when $\alpha =1$.
+
 ✏️ **Note**: The code to generate this graph is available at ➡️ [this link](./graph/window0_graph.py).
 
 Let's consider the worst case where the adversary controls all trailing slots ($g = 1 \Leftrightarrow w=X_A(w)$):
