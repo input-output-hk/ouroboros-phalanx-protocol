@@ -1335,8 +1335,8 @@ N_{\text{CPU}}  \geq  \left \lceil 5 \cdot 10^{-10} \cdot 2^{\rho-2} + 5 \cdot 1
 
 | **Scenario**    | **$N_{\text{CPU}}$ Formula**                                                                                     |
 |-----------------|-----------------------------------------------------------------------------------------------------------------|
-| **Ant Glance**  | $5 \cdot 10^{-10} \cdot 2^{\rho-2} + 1.8  \cdot 10^{-4} \cdot 2^{\rho-1}$ |
-| **Ant Patrol**  | $5 \cdot 10^{-10} \cdot 2^{\rho-2} + 2.16 \cdot 10^{-2} \cdot 2^{\rho-1}$ |
+| **Ant Glance**  | $5 \cdot 10^{-10} \cdot 2^{\rho-2} + 1.8  \cdot 10^{-4} \cdot \frac{2^{\rho-1}}{\rho}$ |
+| **Ant Patrol**  | $5 \cdot 10^{-10} \cdot 2^{\rho-2} + 2.16 \cdot 10^{-2} \cdot \frac{2^{\rho-1}}{\rho}$ |
 | **Owl Stare**   | $5 \cdot 10^{-10} \cdot 2^{\rho-2} + 5.02 \cdot 10^{-2} \cdot \frac{2^{\rho-1}}{\rho}$ |
 | **Owl Survey**  | $5 \cdot 10^{-10} \cdot 2^{\rho-2} + 7.16 \cdot 10^{-2} \cdot \frac{2^{\rho-1}}{\rho}$ |
 
