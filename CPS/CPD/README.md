@@ -204,6 +204,13 @@ Recognizing these limitations, **Ouroboros Praos** moved to a **VRF-based random
 However, this efficiency gain comes at a cost: the random nonce is now _biasable_ as this protocol change introduces a **limited avenue for randomness manipulation**. Adversaries can attempt **grinding attacks**, evaluating multiple **potential nonces** and selectively influencing randomness outcomes. While constrained, this trade-off necessitates further countermeasures to **limit adversarial influence** while maintaining protocol scalability.
 
 
+<details>
+<summary>📌📌 <i> More Details on VRFs </i> – <b>  Expand to view the content.</b></summary>
+
+Verifiable Random Functions (VRFs) are cryptographic primitives that produce a pseudorandom output along with a proof that the output was correctly generated from a given input and secret key.
+
+BLS signatures (Boneh–Lynn–Shacham) can be used as Verifiable Random Functions (VRFs) because they satisfy the core properties — Determinism, Pseudorandom and efficiently Verifiable - required of a VRF. A BLS signature is indistinguishable from random without knowledge of the secret key, their signature is efficient and the signature generation is determistic and secure under standard cryptographic assumptions.
+</details>
 
 ### **1.2.4 Comparing Ouroboros Randomness Generation with Ethereum**  
 
