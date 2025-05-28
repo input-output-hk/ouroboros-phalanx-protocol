@@ -206,10 +206,14 @@ However, this efficiency gain comes at a cost: the random nonce is now _biasable
 
 <details>
 <summary>📌📌 <i> More Details on VRFs </i> – <b>  Expand to view the content.</b></summary>
+<br>
 
-Verifiable Random Functions (VRFs) are cryptographic primitives that produce a pseudorandom output along with a proof that the output was correctly generated from a given input and secret key.
+**Verifiable Random Functions (VRFs)**  are cryptographic primitives that produce a pseudorandom output along with a proof that the output was correctly generated from a given input and secret key.
 
-BLS signatures (Boneh–Lynn–Shacham) can be used as Verifiable Random Functions (VRFs) because they satisfy the core properties — Determinism, Pseudorandom and efficiently Verifiable - required of a VRF. A BLS signature is indistinguishable from random without knowledge of the secret key, their signature is efficient and the signature generation is determistic and secure under standard cryptographic assumptions.
+**BLS Signatures** (Boneh–Lynn–Shacham) can be used as Verifiable Random Functions (VRFs) because they satisfy the core properties — Determinism, Pseudorandom and efficiently Verifiable - required of a VRF. 
+
+A BLS signature is indistinguishable from random without knowledge of the secret key, their signature is efficient and the signature generation is determistic and secure under standard cryptographic assumptions.
+
 </details>
 
 ### **1.2.4 Comparing Ouroboros Randomness Generation with Ethereum**  
@@ -223,7 +227,12 @@ While **decentralized** and **computationally lightweight**, RANDAO still suffer
 
 <details>
 <summary>📌📌 <i> More Details on VDFs </i> – <b>  Expand to view the content.</b></summary>
-VDFs are designed to provide **unpredictable, verifiable randomness** by requiring a **sequential computation delay** before revealing the output. This makes them **resistant to grinding attacks** since adversaries cannot efficiently evaluate multiple outcomes. However, they introduce **significant computational costs**, require specialized **hardware for efficient verification**, and demand **additional synchronization mechanisms**.
+<br>
+
+VDFs are designed to provide **unpredictable, verifiable randomness** by requiring a **sequential computation delay** before revealing the output. 
+
+This makes them **resistant to grinding attacks** since adversaries cannot efficiently evaluate multiple outcomes. However, they introduce **significant computational costs**, require specialized **hardware for efficient verification**, and demand **additional synchronization mechanisms**.
+
 </details>
 
 ### **1.2.5 Conclusion: The reasons behind Ouroboros Praos**
@@ -845,9 +854,7 @@ The **grinding opportunity window** $w_O$ is the time interval at the end of Pha
 
 The end of Phase 2 happens after $S_2 = \frac{6k}{f}$ slots, where $\eta_e^\text{candidate}$ is sampled from $\eta^\text{evolving}$ based on the VRF outputs of blocks up to that point ([see Section 1.3.5](#135-the-randomness-generation-sub-protocol)). Given the protocol parameters $f = \frac{1}{20}$ and $k = 2,160$, we have  $S_2 = 259,200$.
 
-Assuming the adversary controls the $X_A(w)$ slots (between slot numbered $S_2 - w + 1$ and $S_2$), they can manipulate $X_A(w)$ VRF outputs to generate up to $2^{X_A(w)}$ possible nonces by selectively revealing or withholding each output. After $S_2$, a chain with their chosen nonce — ranging in length from $X_H(w)$ (revealing no blocks, withholding all) to $w$ (revealing all) — is set.
-
-For simplicity, we consider that a honest block is produced at slot $S_2 + 1$. As such, the grinding oppotunity window is bounded by,
+Assuming the adversary controls the $X_A(w)$ slots (between slot numbered $S_2 - w $ and $S_2$), they can manipulate $X_A(w)$ VRF outputs to generate up to $2^{X_A(w)}$ possible nonces by selectively revealing or withholding each output. After $S_2$, a chain with their chosen nonce — ranging in length from $X_H(w)$ (revealing no blocks, withholding all) to $w$ (revealing all) — is set. As such, the grinding oppotunity window is bounded by :
 
 ```math
 \frac{X_A(w)}{f} \leq w_O \leq \frac{w}{f} \text{ when w is A-heavy}
@@ -867,8 +874,7 @@ For simplicity, we consider that a honest block is produced at slot $S_2 + 1$. A
 
 ✏️ **Note**: The code to generate this graph is available at ➡️ [this link](./graph/window0_graph.py).
 
-
-Let's consider the worst case where the adversary controls all trailing slots ($g = 1 \Leftrightarrow w = X_A(w)$):
+Let's consider the worst case where the adversary controls all trailing slots ($`g = 1 \Leftrightarrow w = X_A(w)`$):
 
 - **$w = 16$**:
   - $w_O = \frac{16}{\frac{1}{20}} = 16 \cdot 20 = 320$ seconds (~5.3 minutes).
