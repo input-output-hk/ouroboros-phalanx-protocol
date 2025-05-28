@@ -586,14 +586,12 @@ The nonce aggregates randomness from the **entire epoch**, rather than a limited
 
 This leads to the following iterative hashing process:
 <div align="center">  
-$\eta_e = \text{Hash}(\mathsf{VRF}_n || \text{Hash}(\mathsf{VRF}_{n-1} || \dots \text{Hash}(\eta_{e-1} || \mathsf{VRF}_1) \dots ))$
+$`\eta_e = \text{Hash}\left( \mathsf{VRF}_n \,\|\, \text{Hash}\left( \mathsf{VRF}_{n-1} \,\|\, \dots \text{Hash}\left( \mathsf{VRF}_1 \,\|\, \eta^\text{evolving}_{T_{\text{end}}^{\text{epoch}_{e-2}}} \right) \dots \right) \right)`$
 </div>
 
-<--- Raphael: Shouldn't we add $\eta^\text{evolving}_{T_{\text{end}}^{\text{epoch}_{e-2}}}$?
-
-This approach contrasts with a simpler method, where only the **VRF outputs of Phase 1 and 2 of epoch** $`e-1`$ are hashed together with $`\eta_{e-1}`$:
+This approach contrasts with the simpler method from the paper, where only the **VRF outputs of Phase 1 and 2 of epoch** $`e-1`$ are hashed together with $`\eta_{e-1}`$:
 <div align="center">
-$\eta_e = \text{Hash}(\eta_{e-1} || \mathsf{VRF}_1 || \dots ||  \mathsf{VRF}_m)$ 
+$`\eta_e = \text{Hash}(\eta_{e-1} \,\|\, \mathsf{VRF}_1 \,\|\, \dots \,\|\, \mathsf{VRF}_m)`$ 
 </div>
   </p>
 </details>
