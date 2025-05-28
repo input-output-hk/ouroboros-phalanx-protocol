@@ -867,21 +867,22 @@ For simplicity, we consider that a honest block is produced at slot $S_2 + 1$. A
 
 ✏️ **Note**: The code to generate this graph is available at ➡️ [this link](./graph/window0_graph.py).
 
-Let's consider the worst case where the adversary controls all trailing slots ($g = 1 \Leftrightarrow w=X_A(w)$):
+
+Let's consider the worst case where the adversary controls all trailing slots ($g = 1 \Leftrightarrow w = X_A(w)$):
+
 - **$w = 16$**:
   - $w_O = \frac{16}{\frac{1}{20}} = 16 \cdot 20 = 320$ seconds (~5.3 minutes).
-  - Starts at $S_2 - w + 1 = 259,200 - 16 + 1 = 259,185$, ends at $S_2 + \frac{1}{f} = 259,200 + 20 = 259,220$ (adjusted for reveal timing).
+  - Starts at $S_2 - w = 259,200 - 16 = 259,184$, ends at $S_2 + \frac{1}{f} = 259,200 + 20 = 259,220$ (adjusted for reveal timing).
+
 - **$w = 32$**:
   - $w_O = \frac{32}{\frac{1}{20}} = 32 \cdot 20 = 640$ seconds (~10.7 minutes).
-  - Starts at $S_2 - w + 1 = 259,200 - 32 + 1 = 259,169$, ends at $259,200 + 20 = 259,220$.
+  - Starts at $S_2 - w = 259,200 - 32 = 259,168$, ends at $259,200 + 20 = 259,220$.
+
 - **$w = 256$**:
   - $w_O = \frac{256}{\frac{1}{20}} = 256 \cdot 20 = 5,120$ seconds (~85.3 minutes).
-  - Starts at $S_2 - w + 1 = 259,200 - 256 + 1 = 258,945$, ends at $259,200 + 20 = 259,220$.
+  - Starts at $S_2 - w = 259,200 - 256 = 258,944$, ends at $259,200 + 20 = 259,220$.
 
 This sizing ensures the adversary has time to act before honest chain growth threatens even a length-1 chain, providing a practical and conservative bound for grinding feasibility.
-
-<--- Raphael: Why do we add one block to guess the end of he grinding opportunity? We just said we controled all blocks till the end of the epoch.
-
 
 We can moreover defined opportunity window with respect to the adversarial stake, $\text{stake}_A$. The expected opportunity window tends to,
 
