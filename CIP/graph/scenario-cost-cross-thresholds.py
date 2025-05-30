@@ -13,45 +13,43 @@ cost_per_cpu_hour = 0.01  # $0.01 per CPU-hour
 w_O = 20 * (2 * rho - 1)  # w_O = (2 * rho - 1) / f, f = 0.05
 w_O_hours = w_O / 3600  # Convert to hours for cost calculation
 
-# Define N_CPU functions for Praos scenarios (original)
+# Define N_CPU functions for Praos scenarios
 def ant_glance_praos(rho):
-    return 5e-10 * 2**(rho - 1) + 1.8e-11 * 2**(rho - 1)
+    return 5e-10 * 2**(rho - 1) + 1.8e-4 * 2**(rho - 1) / rho
 
 def ant_patrol_praos(rho):
-    return 5e-10 * 2**(rho - 1) + 2.16e-9 * 2**(rho - 1)
+    return 5e-10 * 2**(rho - 1) + 2.16e-2 * 2**(rho - 1) / rho
 
 def owl_stare_praos(rho):
-    return 5e-10 * 2**(rho - 1) + 1.8e-11 * 2**(rho - 1) + 5e-2 * 2**(rho - 1) / rho
+    return 5e-10 * 2**(rho - 1) + 1.8e-4 * 2**(rho - 1) / rho + 5e-2 * 2**(rho - 1) / rho
 
 def owl_survey_praos(rho):
-    return 5e-10 * 2**(rho - 1) + 2.16e-9 * 2**(rho - 1) + 5e-2 * 2**(rho - 1) / rho
+    return 5e-10 * 2**(rho - 1) + 2.16e-2 * 2**(rho - 1) / rho + 5e-2 * 2**(rho - 1) / rho
 
 # Define N_CPU functions for Phalanx scenarios (Phi_min and Phi_max)
-# Phi_min: T_Phi = 4.32e4 * 2^rho
-# Phi_max: T_Phi = 4.32e5 * 2^rho
 def ant_glance_phi_min(rho):
-    return 5e-10 * 2**(rho - 1) + 1.8e-11 * 2**(rho - 1) + 4.32e4 * 2**rho
+    return 5e-10 * 2**(rho - 1) + 1.8e-4 * 2**(rho - 1) / rho + 200 * 2**rho / rho
 
 def ant_glance_phi_max(rho):
-    return 5e-10 * 2**(rho - 1) + 1.8e-11 * 2**(rho - 1) + 4.32e5 * 2**rho
+    return 5e-10 * 2**(rho - 1) + 1.8e-4 * 2**(rho - 1) / rho + 1e4 * 2**rho / rho
 
 def ant_patrol_phi_min(rho):
-    return 5e-10 * 2**(rho - 1) + 2.16e-9 * 2**(rho - 1) + 4.32e4 * 2**rho
+    return 5e-10 * 2**(rho - 1) + 2.16e-2 * 2**(rho - 1) / rho + 200 * 2**rho / rho
 
 def ant_patrol_phi_max(rho):
-    return 5e-10 * 2**(rho - 1) + 2.16e-9 * 2**(rho - 1) + 4.32e5 * 2**rho
+    return 5e-10 * 2**(rho - 1) + 2.16e-2 * 2**(rho - 1) / rho + 1e4 * 2**rho / rho
 
 def owl_stare_phi_min(rho):
-    return 5e-10 * 2**(rho - 1) + 1.8e-11 * 2**(rho - 1) + 5e-2 * 2**(rho - 1) / rho + 4.32e4 * 2**rho
+    return 5e-10 * 2**(rho - 1) + 1.8e-4 * 2**(rho - 1) / rho + 5e-2 * 2**(rho - 1) / rho + 200 * 2**rho / rho
 
 def owl_stare_phi_max(rho):
-    return 5e-10 * 2**(rho - 1) + 1.8e-11 * 2**(rho - 1) + 5e-2 * 2**(rho - 1) / rho + 4.32e5 * 2**rho
+    return 5e-10 * 2**(rho - 1) + 1.8e-4 * 2**(rho - 1) / rho + 5e-2 * 2**(rho - 1) / rho + 1e4 * 2**rho / rho
 
 def owl_survey_phi_min(rho):
-    return 5e-10 * 2**(rho - 1) + 2.16e-9 * 2**(rho - 1) + 5e-2 * 2**(rho - 1) / rho + 4.32e4 * 2**rho
+    return 5e-10 * 2**(rho - 1) + 2.16e-2 * 2**(rho - 1) / rho + 5e-2 * 2**(rho - 1) / rho + 200 * 2**rho / rho
 
 def owl_survey_phi_max(rho):
-    return 5e-10 * 2**(rho - 1) + 2.16e-9 * 2**(rho - 1) + 5e-2 * 2**(rho - 1) / rho + 4.32e5 * 2**rho
+    return 5e-10 * 2**(rho - 1) + 2.16e-2 * 2**(rho - 1) / rho + 5e-2 * 2**(rho - 1) / rho + 1e4 * 2**rho / rho
 
 # Compute N_CPU for all scenarios
 # Praos
@@ -115,16 +113,18 @@ plt.plot(rho, log_cost_ant_glance_praos, label='Ant Glance Praos', color='blue',
 plt.plot(rho, log_cost_ant_patrol_praos, label='Ant Patrol Praos', color='orange', linewidth=2)
 plt.plot(rho, log_cost_owl_stare_praos, label='Owl Stare Praos', color='green', linewidth=2)
 plt.plot(rho, log_cost_owl_survey_praos, label='Owl Survey Praos', color='red', linewidth=2)
+
 # Plot Phalanx Phi_min scenarios with dashed lines
-plt.plot(rho, log_cost_ant_glance_phi_min, label='Ant Glance $\Phi_{\\text{min}}$', color='blue', linestyle='--', linewidth=2)
-plt.plot(rho, log_cost_ant_patrol_phi_min, label='Ant Patrol $\Phi_{\\text{min}}$', color='orange', linestyle='--', linewidth=2)
-plt.plot(rho, log_cost_owl_stare_phi_min, label='Owl Stare $\Phi_{\\text{min}}$', color='green', linestyle='--', linewidth=2)
-plt.plot(rho, log_cost_owl_survey_phi_min, label='Owl Survey $\Phi_{\\text{min}}$', color='red', linestyle='--', linewidth=2)
+plt.plot(rho, log_cost_ant_glance_phi_min, label='Ant Glance $\\Phi^{\\text{power}}_{\\text{min}}$', color='blue', linestyle='--', linewidth=2)
+plt.plot(rho, log_cost_ant_patrol_phi_min, label='Ant Patrol $\\Phi^{\\text{power}}_{\\text{min}}$', color='orange', linestyle='--', linewidth=2)
+plt.plot(rho, log_cost_owl_stare_phi_min, label='Owl Stare $\\Phi^{\\text{power}}_{\\text{min}}$', color='green', linestyle='--', linewidth=2)
+plt.plot(rho, log_cost_owl_survey_phi_min, label='Owl Survey $\\Phi^{\\text{power}}_{\\text{min}}$', color='red', linestyle='--', linewidth=2)
+
 # Plot Phalanx Phi_max scenarios with dotted lines
-plt.plot(rho, log_cost_ant_glance_phi_max, label='Ant Glance $\Phi_{\\text{max}}$', color='blue', linestyle=':', linewidth=2)
-plt.plot(rho, log_cost_ant_patrol_phi_max, label='Ant Patrol $\Phi_{\\text{max}}$', color='orange', linestyle=':', linewidth=2)
-plt.plot(rho, log_cost_owl_stare_phi_max, label='Owl Stare $\Phi_{\\text{max}}$', color='green', linestyle=':', linewidth=2)
-plt.plot(rho, log_cost_owl_survey_phi_max, label='Owl Survey $\Phi_{\\text{max}}$', color='red', linestyle=':', linewidth=2)
+plt.plot(rho, log_cost_ant_glance_phi_max, label='Ant Glance $\\Phi^{\\text{power}}_{\\text{max}}$', color='blue', linestyle=':', linewidth=2)
+plt.plot(rho, log_cost_ant_patrol_phi_max, label='Ant Patrol $\\Phi^{\\text{power}}_{\\text{max}}$', color='orange', linestyle=':', linewidth=2)
+plt.plot(rho, log_cost_owl_stare_phi_max, label='Owl Stare $\\Phi^{\\text{power}}_{\\text{max}}$', color='green', linestyle=':', linewidth=2)
+plt.plot(rho, log_cost_owl_survey_phi_max, label='Owl Survey $\\Phi^{\\text{power}}_{\\text{max}}$', color='red', linestyle=':', linewidth=2)
 
 # Add feasibility threshold layers as horizontal spans based on log10(Cost USD)
 plt.axhspan(-10, 2, color='green', alpha=0.1, label='Trivial')         # Trivial (< $100)
@@ -159,31 +159,67 @@ valid_log_costs = np.concatenate([
 y_max = np.max(valid_log_costs) + 5 if valid_log_costs.size > 0 else 90
 plt.ylim(-5, y_max)  # Y-axis starts at -5
 
-# Add annotation for the delta at rho = 50 (using Owl Survey Phi_max and Ant Glance Praos)
-rho_idx = np.argmin(np.abs(rho - 50))
-delta_log_cost = log_cost_owl_survey_phi_max[rho_idx] - log_cost_ant_glance_praos[rho_idx]
-mid_y = log_cost_owl_survey_phi_max[rho_idx] - (delta_log_cost / 2) + 0.5
+# Function to find crossing points and annotate
+def annotate_crossings(log_costs, color, threshold, position='above'):
+    # Find indices where the curve crosses the threshold
+    indices = np.where((log_costs[:-1] < threshold) & (log_costs[1:] >= threshold))[0]
+    if len(indices) > 0:
+        idx = indices[0]
+        rho_val = rho[idx]
+        plt.scatter(rho_val, threshold, color=color, marker='o', s=50, zorder=5)
+        # Position above or below based on the curve
+        if position == 'below':
+            plt.annotate(f'{rho_val:.1f}',
+                         xy=(rho_val, threshold),
+                         xytext=(rho_val +1.1 , threshold - 0.4),
+                         fontsize=8, color=color)
+        elif position == 'green':
+            plt.annotate(f'{rho_val:.1f}',
+                         xy=(rho_val, threshold),
+                         xytext=(rho_val -0.6 , threshold - 0.9),
+                         fontsize=8, color=color)
+        else:
+            plt.annotate(f'{rho_val:.1f}',
+                         xy=(rho_val, threshold),
+                         xytext=(rho_val - 1, threshold + 0.5),
+                         fontsize=8, color=color)
 
-plt.annotate('', xy=(50, log_cost_owl_survey_phi_max[rho_idx]), xytext=(50, log_cost_ant_glance_praos[rho_idx]),
-             arrowprops=dict(arrowstyle='<->', color='purple', lw=1, shrinkA=0, shrinkB=0))
-plt.text(53, mid_y-3.5, f'$\\Delta \\log_{{10}}(\\text{{Cost (USD)}}) \\approx {delta_log_cost:.1f}$',
-         fontsize=12, color='purple', bbox=dict(facecolor='white', alpha=0.8, edgecolor='none'),
-         verticalalignment='center')
+# Annotate crossings for selected curves
+thresholds = [
+    (2, "Trivial to Feasible"),
+    (6, "Feasible to Possible"),
+    (9, "Possible to Borderline"),
+    (12, "Borderline to Infeasible")
+]
+
+curves = [
+    (log_cost_ant_glance_praos, 'blue', 'above'),
+    (log_cost_ant_patrol_praos, 'orange', 'below'),
+    (log_cost_owl_stare_praos, 'green', 'green'),
+    (log_cost_owl_survey_praos, 'red', 'above'),
+    (log_cost_owl_survey_phi_min, 'red', 'above'),
+    (log_cost_owl_survey_phi_max, 'red', 'above')
+]
+
+# Annotate crossings
+for threshold, threshold_name in thresholds:
+    for log_costs, color, position in curves:
+        annotate_crossings(log_costs, color, threshold, position)
 
 # Create a custom legend with all labels
 legend_elements = [
     plt.Line2D([0], [0], color='blue', lw=2, label='Ant Glance Praos'),
-    plt.Line2D([0], [0], color='blue', lw=2, linestyle='--', label='Ant Glance $\Phi_{\\text{min}}$'),
-    plt.Line2D([0], [0], color='blue', lw=2, linestyle=':', label='Ant Glance $\Phi_{\\text{max}}$'),
+    plt.Line2D([0], [0], color='blue', lw=2, linestyle='--', label='Ant Glance $\\Phi^{\\text{power}}_{\\text{min}}$'),
+    plt.Line2D([0], [0], color='blue', lw=2, linestyle=':', label='Ant Glance $\\Phi^{\\text{power}}_{\\text{max}}$'),
     plt.Line2D([0], [0], color='orange', lw=2, label='Ant Patrol Praos'),
-    plt.Line2D([0], [0], color='orange', lw=2, linestyle='--', label='Ant Patrol $\Phi_{\\text{min}}$'),
-    plt.Line2D([0], [0], color='orange', lw=2, linestyle=':', label='Ant Patrol $\Phi_{\\text{max}}$'),
+    plt.Line2D([0], [0], color='orange', lw=2, linestyle='--', label='Ant Patrol $\\Phi^{\\text{power}}_{\\text{min}}$'),
+    plt.Line2D([0], [0], color='orange', lw=2, linestyle=':', label='Ant Patrol $\\Phi^{\\text{power}}_{\\text{max}}$'),
     plt.Line2D([0], [0], color='green', lw=2, label='Owl Stare Praos'),
-    plt.Line2D([0], [0], color='green', lw=2, linestyle='--', label='Owl Stare $\Phi_{\\text{min}}$'),
-    plt.Line2D([0], [0], color='green', lw=2, linestyle=':', label='Owl Stare $\Phi_{\\text{max}}$'),
+    plt.Line2D([0], [0], color='green', lw=2, linestyle='--', label='Owl Stare $\\Phi^{\\text{power}}_{\\text{min}}$'),
+    plt.Line2D([0], [0], color='green', lw=2, linestyle=':', label='Owl Stare $\\Phi^{\\text{power}}_{\\text{max}}$'),
     plt.Line2D([0], [0], color='red', lw=2, label='Owl Survey Praos'),
-    plt.Line2D([0], [0], color='red', lw=2, linestyle='--', label='Owl Survey $\Phi_{\\text{min}}$'),
-    plt.Line2D([0], [0], color='red', lw=2, linestyle=':', label='Owl Survey $\Phi_{\\text{max}}$'),
+    plt.Line2D([0], [0], color='red', lw=2, linestyle='--', label='Owl Survey $\\Phi^{\\text{power}}_{\\text{min}}$'),
+    plt.Line2D([0], [0], color='red', lw=2, linestyle=':', label='Owl Survey $\\Phi^{\\text{power}}_{\\text{max}}$'),
     Patch(facecolor='green', alpha=0.1, label='Trivial'),
     Patch(facecolor='yellow', alpha=0.1, label='Feasible'),
     Patch(facecolor='#FFA07A', alpha=0.1, label='Possible'),
@@ -197,5 +233,5 @@ plt.legend(handles=legend_elements, fontsize=10, loc='lower right',
 plt.subplots_adjust(left=0.1, right=0.95, top=0.9, bottom=0.2)
 
 # Save the combined plot
-plt.savefig('grinding_depth_scenarios_cost_with_feasibility_layers_gradient_combined.png', dpi=300, bbox_inches='tight')
+plt.savefig('grinding_depth_scenarios_cost_praos_vs_phalanx_annotated_with_new_curves.png', dpi=300, bbox_inches='tight')
 plt.show()
