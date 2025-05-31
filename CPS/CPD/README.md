@@ -44,12 +44,11 @@ The table below delineates the **$\rho$ values** at which each scenario transiti
 
 | **Feasibility Category**                  | **🔵 Ant Glance** | **🟠 Ant Patrol** | **🟢 Owl Stare** | **🔴 Owl Survey** |
 |--------------------------------------------|-------------------|-------------------|------------------|-------------------|
-| **🟢 🌱 Trivial for Any Adversary**        | $[0, 49)$         | $[0, 47)$         | $[0, 27)$        | $[0, 27)$         |
-| **🟡 💰 Feasible with Standard Resources** | $[49, 59)$        | $[47, 57)$        | $[27, 34)$       | $[27, 34)$        |
-| **🟠 🏭 Possible with Large-Scale Infrastructure** | $[59, 73)$ | $[57, 71)$        | $[34, 48)$       | $[34, 48)$        |
-| **🔴 🚫 Borderline Infeasible**            | $[73, 87)$        | $[71, 85)$       | $[48, 62)$       | $[48, 62)$        |
-| **🔴 🚫 Infeasible**                      | $[87, 256)$       | $[85, 256)$       | $[62, 256)$      | $[62, 256)$       |
-
+| **🟢 🌱 Trivial for Any Adversary**        | $[0, 39.8)$       | $[0, 32.9)$       | $[0, 31.6)$      | $[0, 31.1)$       |
+| **🟡 💰 Feasible with Standard Resources** | $[39.8, 46.4)$    | $[32.9, 39.5)$    | $[31.6, 38.3)$   | $[31.1, 37.8)$    |
+| **🟠 🏭 Possible with Large-Scale Infrastructure** | $[46.4, 56.4)$ | $[39.5, 49.5)$  | $[38.2, 48.2)$   | $[37.8, 47.7)$    |
+| **🔴 🚫 Borderline Infeasible**            | $[56.4, 66.3)$    | $[49.5, 59.5)$    | $[48.2, 58.2)$   | $[47.7, 57.7)$    |
+| **🔴 🚫 Infeasible**                      | $[66.3, 256.0)$   | $[59.5, 256.0)$   | $[58.2, 256.0)$  | $[57.7, 256.0)$   |
 
 ✏️ **Note**: For a detailed explanation of these scenarios and their feasibility thresholds, refer to **[Section 3.5 - Scenarios](https://github.com/cardano-foundation/CIPs/pull/1009#35-scenarios)** within this CPD.
 
@@ -908,7 +907,7 @@ We can moreover defined opportunity window with respect to the adversarial stake
 <--- Raphael: Add graph?
 
 <details>
-<summary>📌📌 <i> More Details on the expectation's computation$ </i> – <b>  Expand to view the content.</b></summary>
+<summary>📌📌 <i> More Details on the expectation's computation </i> – <b>  Expand to view the content.</b></summary>
 
 To compute the expectation of the opportunity window, we need to find the earliest slot starting from the end of Phase 2, such that the adversary controls a majority of slots in that interval (and before the chain has been set, that is before $k$ slots).
 
@@ -1345,7 +1344,6 @@ N_{\text{CPU}}  \geq  \left \lceil 5 \cdot 10^{-10} \cdot 2^{\rho-2} + 5 \cdot 1
 | **Owl Stare**   | $5 \cdot 10^{-10} \cdot 2^{\rho-2} + 5.02 \cdot 10^{-2} \cdot \frac{2^{\rho-1}}{\rho}$ |
 | **Owl Survey**  | $5 \cdot 10^{-10} \cdot 2^{\rho-2} + 7.16 \cdot 10^{-2} \cdot \frac{2^{\rho-1}}{\rho}$ |
 
-<---Raphael: Redo graph
 
 <div align="center">
 <img src="./image/grinding-depth-vs-NCPU.png" alt="" />
@@ -1353,17 +1351,20 @@ N_{\text{CPU}}  \geq  \left \lceil 5 \cdot 10^{-10} \cdot 2^{\rho-2} + 5 \cdot 1
 
 ✏️ **Note**: The code to generate this graph is available at ➡️ [this link](./graph/scenario_cpu_graph.py).
 
-The maximal delta $\Delta \log_{10}(N_{\text{CPU}})$ (Owl Survey minus Ant Glance) is $\sim 6.3$, matching the graph’s constant gap. This suggests $T_{\text{eval}}$ and $w_T$ drive a pre-exponential frame of $10^{6.3}$ CPUs, scaled exponentially by $2^{\rho}$. Note that the green line (Owl Stare) is not visible on the graph, likely due to its close alignment with the blue line (Ant Glance), as both share the same $w_T = 3600$ s, and the difference in $T_{\text{eval}}$ (0 for Ant Glance vs. 1 for Owl Stare) becomes negligible on the logarithmic scale for large $\rho$.
+The maximal delta $\Delta \log_{10}(N_{\text{CPU}})$ (Owl Survey minus Ant Glance) is $\sim 2.6$, matching the graph’s constant gap. This suggests $T_{\text{eval}}$ and $w_T$ drive a pre-exponential frame of $10^{2.6}$ CPUs, scaled exponentially by $2^{\rho}$. The yellow line (Ant Patrol) lies between the blue (Ant Glance) and green (Owl Stare) lines, with a delta of $\sim 2.08$ from Ant Glance, indicating it requires about 120 times more CPUs due to its larger $w_T = 432,000$ s compared to Ant Glance’s $w_T = 3600$ s, while both share $T_{\text{eval}} = 0$. 
 
-<!-- At $\rho = 50$:
-- **Ant Glance** ($T_{\text{eval}} = 0$, $w_T = 3600$): $N_{\text{CPU}} \approx 1.22 \cdot 10^{12}$, $\log_{10}(N_{\text{CPU}}) \approx 10.085$.
-- **Ant Patrol** ($T_{\text{eval}} = 0$, $w_T = 432,000$): $N_{\text{CPU}} \approx 1.46 \cdot 10^{12}$, $\log_{10}(N_{\text{CPU}}) \approx 12.164$.
-- **Owl Stare** ($T_{\text{eval}} = 1$, $w_T = 3600$): $N_{\text{CPU}} \approx 5.75 \cdot 10^{11}$, $\log_{10}(N_{\text{CPU}}) \approx 11.760$.
-- **Owl Survey** ($T_{\text{eval}} = 1$, $w_T = 432,000$): $N_{\text{CPU}} \approx 2.02 \cdot 10^{12}$, $\log_{10}(N_{\text{CPU}}) \approx 12.306$. -->
+Additionally, the green line (Owl Stare) is very close to the red line (Owl Survey) on the graph, with a small delta of $\sim 0.154$ in $\log_{10}(N_{\text{CPU}})$, reflecting their similar computational demands despite Owl Stare having a smaller $w_T = 3600$ s compared to Owl Survey’s $w_T = 432,000$ s. Overall, both the green (Owl Stare) and yellow (Ant Patrol) lines are really close to the red (Owl Survey) line on the graph.
+
+
+At $\rho = 50$:
+- **Ant Glance** ($T_{\text{eval}} = 0$, $w_T = 3600$): $N_{\text{CPU}} \approx 2.17 \cdot 10^{9}$, $\log_{10}(N_{\text{CPU}}) \approx 9.336$.
+- **Ant Patrol** ($T_{\text{eval}} = 0$, $w_T = 432,000$): $N_{\text{CPU}} \approx 2.43 \cdot 10^{11}$, $\log_{10}(N_{\text{CPU}}) \approx 11.386$.
+- **Owl Stare** ($T_{\text{eval}} = 1$, $w_T = 3600$): $N_{\text{CPU}} \approx 5.65 \cdot 10^{11}$, $\log_{10}(N_{\text{CPU}}) \approx 11.752$.
+- **Owl Survey** ($T_{\text{eval}} = 1$, $w_T = 432,000$): $N_{\text{CPU}} \approx 8.06 \cdot 10^{11}$, $\log_{10}(N_{\text{CPU}}) \approx 11.906$.
 
 ### 3.6 Grinding Power Computational Feasibility
 
-Building on the analysis in previous [Section 3.5](##35-scenarios), we assessed the feasibility of grinding attacks by examining the computational resources ($N_{\text{CPU}}$) required across different grinding depths ($\rho$). The scenarios (Ant Glance, Ant Patrol, Owl Stare, Owl Survey) show a consistent $\Delta \log_{10}(N_{\text{CPU}}) \sim 6.3$, meaning the most demanding scenario (Owl Survey) requires $10^{6.3}$ times more CPUs than the least demanding (Ant Glance).
+Building on the analysis in previous [Section 3.5](##35-scenarios), we assessed the feasibility of grinding attacks by examining the computational resources ($N_{\text{CPU}}$) required across different grinding depths ($\rho$). The scenarios (Ant Glance, Ant Patrol, Owl Stare, Owl Survey) show a consistent $\Delta \log_{10}(N_{\text{CPU}}) \sim 2.6$, meaning the most demanding scenario (Owl Survey) requires $10^{2.6}$ times more CPUs than the least demanding (Ant Glance).
 
 To help readers understand the practicality of these attacks, we define feasibility thresholds based on economic and computational viability, as shown in the table below:
 
@@ -1381,22 +1382,22 @@ Costs are estimated assuming a CPU rental price of $0.01$ per CPU-hour, based on
 
 The table below summarizes the feasibility for `Owl Survey` ($T_{\text{eval}} = 1$, $w_T = 432,000 \, \text{s}$), the most resource-intensive scenario, at different $\rho$ values, using the $0.01$ estimate for initial assessment:
 
-| $\rho$ | CPUs Required (Log₁₀ Scale) | Estimated Cost (USD, $w_O$ run) | Feasibility |
+| $\rho$ | CPUs Required (Log₁₀ Scale) | Estimated Cost (USD) | Feasibility |
 |----------|-----------------------------|----------------------------------|-------------|
-| **20**   | $10^4$ CPUs ($\sim 10^4$)    | 56.74                            | Trivial for any adversary |
-| **38**   | $10^9$ CPUs ($\sim 10^9$)    | 2.86 million                     | Feasible for well-funded adversaries |
-| **50**   | $10^{13}$ CPUs ($\sim 10^{13}$) | 3.10 billion                 | Possible with large-scale infrastructure |
-| **70**   | $10^{18}$ CPUs ($\sim 10^{18}$) | $9.80 \times 10^{16}$        | Borderline infeasible, requires massive resources |
-| **110**  | $10^{31}$ CPUs ($\sim 10^{31}$) | $5.97 \times 10^{28}$        | Infeasible, exceeds global computing capacity |
-| **215**  | $10^{62}$ CPUs ($\sim 10^{62}$) | $2.38 \times 10^{59}$        | Impossible, beyond planetary energy limits |
+| **31**   | $10^6$ CPUs     | 8,394.76                        | Trivial for any adversary |
+| **37**   | $10^8$ CPUs     | 539,954                         | Feasible with standard resources |
+| **47**   | $10^{11}$ CPUs  | 553.79 million               | Possible with large-scale infrastructure |
+| **48**   | $10^{11}$ CPUs  | 1.107 billion               | Borderline Infeasible, requires massive resources |
+| **58**   | $10^{14}$ CPUs  | 1.137 trillion              | Infeasible, exceeds global computing capacity |
 
 - **CPUs Required**: Computed for Owl Survey at each $\rho$, rounded to the nearest order of magnitude for readability (exact values approximated).
 - **Cost**: Assumes $0.01$ per CPU-hour, scaled for the runtime $w_O = 20 (2\rho - 1)$ seconds.
 - **Feasibility**: Assessed based on computational and economic viability, considering global computing resources (e.g., $\sim 10^{12}$ CPUs in modern data centers, $\sim 10^{15}$ CPUs globally as of March 11, 2025).
 
-
+<br> 
 <details>
 <summary>📌 Example Calculation for ρ = 50 (Owl Survey)</summary>
+<br>
 
 Let’s walk through the calculation for the Owl Survey scenario at $\rho=50$ to demonstrate how the values in the table are derived. The Owl Survey scenario has $T_{\text{eval}}=1$ (high complexity) and $w_T=432,000\,\text{s}$ (5 days), making it the most resource-intensive scenario.
 
@@ -1405,14 +1406,14 @@ Let’s walk through the calculation for the Owl Survey scenario at $\rho=50$ to
 The formula for $N_{\text{CPU}}$ in the Owl Survey scenario, as given in [Section 3.5 - Scenarios](#35-scenarios), is:
 
 ```math
-N_{\text{CPU}}  \geq  5 \cdot 10^{-10} \cdot 2^{\rho-2} + 7.16 \cdot 10^{-2} \cdot \frac{2^{\rho-1}}{\rho}
+N_{\text{CPU}} \geq 5 \cdot 10^{-10} \cdot 2^{\rho-2} + 7.16 \cdot 10^{-2} \cdot \frac{2^{\rho-1}}{\rho}
 ```
 
-For $\rho=50$, the expression becomes :
+For $\rho=50$, the expression becomes:
 
 ```math
 \begin{align*}
-N_{\text{CPU}} &\geq  5 \cdot 10^{-10} \cdot 2^{48} + 7.16 \cdot 10^{-2} \cdot \frac{2^{49}}{50}\\
+N_{\text{CPU}} &\geq 5 \cdot 10^{-10} \cdot 2^{48} + 7.16 \cdot 10^{-2} \cdot \frac{2^{49}}{50}\\
                &\geq 8.06 \cdot 10^{11}
 \end{align*}
 ```
@@ -1435,7 +1436,11 @@ The cost is calculated as:
 - **Runtime**: $w_O = 20 \times (2\rho - 1)$ seconds, with $\rho=50$:
 
 ```math
-\text{Cost (USD)} \approx 4.43 \times 10^9 = 4.43\,\text{billion} \approx 10^{9.65}
+w_O = 20 \times (2 \cdot 50 - 1) = 1,980 \, \text{seconds}, \quad \text{runtime} = \frac{1,980}{3600} \approx 0.55 \, \text{hours}
+```
+
+```math
+\text{Cost (USD)} = 8.06 \times 10^{11} \times 0.01 \times 0.55 \approx 4.43 \times 10^9 \approx 4.43 \, \text{billion}
 ```
 
 ### Step 3: Determine Feasibility
@@ -1448,17 +1453,10 @@ The feasibility thresholds are:
 - **Borderline Infeasible**: $1,000,000,000$ to $1,000,000,000,000$ ($\log_{10} 9$ to 12),
 - **Infeasible**: > $1,000,000,000,000$ ($\log_{10} > 12$).
 
-
-This scenario is thus **Borderline Infeasible**. The table lists it as "Possible," which appears to be a categorization error based on the defined thresholds.
+This scenario is thus **Borderline Infeasible**, as the cost of $4.43 \, \text{billion}$ falls between $1,000,000,000$ and $1,000,000,000,000$.
 
 </details>
-
-#### References
-- [AWS EC2 Pricing Page Detailed Instance Pricing](https://aws.amazon.com/ec2/pricing/)
-- [Azure Virtual Machines Pricing Calculator Detailed VM Costs](https://azure.microsoft.com/en-us/pricing/calculator/)
-- [Google Compute Engine Pricing Detailed Compute Pricing](https://cloud.google.com/compute/pricing)
-- [iRender Pricing Information Competitive Cloud Rates](https://www.irender.com/pricing)
-
+<br> 
 
 <div align="center">
 <img src="./image/grinding_depth_scenarios_cost_with_feasibility_layers_gradient.png" alt="Grinding Depth Scenarios with Feasibility Thresholds"/>
@@ -1466,16 +1464,18 @@ This scenario is thus **Borderline Infeasible**. The table lists it as "Possible
 
 ✏️ **Note**: The code to generate this graph is available at ➡️ [this link](./graph/scenario_cost-graph.py).
 
-The cost difference between the most expensive scenario (Owl Survey) and the cheapest (Ant Glance) is significant, with a consistent $\Delta \log_{10}(\text{Cost (USD)}) \sim 6.3$, meaning Owl Survey costs approximately $10^{6.3}$ times more than Ant Glance, reflecting the substantial impact of $T_{\text{eval}}$ and $w_T$ on resource demands. The table below shows the $\rho$ values where each scenario transitions across feasibility categories:
+The cost difference between the most expensive scenario (Owl Survey) and the cheapest (Ant Glance) is significant, with a consistent $\Delta \log_{10}(\text{Cost (USD)}) \sim 2.6$, meaning Owl Survey costs approximately $10^{2.6}$ times more than Ant Glance, reflecting the substantial impact of $T_{\text{eval}}$ and $w_T$ on resource demands. 
+
+The table below shows the $\rho$ values where each scenario transitions across feasibility categories:
+
 
 | **Feasibility Category**                  | **🔵 Ant Glance** | **🟠 Ant Patrol** | **🟢 Owl Stare** | **🔴 Owl Survey** |
 |--------------------------------------------|-------------------|-------------------|------------------|-------------------|
-| **🟢 🌱 Trivial for Any Adversary**        | $[0, 49)$         | $[0, 47)$         | $[0, 27)$        | $[0, 27)$         |
-| **🟡 💰 Feasible with Standard Resources** | $[49, 59)$        | $[47, 57)$        | $[27, 34)$       | $[27, 34)$        |
-| **🟠 🏭 Possible with Large-Scale Infrastructure** | $[59, 73)$ | $[57, 71)$        | $[34, 48)$       | $[34, 48)$        |
-| **🔴 🚫 Borderline Infeasible**            | $[73, 87)$        | $[71, 85)$       | $[48, 62)$       | $[48, 62)$        |
-| **🔴 🚫 Infeasible**                      | $[87, 256)$    | $[85, 256)$    | $[62, 256)$   | $[62, 256)$    |
-
+| **🟢 🌱 Trivial for Any Adversary**        | $[0, 39.8)$       | $[0, 32.9)$       | $[0, 31.6)$      | $[0, 31.1)$       |
+| **🟡 💰 Feasible with Standard Resources** | $[39.8, 46.4)$    | $[32.9, 39.5)$    | $[31.6, 38.3)$   | $[31.1, 37.8)$    |
+| **🟠 🏭 Possible with Large-Scale Infrastructure** | $[46.4, 56.4)$ | $[39.5, 49.5)$  | $[38.2, 48.2)$   | $[37.8, 47.7)$    |
+| **🔴 🚫 Borderline Infeasible**            | $[56.4, 66.3)$    | $[49.5, 59.5)$    | $[48.2, 58.2)$   | $[47.7, 57.7)$    |
+| **🔴 🚫 Infeasible**                      | $[66.3, 256.0)$   | $[59.5, 256.0)$   | $[58.2, 256.0)$  | $[57.7, 256.0)$   |
 
 ## 4. References 
  
@@ -1486,6 +1486,11 @@ The cost difference between the most expensive scenario (Owl Survey) and the che
 - [Efficient Random Beacons with Adaptive Securityfor Ungrindable Blockchains](https://eprint.iacr.org/2021/1698.pdf)
 - [Forking the RANDAO: Manipulating Ethereum's Distributed Randomness Beacon](https://eprint.iacr.org/2025/037)
 - [Security of Proof-of-Stake Blockchains](https://search.worldcat.org/title/1336590866)
+
+- [AWS EC2 Pricing Page Detailed Instance Pricing](https://aws.amazon.com/ec2/pricing/)
+- [Azure Virtual Machines Pricing Calculator Detailed VM Costs](https://azure.microsoft.com/en-us/pricing/calculator/)
+- [Google Compute Engine Pricing Detailed Compute Pricing](https://cloud.google.com/compute/pricing)
+- [iRender Pricing Information Competitive Cloud Rates](https://www.irender.com/pricing)
 
 
 ## 5. Copyright
