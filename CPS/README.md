@@ -6,7 +6,6 @@ Status: Proposed
 Authors:
     - Nicolas Henin <nicolas.henin@iohk.io>
     - Raphael Toledo <raphael.toledo@iohk.io>
-    - Peter Gaži <peter.gazi@iohk.io>
 Proposed Solutions: []
 Discussions:
     - https://github.com/cardano-foundation/CIPs/pull/1009
@@ -55,15 +54,21 @@ This **[**CPD**](./CPD/README.md)** examines the *Randomness Generation Sub-Prot
   - The intensity of these attacks scales with stake: the more stake an adversary holds, the greater their influence over **leader election**, amplifying their ability to manipulate randomness. In a simplistic view, this can be likened to manipulating a $256$-bits nonce—a value $\rho$ ranging from $0$ to $256$— where higher stake progressively grants more control, potentially allowing full manipulation of the nonce at the upper limit.
   - The wide cost disparity reflects how the complexity of the attack—such as the scope of the targeted time window and the depth of evaluation—drastically increases resource needs, acting as a natural deterrent for more ambitious manipulations.
 
-To illustrate the **Computational Feasibility**, the table below (sourced from the **CPD**, Section [**3. The Cost of Grinding: Adversarial Effort and Feasibility**](./CPD/README.md#3-the-cost-of-grinding-adversarial-effort-and-feasibility)) maps attack feasibility across four scenarios—**Ant Glance**, **Ant Patrol**, **Owl Stare**, and **Owl Survey**—based on the nonce value $\rho$ (0 to 256 bits). Each scenario reflects different attack complexities, with feasibility shifting as computational and economic demands grow:
+To illustrate the **Computational Feasibility**, the graph below (sourced from the **CPD**, Section [**3. The Cost of Grinding: Adversarial Effort and Feasibility**](./CPD/README.md#3-the-cost-of-grinding-adversarial-effort-and-feasibility)) maps attack feasibility across four scenarios—**Ant Glance**, **Ant Patrol**, **Owl Stare**, and **Owl Survey**—based on the nonce value $\rho$ (0 to 256 bits). Each scenario reflects different attack complexities, with feasibility shifting as computational and economic demands grow:
+
+<div align="center">
+<img src="./CPD/image/grinding_depth_scenarios_cost_with_feasibility_layers_gradient.png" alt="Grinding Depth Scenarios with Feasibility Thresholds"/>
+</div>
+
+The table below delineates the **$\rho$ values** at which each scenario transitions across feasibility categories, illustrating the computational and economic thresholds:
 
 | **Feasibility Category**                  | **🔵 Ant Glance** | **🟠 Ant Patrol** | **🟢 Owl Stare** | **🔴 Owl Survey** |
-|-------------------------------------------|-------------------|-------------------|------------------|-------------------|
-| **🟢 🌱 Trivial for Any Adversary**       | $[0, 49)$         | $[0, 47)$         | $[0, 27)$        | $[0, 27)$         |
-| **🟡 💰 Feasible with Standard Resources**| $[49, 59)$        | $[47, 57)$        | $[27, 34)$       | $[27, 34)$        |
-| **🟠 🏭 Possible with Large-Scale Infrastructure** | $[59, 73)$ | $[57, 71)$        | $[34, 48)$       | $[34, 48)$        |
-| **🔴 🚫 Borderline Infeasible**           | $[73, 87)$        | $[71, 85)$        | $[48, 62)$       | $[48, 62)$        |
-| **🔴 🚫 Infeasible**                     | $[87, 256)$       | $[85, 256)$       | $[62, 256)$      | $[62, 256)$       |
+|--------------------------------------------|-------------------|-------------------|------------------|-------------------|
+| **🟢 🌱 Trivial for Any Adversary**        | $[0, 39.8)$       | $[0, 32.9)$       | $[0, 31.6)$      | $[0, 31.1)$       |
+| **🟡 💰 Feasible with Standard Resources** | $[39.8, 46.4)$    | $[32.9, 39.5)$    | $[31.6, 38.3)$   | $[31.1, 37.8)$    |
+| **🟠 🏭 Possible with Large-Scale Infrastructure** | $[46.4, 56.4)$ | $[39.5, 49.5)$  | $[38.2, 48.2)$   | $[37.8, 47.7)$    |
+| **🔴 🚫 Borderline Infeasible**            | $[56.4, 66.3)$    | $[49.5, 59.5)$    | $[48.2, 58.2)$   | $[47.7, 57.7)$    |
+| **🔴 🚫 Infeasible**                      | $[66.3, 256.0)$   | $[59.5, 256.0)$   | $[58.2, 256.0)$  | $[57.7, 256.0)$   |
 
 **Context**: The scenarios represent increasing attack sophistication (e.g., *Ant Glance* is a quick, low-effort attack; *Owl Survey* is a comprehensive, resource-intensive one). As $\rho$ increases, so does the difficulty, shifting feasibility from trivial (e.g., a lone actor with a laptop) to infeasible (e.g., requiring nation-state-level resources).
 
