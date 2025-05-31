@@ -42,13 +42,14 @@ This **CPD** undertakes a thorough examination of the *Randomness Generation Sub
 
 The table below delineates the **$\rho$ values** at which each scenario transitions across feasibility categories, illustrating the computational and economic thresholds:
 
-| **Feasibility Category**                  | **🔵 Ant Glance** | **🟠 Ant Patrol** | **🟢 Owl Stare** | **🔴 Owl Survey** |
-|--------------------------------------------|-------------------|-------------------|------------------|-------------------|
-| **🟢 🌱 Trivial for Any Adversary**        | $[0, 39.8)$       | $[0, 32.9)$       | $[0, 31.6)$      | $[0, 31.1)$       |
-| **🟡 💰 Feasible with Standard Resources** | $[39.8, 46.4)$    | $[32.9, 39.5)$    | $[31.6, 38.3)$   | $[31.1, 37.8)$    |
-| **🟠 🏭 Possible with Large-Scale Infrastructure** | $[46.4, 56.4)$ | $[39.5, 49.5)$  | $[38.2, 48.2)$   | $[37.8, 47.7)$    |
-| **🔴 🚫 Borderline Infeasible**            | $[56.4, 66.3)$    | $[49.5, 59.5)$    | $[48.2, 58.2)$   | $[47.7, 57.7)$    |
-| **🔴 🚫 Infeasible**                      | $[66.3, 256.0)$   | $[59.5, 256.0)$   | $[58.2, 256.0)$  | $[57.7, 256.0)$   |
+| **Feasibility Category**                  | **🔵 Ant Glance**   | **🟠 Ant Patrol**   | **🟢 Owl Stare**   | **🔴 Owl Survey**   |
+|--------------------------------------------|---------------------|---------------------|--------------------|--------------------|
+| **🟢 🌱 Trivial for Any Adversary**        | $0 \to 39.8$        | $0 \to 32.9$        | $0 \to 31.6$       | $0 \to 31.1$       |
+| **🟡 💰 Feasible with Standard Resources** | $39.8 \to 46.4$     | $32.9 \to 39.5$     | $31.6 \to 38.3$    | $31.1 \to 37.8$    |
+| **🟠 🏭 Large-Scale Infrastructure Required** | $46.4 \to 56.4$  | $39.5 \to 49.5$     | $38.2 \to 48.2$    | $37.8 \to 47.7$    |
+| **🔴 🚫 Borderline Infeasible**            | $56.4 \to 66.3$     | $49.5 \to 59.5$     | $48.2 \to 58.2$    | $47.7 \to 57.7$    |
+| **🔴 🚫 Infeasible**                      | $66.3 \to 256$      | $59.5 \to 256$      | $58.2 \to 256$     | $57.7 \to 256$     |
+
 
 ✏️ **Note**: For a detailed explanation of these scenarios and their feasibility thresholds, refer to **[Section 3.5 - Scenarios](https://github.com/cardano-foundation/CIPs/pull/1009#35-scenarios)** within this CPD.
 
@@ -1469,13 +1470,14 @@ The cost difference between the most expensive scenario (Owl Survey) and the che
 The table below shows the $\rho$ values where each scenario transitions across feasibility categories:
 
 
-| **Feasibility Category**                  | **🔵 Ant Glance** | **🟠 Ant Patrol** | **🟢 Owl Stare** | **🔴 Owl Survey** |
-|--------------------------------------------|-------------------|-------------------|------------------|-------------------|
-| **🟢 🌱 Trivial for Any Adversary**        | $[0, 39.8)$       | $[0, 32.9)$       | $[0, 31.6)$      | $[0, 31.1)$       |
-| **🟡 💰 Feasible with Standard Resources** | $[39.8, 46.4)$    | $[32.9, 39.5)$    | $[31.6, 38.3)$   | $[31.1, 37.8)$    |
-| **🟠 🏭 Possible with Large-Scale Infrastructure** | $[46.4, 56.4)$ | $[39.5, 49.5)$  | $[38.2, 48.2)$   | $[37.8, 47.7)$    |
-| **🔴 🚫 Borderline Infeasible**            | $[56.4, 66.3)$    | $[49.5, 59.5)$    | $[48.2, 58.2)$   | $[47.7, 57.7)$    |
-| **🔴 🚫 Infeasible**                      | $[66.3, 256.0)$   | $[59.5, 256.0)$   | $[58.2, 256.0)$  | $[57.7, 256.0)$   |
+| **Feasibility Category**                  | **🔵 Ant Glance**   | **🟠 Ant Patrol**   | **🟢 Owl Stare**   | **🔴 Owl Survey**   |
+|--------------------------------------------|---------------------|---------------------|--------------------|--------------------|
+| **🟢 🌱 Trivial for Any Adversary**        | $0 \to 39.8$        | $0 \to 32.9$        | $0 \to 31.6$       | $0 \to 31.1$       |
+| **🟡 💰 Feasible with Standard Resources** | $39.8 \to 46.4$     | $32.9 \to 39.5$     | $31.6 \to 38.3$    | $31.1 \to 37.8$    |
+| **🟠 🏭 Large-Scale Infrastructure Required** | $46.4 \to 56.4$  | $39.5 \to 49.5$     | $38.2 \to 48.2$    | $37.8 \to 47.7$    |
+| **🔴 🚫 Borderline Infeasible**            | $56.4 \to 66.3$     | $49.5 \to 59.5$     | $48.2 \to 58.2$    | $47.7 \to 57.7$    |
+| **🔴 🚫 Infeasible**                      | $66.3 \to 256$      | $59.5 \to 256$      | $58.2 \to 256$     | $57.7 \to 256$     |
+
 
 ## 4. References 
  
