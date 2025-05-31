@@ -62,13 +62,14 @@ To illustrate the **Computational Feasibility**, the graph below (sourced from t
 
 The table below delineates the **$\rho$ values** at which each scenario transitions across feasibility categories, illustrating the computational and economic thresholds:
 
-| **Feasibility Category**                  | **🔵 Ant Glance** | **🟠 Ant Patrol** | **🟢 Owl Stare** | **🔴 Owl Survey** |
-|--------------------------------------------|-------------------|-------------------|------------------|-------------------|
-| **🟢 🌱 Trivial for Any Adversary**        | $[0, 39.8)$       | $[0, 32.9)$       | $[0, 31.6)$      | $[0, 31.1)$       |
-| **🟡 💰 Feasible with Standard Resources** | $[39.8, 46.4)$    | $[32.9, 39.5)$    | $[31.6, 38.3)$   | $[31.1, 37.8)$    |
-| **🟠 🏭 Possible with Large-Scale Infrastructure** | $[46.4, 56.4)$ | $[39.5, 49.5)$  | $[38.2, 48.2)$   | $[37.8, 47.7)$    |
-| **🔴 🚫 Borderline Infeasible**            | $[56.4, 66.3)$    | $[49.5, 59.5)$    | $[48.2, 58.2)$   | $[47.7, 57.7)$    |
-| **🔴 🚫 Infeasible**                      | $[66.3, 256.0)$   | $[59.5, 256.0)$   | $[58.2, 256.0)$  | $[57.7, 256.0)$   |
+| **Feasibility Category**                  | **🔵 Ant Glance**   | **🟠 Ant Patrol**   | **🟢 Owl Stare**   | **🔴 Owl Survey**   |
+|--------------------------------------------|---------------------|---------------------|--------------------|--------------------|
+| **🟢 🌱 Trivial for Any Adversary**        | $0 \to 39.8$        | $0 \to 32.9$        | $0 \to 31.6$       | $0 \to 31.1$       |
+| **🟡 💰 Feasible with Standard Resources** | $39.8 \to 46.4$     | $32.9 \to 39.5$     | $31.6 \to 38.3$    | $31.1 \to 37.8$    |
+| **🟠 🏭 Large-Scale Infrastructure Required** | $46.4 \to 56.4$  | $39.5 \to 49.5$     | $38.2 \to 48.2$    | $37.8 \to 47.7$    |
+| **🔴 🚫 Borderline Infeasible**            | $56.4 \to 66.3$     | $49.5 \to 59.5$     | $48.2 \to 58.2$    | $47.7 \to 57.7$    |
+| **🔴 🚫 Infeasible**                      | $66.3 \to 256$      | $59.5 \to 256$      | $58.2 \to 256$     | $57.7 \to 256$     |
+
 
 **Context**: The scenarios represent increasing attack sophistication (e.g., *Ant Glance* is a quick, low-effort attack; *Owl Survey* is a comprehensive, resource-intensive one). As $\rho$ increases, so does the difficulty, shifting feasibility from trivial (e.g., a lone actor with a laptop) to infeasible (e.g., requiring nation-state-level resources).
 
