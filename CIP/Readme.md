@@ -6,7 +6,6 @@ Status: Proposed
 Authors:
     - Nicolas Henin <nicolas.henin@iohk.io>
     - Raphael Toledo <raphael.toledo@iohk.io>
-    - Peter Gaži <peter.gazi@iohk.io>
 Proposed Solutions: []
 Discussions:
     - https://github.com/cardano-foundation/CIPs/pull/1009
@@ -85,15 +84,15 @@ The "[Ouroboros Randomness Generation Sub-Protocol – The Coin-Flipping Problem
 
 The CPD analysis in [Section 3.5 - Scenarios](../CPS/CPD/README.md#35-scenarios) quantifies this vulnerability across four scenarios—Ant Glance, Ant Patrol, Owl Stare, and Owl Survey—highlighting the ranges of $\rho$ where attacks are feasible. The table below summarizes these ranges, showing the intervals where grinding attacks transition from trivial to infeasible:
 
-| **Feasibility Category**                  | **🔵 Ant Glance** | **🟠 Ant Patrol** | **🟢 Owl Stare** | **🔴 Owl Survey** |
-|--------------------------------------------|-------------------|-------------------|------------------|-------------------|
-| **🟢 🌱 Trivial for Any Adversary**        | $[0, 33.2)$       | $[0, 26.3)$       | $[0, 25)$        | $[0, 24.5)$       |
-| **🟡 💰 Feasible with Standard Resources** | $[33.2, 46.4)$    | $[26.3, 39.5)$    | $[25, 38.3)$     | $[24.5, 37.8)$    |
-| **🟠 🏭 Possible with Large-Scale Infrastructure** | $[46.4, 56.4)$ | $[39.5, 49.5)$ | $[38.3, 48.2)$ | $[37.8, 47.7)$ |
-| **🔴 🚫 Borderline Infeasible**            | $[56.4, 66.3)$    | $[49.5, 59.5)$    | $[48.2, 58.2)$   | $[47.7, 57.7)$    |
-| **🔴 🚫 Infeasible**                      | $[66.3, 256)$     | $[59.5, 256)$     | $[58.2, 256)$    | $[57.7, 256)$     |
+| **Feasibility Category**                  | **🔵 Ant Glance**   | **🟠 Ant Patrol**   | **🟢 Owl Stare**   | **🔴 Owl Survey**   |
+|--------------------------------------------|---------------------|---------------------|--------------------|--------------------|
+| **🟢 🌱 Trivial for Any Adversary**        | $0 \to 39.8$        | $0 \to 32.9$        | $0 \to 31.6$       | $0 \to 31.1$       |
+| **🟡 💰 Feasible with Standard Resources** | $39.8 \to 46.4$     | $32.9 \to 39.5$     | $31.6 \to 38.3$    | $31.1 \to 37.8$    |
+| **🟠 🏭 Large-Scale Infrastructure Required** | $46.4 \to 56.4$  | $39.5 \to 49.5$     | $38.2 \to 48.2$    | $37.8 \to 47.7$    |
+| **🔴 🚫 Borderline Infeasible**            | $56.4 \to 66.3$     | $49.5 \to 59.5$     | $48.2 \to 58.2$    | $47.7 \to 57.7$    |
+| **🔴 🚫 Infeasible**                      | $66.3 \to 256$      | $59.5 \to 256$      | $58.2 \to 256$     | $57.7 \to 256$     |
 
-This vulnerability is visually depicted in the graph below, which plots the logarithmic cost (in USD) of grinding attacks against grinding depth ($\rho$) for each scenario. The shaded feasibility layers indicate the economic thresholds where attacks become trivial, feasible, possible, borderline infeasible, or infeasible. The consistent gap of $\Delta \log_{10}(\text{Cost (USD)}) \approx 6.3$ between the least (Ant Glance) and most (Owl Survey) resource-intensive scenarios highlights how evaluation complexity ($T_{\text{eval}}$) and observation scope ($w_T$) significantly amplify attack costs :
+This vulnerability is visually depicted in the graph below, which plots the logarithmic cost (in USD) of grinding attacks against grinding depth ($\rho$) for each scenario. The shaded feasibility layers indicate the economic thresholds where attacks become trivial, feasible, possible, borderline infeasible, or infeasible. The consistent gap of $\Delta \log_{10}(\text{Cost (USD)}) \approx 2.6$ between the least (Ant Glance) and most (Owl Survey) resource-intensive scenarios highlights how evaluation complexity ($T_{\text{eval}}$) and observation scope ($w_T$) significantly amplify attack costs :
 
 <div align="center">
 <img src="./image/grinding_depth_scenarios_cost_with_feasibility_layers_gradient.png" alt="Grinding Depth Scenarios with Feasibility Thresholds"/>
@@ -675,25 +674,25 @@ N_{\text{CPU}} \geq \left \lceil f \cdot 2^{\rho} \cdot \left( \frac{\rho T_{\te
 To align with the form provided in the query, we aim for a lower bound expression. Recognizing that $2 \cdot \rho - 1 \approx 2 \rho$ for large $\rho$, we approximate:
 
 ```math
-N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho-1} \cdot T_{\text{BLAKE2b}} + f \cdot 2^{\rho} \cdot \frac{w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}}}{2 \cdot \rho - 1} + f \cdot 2^{\rho} \cdot \frac{\Phi_{\text{power}} \cdot 9k }{2 f \cdot (2 \cdot \rho - 1)} \right \rceil
+N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho-2} \cdot T_{\text{BLAKE2b}} + f \cdot 2^{\rho} \cdot \frac{w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}}}{2 \cdot \rho - 1} + f \cdot 2^{\rho} \cdot \frac{\Phi_{\text{power}} \cdot 9k }{2 f \cdot (2 \cdot \rho - 1)} \right \rceil
 ```
 
 Further simplifying:
 
 ```math
-N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho-1} \cdot T_{\text{BLAKE2b}} + \frac{f \cdot 2^{\rho}}{2 \cdot \rho - 1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + \Phi_{\text{power}} \cdot \frac{9k }{f} \right) \right \rceil
+N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho-2} \cdot T_{\text{BLAKE2b}} + \frac{f \cdot 2^{\rho}}{2 \cdot \rho - 1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + \Phi_{\text{power}} \cdot \frac{9k }{f} \right) \right \rceil
 ```
 
-For large $\rho$, $\frac{2^{\rho}}{2 \cdot \rho - 1} \approx \frac{2^{\rho}}{2 \rho} = \frac{2^{\rho-1}}{\rho}$, so:
+For large $\rho$, $\frac{2^{\rho}}{2 \cdot \rho - 2} \approx \frac{2^{\rho}}{2 \rho} = \frac{2^{\rho-1}}{\rho}$, so:
 
 ```math
-N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho-1} \cdot T_{\text{BLAKE2b}} + \frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + \Phi_{\text{power}} \cdot \frac{9k }{f} \right) \right \rceil
+N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho-2} \cdot T_{\text{BLAKE2b}} + \frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + \Phi_{\text{power}} \cdot \frac{9k }{f} \right) \right \rceil
 ```
 
 Finally, we can express the $\Phi$ term more explicitly:
 
 ```math
-N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho-1} \cdot T_{\text{BLAKE2b}} + \frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right) + \frac{\Phi_{\text{power}} \cdot 9k \cdot 2^{\rho-1}}{\rho} \right \rceil
+N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho-2} \cdot T_{\text{BLAKE2b}} + \frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right) + \frac{\Phi_{\text{power}} \cdot 9k \cdot 2^{\rho-1}}{\rho} \right \rceil
 ```
 
 #### 1.2.2 Estimated Formula Using Mainnet Cardano Parameters
@@ -701,7 +700,7 @@ N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho-1} \cdot T_{\text{BLAKE2b}} + \fra
 Starting from the final expression at the end of the last section:
 
 ```math
-N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho-1} \cdot T_{\text{BLAKE2b}} + \frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right) + \frac{\Phi_{\text{power}} \cdot 9k \cdot 2^{\rho-1}}{\rho} \right \rceil
+N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho-2} \cdot T_{\text{BLAKE2b}} + \frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right) + \frac{\Phi_{\text{power}} \cdot 9k \cdot 2^{\rho-1}}{\rho} \right \rceil
 ```
 
 #### Applying Cardano Mainnet Parameters
@@ -716,7 +715,7 @@ Since the eligibility check is negligible, set $T_{\text{eligibility}} \approx 0
 
 Substitute into the expression:
 
-- First term: $f \cdot 2^{\rho-1} \cdot T_{\text{BLAKE2b}} = 0.05 \cdot 2^{\rho-1} \cdot 10^{-8} = 5 \cdot 10^{-10} \cdot 2^{\rho-1}$,
+- First term: $f \cdot 2^{\rho-2} \cdot T_{\text{BLAKE2b}} = 0.05 \cdot 2^{\rho-1} \cdot 10^{-8} = 5 \cdot 10^{-10} \cdot 2^{\rho-1}$,
 - Second term: $\frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right) = \frac{0.05}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot (10^{-6} + 0) + T_{\text{eval}} \right) = \frac{0.05 \cdot 2^{\rho-1}}{\rho} \cdot (10^{-6} w_T + T_{\text{eval}})$.
 - Third term (with $k = 2160$):
 
@@ -728,7 +727,7 @@ The estimated number of CPUs required is:
 
 ```math
 N_{\text{CPU}} > \left \lceil
-5 \cdot 10^{-10} \cdot 2^{\rho - 1} +
+5 \cdot 10^{-10} \cdot 2^{\rho - 2} +
 \frac{5 \cdot 10^{-8} \cdot 2^{\rho - 1}}{\rho} \cdot w_T +
 \frac{5 \cdot 10^{-2} \cdot 2^{\rho - 1}}{\rho} \cdot T_{\text{eval}} +
 \frac{10^4\cdot \Phi_{\text{power}} \cdot 2^{\rho}}{\rho}
@@ -791,7 +790,7 @@ The **$N_{\text{CPU}}$ formulas** are derived by **substituting** the respective
 
 ```math
 N_{\text{CPU}} > \left \lceil
-5 \cdot 10^{-10} \cdot 2^{\rho - 1} +
+5 \cdot 10^{-10} \cdot 2^{\rho - 2} +
 \frac{5 \cdot 10^{-8} \cdot 2^{\rho - 1}}{\rho} \cdot w_T +
 \frac{5 \cdot 10^{-2} \cdot 2^{\rho - 1}}{\rho} \cdot T_{\text{eval}} +
 \frac{200 \cdot 2^\rho}{\rho}
@@ -800,7 +799,7 @@ N_{\text{CPU}} > \left \lceil
 
 ```math
 N_{\text{CPU}} > \left \lceil
-5 \cdot 10^{-10} \cdot 2^{\rho - 1} +
+5 \cdot 10^{-10} \cdot 2^{\rho - 2} +
 \frac{5 \cdot 10^{-8} \cdot 2^{\rho - 1}}{\rho} \cdot w_T +
 \frac{5 \cdot 10^{-2} \cdot 2^{\rho - 1}}{\rho} \cdot T_{\text{eval}} +
 \frac{10^4 \cdot 2^\rho}{\rho}
@@ -809,18 +808,18 @@ N_{\text{CPU}} > \left \lceil
 
 | **Scenario**            | **$N_{\text{CPU}}$ Formula**                                                                                     |
 |--------------------------|-----------------------------------------------------------------------------------------------------------------|
-| **Ant Glance Praos**     | $5 \cdot 10^{-10} \cdot 2^{\rho - 1} + 1.8 \cdot 10^{-4} \cdot \frac{2^{\rho - 1}}{\rho}$                      |
-| **Ant Glance $\Phi^\text{power}_\text{min}$** | $5 \cdot 10^{-10} \cdot 2^{\rho - 1} + 1.8 \cdot 10^{-4} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{200 \cdot 2^\rho}{\rho}$ |
-| **Ant Glance $\Phi^\text{power}_\text{max}$** | $5 \cdot 10^{-10} \cdot 2^{\rho - 1} + 1.8 \cdot 10^{-4} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{10^4 \cdot 2^\rho}{\rho}$ |
-| **Ant Patrol Praos**     | $5 \cdot 10^{-10} \cdot 2^{\rho - 1} + 2.16 \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho}$                     |
-| **Ant Patrol $\Phi^\text{power}_\text{min}$** | $5 \cdot 10^{-10} \cdot 2^{\rho - 1} + 2.16 \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{200 \cdot 2^\rho}{\rho}$ |
-| **Ant Patrol $\Phi^\text{power}_\text{max}$** | $5 \cdot 10^{-10} \cdot 2^{\rho - 1} + 2.16 \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{10^4 \cdot 2^\rho}{\rho}$ |
-| **Owl Stare Praos**      | $5 \cdot 10^{-10} \cdot 2^{\rho - 1} + 1.8 \cdot 10^{-4} \cdot \frac{2^{\rho - 1}}{\rho} + 5 \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho}$ |
-| **Owl Stare $\Phi^\text{power}_\text{min}$** | $5 \cdot 10^{-10} \cdot 2^{\rho - 1} + 1.8 \cdot 10^{-4} \cdot \frac{2^{\rho - 1}}{\rho} + 5 \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{200 \cdot 2^\rho}{\rho}$ |
-| **Owl Stare $\Phi^\text{power}_\text{max}$** | $5 \cdot 10^{-10} \cdot 2^{\rho - 1} + 1.8 \cdot 10^{-4} \cdot \frac{2^{\rho - 1}}{\rho} + 5 \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{10^4 \cdot 2^\rho}{\rho}$ |
-| **Owl Survey Praos**     | $5 \cdot 10^{-10} \cdot 2^{\rho - 1} + 2.16 \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho} + 5 \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho}$ |
-| **Owl Survey $\Phi^\text{power}_\text{min}$** | $5 \cdot 10^{-10} \cdot 2^{\rho - 1} + 2.16 \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho} + 5 \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{200 \cdot 2^\rho}{\rho}$ |
-| **Owl Survey $\Phi^\text{power}_\text{max}$** | $5 \cdot 10^{-10} \cdot 2^{\rho - 1} + 2.16 \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho} + 5 \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{10^4 \cdot 2^\rho}{\rho}$ |
+| **Ant Glance Praos**     | $5 \cdot 10^{-10} \cdot 2^{\rho-2} + 1.8  \cdot 10^{-4} \cdot \frac{2^{\rho-1}}{\rho}$                      |
+| **Ant Glance $\Phi^\text{power}_\text{min}$** | $5 \cdot 10^{-10} \cdot 2^{\rho - 2} + 1.8 \cdot 10^{-4} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{200 \cdot 2^\rho}{\rho}$ |
+| **Ant Glance $\Phi^\text{power}_\text{max}$** | $5 \cdot 10^{-10} \cdot 2^{\rho - 2} + 1.8 \cdot 10^{-4} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{10^4 \cdot 2^\rho}{\rho}$ |
+| **Ant Patrol Praos**     | $5 \cdot 10^{-10} \cdot 2^{\rho-2} + 2.16 \cdot 10^{-2} \cdot \frac{2^{\rho-1}}{\rho}$                   |
+| **Ant Patrol $\Phi^\text{power}_\text{min}$** | $5 \cdot 10^{-10} \cdot 2^{\rho - 2} + 2.16 \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{200 \cdot 2^\rho}{\rho}$ |
+| **Ant Patrol $\Phi^\text{power}_\text{max}$** | $5 \cdot 10^{-10} \cdot 2^{\rho - 2} + 2.16 \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{10^4 \cdot 2^\rho}{\rho}$ |
+| **Owl Stare Praos**      |$5 \cdot 10^{-10} \cdot 2^{\rho-2} + 5.02 \cdot 10^{-2} \cdot \frac{2^{\rho-1}}{\rho}$|
+| **Owl Stare $\Phi^\text{power}_\text{min}$** | $5 \cdot 10^{-10} \cdot 2^{\rho - 2} + 5.02 \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{200 \cdot 2^\rho}{\rho}$ |
+| **Owl Stare $\Phi^\text{power}_\text{max}$** | $5 \cdot 10^{-10} \cdot 2^{\rho - 2} + 5.02 \cdot 10^{-2} \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{10^4 \cdot 2^\rho}{\rho}$ |
+| **Owl Survey Praos**     | $5 \cdot 10^{-10} \cdot 2^{\rho-2} + 7.16 \cdot 10^{-2} \cdot \frac{2^{\rho-1}}{\rho}$ |
+| **Owl Survey $\Phi^\text{power}_\text{min}$** | $5 \cdot 10^{-10} \cdot 2^{\rho - 2} + 7.16 \cdot 10^{-2} \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{200 \cdot 2^\rho}{\rho}$ |
+| **Owl Survey $\Phi^\text{power}_\text{max}$** | $5 \cdot 10^{-10} \cdot 2^{\rho - 2} + 7.16 \cdot 10^{-2} \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{10^4 \cdot 2^\rho}{\rho}$ |
 
 
 The **graph below** illustrates the **logarithmic cost** (in **USD**) of **grinding attacks** across **Praos** and **Phalanx scenarios** as a function of **grinding depth** ($\rho$). **Solid lines** represent the **original Praos scenarios** (Ant Glance, Ant Patrol, Owl Stare, and Owl Survey), **dashed lines** represent **Phalanx with** $`\Phi^\text{power}_\text{min}`$ ($`\Phi_{\text{power}} = 0.02`$), and **dotted lines** represent **Phalanx with** $`\Phi^\text{power}_\text{max}$ ($\Phi_{\text{power}} = 1.0`$). The **shaded feasibility layers** indicate **economic thresholds** where attacks become **trivial**, **feasible**, **possible**, **borderline infeasible**, or **infeasible**, as defined in [**CPD Section 3.6 – Grinding Power Computational Feasibility**](https://github.com/input-output-hk/ouroboros-anti-grinding-design/blob/main/CPS/Readme.md#36-grinding-power-computational-feasibility). 
@@ -857,8 +856,9 @@ This **simplification** allows us to **revisit and improve** the **feasibility c
 
 
 <div align="center">
-<img src="./image/image-10.png" alt="Cost of Grinding Attacks: Praos vs Phalanx Scenarios"/>
+<img src="./image/image-13.png" alt="Cost of Grinding Attacks: Praos vs Phalanx Scenarios"/>
 </div>
+
 
 
 ✏️ **Note**: The **code** to generate this **graph** is available at ➡️ [**this link**](./graph/scenario-cost-cross-thresholds.py).
@@ -866,22 +866,26 @@ This **simplification** allows us to **revisit and improve** the **feasibility c
 
 #### Feasibility Ranges 
 
-| **Feasibility Category**                  | **🔵 Ant Glance** | **🟠 Ant Patrol** | **🟢 Owl Stare** | **🔴 Owl Survey** | **Phalanx $\Phi^\text{power}_{\text{min}}$** | **Phalanx $\Phi^\text{power}_{\text{max}}$** |
-|-------------------------------------------|-------------------|-------------------|------------------|-------------------|-------------------------------|-------------------------------|
-| **🟢 🌱 Trivial for Any Adversary**        | $[0, 33.2)$       | $[0, 26.3)$       | $[0, 25)$        | $[0, 24.5)$       | $[0, 12)$                     | $[0, 6.4)$                    |
-| **🟡 💰 Feasible with Standard Resources** | $[33.2, 46.4)$    | $[26.3, 39.5)$    | $[25, 38.3)$     | $[24.5, 37.8)$    | $[12, 25.2)$                  | $[6.4, 19.6)$                 |
-| **🟠 🏭 Possible with Large-Scale Infrastructure** | $[46.4, 56.4)$ | $[39.5, 49.5)$ | $[38.3, 48.2)$ | $[37.8, 47.7)$ | $[25.2, 35.2)$                | $[19.6, 29.6)$                |
-| **🔴 🚫 Borderline Infeasible**            | $[56.4, 66.3)$    | $[49.5, 59.5)$    | $[48.2, 58.2)$   | $[47.7, 57.7)$    | $[35.2, 45.2)$                | $[29.6, 39.5)$                |
-| **🔴 🚫 Infeasible**                      | $[66.3, 256)$     | $[59.5, 256)$     | $[58.2, 256)$    | $[57.7, 256)$     | $[45.2, 256)$                 | $[39.5, 256)$                 |
+| **Feasibility Category**                        | **🔵 Ant Glance**   | **🟠 Ant Patrol**   | **🟢 Owl Stare**   | **🔴 Owl Survey**   | **Phalanx Φᵖᵒʷᵉʳₘᵢₙ** | **Phalanx Φᵖᵒʷᵉʳₘₐₓ** |
+|--------------------------------------------------|----------------------|----------------------|---------------------|----------------------|--------------------------|--------------------------|
+| **🟢 🌱 Trivial for Any Adversary**              | $0 \to 39.8$         | $0 \to 32.9$         | $0 \to 31.6$        | $0 \to 31.1$         | $0 \to 18.6$             | $0 \to 13.0$              |
+| **🟡 💰 Feasible with Standard Resources**       | $39.8 \to 46.4$      | $32.9 \to 39.5$      | $31.6 \to 38.3$     | $31.1 \to 37.8$      | $18.6 \to 25.2$          | $13.0 \to 19.6$           |
+| **🟠 🏭 Large-Scale Infrastructure Required**    | $46.4 \to 56.4$      | $39.5 \to 49.5$      | $38.2 \to 48.2$     | $37.8 \to 47.7$      | $25.2 \to 35.2$          | $19.6 \to 29.6$          |
+| **🔴 🚫 Borderline Infeasible**                 | $56.4 \to 66.3$      | $49.5 \to 59.5$      | $48.2 \to 58.2$     | $47.7 \to 57.7$      | $35.2 \to 45.2$          | $29.6 \to 39.5$          |
+| **🔴 🚫 Infeasible**                            | $66.3 \to 256$       | $59.5 \to 256$       | $58.2 \to 256$      | $57.7 \to 256$       | $45.2 \to 256$           | $39.5 \to 256$           |
+
 
 #### Improvements by Phalanx
 
-| **Scenario**       | **$\Phi^\text{power}_{\text{min}}$ $\Delta \rho$**  | **$\Phi^\text{power}_{\text{max}}$ $\Delta \rho$**       
-|--------------------|------------------------------------|----------------------------|
-| **🔵 Ant Glance**  | +21.2        | +26.8 |
-| **🟠 Ant Patrol**  | +14.3         | +19.9 |
-| **🟢 Owl Stare**   | +13.0        |+18.7 |
-| **🔴 Owl Survey**  | +12.5        |+18.2 |
+| **Scenario**       | **$\Phi^\text{power}_{\text{min}}$ $\Delta \rho$**  | **$\Phi^\text{power}_{\text{max}}$ $\Delta \rho$** |
+|--------------------|-----------------------------------------------------|---------------------------------------------------|
+| **🔵 Ant Glance**  | $+21.2$                                             | $+26.8$                                           |
+| **🟠 Ant Patrol**  | $+14.3$                                             | $+19.9$                                           |
+| **🟢 Owl Stare**   | $+13.0$                                             | $+18.7$                                           |
+| **🔴 Owl Survey**  | $+12.5$                                             | $+18.2$                                           |
+
+
+
 
 
 <br/>
