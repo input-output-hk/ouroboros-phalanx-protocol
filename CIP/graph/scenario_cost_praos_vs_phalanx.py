@@ -15,41 +15,41 @@ w_O_hours = w_O / 3600  # Convert to hours for cost calculation
 
 # Define N_CPU functions for Praos scenarios
 def ant_glance_praos(rho):
-    return 5e-10 * 2**(rho - 1) + 1.8e-4 * 2**(rho - 1) / rho
+    return 5e-10 * 2**(rho - 2) + 1.8e-4 * 2**(rho - 1) / rho
 
 def ant_patrol_praos(rho):
-    return 5e-10 * 2**(rho - 1) + 2.16e-2 * 2**(rho - 1) / rho
+    return 5e-10 * 2**(rho - 2) + 2.16e-2 * 2**(rho - 1) / rho
 
 def owl_stare_praos(rho):
-    return 5e-10 * 2**(rho - 1) + 1.8e-4 * 2**(rho - 1) / rho + 5e-2 * 2**(rho - 1) / rho
+    return 5e-10 * 2**(rho - 2) + 5.02e-2 * 2**(rho - 1) / rho
 
 def owl_survey_praos(rho):
-    return 5e-10 * 2**(rho - 1) + 2.16e-2 * 2**(rho - 1) / rho + 5e-2 * 2**(rho - 1) / rho
+    return 5e-10 * 2**(rho - 2) + 7.16e-2 * 2**(rho - 1) / rho
 
 # Define N_CPU functions for Phalanx scenarios (Phi_min and Phi_max)
 def ant_glance_phi_min(rho):
-    return 5e-10 * 2**(rho - 1) + 1.8e-4 * 2**(rho - 1) / rho + 200 * 2**rho / rho
+    return 5e-10 * 2**(rho - 2) + 1.8e-4 * 2**(rho - 1) / rho + 200 * 2**rho / rho
 
 def ant_glance_phi_max(rho):
-    return 5e-10 * 2**(rho - 1) + 1.8e-4 * 2**(rho - 1) / rho + 1e4 * 2**rho / rho
+    return 5e-10 * 2**(rho - 2) + 1.8e-4 * 2**(rho - 1) / rho + 1e4 * 2**rho / rho
 
 def ant_patrol_phi_min(rho):
-    return 5e-10 * 2**(rho - 1) + 2.16e-2 * 2**(rho - 1) / rho + 200 * 2**rho / rho
+    return 5e-10 * 2**(rho - 2) + 2.16e-2 * 2**(rho - 1) / rho + 200 * 2**rho / rho
 
 def ant_patrol_phi_max(rho):
-    return 5e-10 * 2**(rho - 1) + 2.16e-2 * 2**(rho - 1) / rho + 1e4 * 2**rho / rho
+    return 5e-10 * 2**(rho - 2) + 2.16e-2 * 2**(rho - 1) / rho + 1e4 * 2**rho / rho
 
 def owl_stare_phi_min(rho):
-    return 5e-10 * 2**(rho - 1) + 1.8e-4 * 2**(rho - 1) / rho + 5e-2 * 2**(rho - 1) / rho + 200 * 2**rho / rho
+    return 5e-10 * 2**(rho - 2) + 5.02e-2 * 2**(rho - 1) / rho + 200 * 2**rho / rho
 
 def owl_stare_phi_max(rho):
-    return 5e-10 * 2**(rho - 1) + 1.8e-4 * 2**(rho - 1) / rho + 5e-2 * 2**(rho - 1) / rho + 1e4 * 2**rho / rho
+    return 5e-10 * 2**(rho - 2) + 5.02e-2 * 2**(rho - 1) / rho + 1e4 * 2**rho / rho
 
 def owl_survey_phi_min(rho):
-    return 5e-10 * 2**(rho - 1) + 2.16e-2 * 2**(rho - 1) / rho + 5e-2 * 2**(rho - 1) / rho + 200 * 2**rho / rho
+    return 5e-10 * 2**(rho - 2) + 7.16e-2 * 2**(rho - 1) / rho + 200 * 2**rho / rho
 
 def owl_survey_phi_max(rho):
-    return 5e-10 * 2**(rho - 1) + 2.16e-2 * 2**(rho - 1) / rho + 5e-2 * 2**(rho - 1) / rho + 1e4 * 2**rho / rho
+    return 5e-10 * 2**(rho - 2) + 7.16e-2 * 2**(rho - 1) / rho + 1e4 * 2**rho / rho
 
 # Compute N_CPU for all scenarios
 # Praos
@@ -119,6 +119,7 @@ plt.plot(rho, log_cost_ant_glance_phi_min, label='Ant Glance $\\Phi^{\\text{powe
 plt.plot(rho, log_cost_ant_patrol_phi_min, label='Ant Patrol $\\Phi^{\\text{power}}_{\\text{min}}$', color='orange', linestyle='--', linewidth=2)
 plt.plot(rho, log_cost_owl_stare_phi_min, label='Owl Stare $\\Phi^{\\text{power}}_{\\text{min}}$', color='green', linestyle='--', linewidth=2)
 plt.plot(rho, log_cost_owl_survey_phi_min, label='Owl Survey $\\Phi^{\\text{power}}_{\\text{min}}$', color='red', linestyle='--', linewidth=2)
+
 # Plot Phalanx Phi_max scenarios with dotted lines
 plt.plot(rho, log_cost_ant_glance_phi_max, label='Ant Glance $\\Phi^{\\text{power}}_{\\text{max}}$', color='blue', linestyle=':', linewidth=2)
 plt.plot(rho, log_cost_ant_patrol_phi_max, label='Ant Patrol $\\Phi^{\\text{power}}_{\\text{max}}$', color='orange', linestyle=':', linewidth=2)
@@ -126,11 +127,11 @@ plt.plot(rho, log_cost_owl_stare_phi_max, label='Owl Stare $\\Phi^{\\text{power}
 plt.plot(rho, log_cost_owl_survey_phi_max, label='Owl Survey $\\Phi^{\\text{power}}_{\\text{max}}$', color='red', linestyle=':', linewidth=2)
 
 # Add feasibility threshold layers as horizontal spans based on log10(Cost USD)
-plt.axhspan(-10, 2, color='green', alpha=0.1, label='Trivial')         # Trivial (< $100)
-plt.axhspan(2, 6, color='yellow', alpha=0.1, label='Feasible')          # Feasible ($10,000 to $1M)
+plt.axhspan(-10, 4, color='green', alpha=0.1, label='Trivial')         # Trivial (< $10,000)
+plt.axhspan(4, 6, color='yellow', alpha=0.1, label='Feasible')          # Feasible ($10,000 to $1M)
 plt.axhspan(6, 9, color='#FFA07A', alpha=0.1, label='Possible')         # Possible ($1M to $1B) - Light salmon
-plt.axhspan(9, 12, color='#FF6347', alpha=0.1, label='Borderline Infeasible')        # Borderline Infeasible ($1B to $1T) - Tomato
-plt.axhspan(12, 90, color='red', alpha=0.1, label='Infeasible')           # Infeasible (> $1T) - Red
+plt.axhspan(9, 12, color='#FF6347', alpha=0.1, label='Borderline Infeasible')  # Borderline Infeasible ($1B to $1T) - Tomato
+plt.axhspan(12, 90, color='red', alpha=0.1, label='Infeasible')         # Infeasible (> $1T) - Red
 
 # Add labels and title with larger font
 plt.xlabel('$\\rho$ (Grinding Depth)', fontsize=14)
