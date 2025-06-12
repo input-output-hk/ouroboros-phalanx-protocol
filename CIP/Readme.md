@@ -80,9 +80,16 @@ Please refer to the CPD "[Ouroboros Randomness Generation Sub-Protocol – The C
 
 <!-- A clear explanation that introduces the reason for a proposal, its use cases and stakeholders. If the CIP changes an established design then it must outline design issues that motivate a rework. For complex proposals, authors must write a Cardano Problem Statement (CPS) as defined in CIP-9999 and link to it as the \`Motivation\`. -->
 
-The "[Ouroboros Randomness Generation Sub-Protocol – The Coin-Flipping Problem](../CPS/CPD/README.md)" CPD reveals a significant vulnerability in **Ouroboros Praos**: adversaries controlling a substantial portion of stake can execute **grinding attacks** to manipulate leader election, compromising the protocol’s fairness and security. As detailed in [CPD Section 3.2 - Entry Ticket: Acquiring Stake to Play the Lottery](../CPS/CPD/README.md#32-entry-ticket-acquiring-stake-to-play-the-lottery), an adversary with **20% or more of the total stake** gains an exponential advantage in influencing randomness, with attack feasibility increasing rapidly as stake grows. This critical threshold is further explored in [CPD Section 3.6 - Grinding Power Computational Feasibility](../CPS/CPD/README.md#36-grinding-power-computational-feasibility), which shows that grinding attacks become computationally viable for well-resourced adversaries, particularly in the "Owl Survey" scenario, where costs remain within the "Possible" range (up to $\$1$ billion USD) for grinding depths ($\rho$) between 34 and 48.
+The "[Ouroboros Randomness Generation Sub-Protocol – The Coin-Flipping Problem](../CPS/CPD/README.md)" CPD reveals a significant vulnerability in **Ouroboros Praos**: adversaries controlling a substantial portion of stake can execute **grinding attacks** to manipulate leader election, compromising the protocol’s fairness and security. As detailed in [CPD Section 3.2 - Entry Ticket: Acquiring Stake to Play the Lottery](../CPS/CPD/README.md#32-entry-ticket-acquiring-stake-to-play-the-lottery), an adversary with **20% or more of the total stake** gains an exponential advantage in influencing randomness, with attack feasibility increasing rapidly as stake grows. This critical threshold is further explored in [CPD Section 3.6 - Grinding Power Computational Feasibility](../CPS/CPD/README.md#36-grinding-power-computational-feasibility), which shows that grinding attacks become computationally viable for well-resourced adversaries, particularly in the "Owl Survey" scenario, where costs remain within the "Possible" range (up to $\$1$ billion USD) for grinding depths ($\rho$) up to $57.7$.
 
-The CPD analysis in [Section 3.5 - Scenarios](../CPS/CPD/README.md#35-scenarios) quantifies this vulnerability across four scenarios—Ant Glance, Ant Patrol, Owl Stare, and Owl Survey—highlighting the ranges of $\rho$ where attacks are feasible. The table below summarizes these ranges, showing the intervals where grinding attacks transition from trivial to infeasible:
+A grinding depth of **57.7** bits means:
+  - The adversary can simulate roughly $2^{57.7}$ different outcomes of the randomness and choose the most favorable one.
+  - This amplifies the probability of rare bad events (such as rollbacks or forks) compared to the honest model. The key idea is that if a bad event, like a settlement failure, occurs with probability $\varepsilon$ under perfectly unbiased randomness, then an adversary who can try $R$ independent randomness candidates can increase the chance of that event up to $R \cdot \varepsilon$ (by the union bound).
+
+**For example**, suppose that on mainnet we reach a rollback probability of $2^{-60}$ for a block at index $x$ after $y$ additional blocks are appended. If an adversary has grinding power of $2^{57.7}$, the effective risk becomes $2^{-60} \cdot 2^{57.7} = 2^{-2.3}$. To maintain the original $2^{-60}$ confidence level under grinding, the protocol must instead target a baseline security of $2^{-(60 + 57.7)} = 2^{117.7}$, requiring many more blocks to be appended, thus significantly increasing settlement times.
+
+
+The CPD analysis in [Section 3.5 - Scenarios](../CPS/CPD/README.md#35-scenarios) quantifies this vulnerability across four scenarios (**Ant Glance**, **Ant Patrol**, **Owl Stare**, and **Owl Survey**) highlighting the ranges of $\rho$ where attacks are feasible. The table below summarizes these ranges, showing the intervals where grinding attacks transition from trivial to infeasible:
 
 | **Feasibility Category**                  | **🔵 Ant Glance**   | **🟠 Ant Patrol**   | **🟢 Owl Stare**   | **🔴 Owl Survey**   |
 |--------------------------------------------|---------------------|---------------------|--------------------|--------------------|
@@ -92,7 +99,7 @@ The CPD analysis in [Section 3.5 - Scenarios](../CPS/CPD/README.md#35-scenarios)
 | **🔴 🚫 Borderline Infeasible**            | $56.4 \to 66.3$     | $49.5 \to 59.5$     | $48.2 \to 58.2$    | $47.7 \to 57.7$    |
 | **🔴 🚫 Infeasible**                      | $66.3 \to 256$      | $59.5 \to 256$      | $58.2 \to 256$     | $57.7 \to 256$     |
 
-This vulnerability is visually depicted in the graph below, which plots the logarithmic cost (in USD) of grinding attacks against grinding depth ($\rho$) for each scenario. The shaded feasibility layers indicate the economic thresholds where attacks become trivial, feasible, possible, borderline infeasible, or infeasible. The consistent gap of $\Delta \log_{10}(\text{Cost (USD)}) \approx 2.6$ between the least (Ant Glance) and most (Owl Survey) resource-intensive scenarios highlights how evaluation complexity ($T_{\text{eval}}$) and observation scope ($w_T$) significantly amplify attack costs :
+This vulnerability is visually depicted in the graph below, which plots the logarithmic cost (in USD) of grinding attacks against grinding depth ($\rho$) for each scenario. The shaded feasibility layers indicate the economic thresholds where attacks become **trivial**, **feasible**, **possible**, **borderline infeasible**, or **infeasible**. The consistent gap of $\Delta \log_{10}(\text{Cost (USD)}) \approx 2.6$ between the least (Ant Glance) and most (Owl Survey) resource-intensive scenarios highlights how 88evaluation complexity** ($T_{\text{eval}}$) and **observation scope** ($w_T$) significantly amplify attack costs :
 
 <div align="center">
 <img src="./image/grinding_depth_scenarios_cost_with_feasibility_layers_gradient.png" alt="Grinding Depth Scenarios with Feasibility Thresholds"/>
@@ -100,37 +107,38 @@ This vulnerability is visually depicted in the graph below, which plots the loga
 
 These findings indicate that, under current protocol parameters, grinding attacks are computationally viable at lower $\rho$ values for adversaries with significant resources. However, as highlighted in [CPD Section 3.2](../CPS/CPD/README.md#32-entry-ticket-acquiring-stake-to-play-the-lottery), executing such attacks requires a substantial upfront investment—acquiring 20% of the total stake, equivalent to over 4.36 billion ADA as of March 1, 2025—and the ability to operate covertly to avoid detection. Publicly observable grinding attempts expose adversarial stake pool operators (SPOs) to severe economic and social consequences, such as loss of trust, delegator withdrawals, or protocol-level countermeasures, which could devalue their stake and undermine their efforts. Despite these barriers, the potential for well-funded adversaries to bias randomness remains a threat to Cardano’s decentralized ethos, as it could skew block production and transaction settlement in their favor.
 
+TODO : Rework this section, it will be a summary of what we recommend and the gain we have if we put this in place, I would be ok to add results of settlement times of the previous overly optimistic algorithm for settlement times...
+- Explain Recommendation of 12h and gain of 2^ 
 This CIP addresses the critical question: **Can we increase the computational cost of grinding attempts to shrink these vulnerable intervals, thereby deterring adversaries effectively?** Φalanx proposes a solution by introducing a computationally intensive mechanism that disproportionately burdens attackers while remaining manageable for honest participants. By elevating the resource threshold required for successful attacks, as analyzed in [CPD Section 3.4 - Cost of a Grinding Attack](../CPS/CPD/README.md#34-cost-of-a-grinding-attack), this CIP aims to shift the feasibility curve, making randomness manipulation prohibitively expensive and strengthening the protocol’s resilience against such threats.
 
 ## Specification / The Φalanx Sub-Protocol
 
 <!-- The technical specification should describe the proposed improvement in sufficient technical detail. In particular, it should provide enough information that an implementation can be performed solely on the basis of the design in the CIP. This is necessary to facilitate multiple, interoperable implementations. This must include how the CIP should be versioned, if not covered under an optional Versioning main heading. If a proposal defines structure of on-chain data it must include a CDDL schema in its specification.-->
 
-The core principle of the proposed protocol change is to **substantially escalate the computational cost of each grinding attempt for an adversary**. 
-
-To achieve this, every honest participant is required to perform a designated computation for each block they produce over an epoch (**21,600 blocks**). Consequently, an adversary attempting a grinding attack must **recompute these operations for every single attempt**, while being **constrained by the grinding window**, which dramatically increases the resource expenditure. 
-
-By enforcing this computational burden, we **drastically reduce the feasible number of grinding attempts** an adversary with a fixed resource budget can execute, making randomness manipulation **more expensive and significantly less practical**.
+The core principle of the proposed protocol change is to **substantially escalate the computational cost of each grinding attempt for an adversary**. To achieve this, every honest participant is required to perform a designated computation for each block they produce over an epoch (**432,000 slots - 5 days**). Consequently, an adversary attempting a grinding attack must **recompute these operations for every single attempt**, while being **constrained by the grinding window**, which dramatically increases the resource expenditure. By enforcing this computational burden, we **drastically reduce the feasible number of grinding attempts** an adversary with a fixed resource budget can execute, making randomness manipulation **more expensive and significantly less practical**.
  
 
-### 1. High-Level Changes Relative to Praos
+### 1. High-Level Overview 
+
+#### 1.1 Changes Relative to Praos
 
 In **Φalanx** , the randomness generation and leader election flows are modified as follows:
 
-![alt text](./image/image-1.png)
+![alt text](./image/Praos-vs-Phalanx-Highl-Level.png)
 
 1. The **stake distribution stabilization phase** is shifted **back by one epoch :** The **active** **stake distribution** *SDe* used for leader election is now derived from the **end of $epoch_\text{e-3}$** instead of **$epoch_\text{e-2}$**  as in the original Praos protocol.  
 2. The **honest contribution inclusion phase**, which originally resulted in a **ηₑ candidate**, is also **shifted back by one epoch**, aligning with the adjusted **stake distribution stabilization**. This value is now referred to as the **pre-ηₑ candidate**, signifying its role as an **intermediate randomness nonce** in the sub-protocol.  
-3. The **ηₑ (randomness eta nonce)** undergoes an **additional sequence of incremental hashing** using a **new deterministic** **cryptographic primitive Φ (Phi)**, applied over a duration equivalent to a full epoch.
+3. The **pre-ηₑ candidate**, once finalized (after $`3 \cdot \frac{k}{f}`$), undergoes a **sequence of incremental hashings** using a **new deterministic cryptographic primitive Φ (Phi)**. This sequence spans a full epoch size, specifically during the interval:$`\left[\frac{9k}{f} \cdot \text{epoch}_{e-2},  \frac{9k}{f} \cdot \text{epoch}_{e-1}\right)`$.
+4. The final **ηₑ (eta nonce)**, resulting from the Φ computation, is stabilized and becomes available $`\frac{k}{f}`$ slots before the start of $`\text{epoch}_e`$ like in Praos.
 
+#### 1.2 Inputs & Outputs 
 
-### 2. The Streams 
+The Randomness Generation sub-protocol operates with two parallel streams: $`\eta^\text{stream}`$ and $`\phi^\text{stream}`$, which synchronize at $`9.\frac{k}{f}`$ at each epoch :  
 
-The Randomness Generation sub-protocol operates with two parallel streams: $`\eta^\text{stream}`$ and $`\phi^\text{stream}`$, which synchronize at the conclusion of the **Include Honest Contribution** Phase (akka Phase 2) :  
+![alt text](./image/Phalanx-Streams.png)
 
-![alt text](image.png)
+##### 1.2.1 **The $`\eta^\text{stream}`$** 
 
-#### 2.1 **The $`\eta^\text{stream}`$** 
    - Already present in Praos and retained in Phalanx 
    - Updated with every block produced in the blockchain tree, a $`\eta^\text{stream}`$ captures intermediate values $`\eta^\text{evolving}_t`$ in the block headers, defined as follows:
 
@@ -158,33 +166,110 @@ false & \text{otherwise.}
 | $a⭒b$    | The concatenation of $a$ and $b$ , followed by a BLAKE2b-256 hash computation.
 
 
-#### 2.2 The $`\text{pre-}\eta`$ Synchronizations  
+##### 1.2.2 The $`\text{pre-}\eta`$ Synchronizations  
 
-- To generate $`\eta_\text{e}`$ for epoch $`e`$, the stream $`\phi^\text{stream}`$ is reset with the value of $`\eta^\text{stream}`$ at the end of Phase 2 in $`\text{epoch}_{e-2}`$. 
+- To generate $`\eta_\text{e}`$ for epoch $`e`$, the stream $`\phi^\text{stream}`$ is reset with the value of $`\eta^\text{stream}`$ at $`t=9.\frac{k}{f}`$. 
 - This specific value of $`\eta^\text{stream}`$ is referred to as **$`\text{pre-}\eta_e`$**.
 
 
-#### 2.3 The $`\phi^\text{stream}`$
+##### 1.2.3 The $`\phi^\text{stream}`$
 
-- The stream depends on the selected cryptographic primitive and it is parametrizable with $i$, the total number of $`\Phi`$ iterations,
-- The stream $`\phi^\text{stream}`$ is reset during each $`\text{pre-}\eta`$ synchronization.  
-- At the synchronization point $`\text{pre-}\eta_{e+1}`$, the stream must guarantee delivery of $`\phi^\text{evolving}_e`$, defined as:
+- The stream is bootstrapped with two parameters:
+
+  - A security parameter $`\lambda`$ for the cryptographic primitive $`\Phi`$.
+  - $`T_\Phi`$, a time-bound representing the required computation  $`\Phi`$ duration, independent of available computing power.
+  - Any change to these 2 parameters would require a decision through Cardano governance.
+  - The stream is configured by calling the setup function of the cryptographic primitive $`\Phi`$ with:
+    $$
+    Φ.\text{Configuration} \leftarrow \Phi.\text{setup}(\lambda, T_\Phi)
+    $$
+  - `Φ.Configuration` will contain derived configuration specific to the algorithm and the cryptographic primitive used.
+
+- The stream is modeled as following :
+
+  - It is reset at every $`\text{pre-}\eta`$ synchronization point every $`10.\frac{k}{f}`$ slots.
+    $$
+    Φ.\text{Stream.State} \leftarrow \Phi.\text{init}(Φ.\text{Configuration}, \text{pre-}\eta)
+    $$
+  - At each slot $t$, update the stream state by :   
+    $$
+    Φ.\text{Stream.State} \leftarrow \Phi.\text{tick}(Φ.\text{Stream.State, t})
+    $$
+  - A node must be able to determine, based on the current state, whether it should begin computing $\Phi$ iterations in order to provide a proof at its next scheduled leader slot:
+    $$
+    \{0,1\} \leftarrow \Phi.\text{shouldCompute}(Φ.\text{Stream.State, \text{nextSlotLeader}})
+    $$
   
-```math
-  \phi^\text{evolving}_e = \Phi^i(\text{pre-}\eta_e)
-```
-- Between 2 consecutive resets, a subset of the blocks produced must append to their block header a unique intermediate value $\phi^\text{evolving}_x$, where $x \in {0, 1, \dotsc, i-1}$ denotes the progression index of the $\Phi$ computation(See the [**Distribution of Φ Iterations Approach**](#3-distribution-of-phi-iterations) below).
+  - A node must be able to compute a specific chunk of the $`\Phi`$ iteration independently of any global state. The result is an *attested output*—a pair $`\phi_x =(\pi_x,\ o_x)`$, where $`o_x`$ is the computed output for iteration $`x`$, and $`\pi_x`$ is a cryptographic proof attesting that $`o_x`$ was correctly derived from the input according to the rules of $`\Phi`$. Since this operation may be long-lived, intermediate attested outputs should be persistable to disk, allowing the node to stop, resume, or cancel computation from the latest completed sub-computation.
 
 
+  - A subset of block-producing slots must include in their block headers a unique attested output $`\phi_x`$ whith $`x \in \{1, \dotsc, e \}`$ denoting the iteration index within the $`\Phi`$ computation.
 
-#### 2.4 The $`\eta`$** Generations
+    - Each attested output updates the stream state as follows:
+
+      $$
+      \Phi.\text{StreamState} \leftarrow \Phi.\text{addAttestedOutput}(\Phi.\text{StreamState},\ t,\ \phi_x)
+      $$
+    - Each attested output must be verifiable both:
+
+      - **logically**, to ensure it corresponds to the correct slot and index, and
+      - **cryptographically**, to confirm that the computation was effectively executed
+
+      $$
+      \{0,1\} \leftarrow \Phi.\text{verify}(\Phi.\text{StreamState},\ t,\ \phi_x)
+      $$
+
+  - At the synchronization point $`\text{pre-}\eta_{e+1}`$, the stream is closed providing $`\phi^{final}_e = (\phi_e,\phi^{aggregated}_e)`$ with the last attested output $`\phi_e`$, along with an **aggregated proof** $`\phi^{final}_e`$. This aggregated proof allows nodes to efficiently verify the final result without checking each individual $`\phi_x`$ produced during the computation phase :
+      $$
+      \phi^{final}_e \leftarrow \Phi.\text{close}( \Phi.\text{StreamState})
+      $$
+
+##### 1.2.4 The $`\eta`$ Generations
    - This is the final nonce $`\eta_\text{e}`$ used to determine participant eligibility during epoch $`e`$.  
    - It originates from the operation ⭒ with  $`\phi^{\text{stream}}_{t}`$ at $`\text{pre-}\eta_\text{e+1}`$ Synchronization and $`\eta^\text{stream}_t`$ $`\text{when } t = \text{end of epoch}_\text{e-3}`$   
 
 ```math
-\eta_\text{e} = \eta^\text{stream}_{epoch_\text{e-3}} ⭒ \phi^\text{evolving}_e , \quad \text{when } t = \text{pre-}\eta_\text{e+1}\text{ synchronization } 
+\eta_\text{e} = \eta^\text{stream}_{epoch_\text{e-3}} ⭒ \phi^{final}_e , \quad \text{when } t = \text{pre-}\eta_\text{e+1}\text{ synchronization } 
 ```
-**Note** : $`\text{pre-}\eta_\text{e+1}`$ synchronization occurs $`\text{when } t = \text{end of phase 2 at epoch}_\text{e-1}`$
+
+
+### 2. The Φ Cryptographic Primitive
+
+#### 2.1. Expected Properties
+
+The Φ cryptographic primitive is a critical component of the Φalanx protocol, designed to increase the computational cost of grinding attacks while remaining efficient for honest participants. To achieve this, Φ must adhere to a set of well-defined properties that ensure its security, efficiency, and practical usability within the Cardano ecosystem. These properties are outlined in the table below :
+
+| **Property**              | **Description**                                                                                                   |
+|---------------------------|-------------------------------------------------------------------------------------------------------------------|
+| **Functionality**         | Must be a well-defined mathematical function, ensuring a unique output for each given input (unlike proof-of-work, which allows multiple valid outputs). |
+| **Determinism**           | Must be fully deterministic, with the output entirely determined by the input, eliminating non-deterministic variations. |
+| **Efficient Verification**| Must allow for fast and lightweight verification, enabling rapid validation of outputs with minimal computational overhead. |
+| **Compact Representation**| Input and output sizes should be small enough to fit within a block, optimizing on-chain storage efficiency. Further reductions are desirable where feasible. |
+| **Lower Bound on Computation** | Computational cost of evaluation should be well-characterized and predictable, with a lower bound that is difficult to surpass, ensuring adversaries cannot gain an unfair efficiency advantage. |
+| **Ease of Implementation & Maintenance** | Should be simple to implement and maintain, ensuring long-term usability and minimizing technical debt. |
+| **Adaptive Security**     | Function and its parameters should be easily reconfigurable to accommodate evolving threats, such as advances in computational power or new cryptographic attacks. |
+
+#### 2.2. Wesolowski's VDF (Verifiable Delayed Functions)
+
+Verifiable Delayed Functions (VDFs) are cryptographic primitives designed to take a certain amount of time to compute, regardless of how much computing resources are avaialable. This delay is enforced by requiring a specific number of sequential steps that cannot be sped up through parallel processing. Once the computation is done, the result comes with a proof that can be checked quickly and efficiently by anyone. Importantly, for a given input, the output is always the same (deterministic function), ensuring consistency. They usually rely on repeatedly squaring numbers in a mathematical setting that prevents shortcuts and enables quick verification.
+
+As one can see, VDFs present _functionality_, _determinism_, _efficient verification_ and _lower bound on computation_. The _compact representation_ depends on the chosen group as well as the instantiation, which we will tackle later on. The _implementation and maintenance_ is straightforward as the output of a VDF is a simple exponentiation of a group element, only the square operation is needed to be implemented to compute it. As for the proof, this depends on the precise VDF instantiation. Finally, the system is "adaptively secure" as we can set up a group with high security to be reused for a whole epoch, and set the number of squaring, also called difficulty, depending on how much computation we want the nodes to perform.
+
+Verifiable Delayed Functions were introduced by Boneh et al. [6](https://eprint.iacr.org/2018/601.pdf) where the authors suggest several sequential functions combined with the use of proof systems in the incrementally verifiable computation framework (IVC) for viable proof generation and fast verification.
+VDF variants revolve around two primary SNARK-free designs: one from Pietrzak [36](https://drops.dagstuhl.de/storage/00lipics/lipics-vol124-itcs2019/LIPIcs.ITCS.2019.60/LIPIcs.ITCS.2019.60.pdf) and the second from Wesolowski [35](https://eprint.iacr.org/2018/623.pdf). They differ in the proof design. 
+
+In Wesolowski’s paper, the proof is defined as $x^{2^T} / l$ where $g$ is the challenge, $T$ the difficulty and $l$ is a prime number found by hashing the VDF input and output together.  
+
+The proof is thus a single group element that can be computed in at most $2 T$ group operations and constant space, or $(1+1/s) \cdot T$ time where the number $s$ is both the number of processors and space while the verification takes $log_2 T$ scalar multiplications in $\mathcal{Z}/l$ and two small exponentiations in the group $\mathbb{G}$. 
+
+The proving time can further be optimized to $O(T /  log(T))$ group multiplications by reusing the evaluation intermediary results.
+
+Wesolowski also presents aggregation and watermarking methods. The aggregation method does not consist in aggregating multiple proofs but computing a proof of several VDF challenges. This is done by batching all inputs and outputs together and creating a proof for this batched input. The watermarking is done by computing the VDF twice, once normally and another time on a combination of the challenger’s id and VDF input.
+
+In Pietrzak’s paper, the proof is a tuple of group elements $\pi = \{x^{2^{T / 2^i}}\}$, of size logarithmic in $T$, that can be computed in $(1+2 \sqrt{T}^-1) T$ time and can be optimized to $O(\sqrt{T} \cdot log_2 T)$ multiplications, the verification takes $2 \cdot log_2T$ small exponentiations. Subsequent work on Pietrzak’s paper shows how VDFs challenges can be structured in a Merkle tree to get a proof of the whole tree.
+
+We will choose Wesolowski design over Pietrzark because of its space efficiency and possibility to aggregate proofs.
+
 
 
 ### 3. Distribution of $\Phi$ Iterations
@@ -243,8 +328,7 @@ The key question, then, is **how can we design effective incentives to ensure th
   
 The following visual highlights this situation:
 
-<div align="center"><img src="./image-12.png" alt="" width="1000"/></div>
-
+<div align="center"><img src="./image/segment-sequence.png" alt="" width="1000"/></div>
 
 #### 3.5 The Algorithm 
 
@@ -555,22 +639,7 @@ It must also explain how the proposal affects the backward compatibility of exis
 ### 1. $Φ_\text{power}$ & Adversarial Cost Overhead
 #### 1.1 Cost Overhead of a grinding attempt
 
-In **Φalanx**, we introduce an additional **computational cost**, denoted $T_\Phi$, for each **grinding attempt**. This cost represents the total cumulative effort required to compute $i$ iterations of the $\Phi$ primitive. It is defined as follows:
-
-```math
-T_\Phi = \Phi_{\text{power}} \cdot \frac{1}{2} \cdot \frac{9k}{f}
-```
-
-where:  
-- $T_\Phi$ is the total cost (in seconds, assuming 1 slot ≈ 1 second) for a single grinding attempt under Φalanx,  
-- $\Phi_{\text{power}} \in [0,1]$ is a tunable parameter controlling the difficulty of computing the $\Phi$ function,  
-- $\frac{1}{2}$ is a deliberate margin: honest participants are guaranteed **twice the time** adversaries have to perform the $\Phi$ iterations,  
-- $k$ is the common prefix parameter,  
-- $f$ is the active slot coefficient,  
-- $\frac{9k}{f}$ defines the number of slots within the **Computation Phase** (e.g., $388,\!800$ slots when $k = 2,\!160$ and $f = 0.05$).
-
-
-This additional cost directly impacts the total estimated **time per grinding attempt**, as originally defined in [CPD Section 3.3.4 - Total Estimated Time per Grinding Attempt](../CPS/CPD/README.md#334-total-estimated-time-per-grinding-attempt). The baseline grinding time in **Praos** is:
+In **Φalanx**, we introduce an additional **computational cost**, denoted $T_\Phi$, for each **grinding attempt**. This cost represents the total cumulative effort required to compute $i$ iterations of the $\Phi$ primitive. This additional cost directly impacts the total estimated **time per grinding attempt**, as originally defined in [CPD Section 3.3.4 - Total Estimated Time per Grinding Attempt](../CPS/CPD/README.md#334-total-estimated-time-per-grinding-attempt). The baseline grinding time in **Praos** is:
 
 ```math
 T_{\text{grinding}}^{\text{Praos}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}}
@@ -581,19 +650,6 @@ With **Φalanx**, the total grinding time per attempt is updated to include $T_\
 ```math
 T_{\text{grinding}}^{\text{Phalanx}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_\Phi 
 ```
-
-Substituting $T_\Phi$ with the expression above, the final grinding time per attempt under **Φalanx** becomes:
-
-```math
-T_{\text{grinding}}^{\text{Phalanx}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + \Phi_{\text{power}} \cdot \frac{1}{2} \cdot \frac{9k }{f}
-```
-
-With **Cardano mainnet parameters** ($k = 2,\!160$, $f = 0.05$), this simplifies to:
-
-```math
-T_{\text{grinding}}^{\text{Phalanx}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + \Phi_{\text{power}} \cdot 1.944 \cdot 10^5 
-```
-
 Where:  
 - $T_{\mathsf{VRF}}$ is the **VRF evaluation time**,  
 - $T_{\text{eligibility}}$ is the **eligibility check time**,  
@@ -601,6 +657,7 @@ Where:
 - $w_T$ is the **target window size** (seconds),  
 - $\rho$ is the **grinding depth**,  
 - $T_{\text{eval}}$ is the **nonce selection and evaluation time** (**attack-specific**).
+- $T_\Phi$ is the additional computational cost of **Φalanx**
 
 
 The introduction of $T_\Phi$ substantially increases the **computational burden** for adversaries, as they must **recompute** the $\Phi^i$ function for each of the $2^\rho$ possible **nonces** evaluated during a grinding attack. In contrast, for **honest participants**, this computation is **distributed** across the epoch, ensuring it remains **manageable and efficient**. 
@@ -619,80 +676,66 @@ which leads to the lower bound on computational power ($N_\text{CPU}$) :
 N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot T_{\text{grinding}}^{\text{Phalanx}}}{w_O} \right \rceil
 ```
 
+
+
 #### 1.2.1 Formula
 
 ##### Expanding $T_{\text{grinding}}^{\text{Phalanx}}$
+
 From **Section 1.1**, the per-attempt grinding time under **Φalanx** is:
 
 ```math
-T_{\text{grinding}}^{\text{Phalanx}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + \Phi_{\text{power}} \cdot \frac{1}{2} \cdot \frac{9k }{f}
+T_{\text{grinding}}^{\text{Phalanx}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_{\Phi}
 ```
 
 Substituting this into the inequality:
 
 ```math
-N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + \Phi_{\text{power}} \cdot \frac{1}{2} \cdot \frac{9k }{f} \right)}{w_O} \right \rceil
+N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_{\Phi} \right)}{w_O} \right \rceil
 ```
 
 ##### Expanding $w_O$ in Terms of $\rho$ and $f$
-From previous sections, the **grinding opportunity window** is defined as:
+
+The grinding opportunity window is:
 
 ```math
 \frac{X_A(w)}{f} \leq w_O \leq \frac{w}{f}
 ```
 
-Assuming the upper bound $w_O = \frac{w}{f}$ (worst-case scenario for the adversary), and noting that $w < 2 \cdot \rho - 1$ as per [CPD Section 3.4.1](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021/CPD#341-formula), we substitute $w_O$:
+Assuming worst-case upper bound $w_O = \frac{w}{f}$ and noting $w < 2 \cdot \rho - 1$, we substitute:
 
 ```math
-N_{\text{CPU}} \geq \left \lceil f \cdot \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + \Phi_{\text{power}} \cdot \frac{1}{2} \cdot \frac{9k }{f} \right)}{w} \right \rceil
+N_{\text{CPU}} \geq \left \lceil f \cdot \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_{\Phi} \right)}{w} \right \rceil
 ```
 
-Since $w < 2 \cdot \rho - 1$, we can use this bound to simplify:
+Bounding $w < 2 \cdot \rho - 1$:
 
 ```math
-N_{\text{CPU}} \geq \left \lceil f \cdot \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + \Phi_{\text{power}} \cdot \frac{1}{2} \cdot \frac{9k }{f} \right)}{2 \cdot \rho - 1} \right \rceil
+N_{\text{CPU}} \geq \left \lceil f \cdot \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_{\Phi} \right)}{2 \cdot \rho - 1} \right \rceil
 ```
 
-To derive a more explicit expression, we distribute the terms:
+Rewriting:
 
 ```math
-N_{\text{CPU}} \geq \left \lceil f \cdot 2^{\rho} \cdot \frac{\frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + \Phi_{\text{power}} \cdot \frac{1}{2} \cdot \frac{9k \cdot T_\phi}{f}}{2 \cdot \rho - 1} \right \rceil
+N_{\text{CPU}} \geq \left \lceil f \cdot 2^{\rho} \cdot \left( \frac{\frac{\rho}{2} T_{\text{BLAKE2b}}}{2 \cdot \rho - 1} + \frac{w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} )}{2 \cdot \rho - 1} + \frac{T_{\text{eval}}}{2 \cdot \rho - 1} + \frac{T_{\Phi}}{2 \cdot \rho - 1} \right) \right \rceil
 ```
 
-Simplify by breaking it down:
+Approximating $2 \cdot \rho - 1 \approx 2 \rho$:
 
 ```math
-N_{\text{CPU}} \geq \left \lceil f \cdot 2^{\rho} \cdot \left( \frac{\frac{\rho}{2} T_{\text{BLAKE2b}}}{2 \cdot \rho - 1} + \frac{w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} )}{2 \cdot \rho - 1} + \frac{T_{\text{eval}}}{2 \cdot \rho - 1} + \frac{\Phi_{\text{power}} \cdot \frac{1}{2} \cdot \frac{9k }{f}}{2 \cdot \rho - 1} \right) \right \rceil
+N_{\text{CPU}} > \left \lceil \frac{f}{2 \rho} \cdot 2^{\rho} \cdot \left( \rho T_{\text{BLAKE2b}} + 2 w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + 2 T_{\text{eval}} + 2 T_{\Phi} \right) \right \rceil
 ```
 
-This can be rewritten as:
+Simplified:
 
 ```math
-N_{\text{CPU}} \geq \left \lceil f \cdot 2^{\rho} \cdot \left( \frac{\rho T_{\text{BLAKE2b}}}{2 (2 \cdot \rho - 1)} + \frac{w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} )}{2 \cdot \rho - 1} + \frac{T_{\text{eval}}}{2 \cdot \rho - 1} + \frac{\Phi_{\text{power}} \cdot 9k }{2 f \cdot (2 \cdot \rho - 1)} \right) \right \rceil
+N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho - 2} \cdot T_{\text{BLAKE2b}} + \frac{f \cdot 2^{\rho}}{2 \rho} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_{\Phi} \right) \right \rceil
 ```
 
-To align with the form provided in the query, we aim for a lower bound expression. Recognizing that $2 \cdot \rho - 1 \approx 2 \rho$ for large $\rho$, we approximate:
+Or grouped as:
 
 ```math
-N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho-2} \cdot T_{\text{BLAKE2b}} + f \cdot 2^{\rho} \cdot \frac{w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}}}{2 \cdot \rho - 1} + f \cdot 2^{\rho} \cdot \frac{\Phi_{\text{power}} \cdot 9k }{2 f \cdot (2 \cdot \rho - 1)} \right \rceil
-```
-
-Further simplifying:
-
-```math
-N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho-2} \cdot T_{\text{BLAKE2b}} + \frac{f \cdot 2^{\rho}}{2 \cdot \rho - 1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + \Phi_{\text{power}} \cdot \frac{9k }{f} \right) \right \rceil
-```
-
-For large $\rho$, $\frac{2^{\rho}}{2 \cdot \rho - 2} \approx \frac{2^{\rho}}{2 \rho} = \frac{2^{\rho-1}}{\rho}$, so:
-
-```math
-N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho-2} \cdot T_{\text{BLAKE2b}} + \frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + \Phi_{\text{power}} \cdot \frac{9k }{f} \right) \right \rceil
-```
-
-Finally, we can express the $\Phi$ term more explicitly:
-
-```math
-N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho-2} \cdot T_{\text{BLAKE2b}} + \frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right) + \frac{\Phi_{\text{power}} \cdot 9k \cdot 2^{\rho-1}}{\rho} \right \rceil
+N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho - 2} \cdot T_{\text{BLAKE2b}} + \frac{f}{\rho} \cdot 2^{\rho - 1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_{\Phi} \right) \right \rceil
 ```
 
 #### 1.2.2 Estimated Formula Using Mainnet Cardano Parameters
@@ -700,28 +743,35 @@ N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho-2} \cdot T_{\text{BLAKE2b}} + \fra
 Starting from the final expression at the end of the last section:
 
 ```math
-N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho-2} \cdot T_{\text{BLAKE2b}} + \frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right) + \frac{\Phi_{\text{power}} \cdot 9k \cdot 2^{\rho-1}}{\rho} \right \rceil
+N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho-2} \cdot T_{\text{BLAKE2b}} + \frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_{\Phi} \right) \right \rceil
 ```
 
 #### Applying Cardano Mainnet Parameters
-Using Cardano’s mainnet values:
-- $T_{\mathsf{VRF}} = 10^{-6}$ seconds (1 microsecond) – Time to evaluate a Verifiable Random Function.
-- $T_{\text{BLAKE2b}} = 10^{-8}$ seconds (0.01 microseconds) – Time for a BLAKE2b-256 hash operation.
-- $f = \frac{1}{20} = 0.05$ – Active slot coefficient.
-- $k = 2160$
-- Slot duration = 1 second.
 
-Since the eligibility check is negligible, set $T_{\text{eligibility}} \approx 0$:
+Using Cardano’s mainnet values:
+
+* $T\_{\mathsf{VRF}} = 10^{-6}$ seconds (1 microsecond) – Time to evaluate a Verifiable Random Function.
+* $T\_{\text{BLAKE2b}} = 10^{-8}$ seconds (0.01 microseconds) – Time for a BLAKE2b-256 hash operation.
+* $f = \frac{1}{20} = 0.05$ – Active slot coefficient.
+* $k = 2160$
+* Slot duration = 1 second.
+
+Since the eligibility check is negligible, set \$T\_{\text{eligibility}} \approx 0\$:
 
 Substitute into the expression:
 
-- First term: $f \cdot 2^{\rho-2} \cdot T_{\text{BLAKE2b}} = 0.05 \cdot 2^{\rho-1} \cdot 10^{-8} = 5 \cdot 10^{-10} \cdot 2^{\rho-1}$,
-- Second term: $\frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} \right) = \frac{0.05}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot (10^{-6} + 0) + T_{\text{eval}} \right) = \frac{0.05 \cdot 2^{\rho-1}}{\rho} \cdot (10^{-6} w_T + T_{\text{eval}})$.
-- Third term (with $k = 2160$):
+* First term:
 
-```math
-  \frac{9 \cdot 2160 \cdot \Phi_{\text{power}} \cdot 2^{\rho - 1}}{\rho} = \frac{1.9440 \cdot 10^4 \cdot\Phi_{\text{power}} \cdot 2^{\rho - 1}}{\rho} \approx  \frac{10^4 \cdot\Phi_{\text{power}} \cdot 2^{\rho}}{\rho}
-```
+  ```math
+  f \cdot 2^{\rho-2} \cdot T_{\text{BLAKE2b}} = 0.05 \cdot 2^{\rho-2} \cdot 10^{-8} = 5 \cdot 10^{-10} \cdot 2^{\rho-2}
+  ```
+
+* Second term:
+
+  ```math
+  \frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot 10^{-6} + T_{\text{eval}} + T_{\Phi} \right)
+  = \frac{0.05 \cdot 2^{\rho-1}}{\rho} \cdot \left( 10^{-6} w_T + T_{\text{eval}} + T_{\Phi} \right)
+  ```
 
 The estimated number of CPUs required is:
 
@@ -730,99 +780,74 @@ N_{\text{CPU}} > \left \lceil
 5 \cdot 10^{-10} \cdot 2^{\rho - 2} +
 \frac{5 \cdot 10^{-8} \cdot 2^{\rho - 1}}{\rho} \cdot w_T +
 \frac{5 \cdot 10^{-2} \cdot 2^{\rho - 1}}{\rho} \cdot T_{\text{eval}} +
-\frac{10^4\cdot \Phi_{\text{power}} \cdot 2^{\rho}}{\rho}
+\frac{5 \cdot 10^{-2} \cdot 2^{\rho - 1}}{\rho} \cdot T_{\Phi}
 \right \rceil
 ```
 
+#### 1.2.3 $T_{\Phi}$ & Scenarios
 
-#### 1.2.3 $\Phi_\text{power}$ & Scenarios
+To streamline our analysis, we fix the cryptographic overhead to a single value:
 
+```math
+T_{\Phi} = 3600 \, \text{seconds} = 1 \, \text{hour}
+```
 
-This increased **grinding time** directly affects the number of **CPUs** ($N_{\text{CPU}}$) required for an **adversary** to execute a grinding attack within the **grinding opportunity window** $w_O$. 
+We now reinterpret the canonical scenarios from [CPD Section 3.5 – Scenarios](https://github.com/input-output-hk/ouroboros-anti-grinding-design/blob/main/CPS/Readme.md#35-scenarios), extending each one with a **Phalanx-enhanced variant** that incorporates the fixed additional computational cost $`T_{\Phi} = 3600 \, \text{seconds}`$.
 
-By varying $\Phi_{\text{power}}$, we can explore how the **computational overhead scales** and assess its effectiveness in **deterring adversaries**. To  evaluate the **impact of Φalanx** on grinding attack feasibility, we introduce an additional dimension to our analysis by incorporating extreme values of $\Phi_{\text{power}}$. 
-
-These extremes—ranging from a minimal computational burden to the maximum feasible overhead—allow us to test the protocol's robustness across a wide spectrum of adversarial conditions. By extending the four scenarios defined in [CPD Section 3.5 - Scenarios](https://github.com/input-output-hk/ouroboros-anti-grinding-design/blob/main/CPS/Readme.md#35-scenarios)—**Ant Glance**, **Ant Patrol**, **Owl Stare**, and **Owl Survey**—with Φalanx-enhanced versions, we can quantify how these computational costs reshape the feasibility of attacks compared to the baseline **Praos** protocol.
-
-These scenarios use an **animal-inspired metaphor** to reflect **evaluation complexity** ($T_{\text{eval}}$) and **observation scope** ($w_T$), providing a basis for comparing the **computational cost** under **Praos**. We incorporate the additional **computational cost** $T_\Phi$, with:
-  - **$\Phi^\text{power}_\text{min}$**: 2% capacity ($\Phi_{\text{power}} = 0.02$), which yields an accumulated time of $T_\Phi = 3.888 \times 10^3 \, \text{seconds}$ (approximately 1 hour and 5 minutes).
-  - **$\Phi^\text{power}_\text{max}$**: 100% capacity ($\Phi_{\text{power}} = 1$), which yields an accumulated time of $T_\Phi = 1.944 \times 10^5 \, \text{seconds}$ (approximately 54 hours or 2 days and 6 hours).
-
-The table below summarizes the **Accumulated Computation Time** ($T_\Phi$) for various $\Phi_{\text{power}}$ values, illustrating the range of computational overheads introduced by Φalanx:
-
-| $\Phi_{\text{power}}$ | Accumulated Computation Time |
-|-----------------------|------------------------------|
-| 0.0                   | 0 minutes                    |
-| 0.02                  | 1 hour 5 minutes             |
-| 0.05                  | 2 hours 42 minutes           |
-| 0.1                   | 5 hours 24 minutes           |
-| 0.2                   | 10 hours 48 minutes          |
-| 0.3                   | 16 hours 12 minutes          |
-| 0.4                   | 21 hours 36 minutes          |
-| 0.5                   | 1 day 3 hours                |
-| 0.6                   | 1 day 8 hours 24 minutes     |
-| 0.7                   | 1 day 13 hours 48 minutes    |
-| 0.8                   | 1 day 19 hours 12 minutes    |
-| 0.9                   | 2 days 35 minutes            |
-| 1.0                   | 2 days 6 hours               |
-
-The table highlights the computational burden for $`\Phi^\text{power}_\text{min} = 0.02`$ and $`\Phi^\text{power}_\text{max} = 1.0`$, which we use to extend the scenarios. 
-
-The following table summarizes the scenarios, including their $T_{\text{eval}}$ (evaluation complexity) and $w_T$ (observation scope), and extends them to Φalanx-enhanced versions with the additional computational cost $T_\Phi$:
+The following table summarizes the scenarios, including their evaluation complexity ($`T_{\text{eval}}`$) and observation scope ($`w_T`$), and distinguishes between the original **Praos** case and its corresponding **Phalanx** variant with added grinding resistance:
 
 | **Scenario**            | **$T_{\text{eval}}$ (Complexity)** | **$w_T$ (Scope)** | **Description**                                                                 |
-|--------------------------|------------------------------------|-------------------|---------------------------------------------------------------------------------|
-| **Ant Glance Praos**     | $0 \, \text{s}$                   | $1 \, \text{h}$  | An **ant** quickly **glancing** at a small spot, representing **simple evaluation** (low $T_{\text{eval}}$) with **basic effort** and a **narrow observation scope** (small $w_T$). |
-| **Ant Glance $\Phi^\text{power}_\text{min}$** | $0 \, \text{s}$                   | $1 \, \text{h}$  | An **ant glancing** with **Phalanx’s minimal** $\Phi$ cost, adding **moderate effort** due to $T_\Phi = 3.888 \times 10^3 \, \text{s}$. |
-| **Ant Glance $\Phi^\text{power}_\text{max}$** | $0 \, \text{s}$                   | $1 \, \text{h}$  | An **ant glancing** with **Phalanx’s maximal** $\Phi$ cost, **significantly increasing effort** due to $T_\Phi = 1.944 \times 10^5 \, \text{s}$. |
-| **Ant Patrol Praos**     | $0 \, \text{s}$                   | $5 \, \text{d}$  | An **ant patrolling** a **wide area** over time with **simple instincts**, representing **simple evaluation** (low $T_{\text{eval}}$) with **basic effort** and a **broad observation scope** (large $w_T$). |
-| **Ant Patrol $\Phi^\text{power}_\text{min}$** | $0 \, \text{s}$                   | $5 \, \text{d}$  | An **ant patrolling** with **Phalanx’s minimal** $\Phi$ cost, adding **moderate effort** due to $T_\Phi = 3.888 \times 10^3 \, \text{s}$. |
-| **Ant Patrol $\Phi^\text{power}_\text{max}$** | $0 \, \text{s}$                   | $5 \, \text{d}$  | An **ant patrolling** with **Phalanx’s maximal** $\Phi$ cost, **significantly increasing effort** due to $T_\Phi = 1.944 \times 10^5 \, \text{s}$. |
-| **Owl Stare Praos**      | $1 \, \text{s}$                  | $1 \, \text{h}$  | An **owl staring intently** at a **small area** with **keen focus**, representing **complex evaluation** (high $T_{\text{eval}}$) with **advanced effort** and a **narrow observation scope** (small $w_T$). |
-| **Owl Stare $\Phi^\text{power}_\text{min}$** | $1 \, \text{s}$                  | $1 \, \text{h}$  | An **owl staring** with **Phalanx’s minimal** $\Phi$ cost, adding **moderate effort** due to $T_\Phi = 3.888 \times 10^3 \, \text{s}$. |
-| **Owl Stare $\Phi^\text{power}_\text{max}$** | $1 \, \text{s}$                  | $1 \, \text{h}$  | An **owl staring** with **Phalanx’s maximal** $\Phi$ cost, **significantly increasing effort** due to $T_\Phi = 1.944 \times 10^5 \, \text{s}$. |
-| **Owl Survey Praos**     | $1 \, \text{s}$                  | $5 \, \text{d}$  | An **owl surveying** a **wide range** with **strategic awareness**, representing **complex evaluation** (high $T_{\text{eval}}$) with **advanced effort** and a **broad observation scope** (large $w_T$). |
-| **Owl Survey $\Phi^\text{power}_\text{min}$** | $1 \, \text{s}$                  | $5 \, \text{d}$  | An **owl surveying** with **Phalanx’s minimal** $\Phi$ cost, adding **moderate effort** due to $T_\Phi = 3.888 \times 10^3 \, \text{s}$. |
-| **Owl Survey $\Phi^\text{power}_\text{max}$** | $1 \, \text{s}$                  | $5 \, \text{d}$  | An **owl surveying** with **Phalanx’s maximal** $\Phi$ cost, **significantly increasing effort** due to $T_\Phi = 1.944 \times 10^5 \, \text{s}$. |
+|------------------------|-------------------------------------|-------------------|---------------------------------------------------------------------------------|
+| **Ant Glance (Praos)**   | $0 \, \text{s}$                     | $1 \, \text{h}$    | An **ant** quickly glancing at a small spot, representing **minimal evaluation** with **basic effort** and a **narrow observation scope**. |
+| **Ant Glance (Phalanx)** | $0 \, \text{s}$                     | $1 \, \text{h}$    | Same as Ant Glance, but now includes a fixed Phalanx cost $T_{\Phi} = 3600 \, \text{s}$, resulting in **moderate total effort**. |
+| **Ant Patrol (Praos)**   | $0 \, \text{s}$                     | $5 \, \text{d}$    | An **ant patrolling** a wide area over time with simple instincts—low evaluation cost and **broad observation scope**. |
+| **Ant Patrol (Phalanx)** | $0 \, \text{s}$                     | $5 \, \text{d}$    | Same as Ant Patrol, but includes the Phalanx cost $T_{\Phi} = 3600 \, \text{s}$, increasing adversarial effort. |
+| **Owl Stare (Praos)**    | $1 \, \text{s}$                     | $1 \, \text{h}$    | An **owl staring intently** with **keen focus**, representing **complex evaluation** with narrow scope. |
+| **Owl Stare (Phalanx)**  | $1 \, \text{s}$                     | $1 \, \text{h}$    | Same as Owl Stare, now with additional Phalanx cost $T_{\Phi} = 3600 \, \text{s}$ added to the total computation time. |
+| **Owl Survey (Praos)**   | $1 \, \text{s}$                     | $5 \, \text{d}$    | An **owl surveying** a large region with high strategic awareness—complex evaluation and broad scope. |
+| **Owl Survey (Phalanx)** | $1 \, \text{s}$                     | $5 \, \text{d}$    | Same as Owl Survey, now including $T_{\Phi} = 3600 \, \text{s}$ as an additional cryptographic cost in the Phalanx variant. |
 
 
-The **$N_{\text{CPU}}$ formulas** are derived by **substituting** the respective **$w_T$** and **$T_{\text{eval}}$ values** from each **scenario** into the **base expression** from **Section 1.2.2**:
+
+The **$N_{\text{CPU}}$ formulas** are derived by **substituting** the respective **\$w\_T\$** and **$T_{\text{eval}}$ values** from each **scenario** into the **base expression** from **Section 1.2.2**, using the fixed Phalanx cost $T_{\Phi} = 3600$ seconds:
 
 ```math
 N_{\text{CPU}} > \left \lceil
 5 \cdot 10^{-10} \cdot 2^{\rho - 2} +
 \frac{5 \cdot 10^{-8} \cdot 2^{\rho - 1}}{\rho} \cdot w_T +
 \frac{5 \cdot 10^{-2} \cdot 2^{\rho - 1}}{\rho} \cdot T_{\text{eval}} +
-\frac{200 \cdot 2^\rho}{\rho}
-\right \rceil \quad \text{for } \Phi^\text{power}_\text{min}
+\frac{180 \cdot 2^{\rho - 1}}{\rho}
+\right \rceil \quad \text{(Phalanx)}
 ```
 
 ```math
 N_{\text{CPU}} > \left \lceil
 5 \cdot 10^{-10} \cdot 2^{\rho - 2} +
 \frac{5 \cdot 10^{-8} \cdot 2^{\rho - 1}}{\rho} \cdot w_T +
-\frac{5 \cdot 10^{-2} \cdot 2^{\rho - 1}}{\rho} \cdot T_{\text{eval}} +
-\frac{10^4 \cdot 2^\rho}{\rho}
-\right \rceil \quad \text{for } \Phi^\text{power}_\text{max}
+\frac{5 \cdot 10^{-2} \cdot 2^{\rho - 1}}{\rho} \cdot T_{\text{eval}}
+\right \rceil \quad \text{(Praos)}
 ```
+
+The table below summarizes the expressions for each scenario:
 
 | **Scenario**            | **$N_{\text{CPU}}$ Formula**                                                                                     |
 |--------------------------|-----------------------------------------------------------------------------------------------------------------|
-| **Ant Glance Praos**     | $5 \cdot 10^{-10} \cdot 2^{\rho-2} + 1.8  \cdot 10^{-4} \cdot \frac{2^{\rho-1}}{\rho}$                      |
-| **Ant Glance $\Phi^\text{power}_\text{min}$** | $5 \cdot 10^{-10} \cdot 2^{\rho - 2} + 1.8 \cdot 10^{-4} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{200 \cdot 2^\rho}{\rho}$ |
-| **Ant Glance $\Phi^\text{power}_\text{max}$** | $5 \cdot 10^{-10} \cdot 2^{\rho - 2} + 1.8 \cdot 10^{-4} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{10^4 \cdot 2^\rho}{\rho}$ |
-| **Ant Patrol Praos**     | $5 \cdot 10^{-10} \cdot 2^{\rho-2} + 2.16 \cdot 10^{-2} \cdot \frac{2^{\rho-1}}{\rho}$                   |
-| **Ant Patrol $\Phi^\text{power}_\text{min}$** | $5 \cdot 10^{-10} \cdot 2^{\rho - 2} + 2.16 \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{200 \cdot 2^\rho}{\rho}$ |
-| **Ant Patrol $\Phi^\text{power}_\text{max}$** | $5 \cdot 10^{-10} \cdot 2^{\rho - 2} + 2.16 \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{10^4 \cdot 2^\rho}{\rho}$ |
-| **Owl Stare Praos**      |$5 \cdot 10^{-10} \cdot 2^{\rho-2} + 5.02 \cdot 10^{-2} \cdot \frac{2^{\rho-1}}{\rho}$|
-| **Owl Stare $\Phi^\text{power}_\text{min}$** | $5 \cdot 10^{-10} \cdot 2^{\rho - 2} + 5.02 \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{200 \cdot 2^\rho}{\rho}$ |
-| **Owl Stare $\Phi^\text{power}_\text{max}$** | $5 \cdot 10^{-10} \cdot 2^{\rho - 2} + 5.02 \cdot 10^{-2} \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{10^4 \cdot 2^\rho}{\rho}$ |
-| **Owl Survey Praos**     | $5 \cdot 10^{-10} \cdot 2^{\rho-2} + 7.16 \cdot 10^{-2} \cdot \frac{2^{\rho-1}}{\rho}$ |
-| **Owl Survey $\Phi^\text{power}_\text{min}$** | $5 \cdot 10^{-10} \cdot 2^{\rho - 2} + 7.16 \cdot 10^{-2} \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{200 \cdot 2^\rho}{\rho}$ |
-| **Owl Survey $\Phi^\text{power}_\text{max}$** | $5 \cdot 10^{-10} \cdot 2^{\rho - 2} + 7.16 \cdot 10^{-2} \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{10^4 \cdot 2^\rho}{\rho}$ |
+| **Ant Glance (Praos)**     | $5 \cdot 10^{-10} \cdot 2^{\rho-2} + 1.8  \cdot 10^{-4} \cdot \frac{2^{\rho-1}}{\rho}$                      |
+| **Ant Glance (Phalanx)**   | $5 \cdot 10^{-10} \cdot 2^{\rho - 2} + 1.8 \cdot 10^{-4} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{180 \cdot 2^{\rho - 1}}{\rho}$ |
+| **Ant Patrol (Praos)**     | $5 \cdot 10^{-10} \cdot 2^{\rho-2} + 2.16 \cdot 10^{-2} \cdot \frac{2^{\rho-1}}{\rho}$                   |
+| **Ant Patrol (Phalanx)**   | $5 \cdot 10^{-10} \cdot 2^{\rho - 2} + 2.16 \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{180 \cdot 2^{\rho - 1}}{\rho}$ |
+| **Owl Stare (Praos)**      | $5 \cdot 10^{-10} \cdot 2^{\rho-2} + (1.8 \cdot 10^{-4} + 5.02 \cdot 10^{-2}) \cdot \frac{2^{\rho-1}}{\rho}$ |
+| **Owl Stare (Phalanx)**    | $5 \cdot 10^{-10} \cdot 2^{\rho - 2} + (1.8 \cdot 10^{-4} + 5.02 \cdot 10^{-2}) \cdot \frac{2^{\rho - 1}}{\rho} + \frac{180 \cdot 2^{\rho - 1}}{\rho}$ |
+| **Owl Survey (Praos)**     | $5 \cdot 10^{-10} \cdot 2^{\rho-2} + (2.16 \cdot 10^{-2} + 5.02 \cdot 10^{-2}) \cdot \frac{2^{\rho-1}}{\rho}$ |
+| **Owl Survey (Phalanx)**   | $5 \cdot 10^{-10} \cdot 2^{\rho - 2} + (2.16 \cdot 10^{-2} + 5.02 \cdot 10^{-2}) \cdot \frac{2^{\rho - 1}}{\rho} + \frac{180 \cdot 2^{\rho - 1}}{\rho}$ |
 
 
-The **graph below** illustrates the **logarithmic cost** (in **USD**) of **grinding attacks** across **Praos** and **Phalanx scenarios** as a function of **grinding depth** ($\rho$). **Solid lines** represent the **original Praos scenarios** (Ant Glance, Ant Patrol, Owl Stare, and Owl Survey), **dashed lines** represent **Phalanx with** $`\Phi^\text{power}_\text{min}`$ ($`\Phi_{\text{power}} = 0.02`$), and **dotted lines** represent **Phalanx with** $`\Phi^\text{power}_\text{max}$ ($\Phi_{\text{power}} = 1.0`$). The **shaded feasibility layers** indicate **economic thresholds** where attacks become **trivial**, **feasible**, **possible**, **borderline infeasible**, or **infeasible**, as defined in [**CPD Section 3.6 – Grinding Power Computational Feasibility**](https://github.com/input-output-hk/ouroboros-anti-grinding-design/blob/main/CPS/Readme.md#36-grinding-power-computational-feasibility). 
+
+The **graph below** illustrates the **logarithmic cost** (in **USD**) of **grinding attacks** across all **Praos** and **Phalanx scenarios** as a function of the **grinding depth** ($`\rho`$).
+
+* **Solid lines** represent the original **Praos scenarios** (Ant Glance, Ant Patrol, Owl Stare, and Owl Survey).
+* **Dashed lines** represent their corresponding **Phalanx variants**, which include the fixed additional computational overhead $`T_{\Phi} = 3600 \, \text{seconds}`$.
+* The **shaded feasibility regions** indicate **economic thresholds** as defined in [**CPD Section 3.6 – Grinding Power Computational Feasibility**](https://github.com/input-output-hk/ouroboros-anti-grinding-design/blob/main/CPS/Readme.md#36-grinding-power-computational-feasibility). 
 
 
 <div align="center">

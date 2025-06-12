@@ -28,7 +28,7 @@ Rather than prescribing specific solutions, this CPD urges the **Cardano communi
 This **CPD** undertakes a thorough examination of the *Randomness Generation Sub-Protocol* within the *Ouroboros framework*, focusing on the *Coin-Flipping Problem* and its implications for the **security** of the *Cardano blockchain*. The principal findings are as follows:
 
 - **Randomness Mechanism**: *Ouroboros Praos* utilizes **VRFs** for efficient randomness generation, yet this design exposes vulnerabilities to *grinding attacks*, wherein adversaries manipulate *nonce values* to influence **leader election** processes.
-- **Attack Feasibility**: The likelihood and impact of successful attacks rise significantly when an adversary controls **>20% of total stake** (~**4.36 billion ADA**, March 2025), while lesser stakes (e.g. **5%**) render such efforts statistically improbable over extended periods.
+- **Attack Feasibility**: The likelihood and impact of successful attacks rise significantly when an adversary controls **>20% of total stake** (~**4.36 billion ADA**, March 2025), while lesser stakes render such efforts statistically improbable over extended periods.
 - **Economic Considerations**: Acquiring substantial stake entails a **significant financial commitment**—on the order of **billions of USD** for a 20% share—further complicated by potential **asset devaluation** if an attack undermines network integrity.
 - **Computational Requirements**: Scenario analysis across varying grinding depths ($\rho$) reveals a spectrum of feasibility:
   - Minor attacks (e.g. manipulating **$\rho=20$** blocks costs ~**$56**) are readily achievable.
@@ -870,8 +870,6 @@ Assuming the adversary controls the $X_A(w)$ slots (between slot numbered $S_2 -
 <img src="./image/grinding-depth-vs-opportunity-window.png" alt=""/>
 </div>
 
-<--- Raphael: Redo graph so that w is the horizontal scale and $w_O$ the vertical one. The best case (for us) is when $\alpha = 0.5$ and the worst when $\alpha =1$.
-
 ✏️ **Note**: The code to generate this graph is available at ➡️ [this link](./graph/window0_graph.py).
 
 Let's consider the worst case where the adversary controls all trailing slots ($`g = 1 \Leftrightarrow w = X_A(w)`$):
@@ -905,7 +903,7 @@ We can moreover defined opportunity window with respect to the adversarial stake
 | :----------------------: | :-------:   | :------: | :-------: | :--------: | :--------: | :--------: | :--------: | :---------: | :----------: | :--------: | :-------: | :-------: |
 | $\mathbb{E}[w_O]$ (s)                      |  2.02E-01	 |4.08E-01	| 8.33E-01	| 2.22E00	 | 5.00E00	  | 13.33E00 	 | 2.00E01 	|  3.00E01	  |  3.88E01	   |  8.00E01  | 1.80E02	| 9.79E02  |
 
-<--- Raphael: Add graph?
+
 
 <details>
 <summary>📌📌 <i> More Details on the expectation's computation </i> – <b>  Expand to view the content.</b></summary>
