@@ -53,6 +53,7 @@ License: Apache-2.0
       - [5.2.2 ECC solutions](#522-ecc-solutions)
       - [5.2.3 Class group solutions](#523-class-group-solutions)
       - [5.2.4 OWF solutions](#524-owf-solutions)
+    - [5.3 Primitive recommendation](#53-primitive-recommendation)
 - [Path to Active](#path-to-active)
   - [Acceptance Criteria](#acceptance-criteria)
   - [Implementation Plan](#implementation-plan)
@@ -1030,6 +1031,10 @@ TODO
 
 **Compliance.** Hash functions are standardized and libraries are easily available. SNARK solutions are not copyrighted, there is however a limited number of available libraries, which can either be open source or proprietary (SP1, RISC0, STARKNET…).
 
+#### 5.3 Primitive recommendation
+
+The combination of OWFs and SNARKs, however elegant it may be for its modularity, is not practical for the proof generation overhead being prohibitive. 
+Trapdoor based solutions seem to be the best candidates for anti-grinding solutions. Out of the ones considered, VDFs seem the most practical primitive thanks to the possibility of reusing the group, and class groups offer the simplest deployment. The main caveat of such a solution is in its relative novelty, regular assessment would need to be done to ensure correct and up to date parametrization.
 
 
 ## Path to Active
