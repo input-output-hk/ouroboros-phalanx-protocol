@@ -864,7 +864,7 @@ In practice, to ensure liveness in edge cases, the protocol reverts to standard 
 
 Todo : Simulation of Phalanx for Honest Participant for refining $\Phi_{\text{min}}$ and $\Phi_{\text{max}}$ defined in Specification.
 
-### 3. Maintainability
+### 4. Maintainability
 
 Todo 
 
