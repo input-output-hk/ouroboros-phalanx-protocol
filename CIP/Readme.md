@@ -950,6 +950,30 @@ As finding the discrete logarithm
 **Compliance.** ECC is widely compliant with numerous industry standards and regulations, making it a trusted choice for modern cryptographic applications, including NIST guidelines,  FIPS 186-4 and IETF standards for secure communication protocols.
 None of the methods, Index Calculus or Pollard’s ⍴, are proprietary and there exists open source code implementing these.
 
+##### 5.2.3 Class group solutions
+
+The class group of a number field is the group of fractional ideals modulo principal ideals, whose security is partially determined by a parameter called a discriminant. Class group of binary quadratic forms [14] omits trusted setup as the group order, also called class number, is believed to be difficult to compute when the discriminant is sufficiently large - more particularly the class number grows linearly to the square root of the discriminant. For a class group to be secure, the group size and discriminant must be sufficiently long - respectively at least 1900 and 3800 bit-long for 128 bit of security [4]- negative, square free and congruent to 0 or 1 modulo 4. Similarly to ECC, to break a class group security one has to find a class group discrete logarithm (CDLP) which can be done most efficiently with index calculus algorithms that reduce CDLP to integer factorization in sub-exponential time [5].
+
+###### 5.2.3.1 Design
+
+Similarly to previous solutions, class groups present two types of problems satisfying the requirements: breaking the discrete logarithm by finding the class order, or using verifiable delayed functions.
+CDLP. In that case, the setup consists in generating a discriminant and generator G, and sampling a random point P from its secure subgroup. The challengers then have to find the scalar a such that P = a ⋅ G. Verification is also straightforward, as it consists in raising G to the power a and verifying it equals P.
+The most efficient methods to find this scalar include the Index Calculus algorithm.
+VDF. Similarly to the CLPD, we first start by generating a discriminant and sample a random group element g. The challenge then consists in raising this element to a big exponent of the form 2T where T is set depending on the difficulty, the computation or time we want the challenger to need to solve the problem. The challengers eventually compute and output y = g^{2T} mod N by squaring the integer g exactly T times as well as generate an additional proof of this result. The verification consists in verifying the proof passes successfully together with the input, output and modulus.
+
+###### 5.2.3.2 Properties
+
+**Security Strength & Maturity.** Class group-based cryptography has reached a moderate level of maturity in cryptographic research. While not as widely deployed as more traditional cryptographic methods like RSA or ECC, class group cryptography has gained attention due to its potential resistance to quantum computing attacks. The mathematical foundations, particularly the hardness of the class group discrete logarithm problem, are well-understood, and class group cryptosystems have been rigorously analyzed. However, practical deployment is still in the early stages, with ongoing efforts focused on optimizing efficiency, key management, and standardization. 
+
+**Performance.** Class group-based cryptography is generally less efficient than RSA or ECC due to the size of their elements and the computational complexity of the composition of elements.
+More particularly, to achieve strong security, class groups’ discriminants must be several thousands bit long, and group elements half of this. Operations are thus costly, especially as composition in class groups rely on finding the greatest common denominator between such numbers that is particularly expensive.
+
+**Deployability.**  Setting up class groups, even though their order is hidden, is much easier than previously discussed solutions as it consists in practice to generate a sufficiently long negative square-free random integer d, and such that d ≡ 1 mod 4. as discriminant. Generating a random element in a class group by hashing also is however more of a delicate but still feasible task as mentioned in [11]. Interestingly, there exist algorithms that have been designed to reuse the underlying group such as cascaded and continuous VDFs [13].
+
+**Compliance.** Since class group-based cryptography is still being researched, it is not as broadly standardized or regulated as more established cryptographic techniques like ECC. That said, once formal standards and guidelines are developed and adopted, class group-based cryptography could achieve compliance with relevant legal and regulatory frameworks. None of the VDF proof generation algorithms are proprietary and there exists open source code implementing these. 
+Other groups
+We mostly focused on commonly used groups, such as RSA and ECC, and class groups whose usage have been increasing lately, notably because of the popularity of VDF primitives. There exist however other groups such as lattices which are one of the main candidates for post quantum cryptography, supersingular isogenies, whose security is dubious at the moment since the attack on SIDH in 2022, and hyperelliptic Jacobians groups, which are still novel and need further time to get confidence in their security and for more protocols to be built upon, to cite a few.
+
 
 
 ## Path to Active
