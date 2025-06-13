@@ -46,6 +46,7 @@ License: Apache-2.0
     - [2.4.3 Block-based approach](#243-block-based-approach)
   - [3. Performance Impacts on Consensus & Ledger Repository](#3-performance-impacts-on-consensus--ledger-repository)
   - [4. Maintainability](#4-maintainability)
+  - [5. Cryptographic primitives](#5-cryptographic-primitives)
 - [Path to Active](#path-to-active)
   - [Acceptance Criteria](#acceptance-criteria)
   - [Implementation Plan](#implementation-plan)
@@ -867,6 +868,19 @@ Todo : Simulation of Phalanx for Honest Participant for refining $\Phi_{\text{mi
 ### 4. Maintainability
 
 Todo 
+
+### 5. Cryptographic primitives
+
+As shown previously in the CPS and CPD, Cardano’s randomness generation currently is biasable and this CIP aims at presenting solutions on top of the current Praos’ randomness generation algorithm to disincentivize adversaries from performing grinding attacks by increasing their computational cost. We do not intend to change the protocol in depth, as this would need a much greater initiative that may not bear fruits, but add an additional layer of security on top of the current protocol only.
+
+To argue about our decision, i.e. increasing the attack cost, we first list different ways to fix the last revealer attack as suggested in [1] that present a similar issue when combining different sources of randomness.
+- _Simultaneous lottery draws, so that all random nonces are revealed at once._ Unfortunately this solution is not possible in our context as nonces are revealed iteratively in block headers so that they can be easily extractable and verifiable from the blockchain directly.
+- _Using a slow function to generate the randomness on top of the revealed nonces, so that the adversary cannot decide in time whether to reveal their nonces or not._ In practice, time assumptions are delicate in cryptography for theoretical reasons (potential attacks, better algorithms) and practical ones (Moore’s law).
+- _Using a commitment, so that the revealed nonces are combined to some previously committed value._ This solution is not feasible as we would either need to rely on trusted parties, which is contrary to blockchain’s operandi, or to reveal the committed values, which is equivalent to RANDAO.
+- _Limiting the entropy of the last lottery draws, by combining it with sufficiently many low entropy - a single bit- randomness._ This solution is impractical as we would still have a revealer attack, but on the lone bits.
+
+As such, we should focus from now on using a weakened slow function, that is instead of solely relying on time based guarantees, we will principally count on computational costs: we will append to our existing protocol a computationally costly chain of computation that the adversary will have to process for each grinding attempt.
+
 
 ## Path to Active
 
