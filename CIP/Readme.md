@@ -47,6 +47,8 @@ License: Apache-2.0
   - [3. Performance Impacts on Consensus & Ledger Repository](#3-performance-impacts-on-consensus--ledger-repository)
   - [4. Maintainability](#4-maintainability)
   - [5. Cryptographic primitives](#5-cryptographic-primitives)
+    - [5.1 Requirements](#51-requirements)
+    - [5.2 Primitive selection](#52-primitive-selection)
 - [Path to Active](#path-to-active)
   - [Acceptance Criteria](#acceptance-criteria)
   - [Implementation Plan](#implementation-plan)
@@ -880,6 +882,19 @@ To argue about our decision, i.e. increasing the attack cost, we first list diff
 - _Limiting the entropy of the last lottery draws, by combining it with sufficiently many low entropy - a single bit- randomness._ This solution is impractical as we would still have a revealer attack, but on the lone bits.
 
 As such, we should focus from now on using a weakened slow function, that is instead of solely relying on time based guarantees, we will principally count on computational costs: we will append to our existing protocol a computationally costly chain of computation that the adversary will have to process for each grinding attempt.
+
+#### 5.1 Requirements
+
+When choosing a cryptographic primitive, we need to balance several criteria. In particular, checking its _security strength and maturity_, _performance_, _deployability_ and _compliance_:
+- _Security strength & Maturity_:  the primitive is resistant to known attacks and comprise a sufficient security margin. Furthermore, it has been extensively reviewed by the cryptographic community, has been developed transparently and has been accepted and standardized.
+- _Performance_: the primitive is efficient in terms of size (input, output and if applicable proof size), and computation (CPU cycles, memory footprint, and power consumption) with respect to the application and intended platform.
+- _Deployability_: the primitive should be easy to set up, upgrade and, in case of attacks and if possible, switch
+- _Compliance_: the primitive should be free of licensing restrictions and meet regulatory standards.
+
+We furthermore require the following properties for the Phalanx project. The cryptographic primitive must be an **_NP deterministic function_**. More precisely, a primitive whose verification time is fast, that for each input corresponds to a unique output and whose latter is fixed.
+
+We can either support a primitive which computation can be split in different iterations, each of which is verifiable, or which is finely tunable so that we can solve a challenge in less than a block time and can be used in cascade. Being able to generate and verify a single proof for the whole chain of computation would be another advantage in the context of syncing.
+
 
 
 ## Path to Active
