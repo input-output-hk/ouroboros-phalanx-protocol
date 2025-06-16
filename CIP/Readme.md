@@ -1050,11 +1050,34 @@ Together, these functions represent a balance of security, performance, and dive
 
 While these hash functions are very efficient on CPU, they are very expensive to verify with classic SNARKs, as the latter are working on prime fields and not bits. Proving hash evaluation is several orders of magnitude higher than evaluating on CPU making this solution very impractical. Simple benchmarks demonstrate such results, with the generation of a proof asserting the evaluation of a few hundreds of hashes taking tens of seconds, while the evaluation itself is of the order of the microsecond. For instance, according to Figure 1, the a hundred evaluations of SHA-256 would take 32μs on CPU and require 300,000 gates. To generate a proof of these evaluations, we would require a circuit of size 219 , i.e. the smallest power of 2 above 300,000, which takes 6s to 18s depending on the commitment scheme, making this solution, combining standard hash functions and SNARKs, highly impractical.
 
+<center>
+
+<img src="./image/hash_functions_comparison.png" width="500px" >
 
 Figure 1, taken from Reinforced concrete paper [27]. Performance of various hash functions in the zero knowledge (preimage proof) and native (hashing 512 bits of data) settings on Intel i7-4790 CPU (3.6 GHz base frequency, 4 core, 8 threads).
+</center>
 
+
+<center>
+
+| $\text{log}_2(\text{gates})$ |   $\#\text{gates}$    | $\text{proving time - KZG} (ms)$ | $\text{proving time - IPA} (ms)$ |
+| :--------------------------: | :-------------------: | :------------------------------: |:-------------------------------: |
+| $8$                          |  256     	           |  43	                            |  77	                             |
+| $9$                          |  512	                 |  58	                            |  105	                           |
+| $10$                         |  1,024	               |  75	                            |  153	                           |
+| $11$                         |  2,048	               |  100                             |  210	                           |
+| $12$                         |  4,096   	           |  157                             |  330	                           |
+| $13$                         |  8,192   	           |  218                             |  500	                           |
+| $14$                         |  16,384  	           |  342                             |  856	                           |
+| $15$                         |  32,768  	           |  540                             |  1,432	                         |
+| $16$                         |  65,536  	           |  917	                            |  2,590	                         |
+| $17$                         |  131,072 	           |  1,646	                          |  4,779	                         |
+| $18$                         |  262,144 	           |  3,028	                          |  9,199                           |
+| $19$                         |  524,288 	           |  6,231	                          |  18,496	                         |
+| $20$                         |  1,048,576 	         |  12,743	                        |  37,287	                         |
 
 Table 1. Halo2 benchmarks, using KZG [28] and IPA [29] commitment schemes on Intel(R) Core(TM) i9-14900HX (2.2 GHz base frequency, 24 cores, 32 threads).
+</center>
 
 **Memory-hard functions (MHFs).** are primitives relying on hash functions designed to resist attacks by requiring significant memory and computational effort, making them particularly interesting in our use case, where memory would become another bottleneck to an adversary attempting a grinding attack.
 Argon2, the winner of the Password Hashing Competition in 2015, is the current industry standard due to its strong security, configurability, and resistance to known attacks.
