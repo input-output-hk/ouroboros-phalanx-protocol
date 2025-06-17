@@ -476,9 +476,22 @@ We now show what happens at diverse points in time of the computation phase:
 - When publishing the last iteration, may it be in the last interval if there was no empty interval or in the catch-up period, we will update the accumulator and compute a proof of aggregation. This simply corresponds to a VDF proof on input $\textrm{Acc}_x$ and output $\textrm{Acc}_y$.
 - When verifying a block, if the node is not synching, they will verify the VDF proof as well as the correct aggregation of the accumulators. If the node is synching, they will verify only the correct aggregation of the accumulators and verify the proof of aggregation at the end.
 
+Let $\text{VDF}.\left(\text{Setup}, \text{Prove}, \text{Verify} \right)$ a class group based VDF algorithm definition, with:
+- $(\mathbb{G}, \Delta, \cdot) \leftarrow \text{VDF}.\text{Setup}(\lambda)$: Takes as input a security parameter $\lambda$ and returns a group description $\mathbb{G}$ with discriminant $\Delta$ and operation $\cdot$. We will omit $\lambda$ and $\mathbb{G}$ for simplicity;
+- $\left(y, \pi\right) \leftarrow \text{VDF}.\text{Prove}(x, T)$: Takes as input the challenge $x \in \mathbb{G}$ and difficulty $T \in \mathbb{N}$ and returns the VDF output $y = x^{2^T}$ and the VDF proof $\pi$;
+- $\{0,1\} \leftarrow \text{VDF}.\text{Verify}(x,y,T,\pi)$: Returns 1 if the verification of $\pi$ is successful, that is $y == x^{2^T}$ with overwhelming probability, otherwise 0.
+
+We furthermore introduce the two additional functions $\text{Hash}_\mathbb{G}(\cdot)$ a hash to the class group, and $\text{Hash}_\mathbb{N}^{(n)}(\cdot)$ a hash to the integers of size $n$ bits.
+
+To publish a block, nodes needs to include the VDF output and proof of the interval. We define by $x_i \leftarrow \text{Hash}_\mathbb{G}(\text{pre-}\eta_e || i)$ the challenge for interval $i$ using the pre-seed $\text{pre-}\eta_e$ of the current computation phase. Nodes will thus have to compute $\left(y_i, \pi_i\right) \leftarrow \text{VDF}.\text{Prove}(x_i, T)$ and publish them on-chain. Nodes also may publish accumulators, if there is no missing iterations. They do so by generate a random coin as $\alpha_i = \text{Hash}_\mathbb{N}^{(\lambda)} ( \dots  \text{Hash}_\mathbb{N}^{(\lambda)} (\text{Hash}_\mathbb{N}^{(\lambda)}( \text{Hash}_\mathbb{N}^{(\lambda)}(x_1\ ||\ \dots || x_n)\ ||\ y_1 )\ || y_2) \dots ||\ y_i)$ (note that $\alpha_i = \text{Hash}_\mathbb{N}^{(\lambda)}(\alpha_{i-1}\ ||\ y_i)$) and update $\textrm{Acc}_x$ (resp. $\textrm{Acc}_y$) to $\textrm{Acc}_x \cdot x_i^{\alpha_i}$ (resp. to $\textrm{Acc}_y \cdot y_i^{\alpha_i}$).
+When an iteration is missing, we shall wait until the network has caught up to respect the sequentiality of the $\alpha_i$.
+
+When all iterations have been computed, we generate a proof of aggregation $\pi$ using the same proving algorithm on $\textrm{Acc}_x$, but without recomputing the VDF output which is $\textrm{Acc}_y$. Hence we have, $\left(\textrm{Acc}_y, \pi\right) \leftarrow \text{VDF}.\text{Prove}(\textrm{Acc}_x, T)$.
+
+
 #### 4.1.3 Efficiency analysis
 
-We will need to add to the block four group elements, each element can be compressed to $3/4 \cdot \text{log}(| \Delta|)$ bits, that is 11,400 bits in total for 3,800-bit-long discriminant.
+We will need to add to the block four group elements, each element can be compressed to $3/4 \cdot \text{log}(| \Delta|)$ bits, that is 11,400 bits in total for 3,800-bit-long discriminant, or half of it were we to not publish the accumulators and keep them in cache.
 
 To publish a block, the node would need to perform $T$ squaring for the output computation and $O(T / \text{log}(T))$ operations for the proof generation, and update both accumulators with two hashes, exponentiations and multiplications in total if the interval's iteration was not already published and no iteration needs to be caught up. If an iteration needs to be caught up, the node would need to compute an additional proof and computation, and update the accumulators with $2\cdot m$ hashes, multiplications and exponentiations where $m$ is the number of consecutive iterations published after the missing iteration and now.
 
