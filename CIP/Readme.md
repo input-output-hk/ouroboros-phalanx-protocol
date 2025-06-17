@@ -487,6 +487,39 @@ When synching, the node would only need to check the aggregation at each step an
 
 N.B. For future work, it could be interesting to snarkify the accumulators, their update and the proof verification to save space and potentially reduce the verification time. This would however increase the proving time significantly.
 
+
+
+<center>
+
+| $\|\Delta\|$ (bits) | $\#\text{iterations}$ | $\text{proving time}$ (s)$           | $\text{verification time}$ (ms)       |
+| :-----------------: | :-------------------: | :----------------------------------: | :-----------------------------------: |
+| $256$               |  100,000 	            | $0.181\ (\sigma =7.31 \cdot 10^-4)$  | $1.643\ (\sigma =1.15 \cdot 10^-2)$   |
+|                     |  200,000 	            | $0.361\ (\sigma =7.32 \cdot 10^-4)$  | $3.188\ (\sigma =4.34 \cdot 10^-2)$   |
+|                     |  500,000 	            | $0.887\ (\sigma =3.19 \cdot 10^-3)$  | $1.896\ (\sigma =1.04 \cdot 10^-1)$   |
+|                     |  1,000,000 	          | $1.777\ (\sigma =1.01 \cdot 10^-2)$  | $1.740\ (\sigma =2.26 \cdot 10^-2)$   |
+|                     |  2,000,000 	          | $3.531\ (\sigma =4.32 \cdot 10^-2)$  | $1.540\ (\sigma =1.82 \cdot 10^-2)$   |
+|                     |  5,000,000 	          | $8.722\ (\sigma =5.89 \cdot 10^-2)$  | $1.650\ (\sigma =1.81 \cdot 10^-2)$   |
+|                     |  10,000,000           | $17.365\ (\sigma =7.30 \cdot 10^-2)$ | $1.660\ (\sigma =3.08 \cdot 10^-2)$   |
+| $512$               |  100,000 	            | $0.302\ (\sigma =6.86 \cdot 10^-3)$  | $2.000\ (\sigma =3.11 \cdot 10^-2)$   |
+|                     |  200,000 	            | $0.592\ (\sigma =1.58 \cdot 10^-3)$  | $1.929\ (\sigma =2.39 \cdot 10^-2)$   |
+|                     |  500,000 	            | $1.465\ (\sigma =1.66 \cdot 10^-2)$  | $2.205\ (\sigma =1.88 \cdot 10^-2)$   |
+|                     |  1,000,000 	          | $2.944\ (\sigma =2.90 \cdot 10^-2)$  | $1.835\ (\sigma =3.93 \cdot 10^-2)$   |
+|                     |  2,000,000 	          | $5.782\ (\sigma =1.56 \cdot 10^-2)$  | $1.961\ (\sigma =1.56 \cdot 10^-2)$   |
+|                     |  5,000,000 	          | $14.333\ (\sigma =2.92 \cdot 10^-2)$ | $2.499\ (\sigma =2.93 \cdot 10^-2)$   |
+|                     |  10,000,000           | $28.359\ (\sigma =5.73 \cdot 10^-2)$ | $5.041\ (\sigma =1.01 \cdot 10^1 )$   |
+| $1,024$             |  100,000 	            | $0.529\  (\sigma =7.23 \cdot 10^-4)$ | $3.401\ (\sigma =3.34 \cdot 10^-2)$   |
+|                     |  200,000 	            | $1.038\  (\sigma =8.52 \cdot 10^-4)$ | $3.214\ (\sigma =3.05 \cdot 10^-2)$   |
+|                     |  500,000 	            | $2.559\  (\sigma =1.71 \cdot 10^-2)$ | $3.409\ (\sigma =8.85 \cdot 10^-2)$   |
+|                     |  1,000,000 	          | $5.096\  (\sigma =1.75 \cdot 10^-2)$ | $3.584\ (\sigma =1.71 \cdot 10^-2)$   |
+|                     |  2,000,000 	          | $10.064\ (\sigma =2.88 \cdot 10^-2)$ | $3.228\ (\sigma =1.39 \cdot 10^-2)$   |
+|                     |  5,000,000 	          | $24.919\ (\sigma =4.70 \cdot 10^-2)$ | $3.787\ (\sigma =1.20 \cdot 10^-2)$   |
+|                     |  10,000,000           | $49.478\ (\sigma =7.79 \cdot 10^-2)$ | $3.895\ (\sigma =2.80 \cdot 10^-2)$   |
+
+
+
+Table 1. VDF benchmarks, means and standard deviation, perfomed on a discriminant $\Delta$ of different sizes and with a range of iterations on one core of Intel(R) Core(TM) i9-14900HX (2.2 GHz base frequency, 24 cores, 32 threads).
+</center>
+
 ### 5. Recommended Parameterization
 
 **(To be completed)**
@@ -1059,7 +1092,6 @@ Figure 1, taken from Reinforced concrete paper [27]. Performance of various hash
 
 
 <center>
-
 | $\text{log}_2(\text{gates})$ |   $\#\text{gates}$    | $\text{proving time - KZG} (ms)$ | $\text{proving time - IPA} (ms)$ |
 | :--------------------------: | :-------------------: | :------------------------------: |:-------------------------------: |
 | $8$                          |  256     	           |  43	                            |  77	                             |
@@ -1076,7 +1108,7 @@ Figure 1, taken from Reinforced concrete paper [27]. Performance of various hash
 | $19$                         |  524,288 	           |  6,231	                          |  18,496	                         |
 | $20$                         |  1,048,576 	         |  12,743	                        |  37,287	                         |
 
-Table 1. Halo2 benchmarks, using KZG [28](https://www.cypherpunks.ca/~iang/pubs/PolyCommit-AsiaCrypt.pdf) and IPA [29](https://eprint.iacr.org/2017/1066.pdf) commitment schemes on Intel(R) Core(TM) i9-14900HX (2.2 GHz base frequency, 24 cores, 32 threads).
+Table 2. Halo2 benchmarks, using KZG [28](https://www.cypherpunks.ca/~iang/pubs/PolyCommit-AsiaCrypt.pdf) and IPA [29](https://eprint.iacr.org/2017/1066.pdf) commitment schemes on Intel(R) Core(TM) i9-14900HX (2.2 GHz base frequency, 24 cores, 32 threads).
 </center>
 
 **Memory-hard functions (MHFs).** are primitives relying on hash functions designed to resist attacks by requiring significant memory and computational effort, making them particularly interesting in our use case, where memory would become another bottleneck to an adversary attempting a grinding attack.
