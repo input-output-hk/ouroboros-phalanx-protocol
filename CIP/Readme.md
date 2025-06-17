@@ -498,8 +498,9 @@ To publish a block, the node would need to perform $T$ squaring for the output c
 To verify a block, when not synching, the node would perform 2 hashes, 4 small exponentiations and 3 group multiplications. Over a whole epoch, with say $N$ intervals, we would thus need $2 \cdot N$ hashes, $4 \cdot N$ small exponentiations as well as $3 \cdot N$ group multiplications.
 When synching, the node would only need to check the aggregation at each step and the aggregation proof for a total of $2\cdot N$ hashes, $2\cdot N + 1$ group multiplications and $2 \cdot (N+1) $ small exponentiations. Note that the exponentiations with the $\alpha_i$ are half as cheap as the ones in the proof verification. As such, were we not to do the aggregation, we would save 5,700 bits on the block, 2 small exponentiations and group multiplications per block but the synching node would however have to perform $2 \cdot N$ larger exponentiations instead of $2 \cdot N$ smaller ones and 2 larger ones.
 
-N.B. For future work, it could be interesting to snarkify the accumulators, their update and the proof verification to save space and potentially reduce the verification time. This would however increase the proving time significantly.
+Because the group generation algorithm is very efficient, we can re-generating a group every epoch easily. We can take advantage of this to reduce the security parameter such that it is still highly improbable to break the group within an epoch to reduce the size of the elements on-chain.
 
+N.B. For future work, it could be interesting to snarkify the accumulators, their update and the proof verification to save space and potentially reduce the verification time. This would however increase the proving time significantly.
 
 
 <center>
