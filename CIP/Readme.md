@@ -133,7 +133,7 @@ In **Φalanx** , the randomness generation and leader election flows are modifie
 
 #### 1.2 Inputs & Outputs 
 
-The Randomness Generation sub-protocol operates with two parallel streams: $`\eta^\text{stream}`$ and $`\phi^\text{stream}`$, which synchronize at $`9.\frac{k}{f}`$ at each epoch :  
+The Randomness Generation sub-protocol operates with two parallel streams $`\eta^\text{stream}`$ and $`\phi^\text{stream}`$, which synchronize at $`9.\frac{k}{f}`$ at each epoch :  
 
 ![alt text](./image/Phalanx-Streams.png)
 
@@ -168,68 +168,72 @@ false & \text{otherwise.}
 
 ##### 1.2.2 The $`\text{pre-}\eta`$ Synchronizations  
 
-- To generate $`\eta_\text{e}`$ for epoch $`e`$, the stream $`\phi^\text{stream}`$ is reset with the value of $`\eta^\text{stream}`$ at $`t=9.\frac{k}{f}`$. 
-- This specific value of $`\eta^\text{stream}`$ is referred to as **$`\text{pre-}\eta_e`$**.
-
+- To generate $`\eta_\text{e}`$ for epoch $`e`$, the stream $`\phi^\text{stream}`$ is reset with the value of $`\eta^\text{stream}`$ at $`t=9.\frac{k}{f}`$ at $epoch_{e-2}$
+- This specific value of $`\eta^\text{stream}`$ is referred to as **$`\text{pre-}\eta_e`$** and defined as :
+```math
+\text{pre-}\eta_e= \eta^{evolving}_{9.\frac{k}{f}(epoch_{e-2})}
+```
 
 ##### 1.2.3 The $`\phi^\text{stream}`$
 
-- The stream is bootstrapped with two parameters:
+###### 1.2.3.1 The Setup
 
-  - A security parameter $`\lambda`$ for the cryptographic primitive $`\Phi`$.
-  - $`T_\Phi`$, a time-bound representing the required computation  $`\Phi`$ duration, independent of available computing power.
+The stream is bootstrapped by calling the setup function of the cryptographic primitive $`\Phi`$ with:
+```math
+Φ.\text{Configuration} \leftarrow \Phi.\text{setup}(\lambda, T_\Phi)
+```
+where : 
+  -  $`\lambda`$ is a security parameter for the cryptographic primitive $`\Phi`$.
+  - $`T_\Phi`$, a time-bound parameter representing the required computation  $`\Phi`$ duration, independent of available computing power.
   - Any change to these 2 parameters would require a decision through Cardano governance.
-  - The stream is configured by calling the setup function of the cryptographic primitive $`\Phi`$ with:
-    ```math
-    Φ.\text{Configuration} \leftarrow \Phi.\text{setup}(\lambda, T_\Phi)
-    ```
-  - `Φ.Configuration` will contain derived configuration specific to the algorithm and the cryptographic primitive used.
+  - $\Phi.\text{Configuration}$ will contain derived configuration specific to the algorithm and the cryptographic primitive used.
 
-- The stream is modeled as following :
+###### 1.2.3.2 The Lifecycle
 
-  - It is reset at every $`\text{pre-}\eta`$ synchronization point every $`10.\frac{k}{f}`$ slots.
-    ```math
-    Φ.\text{Stream.State} \leftarrow \Phi.\text{init}(Φ.\text{Configuration}, \text{pre-}\eta)
-    ```
-  - At each slot $t$, update the stream state by :   
-    ```math
-    Φ.\text{Stream.State} \leftarrow \Phi.\text{tick}(Φ.\text{Stream.State, t})
-    ```
-  - A node must be able to determine, based on the current state, whether it should begin computing $\Phi$ iterations in order to provide a proof at its next scheduled leader slot:
-    ```math
-    \{0,1\} \leftarrow \Phi.\text{shouldCompute}(Φ.\text{Stream.State, \text{nextSlotLeader}})
-    ```
-  
-  - A node must be able to compute a specific chunk of the $`\Phi`$ iteration independently of any global state. The result is an *attested output*—a pair $`\phi_x =(\pi_x,\ o_x)`$, where $`o_x`$ is the computed output for iteration $`x`$, and $`\pi_x`$ is a cryptographic proof attesting that $`o_x`$ was correctly derived from the input according to the rules of $`\Phi`$. Since this operation may be long-lived, intermediate attested outputs should be persistable to disk, allowing the node to stop, resume, or cancel computation from the latest completed sub-computation.
+It is reset at every $`\text{pre-}\eta`$ synchronization point every $`10.\frac{k}{f}`$ slots :
+```math
+Φ.\text{Stream.State} \leftarrow \Phi.\text{init}(Φ.\text{Configuration}, \text{pre-}\eta)
+```
+At each slot $t$, update the stream state by :   
+```math
+Φ.\text{Stream.State} \leftarrow \Phi.\text{tick}(Φ.\text{Stream.State, t})
+```
+A node must be able to determine, based on the current state, whether it should begin computing $\Phi$ iterations in order to provide a proof at its next scheduled leader slot:
+```math
+\{0,1\} \leftarrow \Phi.\text{shouldCompute}(Φ.\text{Stream.State,nextSlotLeader})
+```
+A node must be able to compute a specific chunk of the $`\Phi`$ iteration independently of any global state. 
+The result is an *attested output*—a pair $`\phi_x =(\pi_x,\ o_x)`$ where : 
 
+ - $`o_x`$ is the computed output for iteration $`x`$, 
+ - $`\pi_x`$ is a cryptographic proof attesting that $`o_x`$ was correctly derived from the input according to the rules of $`\Phi`$. 
+ - Since this operation may be long-lived, intermediate attested outputs should be persistable to disk, allowing the node to stop, resume, or cancel computation from the latest completed sub-computation.
 
-  - A subset of block-producing slots must include in their block headers a unique attested output $`\phi_x`$ whith $`x \in \{1, \dotsc, e \}`$ denoting the iteration index within the $`\Phi`$ computation.
-
-    - Each attested output updates the stream state as follows:
-
-      $$
-      \Phi.\text{StreamState} \leftarrow \Phi.\text{addAttestedOutput}(\Phi.\text{StreamState},\ t,\ \phi_x)
-      $$
-    - Each attested output must be verifiable both:
-
+A subset of block-producing slots must include in their block headers a unique attested output $`\phi_x`$ whith $`x \in \{1, \dotsc, e \}`$ denoting the iteration index within the $`\Phi`$ computation :
+  - Each attested output updates the stream state as follows:
+```math
+ \Phi.\text{StreamState} \leftarrow \Phi.\text{addAttestedOutput}(\Phi.\text{StreamState},\ t,\ \phi_x)
+```
+  - Each attested output must be verifiable both:
       - **logically**, to ensure it corresponds to the correct slot and index, and
       - **cryptographically**, to confirm that the computation was effectively executed
 
-      $$
-      \{0,1\} \leftarrow \Phi.\text{verify}(\Phi.\text{StreamState},\ t,\ \phi_x)
-      $$
+```math
+\{0,1\} \leftarrow \Phi.\text{verify}(\Phi.\text{StreamState},\ t,\ \phi_x)
+```
 
-  - At the synchronization point $`\text{pre-}\eta_{e+1}`$, the stream is closed providing $`\phi^{final}_e = (\phi_e,\phi^{aggregated}_e)`$ with the last attested output $`\phi_e`$, along with an **aggregated proof** $`\phi^{final}_e`$. This aggregated proof allows nodes to efficiently verify the final result without checking each individual $`\phi_x`$ produced during the computation phase :
-      $$
-      \phi^{final}_e \leftarrow \Phi.\text{close}( \Phi.\text{StreamState})
-      $$
+At the synchronization point $`\text{pre-}\eta_{e+1}`$, the stream is closed providing $`\phi^{final}_e = (\phi_e,\phi^{aggregated}_e)`$ with the last attested output $`\phi_e`$, along with an **aggregated proof** $`\phi^{final}_e`$. This aggregated proof allows nodes to efficiently verify the final result without checking each individual $`\phi_x`$ produced during the computation phase :
+
+```math
+\phi^{final}_e \leftarrow \Phi.\text{close}( \Phi.\text{StreamState})
+```
 
 ##### 1.2.4 The $`\eta`$ Generations
    - This is the final nonce $`\eta_\text{e}`$ used to determine participant eligibility during epoch $`e`$.  
    - It originates from the operation ⭒ with  $`\phi^{\text{stream}}_{t}`$ at $`\text{pre-}\eta_\text{e+1}`$ Synchronization and $`\eta^\text{stream}_t`$ $`\text{when } t = \text{end of epoch}_\text{e-3}`$   
 
 ```math
-\eta_\text{e} = \eta^\text{stream}_{epoch_\text{e-3}} ⭒ \phi^{final}_e , \quad \text{when } t = \text{pre-}\eta_\text{e+1}\text{ synchronization } 
+\eta_\text{e} = \eta^\text{evolving}_{epoch_\text{e-3}} ⭒ {o_e} , \quad \text{when } t = \text{pre-}\eta_\text{e+1}\text{ synchronization } 
 ```
 
 
@@ -270,10 +274,42 @@ In Pietrzak’s paper, the proof is a tuple of group elements $\pi = \{x^{2^{T /
 
 We will choose Wesolowski design over Pietrzark because of its space efficiency and possibility to aggregate proofs.
 
+### 3. $`\Phi^{\text{stream}}`$ Specification
+
+We previously outlined the purpose of the Phalanx sub-protocol and introduced the cryptographic primitive underpinning its security guarantees. In this section, we provide a precise technical specification of the protocol, focusing on how the $`\Phi`$ iterations are distributed and how Wesolowski’s Verifiable Delay Function (VDF) is integrated into the process.
+
+#### 3. Distribution of $\Phi$ Iterations
+
+As previously mentioned, $`\phi^{\text{stream}}`$ is divided into a single epoch-sized *lifecycle segment*. It begins with an **init** function, ends with a **close** function, and then a new segment begins.
+
+We further partition this segment into **intervals**, each large enough to guarantee (with 128-bit confidence) that at least one block will be produced within it. This corresponds to **3434 slots** per interval. For simplicity, we round this to **3600 slots** (~1 hour), resulting in exactly 120 intervals per segment, which conveniently aligns with the 120 hours in five days.
+
+<details>
+<summary>🔍 How 128-bit Confidence gives 3434 Slots ?</summary>
+<p> 
+
+TODO
+
+</p> 
+</details>
+<br>
+
+This structure can be illustrated as follows:
+
+![alt text](./image/intervals.png)
 
 
-### 3. Distribution of $\Phi$ Iterations
+As previously described, we configure the stream using two key parameters, most notably the total computational budget $`T_\Phi`$. This value defines the total amount of work we require SPOs to collectively perform.
 
+We split $`T_\Phi`$ into discrete **iterations**, each of which can be computed independently. Slot leaders are responsible for producing a proof of computation for the specific iteration they are assigned. 
+These iterations are fully decoupled: they can be computed ahead of time, without waiting for previous or subsequent iterations to be produced. However, all iterations must eventually be completed and aggreagted in order to derive the final output $`o_e`$, which is then used to compute the epoch randomness $`\eta_e`$. 
+
+
+In this simple configuration, each iteration is associated with a specific interval. At first glance, we could divide $`T_\Phi`$ evenly across the 120 intervals. However, to ensure resilience, the protocol must remain robust even in extreme scenarios—such as a global outage resulting in **36 hours** of consecutive downtime (**30% of an epoch**). This scenario is described in the [Cardano Disaster Recovery Plan](https://iohk.io/en/research/library/papers/cardano-disaster-recovery-plan). A global outage means blockless intervas, and so we want to be able to handle 36 consecutive blockless intervals in our protocol. Pour ca, we will introduce a catch-up mechanism where if a block has not been produced in an interval then the 
+
+-------
+Below is under progress 
+-------
 #### 3.1 Challenge to solve 
 
 **How can we ensure that, for a given epoch $e$, Stake Pool Operators (SPOs) can efficiently perform the $i$ iterations of $`\Phi`$ required to deterministically produce $`\phi^\text{evolving}_e`$, thereby enabling a more secure computation of $`\eta_e`$ than in the current Praos protocol?**
