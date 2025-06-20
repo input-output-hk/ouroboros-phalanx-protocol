@@ -180,25 +180,25 @@ false & \text{otherwise.}
   - $`T_\Phi`$, a time-bound representing the required computation  $`\Phi`$ duration, independent of available computing power.
   - Any change to these 2 parameters would require a decision through Cardano governance.
   - The stream is configured by calling the setup function of the cryptographic primitive $`\Phi`$ with:
-    $$
+    ```math
     Φ.\text{Configuration} \leftarrow \Phi.\text{setup}(\lambda, T_\Phi)
-    $$
+    ```
   - `Φ.Configuration` will contain derived configuration specific to the algorithm and the cryptographic primitive used.
 
 - The stream is modeled as following :
 
   - It is reset at every $`\text{pre-}\eta`$ synchronization point every $`10.\frac{k}{f}`$ slots.
-    $$
+    ```math
     Φ.\text{Stream.State} \leftarrow \Phi.\text{init}(Φ.\text{Configuration}, \text{pre-}\eta)
-    $$
+    ```
   - At each slot $t$, update the stream state by :   
-    $$
+    ```math
     Φ.\text{Stream.State} \leftarrow \Phi.\text{tick}(Φ.\text{Stream.State, t})
-    $$
+    ```
   - A node must be able to determine, based on the current state, whether it should begin computing $\Phi$ iterations in order to provide a proof at its next scheduled leader slot:
-    $$
+    ```math
     \{0,1\} \leftarrow \Phi.\text{shouldCompute}(Φ.\text{Stream.State, \text{nextSlotLeader}})
-    $$
+    ```
   
   - A node must be able to compute a specific chunk of the $`\Phi`$ iteration independently of any global state. The result is an *attested output*—a pair $`\phi_x =(\pi_x,\ o_x)`$, where $`o_x`$ is the computed output for iteration $`x`$, and $`\pi_x`$ is a cryptographic proof attesting that $`o_x`$ was correctly derived from the input according to the rules of $`\Phi`$. Since this operation may be long-lived, intermediate attested outputs should be persistable to disk, allowing the node to stop, resume, or cancel computation from the latest completed sub-computation.
 
