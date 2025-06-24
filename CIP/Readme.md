@@ -178,21 +178,21 @@ false & \text{otherwise.}
 
 ###### 1.2.3.1 The Setup
 
-The stream is bootstrapped by calling the setup function of the cryptographic primitive $`\Phi`$ with:
+The stream is bootstrapped by calling the parametrize function of the cryptographic primitive $`\Phi`$ with:
 ```math
-Φ.\text{Configuration} \leftarrow \Phi.\text{setup}(\lambda, T_\Phi)
+Φ.\text{Stream.State} \leftarrow \Phi.\text{parametrize}(\lambda, T_\Phi)
 ```
 where : 
   -  $`\lambda`$ is a security parameter for the cryptographic primitive $`\Phi`$.
   - $`T_\Phi`$, a time-bound parameter representing the required computation  $`\Phi`$ duration, independent of available computing power.
   - Any change to these 2 parameters would require a decision through Cardano governance.
-  - $\Phi.\text{Configuration}$ will contain derived configuration specific to the algorithm and the cryptographic primitive used.
+  - $\Phi.\text{Stream.State}$ will contain derived configuration specific to the algorithm and the cryptographic primitive used.
 
 ###### 1.2.3.2 The Lifecycle
 
 It is reset at every $`\text{pre-}\eta`$ synchronization point every $`10.\frac{k}{f}`$ slots :
 ```math
-Φ.\text{Stream.State} \leftarrow \Phi.\text{init}(Φ.\text{Configuration}, \text{pre-}\eta)
+Φ.\text{Stream.State} \leftarrow \Phi.\text{initialize}(Φ.\text{Configuration}, \text{pre-}\eta)
 ```
 At each slot $t$, update the stream state by :   
 ```math
@@ -212,7 +212,7 @@ The result is an *attested output*—a pair $`\phi_x =(\pi_x,\ o_x)`$ where :
 A subset of block-producing slots must include in their block headers a unique attested output $`\phi_x`$ whith $`x \in \{1, \dotsc, e \}`$ denoting the iteration index within the $`\Phi`$ computation :
   - Each attested output updates the stream state as follows:
 ```math
- \Phi.\text{StreamState} \leftarrow \Phi.\text{addAttestedOutput}(\Phi.\text{StreamState},\ t,\ \phi_x)
+ \Phi.\text{StreamState} \leftarrow \Phi.\text{provideAttestedOutput}(\Phi.\text{StreamState},\ t,\ \phi_x)
 ```
   - Each attested output must be verifiable both:
       - **logically**, to ensure it corresponds to the correct slot and index, and
@@ -253,7 +253,7 @@ The Φ cryptographic primitive is a critical component of the Φalanx protocol, 
 | **Ease of Implementation & Maintenance** | Should be simple to implement and maintain, ensuring long-term usability and minimizing technical debt. |
 | **Adaptive Security**     | Function and its parameters should be easily reconfigurable to accommodate evolving threats, such as advances in computational power or new cryptographic attacks. |
 
-#### 2.2. Wesolowski's VDF (Verifiable Delayed Functions)
+#### 2.2. Verifiable Delayed Functions (VDF)
 
 Verifiable Delayed Functions (VDFs) are cryptographic primitives designed to take a certain amount of time to compute, regardless of how much computing resources are avaialable. This delay is enforced by requiring a specific number of sequential steps that cannot be sped up through parallel processing. Once the computation is done, the result comes with a proof that can be checked quickly and efficiently by anyone. Importantly, for a given input, the output is always the same (deterministic function), ensuring consistency. They usually rely on repeatedly squaring numbers in a mathematical setting that prevents shortcuts and enables quick verification.
 
@@ -274,13 +274,34 @@ In Pietrzak’s paper, the proof is a tuple of group elements $\pi = \{x^{2^{T /
 
 We will choose Wesolowski design over Pietrzark because of its space efficiency and possibility to aggregate proofs.
 
+
+#### 2.3 Wesolowski's VDF Primitives
+
+Let $`\text{VDF} = (\text{Setup},\ \text{Prove},\ \text{Verify})`$ be a Verifiable Delay Function based on class groups, defined as follows:
+
+- $`(\mathbb{G},\ \Delta,\ \cdot) \leftarrow \text{VDF}.\text{Setup}(\lambda,\ \Delta_{\text{challenge}})`$
+  Takes as input a **security parameter** $`\lambda \in \mathbb{N}`$ and a **challenge discriminant** $`\Delta_{\text{challenge}}`$. This challenge discriminant acts as a source of public entropy used to deterministically derive the group discriminant $\Delta$, which defines a group of unknown order $\mathbb{G}$ along with its group operation $`\cdot`$. The use of a challenge ensures that the resulting group is unbiasable and unpredictable, preventing adversarial precomputation. Internally, we expect the setup procedure to invoke the following sub-operations:
+```math
+    \Delta \leftarrow \texttt{VDF.CreateDiscriminant}(\lambda,\ \Delta_{\text{challenge}})
+```
+```math
+  (\mathbb{G},\ \cdot) \leftarrow \texttt{VDF.DeriveGroupClass}(\lambda,\ \Delta)
+```
+
+- $`(y,\ \pi) \leftarrow \text{VDF}.\text{Prove}((\mathbb{G},\ \Delta,\ \cdot), \ x,\ I)`$
+  Given a challenge $`x \in \mathbb{G}`$ and a number of iterations $`I \in \mathbb{N}`$, computes the VDF output $`y = x^{2^I}`$ and a corresponding **proof** $`\pi`$.
+
+- $`\{0,1\} \leftarrow \text{VDF}.\text{Verify}((\mathbb{G},\ \Delta,\ \cdot), \ x,\ y,\ I,\ \pi)`$
+  Returns 1 if $`\pi`$ successfully attests that $`y = x^{2^I}`$, with overwhelming probability. Returns 0 otherwise.
+
+
 ### 3. $`\Phi^{\text{stream}}`$ Specification
 
 We previously outlined the purpose of the Phalanx sub-protocol and introduced the cryptographic primitive underpinning its security guarantees. In this section, we provide a precise technical specification of the protocol, focusing on how the $`\Phi`$ iterations are distributed and how Wesolowski’s Verifiable Delay Function (VDF) is integrated into the process.
 
-#### 3. Distribution of $\Phi$ Iterations
+#### 3.1 Distribution of $\Phi$ Iterations
 
-As previously mentioned, $`\phi^{\text{stream}}`$ is divided into a single epoch-sized *lifecycle segment*. It begins with an **init** function, ends with a **close** function, and then a new segment begins.
+As previously mentioned, $`\phi^{\text{stream}}`$ is divided into epoch-sized *lifecycle segments*. They begin with an **init** function, end with a **close** function, and then followed by a new segment begins.
 
 We further partition this segment into **intervals**, each large enough to guarantee (with 128-bit confidence) that at least one block will be produced within it. This corresponds to **3434 slots** per interval. For simplicity, we round this to **3600 slots** (~1 hour), resulting in exactly 120 intervals per segment, which conveniently aligns with the 120 hours in five days.
 
@@ -288,9 +309,11 @@ We further partition this segment into **intervals**, each large enough to guara
 <summary>🔍 How 128-bit Confidence gives 3434 Slots ?</summary>
 <p> 
 
-## 📦 Guaranteeing Honest Block Inclusion with 128-bit Confidence
+## 📦 Guaranteeing Honest Block Inclusion with 128-bit Confidence in our context
 
 We want to make sure that, in any given interval of $N$ slots, there's **at least one honest block** produced — with a failure probability of at most $2^{-128}$ (which is a standard for cryptographic security).
+
+It is also important to note that we are operating in a context where fork-related concerns can be safely abstracted away. In particular, if an adversary were to attempt a private chain attack and succeed, it would imply that their chain is denser and that the proof of $\Phi$ computation is valid. In this setting, forks do not undermine security—they actually improve the probability of having at least one valid computation published within the interval.
 
 This means:
 
@@ -377,11 +400,162 @@ This structure can be illustrated as follows:
 
 As previously described, we configure the stream using two key parameters, most notably the total computational budget $`T_\Phi`$. This value defines the total amount of work we require SPOs to collectively perform.
 
-We split $`T_\Phi`$ into discrete **iterations**, each of which can be computed independently. Slot leaders are responsible for producing a proof of computation for the specific iteration they are assigned. 
-These iterations are fully decoupled: they can be computed ahead of time, without waiting for previous or subsequent iterations to be produced. However, all iterations must eventually be completed and aggreagted in order to derive the final output $`o_e`$, which is then used to compute the epoch randomness $`\eta_e`$. 
+We split $`T_\Phi`$ into discrete **iterations**, each with the following properties:
+
+- Iterations are fully independent and can be computed in parallel.
+- Slot leaders are responsible for submitting a proof of computation for the specific iteration assigned to them.
+- These computations are fully decoupled, there is no requirement to wait for previous iterations, enabling precomputation.
+- All iterations must eventually be completed and aggregated to derive the final output $`o_e`$, which is then used to compute the epoch randomness $`\eta_e`$.
+
+Each iteration is mapped to a specific interval, with the following constraints:
+
+  - The first interval is intentionally left without an assigned iteration, giving slot leaders time to compute the first output during interval 2.
+  - Each interval must be longer than the time required to compute a single iteration (i.e., the iteration duration must be less than one hour).
+  - The first slot leader to produce a block within an interval is responsible for submitting the corresponding attested output.
+
+At first glance, we could divide $`T_\Phi`$ evenly across the 120 intervals. However, to ensure resilience, the protocol must remain robust even in extreme scenarios—such as a global outage causing **36 hours** of consecutive downtime (**30% of an epoch**). This scenario is detailed in the [Cardano Disaster Recovery Plan](https://iohk.io/en/research/library/papers/cardano-disaster-recovery-plan).
+
+A global outage implies a sequence of blockless intervals. To tolerate such conditions, the protocol must be able to handle up to **36 intervals without block production**.  To address this, we introduce a catch-up mechanism: 
+  - We reserve the final 36 intervals of the segment specifically for recovering any missing attested outputs. 
+  - These missing outputs must be submitted in order, according to their original indices, ensuring deterministic reconstruction of the full computation stream.
+
+This structure can be illustrated as follows:
+
+![alt text](./image/structured-intervals.png)
 
 
-In this simple configuration, each iteration is associated with a specific interval. At first glance, we could divide $`T_\Phi`$ evenly across the 120 intervals. However, to ensure resilience, the protocol must remain robust even in extreme scenarios—such as a global outage resulting in **36 hours** of consecutive downtime (**30% of an epoch**). This scenario is described in the [Cardano Disaster Recovery Plan](https://iohk.io/en/research/library/papers/cardano-disaster-recovery-plan). A global outage means blockless intervas, and so we want to be able to handle 36 consecutive blockless intervals in our protocol. Pour ca, we will introduce a catch-up mechanism where if a block has not been produced in an interval then the 
+## 3.2 The State Machine
+
+### 3.2.1 Diagram Overview
+
+The figure below presents the **state transition diagram** for the Phalanx computation stream. Each node represents a distinct state in the lifecycle of the stream, and the arrows indicate transitions triggered by `Tick` events. These transitions are guarded by boolean predicates evaluated at each slot (e.g., `isWithinComputationPhase`, `isWithinCurrentInterval`).
+
+Each color in the state transition diagram corresponds to a distinct operational phase:
+
+- 🟧 **Orange**: *Parametrization Phase*
+  The stream is configured but not yet active. parameters like $`\lambda`$ and $`\#\text{iterations}_\phi`$ are established.
+
+- 🟩 **Green**: *Initialization Grace Phase*
+  The stream has been initialized and SPOs are given time to begin the first iteration of computation.
+
+- 🟥 **Red**: *Computation Phase*
+  The protocol expects attested outputs to be published on-chain during this period.
+
+- 🟦 **Blue**: *Catch-up Phase*
+  A recovery window for submitting missing attested outputs.
+
+
+![Phalanx State Transition Diagram](./image/state-transition-diagram.png)
+
+In the following sections, we provide a detailed breakdown of each phase of the state machine, specifying its purpose, entry conditions, timing constraints, and transitions.
+
+
+### 3.2.1 🟧 *Parametrization Phase*
+
+
+At the setup of the $`\Phi`$ stream, the total number of VDF iterations is derived from the time-bound parameter $`T_\Phi`$, using a reference hardware profile that reflects the minimal computational capacity expected of SPOs. While this derivation may not be fully automatable in practice, we include it here to clarify how time constraints are mapped to iteration counts during configuration.
+
+Importantly, this **parametrization phase** occurs only once, either during the initial bootstrap of the stream or following a transition from the `Closed` to `Initialized` state.
+
+| Parametrized                    |  $`\Phi.\text{Stream.State} \in \texttt{Parametrized} : \left\{ {securityParameter} \in \mathbb{N},\quad I \in \mathbb{N} \right\}`$ |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **Fields**       | <ul><li>$`\text{securityParameter} \in \mathbb{N}`$ — The **security parameter**, defining the size (in bits) of the VDF discriminant.</li><li>$`I \in \mathbb{N}`$ — The **per-interval VDF iteration count**, computed from $`T_\Phi`$ and evenly distributed across 83 computation intervals.</li></ul> |
+
+
+|  Parametrize | $`\Phi.\text{Stream.State} \leftarrow \Phi.\text{parametrize}(\lambda,\ T_\Phi)`$|
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| **Input Parameters**          | <ul><li>$`\lambda \in \mathbb{N}`$ — **Security parameter**, defines the size (in bits) of the VDF discriminant.</li><li>$`T_\Phi \in \mathbb{N}`$ — **Time budget** in seconds, representing the total computation time under reference hardware.</li></ul> |
+| **Derivation Logic**  | <ul><li>$`\#\text{Iterations}_\Phi \leftarrow \text{VDF}.\texttt{IterationsFromDuration}(T_\Phi)`$</li><li>$`\#\text{Iterations}_\phi \leftarrow \left\lfloor \frac{\#\text{Iterations}_\Phi}{83} \right\rfloor`$</li></ul>                                  |
+| **Returned State** | $`\texttt{Parametrized} \left\{ \text{securityParameter} \mapsto \lambda,\quad I \mapsto \#\text{Iterations}_\phi \right\}`$|
+
+### 3.2.3 Initialize
+
+At the beginning of each $`\Phi`$ stream, initialization occurs at every $`\text{pre-}\eta`$ synchronization point, which recurs every $`10 \cdot \frac{k}{f}`$ slots:
+
+```math
+\Phi.\text{Stream.State} \leftarrow \Phi.\text{init}(\Phi.\text{Configuration},\ \text{pre-}\eta)
+```
+We define so far the stream state as a **sum type with a single constructor**:
+
+```math
+\Phi.\text{Stream.State} \in
+\texttt{Initialized} :
+\left\{
+  \begin{aligned}
+    & \text{securityParameter} \in \mathbb{N} \\
+    & I \in \mathbb{N} \\
+    & \text{group} \in \mathbb{G} \\
+    & \text{discriminant} \in \mathbb{Z} \\
+    & \text{operation} : \mathbb{G} \times \mathbb{G} \to \mathbb{G}
+  \end{aligned}
+\right\}
+```
+
+Using the current configuration and the value of $`\text{pre-}\eta_e`$, the init function derives a new VDF group as follows:
+1. **Compute the epoch discriminant seed**:
+```math
+  \Delta_{\text{challenge}} \leftarrow \text{Hash}(\text{bin}(e) \ \|\ \text{pre-}\eta_e)
+```
+2. **Derive the VDF group** using this seed:
+
+```math
+   (\mathbb{G},\ \Delta,\ \cdot) \leftarrow \text{VDF}.\text{Setup}(\lambda,\ \Delta_{\text{challenge}})
+```
+
+Finally, the initialization function returns the new stream state as:
+
+```math
+
+\texttt{Initialized} \left\{
+  \begin{aligned}
+    & \text{securityParameter} \mapsto \lambda, \\
+    & I \mapsto \#\text{iterations}_\phi, \\
+    & \text{group} \mapsto \mathbb{G}, \\
+    & \text{discriminant} \mapsto \Delta, \\
+    & \text{operation} \mapsto \cdot
+  \end{aligned}
+\right\}
+```
+
+### 3.2.4 Waiting First Iteration Interval
+
+### 3.2.5 Computing
+
+### 3.2.6 Closing
+
+ and associate to each of its intervals a VDF challenge. The nodes will then publish in block’s the VDF output and proof.
+
+
+To facilitate syncing, we will add two accumulators that we will update every time an iteration is published _in the correct order_. If an interval has no block, we will refrain from updating the accumulators until the nodes have caught up and the missing iteration is published, in which case we will update the accumulators for all consecutive available iterations.
+The last interval will include of aggregation for all iterations instead of a proof for the last iteration only.
+
+We will use Wesolowski's VDF on _class groups_ to generate efficiently on the fly the group at each epoch. Class groups are entirely determined by their discriminant $\Delta$ that is a negative prime number with specific properties. As we intend to reuse the group for the whole epoch, which is necessary for aggregation, we will generate groups with bit of security, which means generate discriminants of length of at 3800 bits according to [4](https://arxiv.org/pdf/2211.16128).
+
+As such, we add to a block the following four elements:
+- $\textrm{Acc}_x$, the input accumulator,
+- $\textrm{Acc}_y$, the output accumulator,
+- $y_i$, the $\text{i}^\text{th}$ interval VDF's output,
+- $\pi_i$, the $\text{i}^\text{th}$ interval VDF's proof.
+
+We now show what happens at diverse points in time of the computation phase:
+- Before the computation phase, and when the preseed $\text{pre-}\eta_e$ is stabilized, we compute the epoch's discriminant $\Delta$ using $\text{Hash}(\text{bin}(e) || \text{pre-}\eta_e)$ as seed which determines the group $\mathbb{G}$. Finally, we will initialize both accumulators to $1_\mathbb{G}$.
+- To publish the first block of interval $i$, the node will compute the VDF input $x_i$ from the seed $\text{Hash}(\text{bin}(e) || \text{pre-}\eta_e || \text{bin}(i))$, its corrsponding output as well as a VDF proof of correctness. If there has been no missing iteration, the node will then compute $\alpha_i = \text{Hash} ( \dots  \text{Hash} (\text{Hash}( \text{Hash}(x_1\ ||\ \dots || x_n)\ ||\ y_1 )\ || y_2) \dots ||\ y_i)$ (note that $\alpha_i = \text{Hash}(\alpha_{i-1}\ ||\ y_i)$) and update the accumulator as follows: $\textrm{Acc}_x \leftarrow \textrm{Acc}_x \cdot x_i^{\alpha_i}$ and $\textrm{Acc}_y \leftarrow \textrm{Acc}_y \cdot y_i^{\alpha_i}$. If the accumulator has not been updated at a previous interval, because no block were published then, we will update the accumulators only when catching back the missing iteration, and updating the accumulators with all values $x_i$ and $y_i$ published in between.
+- When publishing the last iteration, may it be in the last interval if there was no empty interval or in the catch-up period, we will update the accumulator and compute a proof of aggregation. This simply corresponds to a VDF proof on input $\textrm{Acc}_x$ and output $\textrm{Acc}_y$.
+- When verifying a block, if the node is not synching, they will verify the VDF proof as well as the correct aggregation of the accumulators. If the node is synching, they will verify only the correct aggregation of the accumulators and verify the proof of aggregation at the end.
+
+Let $\text{VDF}.\left(\text{Setup}, \text{Prove}, \text{Verify} \right)$ a class group based VDF algorithm definition, with:
+- $(\mathbb{G}, \Delta, \cdot) \leftarrow \text{VDF}.\text{Setup}(\lambda)$: Takes as input a security parameter $\lambda$ and returns a group description $\mathbb{G}$ with discriminant $\Delta$ and operation $\cdot$. We will omit $\lambda$ and $\mathbb{G}$ for simplicity;
+- $\left(y, \pi\right) \leftarrow \text{VDF}.\text{Prove}(x, T)$: Takes as input the challenge $x \in \mathbb{G}$ and difficulty $T \in \mathbb{N}$ and returns the VDF output $y = x^{2^T}$ and the VDF proof $\pi$;
+- $\{0,1\} \leftarrow \text{VDF}.\text{Verify}(x,y,T,\pi)$: Returns 1 if the verification of $\pi$ is successful, that is $y == x^{2^T}$ with overwhelming probability, otherwise 0.
+
+We furthermore introduce the two additional functions $\text{Hash}_\mathbb{G}(\cdot)$ a hash to the class group, and $\text{Hash}_\mathbb{N}^{(n)}(\cdot)$ a hash to the integers of size $n$ bits.
+
+To publish a block, nodes needs to include the VDF output and proof of the interval. We define by $x_i \leftarrow \text{Hash}_\mathbb{G}(\text{pre-}\eta_e || i)$ the challenge for interval $i$ using the pre-seed $\text{pre-}\eta_e$ of the current computation phase. Nodes will thus have to compute $\left(y_i, \pi_i\right) \leftarrow \text{VDF}.\text{Prove}(x_i, T)$ and publish them on-chain. Nodes also may publish accumulators, if there is no missing iterations. They do so by generate a random coin as $\alpha_i = \text{Hash}_\mathbb{N}^{(\lambda)} ( \dots  \text{Hash}_\mathbb{N}^{(\lambda)} (\text{Hash}_\mathbb{N}^{(\lambda)}( \text{Hash}_\mathbb{N}^{(\lambda)}(x_1\ ||\ \dots || x_n)\ ||\ y_1 )\ || y_2) \dots ||\ y_i)$ (note that $\alpha_i = \text{Hash}_\mathbb{N}^{(\lambda)}(\alpha_{i-1}\ ||\ y_i)$) and update $\textrm{Acc}_x$ (resp. $\textrm{Acc}_y$) to $\textrm{Acc}_x \cdot x_i^{\alpha_i}$ (resp. to $\textrm{Acc}_y \cdot y_i^{\alpha_i}$).
+When an iteration is missing, we shall wait until the network has caught up to respect the sequentiality of the $\alpha_i$.
+
+When all iterations have been computed, we generate a proof of aggregation $\pi$ using the same proving algorithm on $\textrm{Acc}_x$, but without recomputing the VDF output which is $\textrm{Acc}_y$. Hence we have, $\left(\textrm{Acc}_y, \pi\right) \leftarrow \text{VDF}.\text{Prove}(\textrm{Acc}_x, T)$.
+
+
 
 -------
 Below is under progress 
