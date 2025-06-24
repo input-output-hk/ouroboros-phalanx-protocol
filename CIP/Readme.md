@@ -288,8 +288,84 @@ We further partition this segment into **intervals**, each large enough to guara
 <summary>🔍 How 128-bit Confidence gives 3434 Slots ?</summary>
 <p> 
 
-TODO
+## 📦 Guaranteeing Honest Block Inclusion with 128-bit Confidence
 
+We want to make sure that, in any given interval of $N$ slots, there's **at least one honest block** produced — with a failure probability of at most $2^{-128}$ (which is a standard for cryptographic security).
+
+This means:
+
+```math
+\Pr(\text{at least one honest block in } N \text{ slots}) \geq 1 - 2^{-128}
+```
+
+##### 🎲 Step 1 — What’s the chance of *not* getting an honest block?
+
+Each slot gives honest participants a chance to be selected as leader.
+
+Let:
+
+- $f = 0.05$ → probability a slot is active  
+- $\sigma = 0.51$ → 51% of stake is honest
+
+Then the chance that **no honest party** is selected in a slot is:
+
+```math
+(1 - f)^\sigma = 0.95^{0.51} \approx 0.97416
+```
+
+So, the chance that **at least one honest party** is selected in a slot is:
+
+```math
+p_h = 1 - 0.97416 = 0.02584
+```
+
+This means that **each slot has a 2.584% chance** of having an honest leader.
+
+##### 📐 Step 2 — What about across $N$ slots?
+
+The chance that **no honest block** is produced in $N$ consecutive slots is:
+
+```math
+(1 - p_h)^N
+```
+
+We want this to be **less than or equal to** $2^{-128}$, so:
+
+```math
+(1 - p_h)^N \leq 2^{-128}
+```
+
+##### ✏️ Step 3 — Solve for $N$
+
+Take log base 2 of both sides:
+
+```math
+\log_2((1 - p_h)^N) \leq \log_2(2^{-128})
+```
+
+```math
+N \cdot \log_2(1 - p_h) \leq -128
+```
+
+```math
+N \geq \frac{-128}{\log_2(1 - p_h)}
+```
+
+Now plug in:
+
+```math
+\log_2(1 - 0.02584) = \log_2(0.97416) \approx -0.03729
+```
+
+```math
+N = \frac{128}{0.03729} \approx 3434
+```
+
+To guarantee with 128-bit confidence that an interval contains **at least one honest block**, the interval must be at least **3434 slots** long.
+
+This ensures security even if up to **49% of stake is adversarial**.
+
+----
 </p> 
 </details>
 <br>
