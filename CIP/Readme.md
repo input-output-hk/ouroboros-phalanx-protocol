@@ -826,23 +826,26 @@ We will choose Wesolowski design over Pietrzark because of its space efficiency 
 
 #### 4.1.2 VDF's integration
 
-Phalanx design is to run for each interval of slots a certain amount of computation, and prove this on-chain. As such, we can generate a new VDF group at every epoch and associate to each of its intervals a VDF challenge. The nodes will then publish in block’s the VDF output and proof.
+Phalanx design is to run for each interval of slots a certain amount of computation, and prove this on-chain. As such, we can generate a VDF group of sufficient security or weaker ones at every epoch and associate to each of its intervals a VDF challenge. The nodes will then publish in block’s the VDF output and proof. The seed will then be computed by combining all the VDF output together, either by directly hashing them or by first accumulating them.
 
-To facilitate synching, we will add two accumulators that we will update every time an iteration is published _in the correct order_. If an interval has no block, we will refrain from updating the accumulators until the nodes have caught up and the missing iteration is published, in which case we will update the accumulators for all consecutive available iterations.
-The last interval will include of aggregation for all iterations instead of a proof for the last iteration only.
+To facilitate synching, we may add two accumulators that will be updated every time an iteration is published _in the correct order_. If an interval has no block, we will refrain from updating the accumulators until the nodes have caught up and the missing iteration is published, in which case we will update the accumulators for all consecutive available iterations.
+After the last iteration has been revealed, we can choose to publish a proof of aggregation of all iterations to facilitate synching. The seed will be then computed as the hash of the VDF output accumulators.
 
-We will use Wesolowski's VDF on _class groups_ to generate efficiently on the fly the group at each epoch. Class groups are entirely determined by their discriminant $\Delta$ that is a negative prime number with specific properties. As we intend to reuse the group for the whole epoch, which is necessary for aggregation, we will generate groups with bit of security, which means generate discriminants of length of at 3800 bits according to [4](https://arxiv.org/pdf/2211.16128).
+We will use Wesolowski's VDF on _class groups_ to generate efficiently on the fly the group at each epoch. Class groups are entirely determined by their discriminant $\Delta$ that is a negative prime number with specific properties. If we intend to reuse the same group for several epochs, we will generate a group with 128 bit of security, which means generate discriminants of length of at 3800 bits according to [4](https://arxiv.org/pdf/2211.16128). Were we to change groups at each epoch, we can reduce the security parameter and group size further. To evaluate the correct level of security to ensure that a class group remain secure for at least an epoch, we can look at the amount of work needed to break RSA challenges and deduce, for a given number of CPU and margin, corresponding class group discriminant size. For instance, the RSA-155 challenge, written over 155 decimal digits and 512 bits, was factored in 1999 with the general number feield sieve algorithm, taking an estimated 8000 MIPS-year. RSA-768, 768 bit long modulus, was factored in two years back in 2009 taking almost 2000 years of computing on a single-core 2.2 GHz CPU. More recently in 2020, the RSA-250 challenge, 250 decimal digits and 829 bits, was factored using a 2.1 GHz CPU in 2,700 CPU core-years. According to well-known [security organisations](https://www.keylength.com/en/compare/), 1024 bit long RSA correspond to less than 80 bits of security nowadays, the latter corresponding to 1920 to 2400 bit-long discriminants.
 
-As such, we add to a block the following four elements:
-- $\textrm{Acc}_x$, the input accumulator,
-- $\textrm{Acc}_y$, the output accumulator,
+
+As such, we add to a block the following two elements:
 - $y_i$, the $\text{i}^\text{th}$ interval VDF's output,
 - $\pi_i$, the $\text{i}^\text{th}$ interval VDF's proof.
 
+We locally compute the following accumulators (or optionally publish them alongside $y_i$ and $\pi_i$ onchain):
+- $\textrm{Acc}_x$, the input accumulator,
+- $\textrm{Acc}_y$, the output accumulator,
+
 We now show what happens at diverse points in time of the computation phase:
 - Before the computation phase, and when the preseed $\text{pre-}\eta_e$ is stabilized, we compute the epoch's discriminant $\Delta$ using $\text{Hash}(\text{bin}(e) || \text{pre-}\eta_e)$ as seed which determines the group $\mathbb{G}$. Finally, we will initialize both accumulators to $1_\mathbb{G}$.
-- To publish the first block of interval $i$, the node will compute the VDF input $x_i$ from the seed $\text{Hash}(\text{bin}(e) || \text{pre-}\eta_e || \text{bin}(i))$, its corrsponding output as well as a VDF proof of correctness. If there has been no missing iteration, the node will then compute $\alpha_i = \text{Hash} ( \dots  \text{Hash} (\text{Hash}( \text{Hash}(x_1\ ||\ \dots || x_n)\ ||\ y_1 )\ || y_2) \dots ||\ y_i)$ (note that $\alpha_i = \text{Hash}(\alpha_{i-1}\ ||\ y_i)$) and update the accumulator as follows: $\textrm{Acc}_x \leftarrow \textrm{Acc}_x \cdot x_i^{\alpha_i}$ and $\textrm{Acc}_y \leftarrow \textrm{Acc}_y \cdot y_i^{\alpha_i}$. If the accumulator has not been updated at a previous interval, because no block were published then, we will update the accumulators only when catching back the missing iteration, and updating the accumulators with all values $x_i$ and $y_i$ published in between.
-- When publishing the last iteration, may it be in the last interval if there was no empty interval or in the catch-up period, we will update the accumulator and compute a proof of aggregation. This simply corresponds to a VDF proof on input $\textrm{Acc}_x$ and output $\textrm{Acc}_y$.
+- To publish the first block of interval $i$, the node will compute the VDF input $x_i$ from the seed $\text{Hash}(\text{bin}(e) || \text{pre-}\eta_e || \text{bin}(i))$, its corrsponding output as well as a VDF proof of correctness. If there has been no missing iteration, the node will then compute $\alpha_i = \text{Hash} ( \dots  \text{Hash} (\text{Hash}( \text{Hash}(x_1\ ||\ \dots || x_n)\ ||\ y_1 )\ || y_2) \dots ||\ y_i)$ (note that $\alpha_i = \text{Hash}(\alpha_{i-1}\ ||\ y_i)$) and update the accumulator as follows: $\textrm{Acc}_x \leftarrow \textrm{Acc}_x \cdot x_i^{\alpha_i}$ and $\textrm{Acc}_y \leftarrow \textrm{Acc}_y \cdot y_i^{\alpha_i}$. If some iterations were not published, we will refrain from updating the accumulators until we havec caught back to ensure the ordering of the $x_i$ and $y_i$ in the computation of the $\alpha_i$.
+- When publishing the last iteration, may it be in the last interval if there was no empty interval or in the catch-up period, we will update the accumulator and may compute a proof of aggregation. This simply corresponds to a VDF proof on input $\textrm{Acc}_x$ and output $\textrm{Acc}_y$. The seed of the new epoch will be $\text{Hash}^{(256)}(\textrm{Acc}_y)$.
 - When verifying a block, if the node is not synching, they will verify the VDF proof as well as the correct aggregation of the accumulators. If the node is synching, they will verify only the correct aggregation of the accumulators and verify the proof of aggregation at the end.
 
 Let $\text{VDF}.\left(\text{Setup}, \text{Prove}, \text{Verify} \right)$ a class group based VDF algorithm definition, with:
@@ -857,6 +860,9 @@ When an iteration is missing, we shall wait until the network has caught up to r
 
 When all iterations have been computed, we generate a proof of aggregation $\pi$ using the same proving algorithm on $\textrm{Acc}_x$, but without recomputing the VDF output which is $\textrm{Acc}_y$. Hence we have, $\left(\textrm{Acc}_y, \pi\right) \leftarrow \text{VDF}.\text{Prove}(\textrm{Acc}_x, T)$.
 
+The computation guarantees of VDFs relies on the fact that squaring elements in an unknown order group is believed to be difficult to parallelize without specialised hardware. The goal of the adversary is to compute the seed as efficiently and quickly as possible. Regardless of whether the seed is defined as the hash of all VDF outputs - the $y_i$s or the hash of the output aggregator $\textrm{Acc}_y$, the adversary cannot batch the computation with significant probability. Indeed. we can see that the adverasry needs to compute the individual $y_i$ to compute the seed as he would need to hash all of them in the first solution, and similarly in the second as the batching coefficient $\alpha_i$ depends on the outputs $y_i$. If the adversary were to batch the $x_i$ with random coefficients, this would be equal to $\textrm{Acc}_x$ with negligeable property, and so the VDF evaluation of it would likewise equal $\textrm{Acc}_y$ with negligeable probability.
+The security proof of this accumulation can be found in [Building Cryptographic Proofs from Hash Functions, Chapter 14](https://github.com/hash-based-snargs-book/hash-based-snargs-book/blob/main/snargs-book.pdf) by Alessandro Chiesa and Eylon Yogev.
+
 
 #### 4.1.3 Efficiency analysis
 
@@ -869,7 +875,7 @@ When synching, the node would only need to check the aggregation at each step an
 
 Because the group generation algorithm is very efficient, we can re-generating a group every epoch easily. We can take advantage of this to reduce the security parameter such that it is still highly improbable to break the group within an epoch to reduce the size of the elements on-chain.
 
-N.B. For future work, it could be interesting to snarkify the accumulators, their update and the proof verification to save space and potentially reduce the verification time. This would however increase the proving time significantly.
+N.B. For future work, it could be interesting to snarkify the accumulators, their update and the proof verification to save space and potentially reduce the verification time. An incrementally verifiable computation technique would be particularly interesting in that scenario as we would be able to prove each iteration and accumulator update in small circuits and generate a single proof for the whole epoch. Regardless of the techniques chosen, using SNARKs would significantly increase the proving time.
 
 
 <center>
