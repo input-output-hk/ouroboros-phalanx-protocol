@@ -13,38 +13,35 @@ Created: 2025-10-03
 License: Apache-2.0
 ---
 
+Below is the updated Table of Contents (TOC) for the provided document in GitHub-flavored Markdown, formatted to be easily copy-pasted into the `Readme.md` file. The TOC reflects the current structure of the document, including all sections and subsections, with correct indentation and links to the corresponding headings. I've ensured the format is clean and compatible with GitHub Markdown.
 
 ## Table of Contents
 
 - [Abstract](#abstract)
 - [Motivation: Why is this CIP necessary?](#motivation-why-is-this-cip-necessary)
 - [Specification / The Φalanx Sub-Protocol](#specification--the-phalanx-sub-protocol)
-  - [1. High-Level Changes Relative to Praos](#1-high-level-changes-relative-to-praos)
-  - [2. The Streams](#2-the-streams)
-    - [2.1 The η stream](#21-the-eta-stream)
-    - [2.2 The pre-η Synchronizations](#22-the-pre-eta-synchronizations)
-    - [2.3 The φ stream](#23-the-phi-stream)
-    - [2.4 The η Generations](#24-the-eta-generations)
-  - [3. Distribution of Φ Iterations](#3-distribution-of-phi-iterations)
-    - [3.1 Challenge to solve](#31-challenge-to-solve)
-    - [3.2 Solution Properties S.C.A.L.E](#32-solution-properties-scale)
-    - [3.3 Computation Participation](#33-computation-participation)
-    - [3.4 Slot Leader Schedule Visibility & pre-η Instability](#34-slot-leader-schedule-visibility--pre-eta-instability)
-    - [3.5 The Algorithm](#35-the-algorithm)
-    - [3.8 Agda Mechanization](#38-agda-mechanization)
-  - [4. The Φ Cryptographic Primitive](#4-the-phi-cryptographic-primitive)
-    - [4.1 Verifiable Delayed Functions](#41-verifiable-delayed-functions)
-      - [4.1.1 Wesolowski's VDF](#411-wesolowskis-vdf)
-      - [4.1.2 VDF's integration](#412-vdfs-integration)
-  - [5. Recommended Parameterization](#5-recommended-parameterization)
-- [Rationale: How This CIP Achieves Its Goals](#rationale-how-this-cip-achieves-its-goals)
-  - [1. Φ_power & Adversarial Cost Overhead](#1-phi-power--adversarial-cost-overhead)
-    - [1.1 Cost Overhead of a Grinding Attempt](#11-cost-overhead-of-a-grinding-attempt)
-    - [1.2 Cost Overhead of a Grinding Attack](#12-cost-overhead-of-a-grinding-attack)
-      - [1.2.1 Formula](#121-formula)
-      - [1.2.2 Estimated Formula Using Mainnet Cardano Parameters](#122-estimated-formula-using-mainnet-cardano-parameters)
-      - [1.2.3 Φ_power & Scenarios](#123-phi_textpower--scenarios)
-  - [2. Adaptive Strategies for Efficient Φ Computation](#2-adaptive-strategies-for-efficient-phi-computation)
+  - [1. High-Level Overview](#1-high-level-overview)
+    - [1.1 Changes Relative to Praos](#11-changes-relative-to-praos)
+    - [1.2 Inputs & Outputs](#12-inputs--outputs)
+      - [1.2.1 The η stream](#121-the-η-stream)
+      - [1.2.2 The pre-η Synchronizations](#122-the-pre-η-synchronizations)
+      - [1.2.3 The φ stream](#123-the-φ-stream)
+      - [1.2.4 The η Generations](#124-the-η-generations)
+  - [2. The Φ Cryptographic Primitive](#the-φ-cryptographic-primitive)
+    - [2.1 Expected Properties](#21-expected-properties)
+    - [2.2 Verifiable Delayed Functions (VDF)](#22-verifiable-delayed-functions)
+    - [2.3 Wesolowski's VDF Primitives](#23-wesolowskis-vdf-primitives)
+  - [3. Φ stream Specification](#φ-stream-specification)
+    - [3.1 Distribution of Φ Iterations](#31-distribution-of-φ-iterations)
+    - [3.2 The State Machine](#32-the-state-machine)
+      - [3.2.1 Parametrization Phase](#321-parametrization-phase)
+      - [3.2.2 Initialization Grace Phase](#322-initialization-grace-phase)
+      - [3.2.3 Computation Phase](#323-computation-phase)
+- [DRAFT Land BELOW](#draft-land-below)
+  - [1. Cryptographic Primitive](#1-cryptographic-primitive)
+    - [1.1 Evaluation](#11-evaluation)
+    - [1.2 Selection Rationale](#12-selection-rationale)
+  - [2. Adaptive Strategies for Efficient Φ Computation](#2-adaptive-strategies-for-efficient-φ-computation)
     - [2.4.3 Block-based approach](#243-block-based-approach)
   - [3. Performance Impacts on Consensus & Ledger Repository](#3-performance-impacts-on-consensus--ledger-repository)
   - [4. Maintainability](#4-maintainability)
@@ -62,6 +59,8 @@ License: Apache-2.0
 - [References](#references)
 - [Copyright](#copyright)
 
+
+
 ## Abstract
 
 <!-- A short (\\\~200 word) description of the proposed solution and the technical issue being addressed. \-->
@@ -70,7 +69,7 @@ Addressing the "[Ouroboros Randomness Manipulation](../CPS/README.md)" **Problem
 
 A [**Phalanx**](https://en.wikipedia.org/wiki/Phalanx) is an **Ancient Greek military formation** where soldiers **stand in a tightly packed unit**, shielding and reinforcing one another to create a nearly impenetrable defense. This strategy made it far more difficult for enemies to break through compared to fighting individual soldiers.
 
-![alt text](./image/image.png)
+![alt text](./image/phalanx-soldiers.png)
 
 In **Φalanx Protocol**, we apply this idea cryptographically by **enhancing the VRF-based randomness generation sub-protocol** with a cryptographic primitive that is **efficient for honest participants** but **computationally expensive for adversaries** attempting to bias leader election. While it won’t eliminate grinding attacks entirely, it **significantly increases their cost**, and our work focuses on **precisely quantifying this added expense**.
 
@@ -275,7 +274,9 @@ In Pietrzak’s paper, the proof is a tuple of group elements $\pi = \{x^{2^{T /
 We will choose Wesolowski design over Pietrzark because of its space efficiency and possibility to aggregate proofs.
 
 
-#### 2.3 Wesolowski's VDF Primitives
+#### 2.3 Wesolowski's VDF 
+
+##### 2.3.1 VDF Primitives
 
 Let $`\text{VDF} = (\text{Setup},\ \text{Prove},\ \text{Verify})`$ be a Verifiable Delay Function based on class groups, defined as follows:
 
@@ -295,7 +296,45 @@ Let $`\text{VDF} = (\text{Setup},\ \text{Prove},\ \text{Verify})`$ be a Verifiab
   Returns 1 if $`\pi`$ successfully attests that $`y = x^{2^I}`$, with overwhelming probability. Returns 0 otherwise.
 
 
-### 3. $`\Phi^{\text{stream}}`$ Specification
+##### 2.3.1 VDF Aggregation Primitives
+
+Let $`\text{VDF.Aggregation} = (\text{Prove},\ \text{Verify},\ \text{ComputeChallenge},\ \text{VerifyChallenge})`$ denote an **Aggregated Verifiable Delay Function** constructed over class groups.
+
+In the sections that follow, we present a mechanism for producing a **proof of aggregation**. This construction enables efficient synchronization for network participants and plays a central role in deriving the final epoch nonce $`\eta_e`$. Each function in the aggregation interface is detailed below, forming the core of this synchronization primitive.
+
+
+| `compute an aggregated output` | $`(x,\ y,\ \pi) \leftarrow \texttt{VDF.Aggregation.Prove}(\lambda,\ \text{Hash}_\mathbb{G},\ \text{Hash}^{(n)}_\mathbb{N},\ \text{pre-}\eta_e, \ [(x_i, y_i)]^n,\ I)`$     |
+| ------------------------- | ------------------------- |
+| **Input Parameters**      | <ul><li>$`\lambda \in \mathbb{N}`$ — Security parameter.</li><li>$`\text{Hash}_\mathbb{G}`$ — Hash function mapping to the group $`\mathbb{G}`$.</li><li>$`\text{Hash}^{(n)}_\mathbb{N}`$ — Hash function mapping to $`\mathbb{N}`$ with domain size $`n`$.</li><li>$\text{pre-}\eta_e \in \{0,1\}^{256}$ — 256-bit pre-nonce entropy for epoch $e$.</li><li>$`[(x_i, y_i)]^n`$ — List of $`n`$ attested output pairs for intervals.</li><li>$`I \in \mathbb{N}`$ — Per-interval iteration count for the VDF.</li></ul> |
+| **Steps**                 | <ol><li>Compute the aggregated challenge:<br>$`x \leftarrow \texttt{VDF.Aggregation.computeChallenge}(\lambda,\ \text{Hash}_\mathbb{G},\ \text{Hash}^{(n)}_\mathbb{N},\ [(x_i, y_i)]^n)`$</li><li>Compute the VDF output and proof:<br>$`(y,\ \pi) \leftarrow \text{VDF}.\text{Prove}((\mathbb{G},\ \Delta,\ \cdot), \ x,\ I)`$</li></ol>                                                                                                          |
+| **Returned Output**       | $`(x,\ y,\ \pi)`$ — Aggregated input, output, and VDF proof.   |
+
+
+| `compute an aggregated challenge` | $`x \leftarrow \texttt{VDF.Aggregation.computeChallenge}(\lambda,\ \text{Hash}_\mathbb{G},\ \text{Hash}^{(n)}_\mathbb{N},\ \text{pre-}\eta_e, \ [(x_i, y_i)]^n)`$  |
+| ------------------- | ------------------- |
+| **Input Parameters**         | <ul><li>$`\lambda \in \mathbb{N}`$ — Security parameter (bit length).</li><li>$`\text{Hash}_\mathbb{G}`$ — Hash function mapping into the class group $`\mathbb{G}`$.</li><li>$`\text{Hash}^{(n)}_\mathbb{N}`$ — Hash function producing $`n`$-bit integers.</li><li>$\text{pre-}\eta_e \in \{0,1\}^{256}$ — 256-bit pre-nonce entropy for epoch $e$.</li><li>$`[(x_1, y_1), \dots, (x_n, y_n)]`$ — Sequence of $`n`$ tuples where $`x_i`$ is a VDF challenge and $`y_i`$ the corresponding output.</li></ul> |
+| **Per-element Computation**  | For each $`i \in \{1, \dots, n\}`$:<br><ul><li>$`x_i = \text{Hash}_\mathbb{G}(\text{pre-}\eta_e \,\|\, i)`$ — Compute individual VDF challenge from the pre-nonce and index.</li><li>$`\alpha_i = \text{Hash}^{(\lambda)}_\mathbb{N}(\cdots\text{Hash}^{(\lambda)}_\mathbb{N}(\text{Hash}^{(\lambda)}_\mathbb{N}(x_1 \,\|\, \cdots \,\|\, x_n) \,\|\, y_1)\cdots \,\|\, y_i)`$ — Derive exponent for aggregation.</li></ul>      |
+| **Final Aggregation**        | Compute the aggregated challenge:<br>$`x = \prod_{i=1}^{n} x_i^{\alpha_i}`$    |
+| **Returned Value**           | $`x \in \mathbb{G}`$ — Aggregated VDF challenge in the class group. |
+
+
+| `Verify Challenge x` | $`\texttt{VDF.Aggregation.VerifyChallenge}(\lambda,\ \text{Hash}_\mathbb{G},\ \text{Hash}^{(n)}_\mathbb{N},\ x_{\text{expected}},\ [(x_i, y_i)]^n)`$     |
+| ------------- | ------ |
+| **Input Parameters**              | <ul><li>$`\lambda \in \mathbb{N}`$ — Security parameter.</li><li>$`\text{Hash}_\mathbb{G}`$ — Hash function mapping into the class group $`\mathbb{G}`$.</li><li>$`\text{Hash}^{(n)}_\mathbb{N}`$ — Hash function returning $`n`$-bit integers.</li><li>$`x_{\text{expected}} \in \mathbb{G}`$ — Expected aggregated challenge.</li><li>$`[(x_1, y_1)]^n`$ — Sequence of $`n`$ VDF challenge-output pairs.</li></ul> |
+| **Computation**                   | Recompute the challenge:<br>$`x \leftarrow \texttt{VDF.Aggregation.computeChallenge}(\lambda,\ (\mathbb{G},\ \Delta,\ \cdot),\ \text{Hash}_\mathbb{G},\ \text{Hash}^{(n)}_\mathbb{N},\ [(x_i, y_i)]^n)`$    |
+| **Check**                         | Verify equality:<br>$`x \stackrel{?}{=} x_{\text{expected}}`$   |
+| **Returned Value**                | $`\texttt{true}`$ if the computed $`x`$ matches $`x_{\text{expected}}`$; otherwise $`\texttt{false}`$.  |
+
+
+| `Verify Aggregated Output` | $`\texttt{VDF.Aggregation.Verify}(\lambda,\  (\mathbb{G},\ \Delta,\ \cdot) ,\  \text{Hash}_\mathbb{G},\ \text{Hash}^{(n)}_\mathbb{N} ,\ x,\ y, [(x_i, y_i)]^n,\ I ,\ \ \pi,\ )`$   |
+| ------------------- | ------ |
+| **Input Parameters**       | <ul><li>$`\lambda \in \mathbb{N}`$ — Security parameter.</li><li>$`(\mathbb{G},\ \Delta,\ \cdot)`$ — Group and associated data.</li><li>$`\text{Hash}_\mathbb{G}`$ — Hash function into the group.</li><li>$`\text{Hash}^{(n)}_\mathbb{N}`$ — Hash to $`\mathbb{N}`$.</li><li>$`x \in \mathbb{G}`$ — Aggregated challenge to verify.</li><li>$`y \in \mathbb{G}`$ — Claimed output of the VDF.</li><li>$`[(x_i, y_i)]^n`$ — Sequence of challenge-output pairs.</li><li>$`I \in \mathbb{N}`$ — Number of VDF iterations.</li><li>$`\pi`$ — Claimed proof of the computation.</li></ul> |
+| **Steps** | <ol><li>Recompute and verify the challenge:<br>$`\texttt{VerifyChallenge}(\lambda,\ \text{Hash}_\mathbb{G},\ \text{Hash}^{(n)}_\mathbb{N},\ x,\  [(x_i, y_i)]^n))`$</li><li>Run the VDF verifier:<br>$`\text{VDF.Verify}((\mathbb{G},\ \Delta,\ \cdot),\ x,\ y,\ I,\ \pi)`$</li></ol>  |
+| **Returned Value**         | $`\texttt{true}`$ if both challenge and VDF proof are valid; otherwise $`\texttt{false}`$. |
+
+
+
+### 3. $`\phi^{\text{stream}}`$ Specification
 
 We previously outlined the purpose of the Phalanx sub-protocol and introduced the cryptographic primitive underpinning its security guarantees. In this section, we provide a precise technical specification of the protocol, focusing on how the $`\Phi`$ iterations are distributed and how Wesolowski’s Verifiable Delay Function (VDF) is integrated into the process.
 
@@ -405,7 +444,8 @@ We split $`T_\Phi`$ into discrete **iterations**, each with the following proper
 - Iterations are fully independent and can be computed in parallel.
 - Slot leaders are responsible for submitting a proof of computation for the specific iteration assigned to them.
 - These computations are fully decoupled, there is no requirement to wait for previous iterations, enabling precomputation.
-- All iterations must eventually be completed and aggregated to derive the final output $`o_e`$, which is then used to compute the epoch randomness $`\eta_e`$.
+- All iterations must eventually be completed, and the final iteration involves aggregating all outputs along with a corresponding proof.
+- This final aggregate is then used to derive the output $o_e$, which in turn is used to compute the epoch randomness $\eta_e$.
 
 Each iteration is mapped to a specific interval, with the following constraints:
 
@@ -419,376 +459,357 @@ A global outage implies a sequence of blockless intervals. To tolerate such cond
   - We reserve the final 36 intervals of the segment specifically for recovering any missing attested outputs. 
   - These missing outputs must be submitted in order, according to their original indices, ensuring deterministic reconstruction of the full computation stream.
 
-This structure can be illustrated as follows:
+
+We define **4 sequential phases** in the stream lifecycle:
+
+- 🟧 **Parametrization Phase** : 
+  The stream is configured but not yet active. Parameters such as $`\lambda`$ (computation hardness) and $`\#\text{iterations}_\phi`$ (number of iterations) are established during this phase.
+
+- 🟩 **Initialization Grace Phase**:
+  The stream is activated, and Stake Pool Operators (SPOs) are given a grace period to begin the first iteration of the computation.
+
+- 🟥 **Computation Phase**:
+  During this phase, the protocol expects attested outputs to be published on-chain. It consists of **82 computation iterations**, each producing an intermediate output that contributes to the final result.
+
+- 🟦 **Catch-up & Closure Phase**:
+  - A bounded recovery window that allows SPOs to submit any **missing attested outputs**, ensuring the completeness of the computation prior to finalization.
+  - A final dedicated interval to compute the **aggregation** of all previous outputs and derive the epoch’s final randomness $`\eta_e`$. This phase **seals the stream** and concludes a lifecycle.
+
+The diagram below illustrates how the lifecycle segment is structured:
 
 ![alt text](./image/structured-intervals.png)
 
+### 3.2 The State Machine
 
-## 3.2 The State Machine
-
-### 3.2.1 Diagram Overview
+#### 3.2.1 Diagram Overview
 
 The figure below presents the **state transition diagram** for the Phalanx computation stream. Each node represents a distinct state in the lifecycle of the stream, and the arrows indicate transitions triggered by `Tick` events. These transitions are guarded by boolean predicates evaluated at each slot (e.g., `isWithinComputationPhase`, `isWithinCurrentInterval`).
-
-Each color in the state transition diagram corresponds to a distinct operational phase:
-
-- 🟧 **Orange**: *Parametrization Phase*
-  The stream is configured but not yet active. parameters like $`\lambda`$ and $`\#\text{iterations}_\phi`$ are established.
-
-- 🟩 **Green**: *Initialization Grace Phase*
-  The stream has been initialized and SPOs are given time to begin the first iteration of computation.
-
-- 🟥 **Red**: *Computation Phase*
-  The protocol expects attested outputs to be published on-chain during this period.
-
-- 🟦 **Blue**: *Catch-up Phase*
-  A recovery window for submitting missing attested outputs.
-
 
 ![Phalanx State Transition Diagram](./image/state-transition-diagram.png)
 
 In the following sections, we provide a detailed breakdown of each phase of the state machine, specifying its purpose, entry conditions, timing constraints, and transitions.
 
 
-### 3.2.1 🟧 *Parametrization Phase*
+#### 3.2.2 🟧 *Parametrization Phase*
 
 
-At the setup of the $`\Phi`$ stream, the total number of VDF iterations is derived from the time-bound parameter $`T_\Phi`$, using a reference hardware profile that reflects the minimal computational capacity expected of SPOs. While this derivation may not be fully automatable in practice, we include it here to clarify how time constraints are mapped to iteration counts during configuration.
+At the setup of $`\phi^{stream}`$, the total number of VDF iterations is derived from the time-bound parameter $`T_\Phi`$, using a reference hardware profile that reflects the minimal computational capacity expected of SPOs. While this derivation may not be fully automatable in practice, we include it here to clarify how time constraints are mapped to iteration counts during configuration.
 
 Importantly, this **parametrization phase** occurs only once, either during the initial bootstrap of the stream or following a transition from the `Closed` to `Initialized` state.
 
-| Parametrized                    |  $`\Phi.\text{Stream.State} \in \texttt{Parametrized} : \left\{ {securityParameter} \in \mathbb{N},\quad I \in \mathbb{N} \right\}`$ |
+| `Parametrized`  |  $`\Phi.\text{Stream.State} \in \texttt{Parametrized} : \left\{ {securityParameter} \in \mathbb{N},\quad I \in \mathbb{N} \right\}`$ |
 | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| **Fields**       | <ul><li>$`\text{securityParameter} \in \mathbb{N}`$ — The **security parameter**, defining the size (in bits) of the VDF discriminant.</li><li>$`I \in \mathbb{N}`$ — The **per-interval VDF iteration count**, computed from $`T_\Phi`$ and evenly distributed across 83 computation intervals.</li></ul> |
+| **Fields**       | <ul><li>$`\text{securityParameter} \in \mathbb{N}`$ — The **security parameter**, defining the size (in bits) of the VDF discriminant.</li><li>$`I \in \mathbb{N}`$ — The **per-interval VDF iteration count**, computed from $`T_\Phi`$ and evenly distributed across 82 computation intervals.</li></ul> |
 
 
-|  Parametrize | $`\Phi.\text{Stream.State} \leftarrow \Phi.\text{parametrize}(\lambda,\ T_\Phi)`$|
+|  `parametrize` | $`\Phi.\text{Stream.State} \leftarrow \Phi.\text{parametrize}(\lambda,\ T_\Phi)`$|
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | **Input Parameters**          | <ul><li>$`\lambda \in \mathbb{N}`$ — **Security parameter**, defines the size (in bits) of the VDF discriminant.</li><li>$`T_\Phi \in \mathbb{N}`$ — **Time budget** in seconds, representing the total computation time under reference hardware.</li></ul> |
-| **Derivation Logic**  | <ul><li>$`\#\text{Iterations}_\Phi \leftarrow \text{VDF}.\texttt{IterationsFromDuration}(T_\Phi)`$</li><li>$`\#\text{Iterations}_\phi \leftarrow \left\lfloor \frac{\#\text{Iterations}_\Phi}{83} \right\rfloor`$</li></ul>                                  |
+| **Derivation Logic**  | <ul><li>$`\#\text{Iterations}_\Phi \leftarrow \text{VDF}.\texttt{IterationsFromDuration}(T_\Phi)`$</li><li>$`\#\text{Iterations}_\phi \leftarrow \left\lfloor \frac{\#\text{Iterations}_\Phi}{82} \right\rfloor`$</li></ul>                                  |
 | **Returned State** | $`\texttt{Parametrized} \left\{ \text{securityParameter} \mapsto \lambda,\quad I \mapsto \#\text{Iterations}_\phi \right\}`$|
 
-### 3.2.3 Initialize
+#### 3.2.3  🟩 *Initialization Grace Phase*
 
-At the beginning of each $`\Phi`$ stream, initialization occurs at every $`\text{pre-}\eta`$ synchronization point, which recurs every $`10 \cdot \frac{k}{f}`$ slots:
+Initialization occurs at every $`\text{pre-}\eta`$ synchronization point, followed by an *Initialization Grace* period during which the protocol waits long enough for the first iteration to be computed and its proof to be included within the first computation interval. This process recurs every $`10 \cdot \frac{k}{f}`$ slots.
+
+##### 3.2.3.1 *Initialize Command*
+
+| `Initialized` | $`\Phi.\text{Stream.State} \in \texttt{Initialized} : \left\{ \text{parametrized} \in \texttt{Parametrized},\ \text{group} \in \mathbb{G},\  \text{discriminant} \in \mathbb{Z},\ \text{operation} : \mathbb{G} \times \mathbb{G} \to \mathbb{G} \right\}`$|
+| ----------- | -------------- |
+| **Fields**  | <ul><li>$\text{parametrized} \in \texttt{Parametrized}$ — Reference to the prior configuration (security parameter and iteration count).</li><li>$\text{group} \in \mathbb{G}$ — VDF group used for exponentiation.</li><li>$\text{discriminant} \in \mathbb{Z}$ — Epoch-specific VDF discriminant.</li><li>$\text{operation} : \mathbb{G} \times \mathbb{G} \to \mathbb{G}$ — Group operation used for VDF evaluation (e.g., modular exponentiation).</li><li>$\text{epochId}_e \in \mathbb{N}$ — Numerical identifier for epoch $e$.</li><li>$\text{pre-}\eta_e \in \{0,1\}^{256}$ — 256-bit pre-nonce entropy for epoch $e$.</li></ul> |
+
+
+| `initialize`           | $\Phi.\text{Stream.State} \leftarrow \Phi.\text{Initialize}(\text{parametrizedState},\ \text{epochId}_e,\ \text{pre-}\eta_e)$ |
+| -------------------- | ----------------------------------------- |
+| **Input Parameters** | <ul><li>$\text{parametrizedState} = (\lambda,\ I) \in \texttt{Parametrized}$ — Configuration from the prior Parametrized state.</li><li>$\text{epochId}_e \in \mathbb{N}$ — Numerical identifier for epoch $e$.</li><li>$\text{pre-}\eta_e \in \{0,1\}^{256}$ — 256-bit pre-nonce entropy for epoch $e$.</li></ul>              |
+| **Derivation Logic** | <ul><li>$`\Delta_{\text{challenge}} \leftarrow \text{Hash}(\text{bin}(\text{epochId}_e) \ \|\ \text{pre-}\eta_e)`$</li><li>$`(\mathbb{G},\ \Delta,\ \cdot) \leftarrow \text{VDF}.\text{Setup}(\lambda,\ \Delta_{\text{challenge}})`$</li></ul> |
+| **Returned State**   | $`\texttt{Initialized} \left\{ \text{parametrized} \mapsto (\lambda,\ I),\ \text{group} \mapsto \mathbb{G},\ \text{discriminant} \mapsto \Delta,\ \text{operation} \mapsto \cdot , \ \text{epochId}_e \mapsto \text{epochId}_e ,\ \text{pre-}\eta_e  \mapsto \text{pre-}\eta_e  \right\}`$                                        |
+
+##### 3.2.3.2 *Tick Commands* & Grace Period
+
+| `AwaitingComputationPhase` | $`\Phi.\text{Stream.State} \in \texttt{AwaitingComputationPhase} : \left\{ \text{initialized} \in \texttt{Initialized},\ \text{currentSlot} \in\ \mathbb{N} \bmod \left(10 \cdot \frac{k}{f}\right) \right\}`$ |
+|--------------------|-------------|
+| **Fields** | <ul><li>$`\text{initialized} \in \texttt{Initialized}`$ — Reference to the prior initialization.</li><li>$`\text{currentSlot} \in\ \mathbb{N} \bmod \left(10 \cdot \frac{k}{f}\right)`$ — The current slot in the chain timeline.</li></ul> |
+
+
+**Initial tick transition to `AwaitingComputationPhase`:**
+
+| `tick`           | $\Phi.\text{Stream.State} \leftarrow \Phi.\text{tick}(\text{initializedState})$ |
+| -------------------- | ----------------------------------------- |
+| **Input Parameters** | <ul><li>$\text{initializedState} \in \texttt{Initialized}$ — Configuration from the prior Initialized state.</li></ul>              |
+| **Returned State**   | $`\texttt{AwaitingComputationPhase} \left\{ \text{initialized} \mapsto initialiinitializedzedState,\ \text{currentSlot} \mapsto 0 \right\}`$  
+
+
+**Subsequent ticks on `AwaitingComputationPhase`:**
+
+| `tick`               | $`\Phi.\text{Stream.State} \leftarrow \Phi.\text{tick}(\text{awaitingComputationPhaseState})`$ |
+|--------------------|---------------------------------------------------------------------------------------------------|
+| **Input Parameters** | <ul><li>$`\text{awaitingComputationPhaseState} \in \texttt{AwaitingComputationPhase}`$ — Configuration from the prior Initialized state.</li></ul> |
+| **Returned State**   | $` \begin{cases} \text{When } \texttt{isWithinInitializationGracePhase} :\ \texttt{AwaitingComputationPhase}\ \{ \text{initialized} ,\ \text{currentSlot++} \} \\\\ \text{When } \texttt{isWithinComputationPhase} :\ \texttt{AwaitingAttestedOutput}\ \{ \text{initialized} ,\ \text{currentSlot++} \} \end{cases}`$ |
+
+#### 3.2.4  🟥  *Computation Phase*
+
+##### 3.2.4.1 VDF integration
+
+We are now entering the **Computation Phase**. We have waited long enough for the first slot leader within the initial interval to have the opportunity to produce a block and submit the corresponding attested output. However, because the slot distribution is privately visible, leaders within the interval cannot determine whether they are the first to produce a block.
+
+Each leader is free to adopt their own strategy for deciding whether to initiate the proof of computation. A simple and conservative approach is to wait until $`\text{currentSlot} \geq \text{nextSlotLeader} - \left(\frac{T_\Phi}{82} + C\right)`$, where $`C`$ is a small constant. At that point, the leader may begin computing. If a block has already been produced by then, the leader can either skip the computation or abort it if already in progress. This delay increases the chances that any earlier eligible leaders have already submitted their outputs, thereby minimizing the risk of redundant proofs.
+
+To publish the first block of interval $`i \in [1..82]`$, the node invokes:
 
 ```math
-\Phi.\text{Stream.State} \leftarrow \Phi.\text{init}(\Phi.\text{Configuration},\ \text{pre-}\eta)
+(y_i, \pi_i) \leftarrow \Phi.\text{compute}(\text{initialized} \in \texttt{Initialized},\ i \in \texttt{Interval})
 ```
-We define so far the stream state as a **sum type with a single constructor**:
+
+This function internally calls the VDF primitive: $`(y, \pi) \leftarrow \text{VDF}.\text{Prove}((\mathbb{G},\ \Delta, \cdot),\ x,\ I)`$ with inputs constructed as:
+
+- $`x_i = \text{Hash}(\text{bin}(e) \,\|\, \text{pre-}\eta_e \,\|\, \text{bin}(i))`$
+- The parameters $`(\mathbb{G}, \Delta, \cdot)`$ and $`I`$ are retrieved from the `Initialized` state.
+
+Finally, the node includes the attested outputs in the block header:
+
+- $`y_i`$: the VDF output for interval $`i`$
+- $`\pi_i`$: the corresponding VDF proof for interval $`i`$
+
+In rare cases, an interval may produce no block, and consequently, no expected proof for the corresponding iteration. The computation phase simply acknowledges these gaps; they are handled during the subsequent **Catch-up Phase**, which is specifically designed to resolve such missing outputs.
+
+##### 3.2.4.2 The States
+
+During the computation phase, the stream alternates between two closely related states: `AwaitingAttestedOutput` and `AttestedOutputProvided`. These two states are **structurally identical**, meaning they share the same underlying fields. What distinguishes them is their **semantic role** in the protocol’s lifecycle:
+
+* `AwaitingAttestedOutput` represents the period **before** an attestation has been submitted for the current interval.
+* `AttestedOutputProvided` signals that the attestation for the current interval has been **successfully received and verified**.
+
+The field structure for both is as follows:
 
 ```math
-\Phi.\text{Stream.State} \in
-\texttt{Initialized} :
-\left\{
+\Phi.\text{Stream.State} \in \texttt{AwaitingAttestedOutput} : \left\{
   \begin{aligned}
-    & \text{securityParameter} \in \mathbb{N} \\
-    & I \in \mathbb{N} \\
-    & \text{group} \in \mathbb{G} \\
-    & \text{discriminant} \in \mathbb{Z} \\
-    & \text{operation} : \mathbb{G} \times \mathbb{G} \to \mathbb{G}
+    &\text{initialized}     &&\in\ \texttt{Initialized}, \\
+    &\text{currentSlot}     &&\in\ \mathbb{N} \bmod \left(10 \cdot \frac{k}{f}\right), \\
+    &\text{attestedOutputs} &&\in\ \left[\texttt{Maybe}\ (y, \pi)\right]^{82}
   \end{aligned}
 \right\}
 ```
 
-Using the current configuration and the value of $`\text{pre-}\eta_e`$, the init function derives a new VDF group as follows:
-1. **Compute the epoch discriminant seed**:
-```math
-  \Delta_{\text{challenge}} \leftarrow \text{Hash}(\text{bin}(e) \ \|\ \text{pre-}\eta_e)
-```
-2. **Derive the VDF group** using this seed:
+| **Field**   | **Description** |
+| ---- | -------- |
+| $`\text{initialized} \in \texttt{Initialized}`$ | Reference to the prior initialization state.|
+| $`\text{currentSlot} \in\ \mathbb{N} \bmod \left(10 \cdot \frac{k}{f}\right)`$| The current slot in the timeline.  |
+| $`\text{attestedOutputs} \in \left[\texttt{Maybe}\ (y, \pi)\right]^{82}`$ | <ul><li>An array of optional attested outputs, one per computation interval.</li><li>Each index corresponds to a specific interval and may contain a proof pair $`(y, \pi)`$.</li><li>If the output is not yet submitted, the entry is `None`.</li></ul> |
+
+The `AttestedOutputProvided` state reuses the exact same structure:
 
 ```math
-   (\mathbb{G},\ \Delta,\ \cdot) \leftarrow \text{VDF}.\text{Setup}(\lambda,\ \Delta_{\text{challenge}})
-```
-
-Finally, the initialization function returns the new stream state as:
-
-```math
-
-\texttt{Initialized} \left\{
+\Phi.\text{Stream.State} \in \texttt{AttestedOutputProvided} : \left\{
   \begin{aligned}
-    & \text{securityParameter} \mapsto \lambda, \\
-    & I \mapsto \#\text{iterations}_\phi, \\
-    & \text{group} \mapsto \mathbb{G}, \\
-    & \text{discriminant} \mapsto \Delta, \\
-    & \text{operation} \mapsto \cdot
+    &\text{initialized}     &&\in\ \texttt{Initialized}, \\
+    &\text{currentSlot}     &&\in\ \mathbb{N} \bmod \left(10 \cdot \frac{k}{f}\right), \\
+    &\text{attestedOutputs} &&\in\ \left[\texttt{Maybe}\ (y, \pi)\right]^{82}
   \end{aligned}
 \right\}
 ```
 
-### 3.2.4 Waiting First Iteration Interval
-
-### 3.2.5 Computing
-
-### 3.2.6 Closing
-
- and associate to each of its intervals a VDF challenge. The nodes will then publish in block’s the VDF output and proof.
+This version aligns both the field names and their types in two neat columns. Let me know if you'd prefer the braces to be placed differently (e.g. outside the alignment block) for aesthetic reasons.
 
 
-To facilitate syncing, we will add two accumulators that we will update every time an iteration is published _in the correct order_. If an interval has no block, we will refrain from updating the accumulators until the nodes have caught up and the missing iteration is published, in which case we will update the accumulators for all consecutive available iterations.
-The last interval will include of aggregation for all iterations instead of a proof for the last iteration only.
+| **Field**   | **Description**    |
+| ------------- | --------------- |
+| $`\text{initialized} \in \texttt{Initialized}`$ | Reference to the prior initialization state.     |
+| $`\text{currentSlot} \in\ \mathbb{N} \bmod \left(10 \cdot \frac{k}{f}\right)`$ | The current slot in the timeline.   |
+| $`\text{attestedOutputs} \in \left[\texttt{Maybe}\ (y, \pi)\right]^{82}`$ | <ul><li>An array of optional attested outputs, one per computation interval.</li><li>Each index corresponds to a specific interval and may contain a proof pair $`(y, \pi)`$.</li><li>If the output hasn't been submitted yet, the entry is `None`.</li><li>For the current interval, the output **has already been provided** in this state.</li></ul> |
 
-We will use Wesolowski's VDF on _class groups_ to generate efficiently on the fly the group at each epoch. Class groups are entirely determined by their discriminant $\Delta$ that is a negative prime number with specific properties. As we intend to reuse the group for the whole epoch, which is necessary for aggregation, we will generate groups with bit of security, which means generate discriminants of length of at 3800 bits according to [4](https://arxiv.org/pdf/2211.16128).
+##### 3.2.4.3 ProvideAttestedOutput & Tick Commands
 
-As such, we add to a block the following four elements:
-- $\textrm{Acc}_x$, the input accumulator,
-- $\textrm{Acc}_y$, the output accumulator,
-- $y_i$, the $\text{i}^\text{th}$ interval VDF's output,
-- $\pi_i$, the $\text{i}^\text{th}$ interval VDF's proof.
+The `provideAttestedOutput` command is used to submit a new attested output $`\phi_i = (y_i, \pi_i)`$ for a specific interval $`i`$, when the protocol is in the `AwaitingAttestedOutput` state. This function verifies the validity of the provided proof and updates the stream state accordingly :
 
-We now show what happens at diverse points in time of the computation phase:
-- Before the computation phase, and when the preseed $\text{pre-}\eta_e$ is stabilized, we compute the epoch's discriminant $\Delta$ using $\text{Hash}(\text{bin}(e) || \text{pre-}\eta_e)$ as seed which determines the group $\mathbb{G}$. Finally, we will initialize both accumulators to $1_\mathbb{G}$.
-- To publish the first block of interval $i$, the node will compute the VDF input $x_i$ from the seed $\text{Hash}(\text{bin}(e) || \text{pre-}\eta_e || \text{bin}(i))$, its corrsponding output as well as a VDF proof of correctness. If there has been no missing iteration, the node will then compute $\alpha_i = \text{Hash} ( \dots  \text{Hash} (\text{Hash}( \text{Hash}(x_1\ ||\ \dots || x_n)\ ||\ y_1 )\ || y_2) \dots ||\ y_i)$ (note that $\alpha_i = \text{Hash}(\alpha_{i-1}\ ||\ y_i)$) and update the accumulator as follows: $\textrm{Acc}_x \leftarrow \textrm{Acc}_x \cdot x_i^{\alpha_i}$ and $\textrm{Acc}_y \leftarrow \textrm{Acc}_y \cdot y_i^{\alpha_i}$. If the accumulator has not been updated at a previous interval, because no block were published then, we will update the accumulators only when catching back the missing iteration, and updating the accumulators with all values $x_i$ and $y_i$ published in between.
-- When publishing the last iteration, may it be in the last interval if there was no empty interval or in the catch-up period, we will update the accumulator and compute a proof of aggregation. This simply corresponds to a VDF proof on input $\textrm{Acc}_x$ and output $\textrm{Acc}_y$.
-- When verifying a block, if the node is not synching, they will verify the VDF proof as well as the correct aggregation of the accumulators. If the node is synching, they will verify only the correct aggregation of the accumulators and verify the proof of aggregation at the end.
+| `provideAttestedOutput` | $`\Phi.\text{Stream.State} \leftarrow \Phi.\text{provideAttestedOutput}(\text{awaitingAttestedOutputState},\ \phi_i)`$ |
+|-------------------------|--------------------------------------------------------------------------------------------------------------------------|
+| **Input Parameters**    | <ul><li>$`\text{awaitingAttestedOutputState} \in \texttt{AwaitingAttestedOutput}`$ — Current state awaiting an attested output $`\phi_i`$ for interval $`i`$.</li><li>$`\phi_i = (y_i, \pi_i)`$ — Attested output and corresponding proof.</li></ul> |
+| **Property Check**      | <ul><li>Ensure $`\phi_i`$ is valid by verifying:<br> $`\text{VDF.Verify}((\mathbb{G},\ \Delta,\ \cdot),\ x_i,\ y_i,\ I,\ \pi_i)`$</li> <li>Where:<br> $`x_i = \text{Hash}(\text{bin}(e)\ \|\ \text{pre-}\eta_e\ \|\ \text{bin}(i))`$<br> $`I \in \mathbb{N}`$ is the per-interval iteration count.</li></ul> |
+| **Returned State**      | $`\texttt{AttestedOutputProvided}\ \{ \text{initialized},\ \text{currentSlot} + 1,\ \text{attestedOutputs}[i] \mapsto \phi_i \}`$ — Updated state reflecting the verified attestation. |
 
-Let $\text{VDF}.\left(\text{Setup}, \text{Prove}, \text{Verify} \right)$ a class group based VDF algorithm definition, with:
-- $(\mathbb{G}, \Delta, \cdot) \leftarrow \text{VDF}.\text{Setup}(\lambda)$: Takes as input a security parameter $\lambda$ and returns a group description $\mathbb{G}$ with discriminant $\Delta$ and operation $\cdot$. We will omit $\lambda$ and $\mathbb{G}$ for simplicity;
-- $\left(y, \pi\right) \leftarrow \text{VDF}.\text{Prove}(x, T)$: Takes as input the challenge $x \in \mathbb{G}$ and difficulty $T \in \mathbb{N}$ and returns the VDF output $y = x^{2^T}$ and the VDF proof $\pi$;
-- $\{0,1\} \leftarrow \text{VDF}.\text{Verify}(x,y,T,\pi)$: Returns 1 if the verification of $\pi$ is successful, that is $y == x^{2^T}$ with overwhelming probability, otherwise 0.
+Once an attested output has been provided, the next slot may trigger a `tick` event. If no further action is taken, the system must determine whether it remains within the current interval, moves to the next, or enters the catch-up phase. The following command captures this logic when starting from the `AttestedOutputProvided` state :
 
-We furthermore introduce the two additional functions $\text{Hash}_\mathbb{G}(\cdot)$ a hash to the class group, and $\text{Hash}_\mathbb{N}^{(n)}(\cdot)$ a hash to the integers of size $n$ bits.
+| `tick`               | $`\Phi.\text{Stream.State} \leftarrow \Phi.\text{tick}(\text{attestedOutputProvidedState})`$ |
+|----------------------|---------------------------------------------------------------------------------------------------|
+| **Input Parameters** | <ul><li>$`\text{attestedOutputProvidedState} \in \texttt{AttestedOutputProvided}`$ — The current state after an attestation has been successfully provided.</li></ul> |
+| **Returned State**   | $`\begin{cases} \text{When } \texttt{isWithinCurrentInterval} &: \texttt{AttestedOutputProvided} \{ \dots,\ \text{currentSlot++} \} \\\\ \text{When } \texttt{isWithinNextInterval} &: \texttt{AwaitingAttestedOutput} \{ \dots,\ \text{currentSlot++} \} \\\\ \text{When } \texttt{isWithinCatchUpPhase} &: \texttt{AwaitingMissingAttestedOutput} \{ \dots,\ \text{currentSlot++} \} \end{cases}`$ |
 
-To publish a block, nodes needs to include the VDF output and proof of the interval. We define by $x_i \leftarrow \text{Hash}_\mathbb{G}(\text{pre-}\eta_e || i)$ the challenge for interval $i$ using the pre-seed $\text{pre-}\eta_e$ of the current computation phase. Nodes will thus have to compute $\left(y_i, \pi_i\right) \leftarrow \text{VDF}.\text{Prove}(x_i, T)$ and publish them on-chain. Nodes also may publish accumulators, if there is no missing iterations. They do so by generate a random coin as $\alpha_i = \text{Hash}_\mathbb{N}^{(\lambda)} ( \dots  \text{Hash}_\mathbb{N}^{(\lambda)} (\text{Hash}_\mathbb{N}^{(\lambda)}( \text{Hash}_\mathbb{N}^{(\lambda)}(x_1\ ||\ \dots || x_n)\ ||\ y_1 )\ || y_2) \dots ||\ y_i)$ (note that $\alpha_i = \text{Hash}_\mathbb{N}^{(\lambda)}(\alpha_{i-1}\ ||\ y_i)$) and update $\textrm{Acc}_x$ (resp. $\textrm{Acc}_y$) to $\textrm{Acc}_x \cdot x_i^{\alpha_i}$ (resp. to $\textrm{Acc}_y \cdot y_i^{\alpha_i}$).
-When an iteration is missing, we shall wait until the network has caught up to respect the sequentiality of the $\alpha_i$.
+Alternatively, when still waiting for an attestation and no block was produced, a `tick` may trigger a transition based on the current time. This command applies to the `AwaitingAttestedOutput` state before any attestation has been submitted :
 
-When all iterations have been computed, we generate a proof of aggregation $\pi$ using the same proving algorithm on $\textrm{Acc}_x$, but without recomputing the VDF output which is $\textrm{Acc}_y$. Hence we have, $\left(\textrm{Acc}_y, \pi\right) \leftarrow \text{VDF}.\text{Prove}(\textrm{Acc}_x, T)$.
+| `tick`               | $`\Phi.\text{Stream.State} \leftarrow \Phi.\text{tick}(\text{awaitingAttestedOutputState})`$ |
+|--------------------|---------------------------------------------------------------------------------------------------|
+| **Input Parameters** | <ul><li>$`\text{awaitingAttestedOutputState} \in \texttt{AwaitingAttestedOutput}`$ — Current state awaiting an attested output $`\phi_i`$ for interval $`i`$.</li><li>$`\phi_i = (y_i, \pi_i)`$ — Attested output and corresponding proof.</li></ul> |
+| **Returned State**   | $` \begin{cases} \text{When } \texttt{isWithinCurrentInterval} :\ \texttt{AwaitingComputationPhase}\ \{ \text{..} ,\ \text{currentSlot++} \} \\\\ \text{When } \texttt{isWithinCatchUpPhase} :\ \texttt{AwaitingMissingAttestedOutput}\ \{ \text{..} ,\ \text{currentSlot++} \}  \\\\ \text{When } \texttt{isClosable} :\ \texttt{AwaitingGracefulClosure}\ \{ \text{..} ,\ \text{currentSlot++} \}\end{cases}`$ |
 
+`isClosable` indicates that all attested outputs have been successfully provided, and only the final interval remains, during which the outputs are aggregated and the seed $`\eta_e`$ is derived and recorded on-chain.
+
+#### 3.2.5  🟦 *Catch-up Phase*
+
+This Catch-up Phase closely resembles the preceding Computation Phase, but its purpose is to recover from any blockless intervals that may have occurred — albeit such cases are extremely rare.
+
+The phase spans a total of 37 intervals: 36 are reserved to account for up to 36 consecutive intervals without block production (e.g., a global outage affecting 30% of an epoch), and 1 final interval is allocated for the Closure Phase. As in the Computation Phase, missing attested outputs must be submitted in order, one per interval.
+
+The faster these missing outputs are provided, the sooner the state machine can transition to the final phase. Although the protocol allocates 37 intervals to handle the worst-case scenario, recovery may complete much earlier in practice.
+
+This section focuses solely on the Catch-up Phase; the next section will describe the process of stream closure.
+
+##### 3.2.5.1 The States
+
+Structurally, we define two states that are similar in form and semantics to `AwaitingMissingAttestedOutput` and `AttestedMissingOutputProvided`:
+
+```math
+\Phi.\text{Stream.State} \in \texttt{AwaitingMissingAttestedOutput} : \left\{
+  \begin{aligned}
+    &\text{initialized}     &&\in\ \texttt{Initialized}, \\
+    &\text{currentSlot}     &&\in\ \mathbb{N} \bmod \left(10 \cdot \frac{k}{f}\right), \\
+    &\text{attestedOutputs} &&\in\ \left[\texttt{Maybe}\ (y, \pi)\right]^{82}
+  \end{aligned}
+\right\}
+```
+
+```math
+\Phi.\text{Stream.State} \in \texttt{AttestedMissingOutputProvided} : \left\{
+  \begin{aligned}
+    &\text{initialized}     &&\in\ \texttt{Initialized}, \\
+    &\text{currentSlot}     &&\in\ \mathbb{N} \bmod \left(10 \cdot \frac{k}{f}\right), \\
+    &\text{attestedOutputs} &&\in\ \left[\texttt{Maybe}\ (y, \pi)\right]^{82}
+  \end{aligned}
+\right\}
+```
+
+This phase focuses on recovering the missing attested outputs—specifically, the `None` entries in the `attestedOutputs` array. The goal during this phase is to have those missing values provided.This phase operates under strict sequential expectations where the missing attested outputs must be provided in order, one per interval, as in the Computation Phase. To make this explicit, we define the sequence of expected indices as follows:
+
+```math
+\text{ExpectedMissingIndices} := \left\{ i \in \{1, \dots, 82\} \mid \text{attestedOutputs}[i] = \texttt{Nothing} \right\}
+```
+This ordered set defines the exact sequence in which the missing attestations must be submitted during the Catch-up Phase.
+
+
+##### 3.2.5.2 ProvideMissingAttestedOutput & Tick Commands
+
+The `provideMissingAttestedOutput` command is used to submit a missing attested output $`\phi_i = (y_i, \pi_i)`$ for a specific interval $`i`$, when the protocol is in the `AwaitingMissingAttestedOutput` state. This function checks the validity of the proof and updates the stream state accordingly:
+
+| `provideMissingAttestedOutput` | $`\Phi.\text{Stream.State} \leftarrow \Phi.\text{provideMissingAttestedOutput}(\text{awaitingMissingAttestedOutputState},\ \phi_i)`$  |
+| ----- | --- |
+| **Input Parameters**           | <ul><li>$`\text{awaitingMissingAttestedOutputState} \in \texttt{AwaitingMissingAttestedOutput}`$ — State awaiting a missing attestation $`\phi_i`$ for interval $`i`$.</li><li>$`\phi_i = (y_i, \pi_i)`$ — Attested output and its proof.</li></ul>                                            |
+| **Property Check**             | <ul><li>Verify $`\phi_i`$ with:<br> $`\text{VDF.Verify}((\mathbb{G},\ \Delta,\ \cdot),\ x_i,\ y_i,\ I,\ \pi_i)`$</li><li>Where:<br> $`x_i = \text{Hash}(\text{bin}(e)\ \|\ \text{pre-}\eta_e\ \|\ \text{bin}(i))`$</li><li>$`I \in \mathbb{N}`$ is the per-interval iteration count.</li></ul> |
+| **Returned State**             | $`\texttt{MissingAttestedOutputProvided} \{ \text{initialized},\ \text{currentSlot} + 1,\ \text{attestedOutputs}[i] \mapsto \phi_i \}`$ — Updated state reflecting the accepted missing output.                                                                                                      |
+
+Once a missing attested output has been provided, the next slot may trigger a `tick` event. The system must determine whether it remains within the current interval, moves to the next, or enters the closure phase. The following command captures this logic when starting from the `MissingAttestedOutputProvided` state :
+
+| `tick`               | $`\Phi.\text{Stream.State} \leftarrow \Phi.\text{tick}(\text{missingAttestedOutputProvidedState})`$ |
+|----------------------|---------------------------------------------------------------------------------------------------|
+| **Input Parameters** | <ul><li>$`\text{missingAttestedOutputProvidedState} \in \texttt{MissingAttestedOutputProvided}`$ — The current state after an attestation has been successfully provided.</li></ul> |
+| **Returned State**   | $`\begin{cases} \text{When } \texttt{isWithinCurrentInterval} &: \texttt{MissingAttestedOutputProvided} \{ \dots,\ \text{currentSlot++} \} \\\\ \text{When } \texttt{isWithinNextInterval} &: \texttt{AwaitingMissingAttestedOutput} \{ \dots,\ \text{currentSlot++} \} \\\\ \text{When } \texttt{isClosable} &: \texttt{AwaitingGracefulClosure} \{ \dots,\ \text{currentSlot++} \} \\\\ \text{When } \texttt{isFallbackClosable} &: {forceClose}(missingAttestedOutputProvidedState) \} \end{cases}`$ |
+
+Alternatively, when still waiting for an attestation and no block was produced, a `tick` may trigger a transition based on the current time. This command applies to the `AwaitingMissingAttestedOutput` state before any attestation has been submitted :
+
+| `tick`               | $`\Phi.\text{Stream.State} \leftarrow \Phi.\text{tick}(\text{awaitingMissingAttestedOutputState})`$ |
+|--------------------|---------------------------------------------------------------------------------------------------|
+| **Input Parameters** | <ul><li>$`\text{awaitingMissingAttestedOutputState} \in \texttt{AwaitingMissingAttestedOutput}`$ — Current state awaiting an attested output $`\phi_i`$ for interval $`i`$.</li><li>$`\phi_i = (y_i, \pi_i)`$ — Attested output and corresponding proof.</li></ul> |
+| **Returned State**   | $` \begin{cases} \text{When } \texttt{isWithinCurrentInterval} :\ \texttt{AwaitingMissingAttestedOutput}\ \{ \text{..} ,\ \text{currentSlot++} \} \\\\ \text{When } \texttt{isClosable} :\ \texttt{AwaitingGracefulClosure}\ \{ \text{..} ,\ \text{currentSlot++} \} \\\\ \text{When } \texttt{isFallbackClosable} :\ {forceClose}(awaitingMissingAttestedOutputState) \}\end{cases}`$ |
+
+`isFallbackClosable` indicates that the end of the lifecycle segment has been reached (i.e., `currentSlot++ == 0`) while some attested outputs are still missing. This condition triggers the `forceClose` process.
+
+
+#### 3.2.6 ⬛ *Closure Phase*
+
+We now enter the final phase of the lifecycle, during which all collected outputs are expected to be aggregated and recorded on-chain, and the seed $\eta_e$ derived and committed.
+
+**Successful Scenarios:**
+In these cases, all attested outputs have been provided by the end of the catch-up phase.
+
+- **Best-case scenario:** The closure phase begins at interval 84, giving the system 37 intervals to perform output aggregation and seed commitment under normal operating conditions.
+- **Worst-case scenario:** The catch-up mechanism is fully utilized, and the system enters the closure phase at interval 120, the very last interval of the lifecycle segment. Even so, all necessary outputs have been successfully provided.
+
+**Failure Scenario:**
+
+This occurs when the lifecycle segment reaches its end (i.e., the full $10 \cdot \frac{k}{f}$ slots), and despite the entire duration of the catch-up mechanism (up to interval 120), either some required attested outputs remain missing, or all outputs have been delivered but the final aggregation has not occurred.
+This scenario represents an extremely rare event—statistically far beyond 128-bit confidence—and reflects a severe disruption in which no blocks have been produced for over 36 hours. These edge cases are represented in the diagram by the transition `Tick / isFallbackClosable`.
+
+#### 3.2.6.1 The States 
+
+In this phase, we define two states:
+
+- `AwaitingGracefulClosure`: This state signifies that all 82 attested outputs have been successfully collected. At this point, the outputs are no longer optional—each index is populated with a verified pair $`(y, \pi)`$.
+
+```math
+\Phi.\text{Stream.State} \in \texttt{AwaitingGracefulClosure} : \left\{
+  \begin{aligned}
+    &\text{initialized}     &&\in\ \texttt{Initialized}, \\
+    &\text{currentSlot}     &&\in\ \mathbb{N} \bmod \left(10 \cdot \frac{k}{f}\right), \\
+    &\text{attestedOutputs} &&\in\ \left[(y, \pi)\right]^{82}
+  \end{aligned}
+\right\}
+```
+
+- `Closed`: This is the final state in the stream lifecycle. It signifies that the aggregated output has been computed and verified, and the final epoch randomness \$`\eta_e`\$ has been successfully derived—achieving the core objective of the protocol. This state is reached in response to either a `Close` command or a `Tick` / `isFallbackClosable` trigger :
+
+```math
+\Phi.\text{Stream.State} \in \texttt{Closed} : \left\{
+  \begin{aligned}
+    &\text{initialized}      &&\in\ \texttt{Initialized}, \\
+    &\text{attestedOutputs}  &&\in\ \left[(y, \pi)\right]^{82}, \\
+    &\text{aggregatedOutput} &&\in\ (x, y, \pi), \\
+    &\eta_e                  &&\in\ \{0,1\}^{256} 
+  \end{aligned}
+\right\}
+```
+
+
+#### 3.2.6.2 The Successful Scenario: The `Close` Command
+
+At this stage, the system is in the `AwaitingGracefulClosure` state. All necessary data has been collected, and a block can now be produced within the remaining time before the end of the stream lifecycle (as previously discussed, this could occur at the 84th or 120th interval, depending on how smoothly the lifecycle progressed).
+
+In this scenario, the first block producer within the remaining intervals must include the following values in the block header:
+
+- $`(x, y, \pi)`$: The aggregated output of the $`\Phi`$ computation, representing the final result and its corresponding proof.
+- $`\eta_e`$: The final objective of the protocol—a 256-bit epoch randomness beacon, which will be used to seed leader election in the next epoch.
+
+These values complete the stream and trigger the transition to the `Closed` state.
+
+| `Close`    | $`\Phi.\text{Stream.State} \leftarrow \Phi.\text{Close}((x, y, \pi),\ \text{awaitingGracefulClosureState})`$  |
+| -------------------- | ---- |
+| **Input Parameters** | <ul><li>$`\text{awaitingGracefulClosureState} \in \texttt{AwaitingGracefulClosure}`$ — State indicating readiness for closure.</li><li>$`(x, y, \pi)`$ — Aggregated output and its proof for the entire stream.</li></ul>                                                                                                    |
+| **Property Check**   | <ul><li>Verify the aggregated output with:<br> $`\text{VDF.Aggregation.Verify}((\mathbb{G},\ \Delta,\ \cdot),\ x,\ y,\ \text{attestedOutputs},\ \pi)`$</li><li>Where:<br> $`x = \text{Hash}(\text{bin}(e)\ \|\ \text{pre-}\eta_e)`$<br>$`attestedOutputs = \text{awaitingGracefulClosureState.attestedOutputs}`$</li></ul> |
+| **Epoch Randomness** | $`\eta_e = \text{Hash}^{(256)}(y)`$ — Apply the SHA-256 hash function 256 times to \$`y`\$.  |
+| **Returned State**   | $`\texttt{Closed} \{ \text{initialized},\ \text{attestedOutputs},\ (x, y, \pi),\ \eta_e \}`$ — Final state embedding the verified computation and the derived epoch randomness.  |
+
+
+#### 3.2.6.3 `tick` Command
+
+The `tick` command handles time progression within the `AwaitingGracefulClosure` state:
+
+-  **`isFallbackClosable`** is true when the stream reaches the end of its lifecycle segment (i.e., $`\texttt{currentSlot} + 1 \equiv 0 \pmod{T}`$), and some attested outputs are still missing. In this case, the system triggers a `forceClose`.
+-  **Otherwise**, the command simply increments the `currentSlot` field to reflect time advancement.
+
+
+| `tick`               | $`\Phi.\text{Stream.State} \leftarrow \Phi.\text{tick}(\text{awaitingGracefulClosureState})`$ |
+|--------------------|---------------------------------------------------------------------------------------------------|
+| **Input Parameters** | <ul><li>$`\text{awaitingGracefulClosureState} \in \texttt{AwaitingMissingAttestedOutput}`$ — State indicating readiness for closure.</li></ul> |
+| **Returned State**   | $`\begin{cases} \text{When } \texttt{isFallbackClosable} :\ \texttt{forceClose}(\text{awaitingGracefulClosureState}) \\\\ \text{Otherwise} :\ \texttt{AwaitingGracefulClosure} \{\, \ldots,\, \texttt{currentSlot} + 1 \,\} \end{cases}`$ |
+
+`isFallbackClosable` indicates that the end of the lifecycle segment has been reached (i.e., `currentSlot++ == 0`) while some attested outputs are still missing. This condition triggers the `forceClose` process. Otherwise we are just update the current slot field
+
+
+#### 3.2.6.4 The Failure Scenario : The Force Close Process 
+
+
+**TODO: Handling $`\eta_e`$ in Statistically Impossible Scenarios**
+
+How should we ensure the production of $`\eta_e`$ even in edge cases where the expected number of attested outputs cannot be reached due to failure?
+
+A simple fallback is to set $`\eta_e = \text{pre-}\eta_e`$.
+Alternatively, the system could locally compute all missing attested outputs. This approach introduces latency in the state machine but guarantees progress and correctness.
+
+This topic requires further discussion in an upcoming meeting.
 
 
 -------
 Below is under progress 
 -------
-#### 3.1 Challenge to solve 
-
-**How can we ensure that, for a given epoch $e$, Stake Pool Operators (SPOs) can efficiently perform the $i$ iterations of $`\Phi`$ required to deterministically produce $`\phi^\text{evolving}_e`$, thereby enabling a more secure computation of $`\eta_e`$ than in the current Praos protocol?**
-
-<div align="center">
-<img src="./image-2.png" alt="" width="800"/>
-</div>
-
-#### 3.2  Solution Properties S.C.A.L.E
-
-To ensure robust and efficient production of $`\phi^\text{evolving}_e`$,  $k(\text{pre-η},t)$ should aim to satisfy the following **SCALE** properties — prioritized in the order shown:
-
-- **S**uccess Probability — Maximize the likelihood of deterministically producing $`\phi^\text{evolving}_e`$ without falling back to the Praos protocol.  
-- **C**ompactness — Minimize block header size increase.  
-- **A**vailability — Minimize additional latency in block diffusion.  
-- **L**ightweight Execution — minimize redundant or wasteful iterations of $`\Phi`$ among the SPOs.  
-- **E**agerness — Better to compute sooner than later.
-
-These properties define the design space for secure, performant execution of $`\Phi`$ in each epoch.
-
-**How can we ensure that each SPO uphold the **SCALE** properties and in particular neither compromises the Availability property nor fails to produce their block on time due to the added Phalanx computation?**
-
-
-#### 3.3 Computation Participation
-
-Regarding SPO participation in the protocol, we identify three possible models:
-
-- **Centralized**: A single entity is responsible for the entire process. This model is strongly discouraged, as it introduces a textbook case of a single point of failure, undermining both resilience and decentralization.
-- **Federated**: A selected subset of SPOs participates in the process. While this model improves over the centralized approach, it raises concerns of collusion, particularly the possibility of intentionally omitting the final iteration and reverting to the default Praos protocol. Additionally, participants could become targeted by adversaries, and governance mechanisms must be introduced to manage entry and exit from this privileged role.
-- **Decentralized**: All SPOs participate in the additional computation phase. Unsurprisingly in our context, this is the most robust model, leveraging the existing infrastructure of SPOs who are already running the network and receiving rewards. 
-
-Taking the decentralized approach, SPOs are expected to collectively compute the $i^{\text{th}}$ iteration of $\Phi$. 
-The key question, then, is **how can we design effective incentives to ensure that this task is performed reliably and in a timely manner?**
-
-#### 3.4 Slot Leader Schedule Visibility & $\text{pre-}\eta_e$ instability
-
-**Regardless of the chosen approach**, each SPO knows their complete private schedule for $`\Phi`$ computation as soon as the slot leader distribution is revealed. Within this epoch-sized period:
-- **During the interval $[0, \frac{3k}{f})$:**
-  - SPOs are still operating in $`epoch_{\text{e-2}}`$, which means they know their schedule **$\frac{6k}{f}$ slots in advance**.
-  - However, at this point, $\text{pre-}\eta_e$ remains a *candidate value* — not yet finalized. Multiple forks may still exist, each potentially initiating a distinct instance of $\Phi$.
-  - As such, early iterations of $\Phi$ are **speculative**. If the canonical chain later stabilizes on a different fork than the one used during early computations, the associated $\text{pre-}\eta_e$ will change, and the corresponding $\Phi$ computation must be **discarded and restarted**.
-  - **In short**, the closer we approach the fork stabilization point, the **higher the probability** that the selected $\text{pre-}\eta_e$ will remain, but rollback is still possible within this window.
-
-- **During the interval $[\frac{3k}{f},\frac{4k}{f})$:**
-  - SPOs are still operating in $`epoch_{\text{e-2}}`$, which means they know their schedule **$\frac{6k}{f}$ slots in advance**.
-  - From this slot onward, $\text{pre-}\eta_e$ is fully stable, and all SPOs will execute $\Phi$ using the same seed, ensuring deterministic and aligned computations.
-  - The slot leader distribution is finalized at $\frac{3k}{f}$-th slot, which means they know their schedule **$\frac{k}{f}$ slots in advance** for the next interval.
-
-- **During the interval $[\frac{4k}{f}, \frac{10k}{f})$:**
-  - SPOs are now in $`epoch_{\text{e-1}}`$.
-  - Full visibility and full stability
-  
-The following visual highlights this situation:
-
-<div align="center"><img src="./image/segment-sequence.png" alt="" width="1000"/></div>
-
-#### 3.5 The Algorithm 
-
-We will reuse the existing game-theoretic framework for block production in Praos (No Timely Iteration, No Block Reward) and require each stake pool operator (SPO), upon producing a block, to provide **a proof of computation performed—specifically, a proof that they have computed the *x*‑th iteration of $\Phi$**. 
-In this approach, we divide the epoch-size equivalent period into $y$ intervals defined by the **redundancy parameter $R$**, which specifies the expected number of blocks per interval as follows:
-
-<div align="center"><img src="./image-10.png" alt="" width="800"/></div> 
-
-Each interval is characterized by:
-
-- a **size** (in slots), derived from the redundancy parameter `R` and the active slot coefficient `f`:
-    ```math
-    \text{Interval size} = \frac{R}{f}
-    ```
-
-- a **start slot** and **end slot** for a given slot `t`, defined as:
-    ```math
-    \text{startInterval}(t) = \left\lfloor \frac{t}{\text{Interval size}} \right\rfloor \cdot \text{Interval size}
-    ```
-    ```math
-    \text{endInterval}(t) = \left( \left\lfloor \frac{t}{\text{Interval size}} \right\rfloor + 1 \right) \cdot \text{Interval size} - 1
-    ```
-
-The core of the algorithm lies in how we distribute the iterations of $\Phi$ across these intervals. Ideally, we want to remain resilient—even in extreme cases such as a global outage causing **36 hours** (**30% of an epoch**) of consecutive downtime (see the [Cardano Disaster Recovery Plan](https://iohk.io/en/research/library/papers/cardano-disaster-recovery-plan)). To be optimal in the face of such rare but impactful events, we will adopt the strategy : **"Better Sooner Compute than Later."** 
-
-In practice, this means **front-loading the computation** as much as possible during the early intervals of the computation phase. If a sequence of blockless intervals occurs, it is the responsibility of the **next non-blockless interval** to publish the proof corresponding to the $x^{\text{th}}$ iteration—where $x - 1$ was the index of the last successfully revealed proof before the interruption.
-
-Let’s define a reasonable upper bound for each interval: **allocate at most half of its duration** to the computation of a single iteration of $`\Phi`$ : 
-- $T_\phi^\text{max} = T_\phi =\frac{\text{Interval Size}}{2}$
-- For instance, if $R = 10$, then the interval size is $\text{IntervalSize} = \frac{R}{f} = \frac{10}{1/20} = 200 \text{ slots} \approx 200\text{s}$ and we set a single iteration of $\Phi$ at $T_\phi = 100\text{s}$ from the very first interval.
-- To **prevent an adversary from withholding a block** in the last interval (thus delaying the delivery of $`\phi^\text{evolving}_e`$), we define the final interval to be longer than the others—**long enough to ensure with 128-bit confidence** that **at least one block will be produced**. This requires approximately **1735 slots** of redundancy. We will call this interval the **Seal Interval**
-
-<br>
-<details>
-<summary>🔍 Why 1735 Slots for the Seal Interval?</summary>
-<p> 
-
-To **prevent an adversary from withholding a block** in the final interval—thus **delaying the delivery of** $`\phi^\text{evolving}_e`$—we extend the final interval's duration. This phase, which we refer to as the **Cool-Down Phase**, must be long enough to ensure with overwhelming probability that **at least one honest block is produced**.
-
-To quantify this requirement, we compute the minimum number of slots needed such that the **probability of observing at least one honest block** is greater than $1 - 2^{-128}$. This gives us **128-bit confidence**, matching common cryptographic security levels.
-
-Let $p_h$ be the probability that a slot contains at least one honest leader. The probability that all $n$ slots in a window fail to produce a single honest leader is:
-
-<div align="center">
-$(1 - p_h)^n$
-</div>
-
-We want this to be less than $2^{-128}$:
-
-<div align="center">
-$(1 - p_h)^n < 2^{-128}$
-</div>
-
-Taking natural logarithms on both sides:
-
-<div align="center">
-$n \cdot \ln(1 - p_h) < -128 \cdot \ln(2)$
-</div>
-
-Solving for $n$:
-
-<div align="center">
-$n > \frac{-128 \cdot \ln(2)}{\ln(1 - p_h)}$
-</div>
-
-Assuming a typical $p_h \approx 0.05$ (derived from the active slot coefficient $f = 1/20$ and a high honest participation rate), we get:
-
-<div align="center">
-$n > \frac{-128 \cdot \ln(2)}{\ln(0.95)} \approx \frac{88.72}{-(-0.05129)} \approx 1730.8$
-</div>
-
-We round this up to **1735 slots** to ensure the bound is satisfied.
-
-</p> 
-</details>
-<br><br>
-
-Let's define then a parameter $\Phi_{\text{power}} \in [0, 1]$, which quantifies the proportion of the maximum allowable computational budget that is actually exercised by the network.
-
-* $\Phi_{\text{power}} = 0$: no additional computation (no overhead),
-* $\Phi_{\text{power}} = 1$: corresponds to the maximum cost we will impose on an adversary.
-
-The total time allocated to all $\Phi$ computations across the computation phase is given by:
-
-$$
-T_\Phi = \Phi_{\text{power}} \cdot \frac{1}{2} \cdot ((1-0.3) \cdot \text{Computation Phase} - \text{Seal Interval}  ) = \Phi_{\text{power}} \cdot \frac{1}{2} \cdot (\frac{7k}{f} - 1735)
-$$
-
-To help visualize the computational implications of different $\Phi_{\text{power}}$ values, the table below provides:
-
-- the total accumulated computation time $T_\Phi$ expressed as a human-readable duration (1 slot ~ 1 sec),
-- the corresponding number of non-blockless intervals required to cover that budget, for various interval sizes $R$.
-- Each cell in the table indicates how many intervals are needed to cover $T_\Phi$, relative to the total available intervals of that size within the computation phase.
-
-| $\Phi_{\text{power}}$ | $T_\Phi$              | R=5 (100 slots)     | R=10 (200 slots)    | R=30 (600 slots)   | R=50 (1000 slots)   |
-|------------------------|------------------------|-------------------|-------------------|-------------------|-------------------|
-| 0.0                    | 0 minute               | 0 / 3006          | 0 / 1503          | 0 / 501           | 0 / 300           |
-| 0.1                    | 4 hours 10 minutes     | 150 / 3006        | 75 / 1503         | 25 / 501          | 15 / 300          |
-| 0.2                    | 8 hours 21 minutes     | 301 / 3006        | 150 / 1503        | 50 / 501          | 30 / 300          |
-| 0.3                    | 12 hours 31 minutes    | 451 / 3006        | 226 / 1503        | 75 / 501          | 45 / 300          |
-| 0.4                    | 16 hours 42 minutes    | 601 / 3006        | 301 / 1503        | 100 / 501         | 60 / 300          |
-| 0.5                    | 20 hours 52 minutes    | 752 / 3006        | 376 / 1503        | 125 / 501         | 75 / 300          |
-| 0.6                    | 1 day 1 hour 3 minutes | 902 / 3006        | 451 / 1503        | 150 / 501         | 90 / 300          |
-| 0.7                    | 1 day 5 hours 13 min   | 1052 / 3006       | 526 / 1503        | 175 / 501         | 105 / 300         |
-| 0.8                    | 1 day 9 hours 24 min   | 1203 / 3006       | 601 / 1503        | 200 / 501         | 120 / 300         |
-| 0.9                    | 1 day 13 hours 34 min  | 1353 / 3006       | 676 / 1503        | 225 / 501         | 135 / 300         |
-| 1.0                    | 1 day 17 hours 45 min  | 1503 / 3006       | 751 / 1503        | 250 / 501         | 150 / 300         |
-
-Here are the durations of each interval size $R$, assuming 1 slot ≈ 1 second :
-
-* **R = 5** → 100 slots → **1 minute 40 seconds**
-* **R = 10** → 200 slots → **3 minutes 20 seconds**
-* **R = 30** → 600 slots → **10 minutes**
-* **R = 50** → 1000 slots → **16 minutes 40 seconds**
-
-##### Proof Requirements
-
-By default, in each interval, the first block produced must include a proof of work performed in order to be considered valid. Subsequent blocks produced within the same interval are exempt from this requirement. 
-
-However, during the first $\frac{3 \cdot k}{f}$ slots, sudden rollbacks affecting the $\text{pre-}\eta_e$ seed may, under certain conditions, disrupt the immediate slot leaders' ability to produce timely blocks.
-
-The **worst-case scenario** occurs when a rollback happens **at the very end of a computation interval**, and the **next scheduled slot leader** is positioned just after the **beginning of the following interval**. In such a case, the **Availability** property may be compromised: block production could be **delayed**, leading to **increased latency in block diffusion**, or worse, the block may arrive **too late** and be **rejected** by the network. 
-
-The higher the value of $R$, the less likely this worst-case scenario will occur, as the computation load is spread over longer intervals. However, when such a situation does happen, the **amount of work required to catch up increases**, potentially impacting **multiple consecutive blocks**.  
-
-A solution is to **relax the block validity requirements** when the gap between the last slot of the previous interval and the first slot leader of the current interval is **less than** the allocated computation time $T_\phi$. In this case, the **remaining slot leaders** within the interval—those whose gap exceeds $T_\phi$—are expected to provide the proof of the $x^{\text{th}}$ iteration of $\Phi$ :
-
-📐 **Let:**
-
-- $s_{\text{prev}} \in \mathbb{N}$: slot index of the **last block produced** in the previous interval  
-- $s_{\text{next}} \in \mathbb{N}$: slot index of the **next leader** in the current interval  
-- $s_{\text{first}} \in \mathbb{N} \cup \{\bot\}$: slot index of the **first block produced in the current interval with a proof**, if any  
-- $T_\phi \in \mathbb{N}$: maximum allowed **computation time** (in slots) for one iteration of $\Phi$  
-- $\Delta s \coloneqq s_{\text{next}} - s_{\text{prev}}$  
-- $k \in \mathbb{N}$: **common prefix** security parameter  
-- $f \in (0, 1]$: **active slot coefficient**  
-- $i_{\text{last}} \in \mathbb{N}$: index of the **last $\Phi$ iteration** whose proof has been published  
-- $i_{\text{final}} \in \mathbb{N}$: total number of required iterations of $\Phi$  
-- $i_{\text{target}} \coloneqq i_{\text{last}} + 1$
-
-
-✅ **Proof Production Rule**
-
-A block produced at slot $s_{\text{next}}$ **must include a proof for** $\Phi^{i_{\text{target}}}$ **if and only if**:
-
-```math
-i_{\text{target}} \leq i_{\text{final}} \land 
-\left( (s_{\text{prev}} > \frac{3k}{f} \land s_{\text{first}} = \bot \lor s_{\text{first}} = s_{\text{next}})\lor (\Delta s \geq T_\phi \land s_{\text{first}} = \bot \lor s_{\text{first}} = s_{\text{next}}) \right) 
-```
-
-In plain English:
-
-1. **No more proofs are produced once all required iterations of** $`\Phi`$ **have been completed**. That is, if we’ve already computed and published all $`i_{\text{final}}`$ iterations, proof generation stops entirely.
-
-2. **During the unstable phase of the epoch** (i.e. when a rollback that changes $`pre\text{-η}_e`$ is still possible), the **first block** produced in an interval **must include a proof** for $`\Phi^{i_{\text{target}}}`$ if the time elapsed since the previous block ($`\Delta s`$) is **greater than or equal to** the amount of time needed to compute one iteration of $`\Phi`$ ($`T_\phi`$).
-   Any **subsequent blocks** within the same interval are **exempt from producing proofs**.
-
-3. **Once we are in the stable phase** of the epoch (i.e. past the first $`\frac{3k}{f}`$ slots), then in each interval, **only the first block produced is allowed to include a proof**. All others in the same interval must not.
-
-🚫 **Termination Condition**
-
-If $i_{\text{target}} > i_{\text{final}}$ then **No further proofs are required.**
-
-
-##### Scheduling
-
-We define a threshold parameter $\Phi\_{\text{margin}} \in (1, \infty)$ that represents the **minimum required interval lead** to safely defer computation. Specifically, we require:
-
-$$
-\Phi_{\text{margin}} > \text{intervalIndex}(\text{nextSlotLeader}) - \text{intervalIndex}(\text{currentSlot})
-$$
-
-If this margin condition is **not satisfied**—i.e., the next slot leader is too close—we proactively begin computing the **remaining iterations of $\Phi$ locally**, rather than waiting for proofs to arrive on-chain.
-
 
 #### 3.8. Agda Mechanization
 
