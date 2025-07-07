@@ -6,13 +6,13 @@ rho = np.linspace(0.1, 256, 1000)  # 1000 points for smooth curve
 
 # Define N_CPU functions for each scenario based on the updated formulas
 def ant_glance(rho):
-    return 5e-10 * 2**(rho - 2) + 1.8e-4 * 2**(rho - 1) / rho
+    return 5e-10 * 2**(rho - 2) 
 
 def ant_patrol(rho):
     return 5e-10 * 2**(rho - 2) + 2.16e-2 * 2**(rho - 1) / rho
 
 def owl_stare(rho):
-    return 5e-10 * 2**(rho - 2) + 5.02e-2 * 2**(rho - 1) / rho
+    return 5e-10 * 2**(rho - 2) + 5e-2 * 2**(rho - 1) / rho
 
 def owl_survey(rho):
     return 5e-10 * 2**(rho - 2) + 7.16e-2 * 2**(rho - 1) / rho

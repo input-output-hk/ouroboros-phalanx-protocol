@@ -15,13 +15,13 @@ w_O_hours = w_O / 3600  # Convert to hours for cost calculation
 
 # Define N_CPU functions for Praos scenarios
 def ant_glance_praos(rho):
-    return 5e-10 * 2**(rho - 1) + 1.8e-4 * 2**(rho - 1) / rho
+    return 5e-10 * 2**(rho - 2) 
 
 def ant_patrol_praos(rho):
     return 5e-10 * 2**(rho - 1) + 2.16e-2 * 2**(rho - 1) / rho
 
 def owl_stare_praos(rho):
-    return 5e-10 * 2**(rho - 1) + 1.8e-4 * 2**(rho - 1) / rho + 5e-2 * 2**(rho - 1) / rho
+    return 5e-10 * 2**(rho - 2) + 5e-2 * 2**(rho - 1) / rho
 
 def owl_survey_praos(rho):
     return 5e-10 * 2**(rho - 2) + 7.16e-2 * 2**(rho - 1) / rho

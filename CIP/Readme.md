@@ -13,51 +13,81 @@ Created: 2025-10-03
 License: Apache-2.0
 ---
 
-Below is the updated Table of Contents (TOC) for the provided document in GitHub-flavored Markdown, formatted to be easily copy-pasted into the `Readme.md` file. The TOC reflects the current structure of the document, including all sections and subsections, with correct indentation and links to the corresponding headings. I've ensured the format is clean and compatible with GitHub Markdown.
-
 ## Table of Contents
 
 - [Abstract](#abstract)
-- [Motivation: Why is this CIP necessary?](#motivation-why-is-this-cip-necessary)
-- [Specification / The Φalanx Sub-Protocol](#specification--the-phalanx-sub-protocol)
-  - [1. High-Level Overview](#1-high-level-overview)
+- [Motivation: why is this CIP necessary?](#motivation-why-is-this-cip-necessary)
+- [Specification / The Φalanx Sub-Protocol](#specification--the-φalanx-sub-protocol)
+  - [1. High-Level Overview ](#1-high-level-overview)
     - [1.1 Changes Relative to Praos](#11-changes-relative-to-praos)
-    - [1.2 Inputs & Outputs](#12-inputs--outputs)
-      - [1.2.1 The η stream](#121-the-η-stream)
-      - [1.2.2 The pre-η Synchronizations](#122-the-pre-η-synchronizations)
-      - [1.2.3 The φ stream](#123-the-φ-stream)
-      - [1.2.4 The η Generations](#124-the-η-generations)
-  - [2. The Φ Cryptographic Primitive](#the-φ-cryptographic-primitive)
-    - [2.1 Expected Properties](#21-expected-properties)
-    - [2.2 Verifiable Delayed Functions (VDF)](#22-verifiable-delayed-functions)
-    - [2.3 Wesolowski's VDF Primitives](#23-wesolowskis-vdf-primitives)
-  - [3. Φ stream Specification](#φ-stream-specification)
+    - [1.2 Inputs & Outputs ](#12-inputs--outputs)
+      - [1.2.1 The η Stream`$](#121-the-etatextstream)
+      - [1.2.2 The pre-ηₑ Synchronizations](#122-the-textpre-eta-synchronizations)
+      - [1.2.3 The Φ Stream ](#123-the-phitextstream)
+        - [1.2.3.1 The Setup](#1231-the-setup)
+        - [1.2.3.2 The Lifecycle](#1232-the-lifecycle)
+      - [1.2.4 The η Generations](#124-the-eta-generations)
+  - [2. The Φ Cryptographic Primitive](#2-the-φ-cryptographic-primitive)
+    - [2.1. Expected Properties](#21-expected-properties)
+    - [2.2. Verifiable Delayed Functions (VDF)](#22-verifiable-delayed-functions-vdf)
+    - [2.3 Wesolowski's VDF](#23-wesolowskis-vdf)
+      - [2.3.1 VDF Primitives](#231-vdf-primitives)
+      - [2.3.1 VDF Aggregation Primitives](#231-vdf-aggregation-primitives)
+  - [3. $`\phi^{\text{stream}}`$ Specification](#3-phitextstream-specification)
     - [3.1 Distribution of Φ Iterations](#31-distribution-of-φ-iterations)
     - [3.2 The State Machine](#32-the-state-machine)
-      - [3.2.1 Parametrization Phase](#321-parametrization-phase)
-      - [3.2.2 Initialization Grace Phase](#322-initialization-grace-phase)
-      - [3.2.3 Computation Phase](#323-computation-phase)
-- [DRAFT Land BELOW](#draft-land-below)
-  - [1. Cryptographic Primitive](#1-cryptographic-primitive)
-    - [1.1 Evaluation](#11-evaluation)
-    - [1.2 Selection Rationale](#12-selection-rationale)
-  - [2. Adaptive Strategies for Efficient Φ Computation](#2-adaptive-strategies-for-efficient-φ-computation)
-    - [2.4.3 Block-based approach](#243-block-based-approach)
-  - [3. Performance Impacts on Consensus & Ledger Repository](#3-performance-impacts-on-consensus--ledger-repository)
-  - [4. Maintainability](#4-maintainability)
-  - [5. Cryptographic primitives](#5-cryptographic-primitives)
-    - [5.1 Requirements](#51-requirements)
-    - [5.2 Primitive selection](#52-primitive-selection)
-      - [5.2.1 RSA solutions](#521-rsa-solutions)
-      - [5.2.2 ECC solutions](#522-ecc-solutions)
-      - [5.2.3 Class group solutions](#523-class-group-solutions)
-      - [5.2.4 OWF solutions](#524-owf-solutions)
-    - [5.3 Primitive recommendation](#53-primitive-recommendation)
+      - [3.2.1 Diagram Overview](#321-diagram-overview)
+      - [3.2.2 Parametrization Phase](#322-parametrization-phase)
+      - [3.2.3 Initialization Grace Phase](#323-initialization-grace-phase)
+        - [3.2.3.1 Initialize Command](#3231-initialize-command)
+        - [3.2.3.2 Tick Commands & Grace Period](#3232-tick-commands--grace-period)
+      - [3.2.4 Computation Phase](#324-computation-phase)
+        - [3.2.4.1 VDF integration](#3241-vdf-integration)
+        - [3.2.4.2 The States](#3242-the-states)
+        - [3.2.4.3 ProvideAttestedOutput & Tick Commands](#3243-provideattestedoutput--tick-commands)
+      - [3.2.5 Catch-up Phase](#325-catch-up-phase)
+        - [3.2.5.1 The States](#3251-the-states)
+        - [3.2.5.2 ProvideMissingAttestedOutput & Tick Commands](#3252-providemissingattestedoutput--tick-commands)
+      - [3.2.6 Closure Phase](#326-closure-phase)
+        - [3.2.6.1 The States](#3261-the-states)
+        - [3.2.6.2 The Successful Scenario: The `Close` Command](#3262-the-successful-scenario-the-close-command)
+        - [3.2.6.3 `tick` Command](#3263-tick-command)
+        - [3.2.6.4 The Failure Scenario : The Force Close Process](#3264-the-failure-scenario--the-force-close-process)
+  - [4. Agda Mechanization](#38-agda-mechanization)
+- [Rationale: How does this CIP achieve its goals?](#rationale-how-does-this-cip-achieve-its-goals)
+  - [1. How Phalanx Addresses CPS-21 - Ouroboros Randomness Manipulation ?](#1-how-phalanx-addresses-cps-21---ouroboros-randomness-manipulation)
+      - [1.1 Problem Overview](#11-problem-overview)
+      - [1.2 Phalanx Cost Amplification per Grinding Attempt](#12-phalanx-cost-amplification-per-grinding-attempt)
+      - [1.3 Phalanx Cost Amplification per Grinding Attack](#13-phalanx-cost-amplification-per-grinding-attack)
+        - [1.3.1 Formula](#131-formula)
+        - [1.3.2 Estimated Formula Using Mainnet Cardano Parameters](#132-estimated-formula-using-mainnet-cardano-parameters)
+        - [1.3.3 Impact of T<sub>Φ</sub> on Canonical Scenarios](#133-impact-of-t_phi-on-canonical-scenarios)
+        - [1.3.4 Impact of T<sub>Φ</sub> on Feasibility Categories](#134-impact-of-t_phi-on-feasibility-categories)
+  - [2. How Phalanx Improves CPS-17 - Settlement Speed  ?](#2-how-phalanx-improves-cps-17---settlement-speed--)
+  - [3. Why VDFs Were Chosen over other Cryptographic Primitives ?](#3-why-vdfs-were-chosen-over-other-cryptographic-primitives-)
+    - [3.1 Requirements](#31-requirements)
+    - [3.2 Primitive selection](#32-primitive-selection)
+      - [3.2.1 RSA solutions](#321-rsa-solutions)
+        - [3.2.1.1 Designs](#3211-designs)
+        - [3.2.1.2 Properties](#3212-properties)
+      - [3.2.2 ECC solutions](#322-ecc-solutions)
+        - [3.2.2.1 Designs](#3221-designs)
+        - [3.2.2.2 Properties](#3222-properties)
+      - [3.2.3 Class group solutions](#323-class-group-solutions)
+        - [3.2.3.1 Design](#3231-design)
+        - [3.2.3.2 Properties](#3232-properties)
+      - [3.2.4 OWF solutions](#324-owf-solutions)
+        - [3.2.4.1 Proofs of knowledge](#3241-proofs-of-knowledge)
+        - [3.2.4.2 OWFs](#3242-owfs)
+        - [3.2.4.3 Design](#3243-design)
+        - [3.2.4.4 Properties](#3244-properties)
+    - [3.3 Primitive recommendation](#33-primitive-recommendation)
 - [Path to Active](#path-to-active)
   - [Acceptance Criteria](#acceptance-criteria)
   - [Implementation Plan](#implementation-plan)
 - [References](#references)
 - [Copyright](#copyright)
+
 
 
 
@@ -77,38 +107,23 @@ Please refer to the CPD "[Ouroboros Randomness Generation Sub-Protocol – The C
 
 ## Motivation: why is this CIP necessary?
 
-<!-- A clear explanation that introduces the reason for a proposal, its use cases and stakeholders. If the CIP changes an established design then it must outline design issues that motivate a rework. For complex proposals, authors must write a Cardano Problem Statement (CPS) as defined in CIP-9999 and link to it as the \`Motivation\`. -->
-
 The "[Ouroboros Randomness Generation Sub-Protocol – The Coin-Flipping Problem](../CPS/CPD/README.md)" CPD reveals a significant vulnerability in **Ouroboros Praos**: adversaries controlling a substantial portion of stake can execute **grinding attacks** to manipulate leader election, compromising the protocol’s fairness and security. As detailed in [CPD Section 3.2 - Entry Ticket: Acquiring Stake to Play the Lottery](../CPS/CPD/README.md#32-entry-ticket-acquiring-stake-to-play-the-lottery), an adversary with **20% or more of the total stake** gains an exponential advantage in influencing randomness, with attack feasibility increasing rapidly as stake grows. This critical threshold is further explored in [CPD Section 3.6 - Grinding Power Computational Feasibility](../CPS/CPD/README.md#36-grinding-power-computational-feasibility), which shows that grinding attacks become computationally viable for well-resourced adversaries, particularly in the "Owl Survey" scenario, where costs remain within the "Possible" range (up to $\$1$ billion USD) for grinding depths ($\rho$) up to $57.7$.
 
 A grinding depth of **57.7** bits means:
-  - The adversary can simulate roughly $2^{57.7}$ different outcomes of the randomness and choose the most favorable one.
-  - This amplifies the probability of rare bad events (such as rollbacks or forks) compared to the honest model. The key idea is that if a bad event, like a settlement failure, occurs with probability $\varepsilon$ under perfectly unbiased randomness, then an adversary who can try $R$ independent randomness candidates can increase the chance of that event up to $R \cdot \varepsilon$ (by the union bound).
+  - The adversary can simulate approximately $2^{57.7}$ possible randomness outcomes, derive the corresponding leader distribution for the next epoch, and select the most favorable one.
+  - This amplifies the probability of bad events (such as rollbacks or forks) compared to the honest model. The key idea is that if a bad event, like a settlement failure, occurs with probability $\varepsilon$ under perfectly unbiased randomness, then an adversary who can try $R$ independent randomness candidates can increase the chance of that event up to $R \cdot \varepsilon$ (by the union bound).
 
 **For example**, suppose that on mainnet we reach a rollback probability of $2^{-60}$ for a block at index $x$ after $y$ additional blocks are appended. If an adversary has grinding power of $2^{57.7}$, the effective risk becomes $2^{-60} \cdot 2^{57.7} = 2^{-2.3}$. To maintain the original $2^{-60}$ confidence level under grinding, the protocol must instead target a baseline security of $2^{-(60 + 57.7)} = 2^{117.7}$, requiring many more blocks to be appended, thus significantly increasing settlement times.
 
+Because the protocol must account for the possibility of grinding attacks, settlement times are currently calibrated with conservative assumptions. Mitigating this attack presents a compelling opportunity to improve settlement speed which the core objective of [CPS-0017 / Settlement Speed](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0017).
 
-The CPD analysis in [Section 3.5 - Scenarios](../CPS/CPD/README.md#35-scenarios) quantifies this vulnerability across four scenarios (**Ant Glance**, **Ant Patrol**, **Owl Stare**, and **Owl Survey**) highlighting the ranges of $\rho$ where attacks are feasible. The table below summarizes these ranges, showing the intervals where grinding attacks transition from trivial to infeasible:
+**Φalanx** proposes a solution by introducing a computationally intensive mechanism that disproportionately burdens attackers while remaining manageable for honest participants. By elevating the resource threshold required for successful attacks, as analyzed in [CPD Section 3.4 - Cost of a Grinding Attack](../CPS/CPD/README.md#34-cost-of-a-grinding-attack), this CIP aims to shift the feasibility curve, making randomness manipulation more economically and practically infeasible. 
 
-| **Feasibility Category**                  | **🔵 Ant Glance**   | **🟠 Ant Patrol**   | **🟢 Owl Stare**   | **🔴 Owl Survey**   |
-|--------------------------------------------|---------------------|---------------------|--------------------|--------------------|
-| **🟢 🌱 Trivial for Any Adversary**        | $0 \to 39.8$        | $0 \to 32.9$        | $0 \to 31.6$       | $0 \to 31.1$       |
-| **🟡 💰 Feasible with Standard Resources** | $39.8 \to 46.4$     | $32.9 \to 39.5$     | $31.6 \to 38.3$    | $31.1 \to 37.8$    |
-| **🟠 🏭 Large-Scale Infrastructure Required** | $46.4 \to 56.4$  | $39.5 \to 49.5$     | $38.2 \to 48.2$    | $37.8 \to 47.7$    |
-| **🔴 🚫 Borderline Infeasible**            | $56.4 \to 66.3$     | $49.5 \to 59.5$     | $48.2 \to 58.2$    | $47.7 \to 57.7$    |
-| **🔴 🚫 Infeasible**                      | $66.3 \to 256$      | $59.5 \to 256$      | $58.2 \to 256$     | $57.7 \to 256$     |
+This CIP responds to two Cardano Problem Statements:
 
-This vulnerability is visually depicted in the graph below, which plots the logarithmic cost (in USD) of grinding attacks against grinding depth ($\rho$) for each scenario. The shaded feasibility layers indicate the economic thresholds where attacks become **trivial**, **feasible**, **possible**, **borderline infeasible**, or **infeasible**. The consistent gap of $\Delta \log_{10}(\text{Cost (USD)}) \approx 2.6$ between the least (Ant Glance) and most (Owl Survey) resource-intensive scenarios highlights how 88evaluation complexity** ($T_{\text{eval}}$) and **observation scope** ($w_T$) significantly amplify attack costs :
+- [CPS-0021 / Ouroboros Randomness Manipulation](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021), by reducing the probability of bad events facilitated by grinding attacks.
+- [CPS-0017 / Settlement Speed](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0017), by making better settlement guarantees.
 
-<div align="center">
-<img src="./image/grinding_depth_scenarios_cost_with_feasibility_layers_gradient.png" alt="Grinding Depth Scenarios with Feasibility Thresholds"/>
-</div>
-
-These findings indicate that, under current protocol parameters, grinding attacks are computationally viable at lower $\rho$ values for adversaries with significant resources. However, as highlighted in [CPD Section 3.2](../CPS/CPD/README.md#32-entry-ticket-acquiring-stake-to-play-the-lottery), executing such attacks requires a substantial upfront investment—acquiring 20% of the total stake, equivalent to over 4.36 billion ADA as of March 1, 2025—and the ability to operate covertly to avoid detection. Publicly observable grinding attempts expose adversarial stake pool operators (SPOs) to severe economic and social consequences, such as loss of trust, delegator withdrawals, or protocol-level countermeasures, which could devalue their stake and undermine their efforts. Despite these barriers, the potential for well-funded adversaries to bias randomness remains a threat to Cardano’s decentralized ethos, as it could skew block production and transaction settlement in their favor.
-
-TODO : Rework this section, it will be a summary of what we recommend and the gain we have if we put this in place, I would be ok to add results of settlement times of the previous overly optimistic algorithm for settlement times...
-- Explain Recommendation of 12h and gain of 2^ 
-This CIP addresses the critical question: **Can we increase the computational cost of grinding attempts to shrink these vulnerable intervals, thereby deterring adversaries effectively?** Φalanx proposes a solution by introducing a computationally intensive mechanism that disproportionately burdens attackers while remaining manageable for honest participants. By elevating the resource threshold required for successful attacks, as analyzed in [CPD Section 3.4 - Cost of a Grinding Attack](../CPS/CPD/README.md#34-cost-of-a-grinding-attack), this CIP aims to shift the feasibility curve, making randomness manipulation prohibitively expensive and strengthening the protocol’s resilience against such threats.
 
 ## Specification / The Φalanx Sub-Protocol
 
@@ -331,8 +346,6 @@ In the sections that follow, we present a mechanism for producing a **proof of a
 | **Input Parameters**       | <ul><li>$`\lambda \in \mathbb{N}`$ — Security parameter.</li><li>$`(\mathbb{G},\ \Delta,\ \cdot)`$ — Group and associated data.</li><li>$`\text{Hash}_\mathbb{G}`$ — Hash function into the group.</li><li>$`\text{Hash}^{(n)}_\mathbb{N}`$ — Hash to $`\mathbb{N}`$.</li><li>$`x \in \mathbb{G}`$ — Aggregated challenge to verify.</li><li>$`y \in \mathbb{G}`$ — Claimed output of the VDF.</li><li>$`[(x_i, y_i)]^n`$ — Sequence of challenge-output pairs.</li><li>$`I \in \mathbb{N}`$ — Number of VDF iterations.</li><li>$`\pi`$ — Claimed proof of the computation.</li></ul> |
 | **Steps** | <ol><li>Recompute and verify the challenge:<br>$`\texttt{VerifyChallenge}(\lambda,\ \text{Hash}_\mathbb{G},\ \text{Hash}^{(n)}_\mathbb{N},\ x,\  [(x_i, y_i)]^n))`$</li><li>Run the VDF verifier:<br>$`\text{VDF.Verify}((\mathbb{G},\ \Delta,\ \cdot),\ x,\ y,\ I,\ \pi)`$</li></ol>  |
 | **Returned Value**         | $`\texttt{true}`$ if both challenge and VDF proof are valid; otherwise $`\texttt{false}`$. |
-
-
 
 ### 3. $`\phi^{\text{stream}}`$ Specification
 
@@ -807,9 +820,582 @@ Alternatively, the system could locally compute all missing attested outputs. Th
 This topic requires further discussion in an upcoming meeting.
 
 
+## Rationale: How does this CIP achieve its goals?
+<!-- The rationale fleshes out the specification by describing what motivated the design and what led to particular design decisions. It should describe alternate designs considered and related work. The rationale should provide evidence of consensus within the community and discuss significant objections or concerns raised during the discussion.
+
+It must also explain how the proposal affects the backward compatibility of existing solutions when applicable. If the proposal responds to a CPS, the 'Rationale' section should explain how it addresses the CPS, and answer any questions that the CPS poses for potential solutions.
+-->
+
+### 1. How Phalanx Addresses CPS-21 - Ouroboros Randomness Manipulation ?
+
+#### 1.1 Problem Overview
+
+[CPS-0021 / Ouroboros Randomness Manipulation](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021) examines the *Randomness Generation Sub-Protocol* within *Ouroboros Praos* ⚙️, highlighting its vulnerabilities and their implications for *Cardano’s* **security** 🔒. Key insights include:
+
+- **Randomness Vulnerability**: *Ouroboros Praos* employs **VRFs** for randomness generation, but this approach is susceptible to *grinding attacks*, where adversaries manipulate outcomes to influence **leader election**, threatening Cardano’s **fairness** ⚖️ and **integrity**.
+- **Attack Likelihood**: Attacks become significantly more feasible when an adversary controls **over 20% of the total stake** (approximately **4.36 billion ADA**, as of March 2025), while smaller stakes (e.g., **5%**) make such attempts highly unlikely over extended periods.
+- **Economic Barrier**: Gaining enough stake to execute an attack requires a **substantial investment** 💰—billions of USD for a **20% share**—posing a financial risk, as a successful attack could devalue the asset and undermine network trust.
+- **Computational Feasibility**: The feasibility of attacks varies widely based on the computational resources an adversary can deploy, becoming progressively more accessible as stake accumulates:
+  - Small-scale attacks, costing as little as ~**$56**, are easily achievable with minimal resources, such as a standard computer, making them a low-barrier threat that even individual actors could attempt.
+  - Large-scale attacks, costing up to ~**$3.1 billion**, require extensive computational infrastructure, such as large data centers with millions of CPUs, placing them in a range from feasible for well-funded entities (e.g., corporations or nation-states) to nearly impractical for most adversaries due to the immense resource demands.
+  - The intensity of these attacks scales with stake: the more stake an adversary holds, the greater their influence over **leader election**, amplifying their ability to manipulate randomness. In a simplistic view, this can be likened to manipulating a $256$-bits nonce—a value $\rho$ ranging from $0$ to $256$— where higher stake progressively grants more control, potentially allowing full manipulation of the nonce at the upper limit.
+  - The wide cost disparity reflects how the complexity of the attack—such as the scope of the targeted time window and the depth of evaluation—drastically increases resource needs, acting as a natural deterrent for more ambitious manipulations.
+
+To illustrate the **Computational Feasibility**, the graph below (sourced from the **CPD**, Section [**3. The Cost of Grinding: Adversarial Effort and Feasibility**](./CPD/README.md#3-the-cost-of-grinding-adversarial-effort-and-feasibility)) maps attack feasibility across four scenarios—**Ant Glance**, **Ant Patrol**, **Owl Stare**, and **Owl Survey**—based on the nonce value $\rho$ (0 to 256 bits). Each scenario reflects different attack complexities, with feasibility shifting as computational and economic demands grow:
+
+<div align="center">
+<img src="./image/grinding_depth_scenarios_cost_with_feasibility_layers_gradient.png" alt="Grinding Depth Scenarios with Feasibility Thresholds"/>
+</div>
+
+The table below delineates the **$\rho$ values** at which each scenario transitions across feasibility categories, illustrating the computational and economic thresholds:
+
+| **Feasibility Category**                  | **🔵 Ant Glance**   | **🟠 Ant Patrol**   | **🟢 Owl Stare**   | **🔴 Owl Survey**   |
+|--------------------------------------------|---------------------|---------------------|--------------------|--------------------|
+| **🟢 🌱 Trivial for Any Adversary**        | $0 \to 53.6$        | $0 \to 32.9$        | $0 \to 31.6$       | $0 \to 31.1$       |
+| **🟡 💰 Feasible with Standard Resources** | $53.6 \to 60$     | $32.9 \to 39.5$     | $31.6 \to 38.3$    | $31.1 \to 37.8$    |
+| **🟠 🏭 Large-Scale Infrastructure Required** | $60 \to 69.7$  | $39.5 \to 49.5$     | $38.2 \to 48.2$    | $37.8 \to 47.7$    |
+| **🔴 🚫 Borderline Infeasible**            | $69.7 \to 79.4$     | $49.5 \to 59.5$     | $48.2 \to 58.2$    | $47.7 \to 57.7$    |
+| **🔴 🚫 Infeasible**                      | $79.4 \to 256$      | $59.5 \to 256$      | $58.2 \to 256$     | $57.7 \to 256$     |
+
+
+**Context**: The scenarios represent increasing attack sophistication (e.g., *Ant Glance* is a quick, low-effort attack; *Owl Survey* is a comprehensive, resource-intensive one). As $\rho$ increases, so does the difficulty, shifting feasibility from trivial (e.g., a lone actor with a laptop) to infeasible (e.g., requiring nation-state-level resources).
+
+These thresholds reveal critical vulnerabilities in Cardano’s current consensus design. **Φalanx** aims to mitigate these risks.  In the following section, we revisit the core computational model, introduce the proposed enhancements, and quantify how they shift the feasibility landscape in favor of security.
+
+#### 1.2 Phalanx Cost Amplification per Grinding Attempt
+
+In **Φalanx**, we introduce an additional parameter and **computational cost**, denoted $T_\Phi$, for each **grinding attempt**. This cost represents the total cumulative effort required to compute $i$ iterations of the $\Phi$ primitive. This additional cost directly impacts the total estimated **time per grinding attempt**, as originally defined in [CPD Section 3.3.4 - Total Estimated Time per Grinding Attempt](../CPS/CPD/README.md#334-total-estimated-time-per-grinding-attempt). The baseline grinding time in **Praos** is:
+
+```math
+T_{\text{grinding}}^{\text{Praos}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}}
+```
+
+With **Φalanx**, the total grinding time per attempt is updated to include $T_\Phi$:
+
+```math
+T_{\text{grinding}}^{\text{Phalanx}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_\Phi 
+```
+Where:  
+- $T_{\mathsf{VRF}}$ is the **VRF evaluation time**,  
+- $T_{\text{eligibility}}$ is the **eligibility check time**,  
+- $T_{\text{BLAKE2b}}$ is the time for the **hashing operation**,  
+- $w_T$ is the **target window size** (seconds),  
+- $\rho$ is the **grinding depth**,  
+- $T_{\text{eval}}$ is the **nonce selection and evaluation time** (**attack-specific**).
+- $T_\Phi$ is the additional computational cost of **Φalanx**
+
+
+The introduction of $T_\Phi$ substantially increases the **computational burden** for adversaries, as they must **recompute** the $\Phi^i$ function for each of the $2^\rho$ possible **nonces** evaluated during a grinding attack. In contrast, for **honest participants**, this computation is **distributed** across the epoch, ensuring it remains **manageable and efficient**. 
+
+
+#### 1.3 Phalanx Cost Amplification per Grinding Attack
+
+Building on the updated **grinding time formula** introduced in the previous section, which incorporates the additional **computational cost** $T_\Phi$, we can now revise the formula for a grinding attack from [CPD Section 3.4.1 - Formula](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021/CPS/CPD/README.md#341-formula), where we defined a total attack time that must fit within the **grinding opportunity window** $w_O$:
+
+```math
+\frac{2^{\rho} \cdot T_{\text{grinding}}^{\text{Phalanx}}}{N_{\text{CPU}}} \leq w_O
+```
+which leads to the lower bound on computational power ($N_\text{CPU}$) : 
+
+```math
+N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot T_{\text{grinding}}^{\text{Phalanx}}}{w_O} \right \rceil
+```
+
+##### 1.3.1 Formula
+
+###### Expanding $T_{\text{grinding}}^{\text{Phalanx}}$
+
+From **Section 1.1**, the per-attempt grinding time under **Φalanx** is:
+
+```math
+T_{\text{grinding}}^{\text{Phalanx}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_{\Phi}
+```
+
+Substituting this into the inequality:
+
+```math
+N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_{\Phi} \right)}{w_O} \right \rceil
+```
+
+###### Expanding $w_O$ in Terms of $\rho$ and $f$
+
+The grinding opportunity window is:
+
+```math
+\frac{X_A(w)}{f} \leq w_O \leq \frac{w}{f}
+```
+
+Assuming worst-case upper bound $w_O = \frac{w}{f}$ and noting $w < 2 \cdot \rho - 1$, we substitute:
+
+```math
+N_{\text{CPU}} \geq \left \lceil f \cdot \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_{\Phi} \right)}{w} \right \rceil
+```
+
+Bounding $w < 2 \cdot \rho - 1$:
+
+```math
+N_{\text{CPU}} \geq \left \lceil f \cdot \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_{\Phi} \right)}{2 \cdot \rho - 1} \right \rceil
+```
+
+Rewriting:
+
+```math
+N_{\text{CPU}} \geq \left \lceil f \cdot 2^{\rho} \cdot \left( \frac{\frac{\rho}{2} T_{\text{BLAKE2b}}}{2 \cdot \rho - 1} + \frac{w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} )}{2 \cdot \rho - 1} + \frac{T_{\text{eval}}}{2 \cdot \rho - 1} + \frac{T_{\Phi}}{2 \cdot \rho - 1} \right) \right \rceil
+```
+
+Approximating $2 \cdot \rho - 1 \approx 2 \rho$:
+
+```math
+N_{\text{CPU}} > \left \lceil \frac{f}{2 \rho} \cdot 2^{\rho} \cdot \left( \rho T_{\text{BLAKE2b}} + 2 w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + 2 T_{\text{eval}} + 2 T_{\Phi} \right) \right \rceil
+```
+
+Simplified:
+
+```math
+N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho - 2} \cdot T_{\text{BLAKE2b}} + \frac{f \cdot 2^{\rho}}{2 \rho} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_{\Phi} \right) \right \rceil
+```
+
+Or grouped as:
+
+```math
+N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho - 2} \cdot T_{\text{BLAKE2b}} + \frac{f}{\rho} \cdot 2^{\rho - 1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_{\Phi} \right) \right \rceil
+```
+
+##### 1.3.2 Estimated Formula Using Mainnet Cardano Parameters
+
+Starting from the final expression at the end of the last section:
+
+```math
+N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho-2} \cdot T_{\text{BLAKE2b}} + \frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_{\Phi} \right) \right \rceil
+```
+
+###### Applying Cardano Mainnet Parameters
+
+Using Cardano’s mainnet values:
+
+* $T_{\mathsf{VRF}} = 10^{-6}$ seconds (1 microsecond) – Time to evaluate a Verifiable Random Function.
+* $T_{\text{BLAKE2b}} = 10^{-8}$ seconds (0.01 microseconds) – Time for a BLAKE2b-256 hash operation.
+* $f = \frac{1}{20} = 0.05$ – Active slot coefficient.
+* $k = 2160$
+* Slot duration = 1 second.
+
+Since the eligibility check is negligible, set \$T\_{\text{eligibility}} \approx 0\$:
+
+Substitute into the expression:
+
+* First term:
+
+  ```math
+  f \cdot 2^{\rho-2} \cdot T_{\text{BLAKE2b}} = 0.05 \cdot 2^{\rho-2} \cdot 10^{-8} = 5 \cdot 10^{-10} \cdot 2^{\rho-2}
+  ```
+
+* Second term:
+
+  ```math
+  \frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot 10^{-6} + T_{\text{eval}} + T_{\Phi} \right)
+  = \frac{0.05 \cdot 2^{\rho-1}}{\rho} \cdot \left( 10^{-6} w_T + T_{\text{eval}} + T_{\Phi} \right)
+  ```
+
+The estimated number of CPUs required is:
+
+```math
+N_{\text{CPU}} > \left \lceil
+5 \cdot 10^{-10} \cdot 2^{\rho - 2} +
+\frac{5 \cdot 10^{-8} \cdot 2^{\rho - 1}}{\rho} \cdot w_T +
+\frac{5 \cdot 10^{-2} \cdot 2^{\rho - 1}}{\rho} \cdot T_{\text{eval}} +
+\frac{5 \cdot 10^{-2} \cdot 2^{\rho - 1}}{\rho} \cdot T_{\Phi}
+\right \rceil
+```
+
+##### 1.3.3 Impact of T<sub>Φ</sub> on Canonical Scenarios
+
+Now that we have an updated formula, we can evaluate how **Phalanx** directly affects the cost of grinding attempts when compared to the original CPD scenarios. As previously discussed, the goal is to strike a balance between the effort expected from honest **SPOs** during an epoch and the computational burden imposed on an adversary attempting to evaluate multiple $`\eta_e`$ candidates in preparation for an attack.
+
+To anchor this analysis, we introduce a baseline configuration denoted as $`\text{Phalanx}_\text{1/100}`$: an overhead equal to **1/100 of an epoch**, corresponding to $432{,}000 \div 100 = 4{,}320$ slots. This represents a **modest but meaningful choice** — substantial enough to raise the adversary’s cost significantly, yet conservative enough to avoid overloading honest participants. In contrast, imposing a full-epoch overhead would likely be excessive in practice, potentially destabilizing the protocol or placing undue demands on block producers. We may refer to that upper bound as $`\text{Phalanx}_{\text{max}}`$, and the present section aims to explore and recommend a viable configuration somewhere between this maximum and our conservative baseline.
+
+Since each slot lasts 1 second, the $`\text{Phalanx}_\text{1/100}`$ overhead equates to **4,320 seconds**, or exactly **1 hour and 12 minutes**.
+
+We now revisit the canonical scenarios from [CPD Section 3.5 – Scenarios](https://github.com/input-output-hk/ouroboros-anti-grinding-design/blob/main/CPS/Readme.md#35-scenarios), and extend each one with a **Phalanx-enhanced variant** that incorporates this fixed computational cost: $`T_{\Phi} = 4320 \, \text{seconds}`$. The resulting **$N_{\text{CPU}}$ formulas** are derived by substituting each scenario’s respective values for $`w_T`$ and $`T_{\text{eval}}`$ into the base expression from **Section 1.2.2**, now augmented with the constant Phalanx term $`T_{\Phi}`$.
+
+```math
+N_{\text{CPU}} > \left \lceil
+5 \cdot 10^{-10} \cdot 2^{\rho - 2} +
+\frac{5 \cdot 10^{-8} \cdot 2^{\rho - 1}}{\rho} \cdot w_T +
+\frac{5 \cdot 10^{-2} \cdot 2^{\rho - 1}}{\rho} \cdot T_{\text{eval}} +
+\frac{216 \cdot 2^{\rho - 1}}{\rho}
+\right \rceil \quad \text{(Phalanx}_\text{1/100})
+```
+
+```math
+N_{\text{CPU}} > \left \lceil
+5 \cdot 10^{-10} \cdot 2^{\rho - 2} +
+\frac{5 \cdot 10^{-8} \cdot 2^{\rho - 1}}{\rho} \cdot w_T +
+\frac{5 \cdot 10^{-2} \cdot 2^{\rho - 1}}{\rho} \cdot T_{\text{eval}}
+\right \rceil \quad \text{(Praos)}
+```
+
+The table below summarizes the expressions for each scenario:
+
+| **Scenario**            | $\text{Praos}$  | $\text{Phalanx}_\text{1/100}$       |
+|------------------------|---------------|--------------------|
+| **Ant Glance**         | $5 \cdot 10^{-10} \cdot 2^{\rho-2}$           |  $5 \cdot 10^{-10} \cdot 2^{\rho-2} + 216 \cdot \frac{2^{\rho-1}}{\rho}$|
+| **Ant Patrol**         | $5 \cdot 10^{-10} \cdot 2^{\rho-2} + 2.16 \cdot 10^{-2} \cdot \frac{2^{\rho-1}}{\rho}$  |$5 \cdot 10^{-10} \cdot 2^{\rho-2} + 2.16 \cdot 10^{-2} \cdot \frac{2^{\rho-1}}{\rho} + 216 \cdot \frac{2^{\rho-1}}{\rho}$|
+| **Owl Stare**          | $5 \cdot 10^{-10} \cdot 2^{\rho-2} + 5 \cdot 10^{-2} \cdot \frac{2^{\rho-1}}{\rho}$  | $5 \cdot 10^{-10} \cdot 2^{\rho-2} + 5 \cdot 10^{-2} \cdot \frac{2^{\rho-1}}{\rho} + 216 \cdot \frac{2^{\rho-1}}{\rho}$ |
+| **Owl Survey**         | $5 \cdot 10^{-10} \cdot 2^{\rho-2} + 7.16 \cdot 10^{-2} \cdot \frac{2^{\rho-1}}{\rho}$ | $5 \cdot 10^{-10} \cdot 2^{\rho-2} + 7.16 \cdot 10^{-2} \cdot \frac{2^{\rho-1}}{\rho} + 216 \cdot \frac{2^{\rho-1}}{\rho}$ |
+
+
+The **graph below** presents the **logarithmic cost** (in **USD**) of executing **grinding attacks** as a function of the **grinding depth** ($`\rho`$), across both **Praos** and **$\text{Phalanx}_{1/100}$** scenarios.
+
+* **Solid lines** correspond to the original **Praos configurations** (*Ant Glance*, *Ant Patrol*, *Owl Stare*, and *Owl Survey*).
+* **Dashed lines** represent the respective **$\text{Phalanx}_\text{1/100}$ variants**, each incorporating a fixed additional computational overhead of $`T_{\Phi} = 4320 \, \text{seconds}`$.
+* The **shaded feasibility regions** reflect increasing **economic difficulty levels**, based on thresholds defined in [**CPD Section 3.6 – Grinding Power Computational Feasibility**](https://github.com/input-output-hk/ouroboros-anti-grinding-design/blob/main/CPS/Readme.md#36-grinding-power-computational-feasibility).
+
+
+<div align="center">
+<img src="./image/grinding_depth_scenarios_cost_praos_vs_phalanx.png" alt="Cost of Grinding Attacks: Praos vs Phalanx Scenarios"/>
+</div>
+
+✏️ **Note**: The Python script used to generate this graph is available here ➡️ [**scenario\_cost\_praos\_vs\_phalanx.py**](./graph/scenario_cost_praos_vs_phalanx.py)
+
+
+###### **Interpretation of the Graph**
+
+The graph highlights how the **$\text{Phalanx}_\text{1/100}$ protocol** dramatically increases the **cost of grinding attacks** compared to **Praos**, using a logarithmic scale to represent costs in **USD** as a function of the grinding depth $`\rho`$: 
+
+1. **Consistent Cost Increase Across All $\rho$ Values**
+  The differences (deltas) between **$\text{Phalanx}_\text{1/100}$** and **Praos** scenarios remain stable across all grinding depths due to the logarithmic scale. This allows us to make generalizable observations regardless of $\rho$.
+
+2. **Moderate Gap Between Scenarios Within $\text{Phalanx}_\text{1/100}$**
+  Variations between different **$\text{Phalanx}_\text{1/100}$** scenarios (e.g., Ant Glance vs Owl Survey) are relatively modest. For example:
+    - At $`\rho = 100`$, the cost difference between **Owl Survey ($\text{Phalanx}_\text{1/100}$)** and **Owl Survey (Praos)** is about **3.5** orders of magnitude in $`\log_{10}(\text{Cost})`$.
+
+3. **Significant Overhead Introduced by $\text{Phalanx}_\text{1/100}$**
+  The **computational burden** imposed by Phalanx is substantial.
+    - At $`\rho = 150`$, the cost delta between **Owl Survey ($\text{Phalanx}_\text{1/100}$)** and **Ant Glance (Praos)** reaches nearly **9.8**, representing a **10⁹.⁸×** increase in expected cost for the attacker.
+    - This effectively pushes grinding attacks into the **"infeasible" zone** for a wide range of strategies.
+
+4. **Strategic Uniformity Under $\text{Phalanx}_\text{1/100}$**
+  All **$\text{Phalanx}_\text{1/100}$** scenario curves tightly cluster together, showing minimal divergence across evaluation complexity ($T_{\text{eval}}$) and observation scope ($w_T$).
+    - This implies that **Phalanx equalizes grinding costs** across adversarial strategies.
+    - Practically, this means defenders (e.g., protocol designers) can reason about attack feasibility without considering specific adversarial tactics. One cost curve is sufficient.
+
+We can now **simplify and generalize** the grinding cost formulas for different **Phalanx configurations**, along with their **estimated order-of-magnitude improvements** over Praos:
+
+| **Configuration**                | **Time Budget** | **Grinding Cost Formula**                               | **Cost Amplification** |
+| ------------------------------- | --------------- | ------------------------------------------------------- | -------------------------- |
+| $`\text{Phalanx}_{1/100}`$      | 2 hours         | $`\frac{2.16 \cdot 10^{2} \cdot 2^{\rho - 1}}{\rho}`$ | $\boldsymbol{10^{10.2}}$×     |
+| $`\text{Phalanx}_{1/10}`$       | 12 hours        | $`\frac{2.16 \cdot 10^{3} \cdot 2^{\rho - 1}}{\rho}`$ | $\boldsymbol{10^{11.2}}$×     |
+| $`\text{Phalanx}_{\text{max}}`$ | 5 days          | $`\frac{2.16 \cdot 10^{4} \cdot 2^{\rho - 1}}{\rho}`$ | $\boldsymbol{10^{12.2}}$×     |
+
+
+<div align="center">
+<img src="./image/grinding_depth_scenarios_cost_praos_vs_full_phalanx_scenarios.png" alt="Cost of Grinding Attacks: Praos vs Phalanx Scenarios"/>
+</div>
+
+✏️ **Note**: The Python script used to generate this graph is available here ➡️ [**scenario\_cost\_praos\_vs\_phalanx-full-scenarios.py**](./graph/scenario_cost_praos_vs_phalanx-full-scenarios.py).
+
+These results confirm that even the **minimal configuration** ($`\text{Phalanx}_{1/100}`$) yields a **$10^{10.6}$-fold increase** in the computational cost of a grinding attack — a formidable barrier for adversaries. More aggressive deployments such as $`\text{Phalanx}_{1/10}`$ and $`\text{Phalanx}_{\text{max}}`$ push this cost further, to $10^{11.6}$ and $10^{12.6}$ times that of Praos, respectively — while still remaining practical for honest participants.
+
+
+##### 1.3.4 Impact of T<sub>Φ</sub> on Feasibility Categories**
+
+This **simplification** allows us to **revisit and improve** the **feasibility category table** presented in the **Problem Overview section** :
+
+<div align="center">
+<img src="./image/grinding_depth_scenarios_cost_with_feasibility_layers_gradient-phalanx.png" alt="Cost of Grinding Attacks: Praos vs Phalanx Scenarios"/>
+</div>
+
+✏️ **Note**: The **code** to generate this **graph** is available at ➡️ [**this link**](./graph/scenario-cost-cross-thresholds.py).
+
+The **tables below** present first the **original Praos feasibility intervals**, followed by the **adjusted categories under Phalanx** :
+
+| **Feasibility Category**                      | **🔵 Ant Glance**   | **🟠 Ant Patrol**   | **🟢 Owl Stare**    | **🔴 Owl Survey**   | **$`\text{Phalanx}_{1/100}`$** | **$`\text{Phalanx}_{1/10}`$** | **$`\text{Phalanx}_{max}`$** |
+| --------------------------------------------- | ------------------- | ------------------- | ------------------- | ------------------- | ----------------------- | ---------------------- | --------------------- |
+| **🟢 🌱 Trivial for Any Adversary**           | $`0 \to 53.6`$    | $`0 \to 32.9`$    | $`0 \to 31.6`$    | $`0 \to 31.1`$    | $`0 \to 19.6`$        | $`0 \to 16.3`$       | $`0 \to 13.0`$      |
+| **🟡 💰 Feasible with Standard Resources**    | $`53.6 \to 60.0`$  | $`32.9 \to 39.5`$ | $`31.6 \to 38.3`$ | $`31.1 \to 37.8`$ | $`19.6 \to 26.3`$     | $`16.3 \to 23.0`$    | $`13.0 \to 19.6`$   |
+| **🟠 🏭 Large-Scale Infrastructure Required** | $`60.0 \to 69.7`$   | $`39.5 \to 49.5`$ | $`38.3 \to 48.2`$ | $`37.8 \to 47.7`$ | $`26.3 \to 36.2`$     | $`23.0 \to 32.9`$    | $`19.6 \to 29.6`$   |
+| **🔴 🚫 Borderline Infeasible**               | $`69.7 \to 79.4`$ | $`49.5 \to 59.5`$ | $`48.2 \to 58.2`$ | $`47.7 \to 57.7`$ | $`36.2 \to 46.2`$     | $`32.9 \to 42.9`$    | $`29.6 \to 39.5`$   |
+| **🔴 🚫 Infeasible**                          | $`79.4 \to 256`$  | $`59.5 \to 256`$  | $`58.2 \to 256`$  | $`57.7 \to 256`$  | $`46.2 \to 256`$      | $`42.9 \to 256`$     | $`39.5 \to 256`$    |
+
+
+The **Phalanx tables** include **delta improvements** for each **Praos scenario**. A **positive** $\Delta$ implies that **Phalanx forces infeasibility earlier**, i.e., at a lower $`\rho`$ value, thereby **increasing adversarial cost** :
+
+| **Scenario**      | $`\Delta \text{Phalanx}_{1/100}`$ | $`\Delta \text{Phalanx}_{1/10}`$ | $`\Delta \text{Phalanx}_{max}`$ |
+| ----------------- | ------------------------- | ------------------------ | ------------------------------ |
+| **🔵 Ant Glance** | $`+34.0`$               | $`+36.5`$              | $`+39.9`$                    |
+| **🟠 Ant Patrol** | $`+13.3`$               | $`+16.6`$              | $`+20.0`$                    |
+| **🟢 Owl Stare**  | $`+12.0`$               | $`+15.3`$              | $`+18.7`$                    |
+| **🔴 Owl Survey** | $`+11.5`$               | $`+14.8`$              | $`+18.2`$                    |
+
+<br/>
+
+
+
+### 2. How Phalanx Improves CPS-17 - Settlement Speed  ?  
+
+TODO 
+
+### 3. Why VDFs Were Chosen over other Cryptographic Primitives ? 
+
+As shown previously in the CPS and CPD, Cardano’s randomness generation currently is biasable and this CIP aims at presenting solutions on top of the current Praos’ randomness generation algorithm to disincentivize adversaries from performing grinding attacks by increasing their computational cost. We do not intend to change the protocol in depth, as this would need a much greater initiative that may not bear fruits, but add an additional layer of security on top of the current protocol only.
+
+To argue about our decision, i.e. increasing the attack cost, we first list different ways to fix the last revealer attack as suggested in [1](https://eprint.iacr.org/2015/1249.pdf) that present a similar issue when combining different sources of randomness.
+- _Simultaneous lottery draws, so that all random nonces are revealed at once._ Unfortunately this solution is not possible in our context as nonces are revealed iteratively in block headers so that they can be easily extractable and verifiable from the blockchain directly.
+- _Using a slow function to generate the randomness on top of the revealed nonces, so that the adversary cannot decide in time whether to reveal their nonces or not._ In practice, time assumptions are delicate in cryptography for theoretical reasons (potential attacks, better algorithms) and practical ones (Moore’s law).
+- _Using a commitment, so that the revealed nonces are combined to some previously committed value._ This solution is not feasible as we would either need to rely on trusted parties, which is contrary to blockchain’s operandi, or to reveal the committed values, which is equivalent to RANDAO.
+- _Limiting the entropy of the last lottery draws, by combining it with sufficiently many low entropy - a single bit- randomness._ This solution is impractical as we would still have a revealer attack, but on the lone bits.
+
+As such, we should focus from now on using a weakened slow function, that is instead of solely relying on time based guarantees, we will principally count on computational costs: we will append to our existing protocol a computationally costly chain of computation that the adversary will have to process for each grinding attempt.
+
+#### 3.1 Requirements
+
+When choosing a cryptographic primitive, we need to balance several criteria. In particular, checking its _security strength and maturity_, _performance_, _deployability_ and _compliance_:
+- _Security strength & Maturity_:  the primitive is resistant to known attacks and comprise a sufficient security margin. Furthermore, it has been extensively reviewed by the cryptographic community, has been developed transparently and has been accepted and standardized.
+- _Performance_: the primitive is efficient in terms of size (input, output and if applicable proof size), and computation (CPU cycles, memory footprint, and power consumption) with respect to the application and intended platform.
+- _Deployability_: the primitive should be easy to set up, upgrade and, in case of attacks and if possible, switch
+- _Compliance_: the primitive should be free of licensing restrictions and meet regulatory standards.
+
+We furthermore require the following properties for the Phalanx project. The cryptographic primitive must be an **_NP deterministic function_**. More precisely, a primitive whose verification time is fast, that for each input corresponds to a unique output and whose latter is fixed.
+
+We can either support a primitive which computation can be split in different iterations, each of which is verifiable, or which is finely tunable so that we can solve a challenge in less than a block time and can be used in cascade. Being able to generate and verify a single proof for the whole chain of computation would be another advantage in the context of syncing.
+
+#### 3.2 Primitive selection
+
+To ensure fast verification, we face a first choice: relying on a cryptographic primitive based on trapdoor assumptions, which present NP problems and by definition have fast verification, or combine a primitive without fast verification with an efficient proof system such as a Succinct Non-interactive ARgument of Knowledge (SNARK).
+
+##### 3.2.1 RSA solutions
+
+An RSA group is the multiplicative group of integers modulo N, where N is the product of two large prime numbers p and q, N = p⋅q. This group is called RSA after the RSA cryptosystem by Rivest, Shamir and Adleman where the public encryption key is the group modulus N and a small exponent e, while the corresponding  decryption key is the number d such that d ⋅ e ≡ 1 (ϕ(N)) where ϕ(N) = (p−1)(q−1), where p and q remain private. To break the RSA cryptosystem, the adversary has to factorize N into its prime p and q which can be done most efficiently with the General Number Field Sieve algorithm, based on the NFS [2](https://dl.acm.org/doi/pdf/10.1145/100216.100295), in sub-exponential time. To reach 128 bit of security, the modulus must be at least 2048 bit long, and preferably at least 3072 bit long, according to NIST [3](https://csrc.nist.gov/pubs/sp/800/78/5/final).
+
+###### 3.2.1.1 Designs
+
+Three problems defined on RSA groups satisfy the requirements: solving the RSA problem or the integer factorization, or using verifiable delayed functions (VDFs, [6](https://eprint.iacr.org/2018/601.pdf)).
+RSA problem. The setup consists in generating an RSA public key (N, e) where N’s factorization is unknown and a ciphertext c. The challengers then have to find the plaintext corresponding to that ciphertext, that is finding the eth root the ciphertext modulo N, i.e. finding m such that c ≡ me (mod N). The verification is straightforward, re-encrypting the plaintext and checking it equals the ciphertext.
+The most efficient method to solve this problem is by first factoring the modulus N, which cannot be done in polynomial time without a quantum computer (in which case we would use Shor’s algorithm). The best published algorithm to solve this problem with classical computers is the general number field sieve (GNFS), that is sub-exponential in time.
+Integer factorization. This is a simpler case to the RSA problem: only the group modulus is given and needs to be factorized, by the same algorithm.
+VDF. Similarly to the other problems, we first start by generating an unknown order group of modulus N but also sample a random group element g. The challenge then consists in raising this element to a big exponent of the form 2T where T is set depending on the difficulty, the computation or time we want the challenger to need to solve the problem. The challengers eventually compute and output y = x^{2T} mod N by squaring the integer x exactly T times as well as generate an additional proof of this result. The verification consists in verifying the proof passes successfully together with the input, output and modulus.
+
+###### 3.2.1.2 Properties
+
+**Security Strength & Maturity.** RSA cryptography, since its introduction in 1977, has reached a high level of maturity and is widely considered one of the most reliable and well-understood public-key cryptographic systems. Its security is based on the computational difficulty of factoring large composite numbers, a problem that has remained challenging even with significant advances in both hardware and algorithmic techniques. Over the years, RSA has undergone extensive cryptanalysis, making it one of the most scrutinized cryptographic algorithms. Its applications have become deeply embedded in a wide range of security protocols, such as SSL/TLS for secure communications, digital signatures, and encryption. RSA is however vulnerable to quantum attacks; when large-scale quantum computers become practical, RSA’s security could be broken by quantum algorithms like Shor's algorithm, making it less future-proof compared to post-quantum cryptographic algorithms.
+
+**Performance.** One of the main drawbacks of the RSA cryptosystem relies on its inefficiency due to large modulus, making the group element large space-wise and operations computationally expensive. 
+
+**Deployability.**  As solving the RSA problem or integer factorization consists in breaking the group security, groups latter cannot be continuously reused in this scenario. More particularly, after finding the factorization of the group modulus, decrypting further ciphertexts in the same group becomes trivial. As for solving a VDF puzzle, the group can be reused safely as long as the modulus is of sufficient size, at least 2048 bit-long. We can in that scenario choose a known secure modulus, whose factorization is unknown, such as an RSA challenge to create a group. Such trusted unknown moduli are however limited in numbers and we would have to generate new ones, in a trustless manner, when updating security parameters or in case of an, potentially post-quantum, attack.
+In our context, setting up RSA groups would be challenging to say the least, as we would need to generate groups of unknown order, that is the RSA modulus must be public while the underlying prime numbers must remain unknown. There is no known method to generate such groups, even inefficiently, which becomes especially critical if we have to do it repeatedly. Generating such a group might be achievable via multi-party computation (MPC) where the network would compute random numbers passing distributive primality tests. This would however be highly impractical.
+
+**Compliance.** RSA is compliant with a wide range of security standards and regulations. It is one of the most widely accepted public-key cryptosystems and has been incorporated into many cryptographic protocols, including SSL/TLS for secure web communication, digital signatures, and email encryption. RSA complies with industry standards such as FIPS 186-4, X.509, PKCS#1 and NIST guidelines.
+None of the methods, GNFS or VDFs, are proprietary and there exists open source code implementing these.
+
+##### 3.2.2 ECC solutions
+
+Elliptic Curve Cryptography (ECC) is a form of public-key cryptography based on the mathematical structure of elliptic curves over finite fields. More particularly, ECC relies on a safe subgroup of elliptic curves, usually defined on a prime field for security and efficiency. It provides strong security with smaller key sizes compared to traditional methods like RSA, needing 256 to 384 bit long prime only [3],  making it ideal for constrained environments. To break ECC, one has to compute the discrete logarithm of the group (ECDLP), which can be done most efficiently with Pollard's Rho algorithm that solves the discrete logarithm in O(n​1/2) time and O(1) space. 
+
+###### 3.2.2.1 Designs
+
+The main problem satisfying our requirements is solving the discrete logarithmic on a secure subgroup of an elliptic curve. In that case, the setup consists in generating a curve and generator G, and sampling a random point P from its secure subgroup. The challengers then have to find the scalar a such that P = a ⋅ G. Verification is also straightforward, as it consists in raising G to the power a and verifying it equals P.
+The most efficient methods to find this scalar include the Index Calculus and Pollard’s ⍴.
+
+###### 3.2.2.2 Properties
+
+**Security Strength & Maturity.** Elliptic Curve Cryptography has reached a high level of maturity over the past few decades and is widely regarded as a modern, efficient alternative to traditional public-key cryptosystems like RSA. Its security is based on the hardness of the Elliptic Curve Discrete Logarithm Problem (ECDLP), which has been extensively analyzed, making ECC a trusted and well-understood cryptographic method. ECC is now widely adopted in industry standards, including TLS, SSH, Cardano, Bitcoin, and other blockchain technologies, where its efficiency and robustness are critical. 
+ECC is also vulnerable to post-quantum attacks and can be broken in polynomial time with  Pollard's Rho or the Index Calculus algorithm.
+
+**Performance.** ECC is known for its great performance, particularly in terms of computational efficiency and resource utilization. Compared to traditional public-key systems like RSA, ECC achieves the same level of security with much smaller key sizes, which translates into faster computation, reduced storage requirements, and lower power consumption.
+
+**Deployability.**  To make sure that our elliptic curves are not known too long in advance, or are precomputed in sufficient numbers [^1], to mitigate preprocessing [12](https://eprint.iacr.org/2017/1113.pdf)  as much as possible, we would need to generate the curves on the fly. While RSA groups only rely on the generation of sufficiently large prime numbers, ECC has an array of attacks to look out for as described in safecurves website and paper [7](https://eprint.iacr.org/2024/1265.pdf). As such, generating a secure elliptic curve is a complex and challenging task. Nevertheless, there have been methods to generate efficiently safe elliptic curves ([8](https://core.ac.uk/download/pdf/11679572.pdf), [9](https://link.springer.com/content/pdf/10.1007/s00145-009-9037-2.pdf), [10](https://infoscience.epfl.ch/server/api/core/bitstreams/e2890c5e-2c1e-42e0-92d6-29c6d8d33acf/content)) on the fly but these methods still necessitate minutes worth of probabilistic computation that is not easily verifiable. As finding the discrete logarithm of a number on a curve that has already been broken is significantly easier, thanks to the costly precomputation in  Pollard’s Rho algorithm that can be reused (also succinctly mentioned in [10, attacking multiple keys]), we would have to regularly change the elliptic curve which would make ensuring their number is sufficiently large an important yet difficult challenge to solve.
+
+[^1]: An open ended question is the number of safe elliptic curves for a specific security parameter.
+As finding the discrete logarithm 
+
+**Compliance.** ECC is widely compliant with numerous industry standards and regulations, making it a trusted choice for modern cryptographic applications, including NIST guidelines,  FIPS 186-4 and IETF standards for secure communication protocols.
+None of the methods, Index Calculus or Pollard’s ⍴, are proprietary and there exists open source code implementing these.
+
+##### 3.2.3 Class group solutions
+
+The class group of a number field is the group of fractional ideals modulo principal ideals, whose security is partially determined by a parameter called a discriminant. Class group of binary quadratic forms [14](https://github.com/Chia-Network/vdf-competition/blob/master/classgroups.pdf) omits trusted setup as the group order, also called class number, is believed to be difficult to compute when the discriminant is sufficiently large - more particularly the class number grows linearly to the square root of the discriminant. For a class group to be secure, the group size and discriminant must be sufficiently long - respectively at least 1900 and 3800 bit-long for 128 bit of security [4](https://arxiv.org/pdf/2211.16128)- negative, square free and congruent to 0 or 1 modulo 4. Similarly to ECC, to break a class group security one has to find a class group discrete logarithm (CDLP) which can be done most efficiently with index calculus algorithms that reduce CDLP to integer factorization in sub-exponential time [5](https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=b1e2870db7c2f1cdeb916afe072d84e581ce68b5).
+
+###### 3.2.3.1 Design
+
+Similarly to previous solutions, class groups present two types of problems satisfying the requirements: breaking the discrete logarithm by finding the class order, or using verifiable delayed functions.
+CDLP. In that case, the setup consists in generating a discriminant and generator G, and sampling a random point P from its secure subgroup. The challengers then have to find the scalar a such that P = a ⋅ G. Verification is also straightforward, as it consists in raising G to the power a and verifying it equals P.
+The most efficient methods to find this scalar include the Index Calculus algorithm.
+VDF. Similarly to the CLPD, we first start by generating a discriminant and sample a random group element g. The challenge then consists in raising this element to a big exponent of the form 2T where T is set depending on the difficulty, the computation or time we want the challenger to need to solve the problem. The challengers eventually compute and output y = x^{2T} mod N by squaring the integer x exactly T times as well as generate an additional proof of this result. The verification consists in verifying the proof passes successfully together with the input, output and modulus.
+
+###### 3.2.3.2 Properties
+
+**Security Strength & Maturity.** Class group-based cryptography has reached a moderate level of maturity in cryptographic research. While not as widely deployed as more traditional cryptographic methods like RSA or ECC, class group cryptography has gained attention due to its potential resistance to quantum computing attacks. The mathematical foundations, particularly the hardness of the class group discrete logarithm problem, are well-understood, and class group cryptosystems have been rigorously analyzed. However, practical deployment is still in the early stages, with ongoing efforts focused on optimizing efficiency, key management, and standardization. 
+
+**Performance.** Class group-based cryptography is generally less efficient than RSA or ECC due to the size of their elements and the computational complexity of the composition of elements.
+More particularly, to achieve strong security, class groups’ discriminants must be several thousands bit long, and group elements half of this. Operations are thus costly, especially as composition in class groups rely on finding the greatest common denominator between such numbers that is particularly expensive.
+
+**Deployability.**  Setting up class groups, even though their order is hidden, is much easier than previously discussed solutions as it consists in practice to generate a sufficiently long negative square-free random integer d, and such that d ≡ 1 mod 4. as discriminant. Generating a random element in a class group by hashing also is however more of a delicate but still feasible task as mentioned in [11](https://eprint.iacr.org/2024/034.pdf). Interestingly, there exist algorithms that have been designed to reuse the underlying group such as cascaded and continuous VDFs [13](https://par.nsf.gov/servlets/purl/10159432).
+
+**Compliance.** Since class group-based cryptography is still being researched, it is not as broadly standardized or regulated as more established cryptographic techniques like ECC. That said, once formal standards and guidelines are developed and adopted, class group-based cryptography could achieve compliance with relevant legal and regulatory frameworks. None of the VDF proof generation algorithms are proprietary and there exists open source code implementing these. 
+Other groups
+We mostly focused on commonly used groups, such as RSA and ECC, and class groups whose usage have been increasing lately, notably because of the popularity of VDF primitives. There exist however other groups such as lattices which are one of the main candidates for post quantum cryptography, supersingular isogenies, whose security is dubious at the moment since the attack on SIDH in 2022, and hyperelliptic Jacobians groups, which are still novel and need further time to get confidence in their security and for more protocols to be built upon, to cite a few.
+
+##### 3.2.4 OWF solutions
+
+To widen our spectrum of solutions, we are now exploring solutions based on well-established non-trapdoored cryptographic functions and pair them with efficient proof systems to enable fast verification.
+Hash-based approaches are generally more cost-effective than asymmetric cryptography, do not depend on potentially vulnerable trapdoors, and can be implemented using widely deployed primitives. They are well understood both cryptographically and economically, especially given the prevalence of hash farms.
+The main drawback of hash functions lies in their verification: traditionally, verification requires recomputing the hashes, which can be too time-consuming for our use case, especially when considering synching. To address this, we propose leveraging proof systems, such as Succinct Non-interactive Arguments of Knowledge (SNARKs) and Scalable Transparent ARguments of Knowledge (STARKs) to reduce verification time. This introduces a modest overhead in the form of small proof sizes—on the order of hundreds of bytes—which remains acceptable.
+Although SNARKs are relatively new and involve complex protocols, their adoption is growing, with some blockchains like Mina and Midnight fully built around them. While their use may raise concerns, it remains a practical choice. It is worth noting, however, that SNARKs are not quantum-resistant—unlike their hash-based counterpart, STARKs, which do offer quantum resistance.
+
+###### 3.2.4.1 Proofs of knowledge
+
+Proofs of knowledge have become an especially active and dynamic area of research in recent years. The foundations were laid in the 1990s with key contributions such as Bellare et al.'s work on Probabilistically Checkable Proofs (PCPs, [18](https://dl.acm.org/doi/pdf/10.1145/167088.167174)), Kilian’s results on interactive arguments of knowledge derived from PCPs [17], and Micali’s introduction of Computationally Sound Proofs (CS Proofs [16](https://people.csail.mit.edu/silvio/Selected%20Scientific%20Papers/Proof%20Systems/Computationally_Sound_Proofs.pdf)), which transformed interactive proofs into non-interactive ones using the Fiat-Shamir heuristic.
+In 2016, Groth introduced one of the most efficient PCP-based proof systems to date [15](https://eprint.iacr.org/2016/260.pdf), offering significant improvements in both verification time and proof size. Its main drawback, however, is its reliance on a lengthy trusted setup that cannot be reused across different applications.
+Subsequent advancements built on this foundation, with SNARKs compiling from interactive oracle proofs (IOPs) and polynomial commitment schemes (PCs) such as Plonk [19](https://eprint.iacr.org/2019/953.pdf) and Marlin [20](https://eprint.iacr.org/2019/1047.pdf). Researchers introduced novel techniques to optimize proving time—either by reducing asymptotic complexity, such as replacing FFTs with multivariate polynomials, or by enhancing circuit efficiency through the use of lookup tables [23](https://eprint.iacr.org/2020/315.pdf), custom gates [24](https://docs.zkproof.org/pages/standards/accepted-workshop3/proposal-turbo_plonk.pdf), and cryptographic primitives tailored for specific applications.
+More recently, proof aggregation has emerged as a promising paradigm. Techniques like folding and recursive proofs—exemplified by concepts such as Proof-Carrying Data (PCD, [21](https://eprint.iacr.org/2012/095.pdf)) and Incrementally Verifiable Computation (IVC, [22](https://g-city.sass.org.cn/_upload/article/files/b4/b1/dcb2f5064216b5751c14bc8366f8/e092766a-ddaa-4fa1-b052-8662bad2d2b6.pdf#page=12))—enable efficient step-by-step computation and verification.
+Despite ongoing debates about their security—particularly around the soundness of modeling a random oracle (RO) inside a SNARK—these systems are increasingly being integrated into blockchain technologies. Projects like ZCash, Mina, and Midnight blockchains leverage SNARKs for their powerful compression capabilities, and in some cases, for their privacy-preserving features as well.
+
+###### 3.2.4.2 OWFs
+
+**Non-Algebraic standard hashes.** SHA-2, SHA-3, and BLAKE2 are prominent cryptographic hash functions widely used today. SHA-2, standardized by NIST in 2001, remains the industry standard due to its strong security and broad adoption in applications like TLS and cryptocurrencies.
+Keccak [25](https://eprint.iacr.org/2015/389.pdf), selected through a NIST competition in 2015 as the new standard SHA-3, offers a fundamentally different sponge-based design, providing an alternative with enhanced flexibility and resilience at the cost of lower throughput.
+BLAKE2 [26], developed as a high-performance finalist in the same SHA-3 competition, is favored for its speed and security, often outperforming both SHA-2 and SHA-3 in practical settings. While not standardized by NIST, BLAKE2 is widely trusted and increasingly adopted in modern cryptographic implementations.
+Together, these functions represent a balance of security, performance, and diversity in cryptographic hashing today.
+
+While these hash functions are very efficient on CPU, they are very expensive to verify with classic SNARKs, as the latter are working on prime fields and not bits. Proving hash evaluation is several orders of magnitude higher than evaluating on CPU making this solution very impractical. Simple benchmarks demonstrate such results, with the generation of a proof asserting the evaluation of a few hundreds of hashes taking tens of seconds, while the evaluation itself is of the order of the microsecond. For instance, according to Figure 1, the a hundred evaluations of SHA-256 would take 32μs on CPU and require 300,000 gates. To generate a proof of these evaluations, we would require a circuit of size 219 , i.e. the smallest power of 2 above 300,000, which takes 6s to 18s depending on the commitment scheme, making this solution, combining standard hash functions and SNARKs, highly impractical.
+
+<center>
+
+<img src="./image/hash_functions_comparison.png" width="500px" >
+
+Figure 1, taken from Reinforced concrete paper [27]. Performance of various hash functions in the zero knowledge (preimage proof) and native (hashing 512 bits of data) settings on Intel i7-4790 CPU (3.6 GHz base frequency, 4 core, 8 threads).
+</center>
+
+
+<center>
+| $\text{log}_2(\text{gates})$ |   $\#\text{gates}$    | $\text{proving time - KZG} (ms)$ | $\text{proving time - IPA} (ms)$ |
+| :--------------------------: | :-------------------: | :------------------------------: |:-------------------------------: |
+| $8$                          |  256     	           |  43	                            |  77	                             |
+| $9$                          |  512	                 |  58	                            |  105	                           |
+| $10$                         |  1,024	               |  75	                            |  153	                           |
+| $11$                         |  2,048	               |  100                             |  210	                           |
+| $12$                         |  4,096   	           |  157                             |  330	                           |
+| $13$                         |  8,192   	           |  218                             |  500	                           |
+| $14$                         |  16,384  	           |  342                             |  856	                           |
+| $15$                         |  32,768  	           |  540                             |  1,432	                         |
+| $16$                         |  65,536  	           |  917	                            |  2,590	                         |
+| $17$                         |  131,072 	           |  1,646	                          |  4,779	                         |
+| $18$                         |  262,144 	           |  3,028	                          |  9,199                           |
+| $19$                         |  524,288 	           |  6,231	                          |  18,496	                         |
+| $20$                         |  1,048,576 	         |  12,743	                        |  37,287	                         |
+
+Table 2. Halo2 benchmarks, using KZG [28](https://www.cypherpunks.ca/~iang/pubs/PolyCommit-AsiaCrypt.pdf) and IPA [29](https://eprint.iacr.org/2017/1066.pdf) commitment schemes on Intel(R) Core(TM) i9-14900HX (2.2 GHz base frequency, 24 cores, 32 threads).
+</center>
+
+**Memory-hard functions (MHFs).** are primitives relying on hash functions designed to resist attacks by requiring significant memory and computational effort, making them particularly interesting in our use case, where memory would become another bottleneck to an adversary attempting a grinding attack.
+Argon2, the winner of the Password Hashing Competition in 2015, is the current industry standard due to its strong security, configurability, and resistance to known attacks.
+Balloon Hashing offers a simpler design focused on provable security guarantees and ease of analysis but is less widely adopted. 
+The MHF scrypt, introduced earlier and used notably in cryptocurrencies like Litecoin, was among the first practical memory-hard functions but has seen some theoretical attacks exploiting trade-offs between memory and computation. 
+Of the three, only Argon2 is formally standardized in RFC 9106 and recommended for new applications, while scrypt remains popular in legacy systems and Balloon Hashing is still primarily academic.
+Unfortunately, these primitives are much more expensive than hashes on CPU as well as on SNARKs, where the memory requirements become even more prohibitive.
+
+**SNARK-friendly hashes.** A novel branch of research started with the adoption of SNARKs to design SNARK friendly hash functions. We can classify them in two categories: algebraic or not. Algebraic hashes include, but are not limited to, Poseidon [30](https://www.usenix.org/system/files/sec21-grassi.pdf), Anemoi [31](https://hal.science/hal-04276646v1/file/2022-840%281%29.pdf), Rescue [32]((https://eprint.iacr.org/2020/1143.pdf)) which are based on prime fields. Choosing carefully the fields can result in optimizations of 2 to 3 orders of magnitude in SNARKs, but with higher CPU time unfortunately. For instance, a hundred evaluations of Poseidon hash would take 1.9ms, compared to 32μs for SHA-256, on CPU, but the proof generation would take 1s to 3s, compared to 6s to 18s for SHA-256.
+Other, non algebraic, hash functions have also been created such as Reinforced Concrete [27]((https://dl.acm.org/doi/pdf/10.1145/3548606.3560686)) and Monolith [33](https://ojs.ub.ruhr-uni-bochum.de/index.php/ToSC/article/download/11810/11315) to minimize the cost of binary operations by making the most of lookup tables, which store binary operations on vectors of bits.
+The fact that these hash functions are less efficient on CPUs is not problematic as we are only interested in computational cost. Unfortunately, the ratio between CPU and prove generation time still remains too high for our usage. More novel techniques in SNARKs, such as IVC or folding, would be needed to make the “snarkification” of hash practical but these progresses have yet to reach maturity, be it in both theory and practice.
+Another caveat to using SNARK-friendly hashes would be that adversaries could afford specialised hardware such as CPUs with special instructions such as AVX2, or GPUs, FPGAs or ASICs to accelerate prime field operations and widen the gap between honest users and adversaries.
+
+###### 3.2.4.3 Design
+Using OWFs and SNARKs in the context of Phalanx is straightforward. To each iteration is associated a input that we have to recursively hash a number of times set by the total duration and number of iterations with the desired primitive. Once the result is computed, a SNARK proof can be generated proving the correctness of the computation. We can remark that IVC based solutions are particularly adapted as a choice for SNARK primitves as we can prove a batch of iterations per step of IVC. Both the hash output and the SNARK are then published.
+
+###### 3.2.4.4 Properties
+
+**Security Strength & Maturity.** While traditional hashes have strong security, more novel ones, especially the more usable with SNARKs, can be deemed too novel for adoption. SNARKs, and SNARKs friendly primitives, are very complex pieces of technology that have been broken before and are still evolving at a rapid pace. SNARKs are not postquantum resistant but STARKs are.
+
+**Performance.** While hash functions are extremely efficient on commodity hardware, the proof generation with current SNARKs is far too slow for this solution to be practical
+
+**Deployability.**  SNARKs are difficult to deploy, they rely on different libraries that are not easy to update. Changing of SNARKs is also tedious as circuits would very likely need to be rewritten, adding further risk and complexity.
+
+**Compliance.** Hash functions are standardized and libraries are easily available. SNARK solutions are not copyrighted, there is however a limited number of available libraries, which can either be open source or proprietary (SP1, RISC0, STARKNET…).
+
+#### 3.3 Primitive recommendation
+
+The combination of OWFs and SNARKs, however elegant it may be for its modularity, is not practical for the proof generation overhead being prohibitive. 
+Trapdoor based solutions seem to be the best candidates for anti-grinding solutions. Out of the ones considered, VDFs seem the most practical primitive thanks to the possibility of reusing the group, and class groups offer the simplest deployment. The main caveat of such a solution is in its relative novelty, regular assessment would need to be done to ensure correct and up to date parametrization.
+
+
+## Path to Active
+
+### Acceptance Criteria
+<!-- Describes what are the acceptance criteria whereby a proposal becomes 'Active' -->
+
+Todo
+
+### Implementation Plan
+<!-- A plan to meet those criteria or `N/A` if an implementation plan is not applicable. -->
+Todo
+<!-- OPTIONAL SECTIONS: see CIP-0001 > Document > Structure table -->
+
+
+## References
+
+- [Cardano Disaster Recovery Plan](https://iohk.io/en/research/library/papers/cardano-disaster-recovery-plan)
+- [Baigneres, Thomas, et al. "Trap Me If You Can--Million Dollar Curve." Cryptology ePrint Archive (2015).](https://eprint.iacr.org/2015/1249.pdf)
+- [Lenstra, Arjen K., et al. "The number field sieve." Proceedings of the twenty-second annual ACM symposium on Theory of computing. 1990.](https://dl.acm.org/doi/pdf/10.1145/100216.100295)
+-[National Institute of Standards and Technology (NIST). (April 2010). Special Publication  800-78-5: Cryptographic Algorithms and Key Sizes for Personal Identity Verification.](https://csrc.nist.gov/pubs/sp/800/78/5/final)
+- [Dobson, Samuel, Steven Galbraith, and Benjamin Smith. "Trustless unknown-order groups." arXiv preprint arXiv:2211.16128 (2022).](https://arxiv.org/pdf/2211.16128)
+- [Hamdy, Safuat, and Bodo Möller. "Security of cryptosystems based on class groups of imaginary quadratic orders." Advances in Cryptology—ASIACRYPT 2000: 6th International Conference on the Theory and Application of Cryptology and Information Security Kyoto, Japan, December 3–7, 2000 Proceedings 6. Springer Berlin Heidelberg, 2000.](https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=b1e2870db7c2f1cdeb916afe072d84e581ce68b5)
+- [Boneh, Dan, et al. "Verifiable delay functions." Annual international cryptology conference. Cham: Springer International Publishing, 2018.](https://eprint.iacr.org/2018/601.pdf)
+- [Bernstein, Daniel J., and Tanja Lange. "Safe curves for elliptic-curve cryptography." Cryptology ePrint Archive (2024).](https://eprint.iacr.org/2024/1265.pdf)
+- [Baier, Harald. Efficient algorithms for generating elliptic curves over finite fields suitable for use in cryptography. Diss. Technische Universität, 2002.](https://core.ac.uk/download/pdf/11679572.pdf)
+- [Konstantinou, Elisavet, et al. "On the efficient generation of prime-order elliptic curves." Journal of cryptology 23.3 (2010): 477-503.](https://link.springer.com/content/pdf/10.1007/s00145-009-9037-2.pdf)
+- [Miele, Andrea, and Arjen K. Lenstra. "Efficient ephemeral elliptic curve cryptographic keys." Information Security: 18th International Conference, ISC 2015, Trondheim, Norway, September 9-11, 2015, Proceedings 18. Springer International Publishing, 2015.](https://infoscience.epfl.ch/server/api/core/bitstreams/e2890c5e-2c1e-42e0-92d6-29c6d8d33acf/content)
+- [Seres, István András, Péter Burcsi, and Péter Kutas. "How (not) to hash into class groups of imaginary quadratic fields?." Cryptographers’ Track at the RSA Conference. Cham: Springer Nature Switzerland, 2025.](https://eprint.iacr.org/2024/034.pdf)
+- [Corrigan-Gibbs, Henry, and Dmitry Kogan. "The discrete-logarithm problem with preprocessing." Advances in Cryptology–EUROCRYPT 2018: 37th Annual International Conference on the Theory and Applications of Cryptographic Techniques, Tel Aviv, Israel, April 29-May 3, 2018 Proceedings, Part II 37. Springer International Publishing, 2018.](https://eprint.iacr.org/2017/1113.pdf)
+- [Ephraim, Naomi, et al. "Continuous verifiable delay functions." Annual International Conference on the Theory and Applications of Cryptographic Techniques. Cham: Springer International Publishing, 2020.](https://par.nsf.gov/servlets/purl/10159432)
+- [Long, Lipa. "Binary quadratic forms.", (2018)](https://github.com/Chia-Network/vdf-competition/blob/master/classgroups.pdf)
+- [Groth, Jens. "On the size of pairing-based non-interactive arguments." Advances in Cryptology–EUROCRYPT 2016: 35th Annual International Conference on the Theory and Applications of Cryptographic Techniques, Vienna, Austria, May 8-12, 2016, Proceedings, Part II 35. Springer Berlin Heidelberg, 2016.](https://eprint.iacr.org/2016/260.pdf)
+- [Micali, Silvio. "CS proofs." Proceedings 35th Annual Symposium on Foundations of Computer Science. IEEE, 1994](https://people.csail.mit.edu/silvio/Selected%20Scientific%20Papers/Proof%20Systems/Computationally_Sound_Proofs.pdf)
+- [Kilian, Joe. "A note on efficient zero-knowledge proofs and arguments." Proceedings of the twenty-fourth annual ACM symposium on Theory of computing. 1992.](https://dl.acm.org/doi/pdf/10.1145/129712.129782)
+- [Bellare, Mihir, et al. "Efficient probabilistically checkable proofs and applications to approximations." Proceedings of the twenty-fifth annual ACM symposium on Theory of computing. 1993.](https://dl.acm.org/doi/pdf/10.1145/167088.167174)
+- [Gabizon, Ariel, Zachary J. Williamson, and Oana Ciobotaru. "Plonk: Permutations over lagrange-bases for oecumenical noninteractive arguments of knowledge." Cryptology ePrint Archive (2019).](https://eprint.iacr.org/2019/953.pdf)
+- [Chiesa, Alessandro, et al. "Marlin: Preprocessing zkSNARKs with universal and updatable SRS." Advances in Cryptology–EUROCRYPT 2020: 39th Annual International Conference on the Theory and Applications of Cryptographic Techniques, Zagreb, Croatia, May 10–14, 2020, Proceedings, Part I 39. Springer International Publishing, 2020.](https://eprint.iacr.org/2019/1047.pdf)
+- [Bitansky, Nir, et al. "Recursive composition and bootstrapping for SNARKS and proof-carrying data." Proceedings of the forty-fifth annual ACM symposium on Theory of computing. 2013.](https://eprint.iacr.org/2012/095.pdf)
+- [Valiant, Paul. "Incrementally verifiable computation or proofs of knowledge imply time/space efficiency." Theory of Cryptography: Fifth Theory of Cryptography Conference, TCC 2008, New York, USA, March 19-21, 2008. Proceedings 5. Springer Berlin Heidelberg, 2008.](https://g-city.sass.org.cn/_upload/article/files/b4/b1/dcb2f5064216b5751c14bc8366f8/e092766a-ddaa-4fa1-b052-8662bad2d2b6.pdf#page=12)
+- [Gabizon, Ariel, and Zachary J. Williamson. "plookup: A simplified polynomial protocol for lookup tables." Cryptology ePrint Archive (2020).](https://eprint.iacr.org/2020/315.pdf)
+- [Gabizon, Ariel, and Zachary J. Williamson. "Proposal: The turbo-plonk program syntax for specifying snark programs.", 2020](https://docs.zkproof.org/pages/standards/accepted-workshop3/proposal-turbo_plonk.pdf)
+- [Bertoni, Guido, et al. "Keccak." Annual international conference on the theory and applications of cryptographic techniques. Berlin, Heidelberg: Springer Berlin Heidelberg, 2013.](https://eprint.iacr.org/2015/389.pdf)
+- [Aumasson, Jean-Philippe, et al. "BLAKE2: simpler, smaller, fast as MD5." International Conference on Applied Cryptography and Network Security. Berlin, Heidelberg: Springer Berlin Heidelberg, 2013.](https://eprint.iacr.org/2013/322.pdf)
+- [Grassi, Lorenzo, et al. "Reinforced concrete: A fast hash function for verifiable computation." Proceedings of the 2022 ACM SIGSAC Conference on Computer and Communications Security. 2022.](https://dl.acm.org/doi/pdf/10.1145/3548606.3560686)
+- [Kate, Aniket, Gregory M. Zaverucha, and Ian Goldberg. "Constant-size commitments to polynomials and their applications." International conference on the theory and application of cryptology and information security. Berlin, Heidelberg: Springer Berlin Heidelberg, 2010.](https://www.cypherpunks.ca/~iang/pubs/PolyCommit-AsiaCrypt.pdf)
+- [Bünz, Benedikt, et al. "Bulletproofs: Short proofs for confidential transactions and more." 2018 IEEE symposium on security and privacy (SP). IEEE, 2018.](https://eprint.iacr.org/2017/1066.pdf)
+- [Grassi, Lorenzo, et al. "Poseidon: A new hash function for {Zero-Knowledge} proof systems." 30th USENIX Security Symposium (USENIX Security 21). 2021.](https://www.usenix.org/system/files/sec21-grassi.pdf)
+- [Bouvier, Clémence, et al. "New design techniques for efficient arithmetization-oriented hash functions: Anemoi permutations and Jive compression mode." Annual International Cryptology Conference. Cham: Springer Nature Switzerland, 2023.](https://hal.science/hal-04276646v1/file/2022-840%281%29.pdf)
+- [Szepieniec, Alan, Tomer Ashur, and Siemen Dhooghe. "Rescue-prime: a standard specification (SoK)." Cryptology ePrint Archive (2020).](https://eprint.iacr.org/2020/1143.pdf)
+- [Grassi, Lorenzo, et al. "Monolith: Circuit-friendly hash functions with new nonlinear layers for fast and constant-time implementations." IACR Transactions on Symmetric Cryptology 2024.3 (2024): 44-83.](https://ojs.ub.ruhr-uni-bochum.de/index.php/ToSC/article/download/11810/11315)
+- [Wesolowski, Benjamin. "Efficient verifiable delay functions." Advances in Cryptology–EUROCRYPT 2019: 38th Annual International Conference on the Theory and Applications of Cryptographic Techniques, Darmstadt, Germany, May 19–23, 2019, Proceedings, Part III 38. Springer International Publishing, 2019.](https://eprint.iacr.org/2018/623.pdf)
+- [Pietrzak, Krzysztof. "Simple verifiable delay functions." 10th innovations in theoretical computer science conference (itcs 2019). Schloss Dagstuhl–Leibniz-Zentrum für Informatik, 2019.](https://drops.dagstuhl.de/storage/00lipics/lipics-vol124-itcs2019/LIPIcs.ITCS.2019.60/LIPIcs.ITCS.2019.60.pdf)
+
+
+
+## Copyright
+<!-- The CIP must be explicitly licensed under acceptable copyright terms.  Uncomment the one you wish to use (delete the other one) and ensure it matches the License field in the header: -->
+Todo
+<!-- This CIP is licensed under [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/legalcode). -->
+<!-- This CIP is licensed under [Apache-2.0](http://www.apache.org/licenses/LICENSE-2.0). -->
+
+
+
+
+
 -------
 Below is under progress 
 -------
+
+
+3. Feasible values for Phalanx protocol parameters 
+    3.1. Protocol Parameters
+    3.2. Recommended Crypto Lib 
+    3.3. Security Gains Compared to Praos
+4. Faster Settlement under Phalanx
+5. Use Cases
+7. Resource Requirements
+
+
 
 #### 3.8. Agda Mechanization
 
@@ -943,617 +1529,23 @@ We currently identify the following key parameters:
 
 
 
-## Rationale: How does this CIP achieve its goals?
-<!-- The rationale fleshes out the specification by describing what motivated the design and what led to particular design decisions. It should describe alternate designs considered and related work. The rationale should provide evidence of consensus within the community and discuss significant objections or concerns raised during the discussion.
-
-It must also explain how the proposal affects the backward compatibility of existing solutions when applicable. If the proposal responds to a CPS, the 'Rationale' section should explain how it addresses the CPS, and answer any questions that the CPS poses for potential solutions.
--->
-
-### 1. $Φ_\text{power}$ & Adversarial Cost Overhead
-#### 1.1 Cost Overhead of a grinding attempt
-
-In **Φalanx**, we introduce an additional **computational cost**, denoted $T_\Phi$, for each **grinding attempt**. This cost represents the total cumulative effort required to compute $i$ iterations of the $\Phi$ primitive. This additional cost directly impacts the total estimated **time per grinding attempt**, as originally defined in [CPD Section 3.3.4 - Total Estimated Time per Grinding Attempt](../CPS/CPD/README.md#334-total-estimated-time-per-grinding-attempt). The baseline grinding time in **Praos** is:
-
-```math
-T_{\text{grinding}}^{\text{Praos}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}}
-```
-
-With **Φalanx**, the total grinding time per attempt is updated to include $T_\Phi$:
-
-```math
-T_{\text{grinding}}^{\text{Phalanx}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_\Phi 
-```
-Where:  
-- $T_{\mathsf{VRF}}$ is the **VRF evaluation time**,  
-- $T_{\text{eligibility}}$ is the **eligibility check time**,  
-- $T_{\text{BLAKE2b}}$ is the time for the **hashing operation**,  
-- $w_T$ is the **target window size** (seconds),  
-- $\rho$ is the **grinding depth**,  
-- $T_{\text{eval}}$ is the **nonce selection and evaluation time** (**attack-specific**).
-- $T_\Phi$ is the additional computational cost of **Φalanx**
-
-
-The introduction of $T_\Phi$ substantially increases the **computational burden** for adversaries, as they must **recompute** the $\Phi^i$ function for each of the $2^\rho$ possible **nonces** evaluated during a grinding attack. In contrast, for **honest participants**, this computation is **distributed** across the epoch, ensuring it remains **manageable and efficient**. 
-
-
-### 1.2 Cost Overhead of a Grinding Attack
-
-Building on the updated **grinding time formula** introduced in the previous section, which incorporates the additional **computational cost** $T_\Phi$, we can now revise the formula for a grinding attack from [CPD Section 3.4.1 - Formula](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021/CPS/CPD/README.md#341-formula), where we defined a total attack time that must fit within the **grinding opportunity window** $w_O$:
-
-```math
-\frac{2^{\rho} \cdot T_{\text{grinding}}^{\text{Phalanx}}}{N_{\text{CPU}}} \leq w_O
-```
-which leads to the lower bound on computational power ($N_\text{CPU}$) : 
-
-```math
-N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot T_{\text{grinding}}^{\text{Phalanx}}}{w_O} \right \rceil
-```
-
-
-
-#### 1.2.1 Formula
-
-##### Expanding $T_{\text{grinding}}^{\text{Phalanx}}$
-
-From **Section 1.1**, the per-attempt grinding time under **Φalanx** is:
-
-```math
-T_{\text{grinding}}^{\text{Phalanx}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_{\Phi}
-```
-
-Substituting this into the inequality:
-
-```math
-N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_{\Phi} \right)}{w_O} \right \rceil
-```
-
-##### Expanding $w_O$ in Terms of $\rho$ and $f$
-
-The grinding opportunity window is:
-
-```math
-\frac{X_A(w)}{f} \leq w_O \leq \frac{w}{f}
-```
-
-Assuming worst-case upper bound $w_O = \frac{w}{f}$ and noting $w < 2 \cdot \rho - 1$, we substitute:
-
-```math
-N_{\text{CPU}} \geq \left \lceil f \cdot \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_{\Phi} \right)}{w} \right \rceil
-```
-
-Bounding $w < 2 \cdot \rho - 1$:
-
-```math
-N_{\text{CPU}} \geq \left \lceil f \cdot \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_{\Phi} \right)}{2 \cdot \rho - 1} \right \rceil
-```
-
-Rewriting:
-
-```math
-N_{\text{CPU}} \geq \left \lceil f \cdot 2^{\rho} \cdot \left( \frac{\frac{\rho}{2} T_{\text{BLAKE2b}}}{2 \cdot \rho - 1} + \frac{w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} )}{2 \cdot \rho - 1} + \frac{T_{\text{eval}}}{2 \cdot \rho - 1} + \frac{T_{\Phi}}{2 \cdot \rho - 1} \right) \right \rceil
-```
-
-Approximating $2 \cdot \rho - 1 \approx 2 \rho$:
-
-```math
-N_{\text{CPU}} > \left \lceil \frac{f}{2 \rho} \cdot 2^{\rho} \cdot \left( \rho T_{\text{BLAKE2b}} + 2 w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + 2 T_{\text{eval}} + 2 T_{\Phi} \right) \right \rceil
-```
-
-Simplified:
-
-```math
-N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho - 2} \cdot T_{\text{BLAKE2b}} + \frac{f \cdot 2^{\rho}}{2 \rho} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_{\Phi} \right) \right \rceil
-```
-
-Or grouped as:
-
-```math
-N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho - 2} \cdot T_{\text{BLAKE2b}} + \frac{f}{\rho} \cdot 2^{\rho - 1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_{\Phi} \right) \right \rceil
-```
-
-#### 1.2.2 Estimated Formula Using Mainnet Cardano Parameters
-
-Starting from the final expression at the end of the last section:
-
-```math
-N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho-2} \cdot T_{\text{BLAKE2b}} + \frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_{\Phi} \right) \right \rceil
-```
-
-#### Applying Cardano Mainnet Parameters
-
-Using Cardano’s mainnet values:
-
-* $T\_{\mathsf{VRF}} = 10^{-6}$ seconds (1 microsecond) – Time to evaluate a Verifiable Random Function.
-* $T\_{\text{BLAKE2b}} = 10^{-8}$ seconds (0.01 microseconds) – Time for a BLAKE2b-256 hash operation.
-* $f = \frac{1}{20} = 0.05$ – Active slot coefficient.
-* $k = 2160$
-* Slot duration = 1 second.
-
-Since the eligibility check is negligible, set \$T\_{\text{eligibility}} \approx 0\$:
-
-Substitute into the expression:
-
-* First term:
-
-  ```math
-  f \cdot 2^{\rho-2} \cdot T_{\text{BLAKE2b}} = 0.05 \cdot 2^{\rho-2} \cdot 10^{-8} = 5 \cdot 10^{-10} \cdot 2^{\rho-2}
-  ```
-
-* Second term:
-
-  ```math
-  \frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot 10^{-6} + T_{\text{eval}} + T_{\Phi} \right)
-  = \frac{0.05 \cdot 2^{\rho-1}}{\rho} \cdot \left( 10^{-6} w_T + T_{\text{eval}} + T_{\Phi} \right)
-  ```
-
-The estimated number of CPUs required is:
-
-```math
-N_{\text{CPU}} > \left \lceil
-5 \cdot 10^{-10} \cdot 2^{\rho - 2} +
-\frac{5 \cdot 10^{-8} \cdot 2^{\rho - 1}}{\rho} \cdot w_T +
-\frac{5 \cdot 10^{-2} \cdot 2^{\rho - 1}}{\rho} \cdot T_{\text{eval}} +
-\frac{5 \cdot 10^{-2} \cdot 2^{\rho - 1}}{\rho} \cdot T_{\Phi}
-\right \rceil
-```
-
-#### 1.2.3 $T_{\Phi}$ & Scenarios
-
-To streamline our analysis, we fix the cryptographic overhead to a single value:
-
-```math
-T_{\Phi} = 3600 \, \text{seconds} = 1 \, \text{hour}
-```
-
-We now reinterpret the canonical scenarios from [CPD Section 3.5 – Scenarios](https://github.com/input-output-hk/ouroboros-anti-grinding-design/blob/main/CPS/Readme.md#35-scenarios), extending each one with a **Phalanx-enhanced variant** that incorporates the fixed additional computational cost $`T_{\Phi} = 3600 \, \text{seconds}`$.
-
-The following table summarizes the scenarios, including their evaluation complexity ($`T_{\text{eval}}`$) and observation scope ($`w_T`$), and distinguishes between the original **Praos** case and its corresponding **Phalanx** variant with added grinding resistance:
-
-| **Scenario**            | **$T_{\text{eval}}$ (Complexity)** | **$w_T$ (Scope)** | **Description**                                                                 |
-|------------------------|-------------------------------------|-------------------|---------------------------------------------------------------------------------|
-| **Ant Glance (Praos)**   | $0 \, \text{s}$                     | $1 \, \text{h}$    | An **ant** quickly glancing at a small spot, representing **minimal evaluation** with **basic effort** and a **narrow observation scope**. |
-| **Ant Glance (Phalanx)** | $0 \, \text{s}$                     | $1 \, \text{h}$    | Same as Ant Glance, but now includes a fixed Phalanx cost $T_{\Phi} = 3600 \, \text{s}$, resulting in **moderate total effort**. |
-| **Ant Patrol (Praos)**   | $0 \, \text{s}$                     | $5 \, \text{d}$    | An **ant patrolling** a wide area over time with simple instincts—low evaluation cost and **broad observation scope**. |
-| **Ant Patrol (Phalanx)** | $0 \, \text{s}$                     | $5 \, \text{d}$    | Same as Ant Patrol, but includes the Phalanx cost $T_{\Phi} = 3600 \, \text{s}$, increasing adversarial effort. |
-| **Owl Stare (Praos)**    | $1 \, \text{s}$                     | $1 \, \text{h}$    | An **owl staring intently** with **keen focus**, representing **complex evaluation** with narrow scope. |
-| **Owl Stare (Phalanx)**  | $1 \, \text{s}$                     | $1 \, \text{h}$    | Same as Owl Stare, now with additional Phalanx cost $T_{\Phi} = 3600 \, \text{s}$ added to the total computation time. |
-| **Owl Survey (Praos)**   | $1 \, \text{s}$                     | $5 \, \text{d}$    | An **owl surveying** a large region with high strategic awareness—complex evaluation and broad scope. |
-| **Owl Survey (Phalanx)** | $1 \, \text{s}$                     | $5 \, \text{d}$    | Same as Owl Survey, now including $T_{\Phi} = 3600 \, \text{s}$ as an additional cryptographic cost in the Phalanx variant. |
-
-
-
-The **$N_{\text{CPU}}$ formulas** are derived by **substituting** the respective **\$w\_T\$** and **$T_{\text{eval}}$ values** from each **scenario** into the **base expression** from **Section 1.2.2**, using the fixed Phalanx cost $T_{\Phi} = 3600$ seconds:
-
-```math
-N_{\text{CPU}} > \left \lceil
-5 \cdot 10^{-10} \cdot 2^{\rho - 2} +
-\frac{5 \cdot 10^{-8} \cdot 2^{\rho - 1}}{\rho} \cdot w_T +
-\frac{5 \cdot 10^{-2} \cdot 2^{\rho - 1}}{\rho} \cdot T_{\text{eval}} +
-\frac{180 \cdot 2^{\rho - 1}}{\rho}
-\right \rceil \quad \text{(Phalanx)}
-```
-
-```math
-N_{\text{CPU}} > \left \lceil
-5 \cdot 10^{-10} \cdot 2^{\rho - 2} +
-\frac{5 \cdot 10^{-8} \cdot 2^{\rho - 1}}{\rho} \cdot w_T +
-\frac{5 \cdot 10^{-2} \cdot 2^{\rho - 1}}{\rho} \cdot T_{\text{eval}}
-\right \rceil \quad \text{(Praos)}
-```
-
-The table below summarizes the expressions for each scenario:
-
-| **Scenario**            | **$N_{\text{CPU}}$ Formula**                                                                                     |
-|--------------------------|-----------------------------------------------------------------------------------------------------------------|
-| **Ant Glance (Praos)**     | $5 \cdot 10^{-10} \cdot 2^{\rho-2} + 1.8  \cdot 10^{-4} \cdot \frac{2^{\rho-1}}{\rho}$                      |
-| **Ant Glance (Phalanx)**   | $5 \cdot 10^{-10} \cdot 2^{\rho - 2} + 1.8 \cdot 10^{-4} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{180 \cdot 2^{\rho - 1}}{\rho}$ |
-| **Ant Patrol (Praos)**     | $5 \cdot 10^{-10} \cdot 2^{\rho-2} + 2.16 \cdot 10^{-2} \cdot \frac{2^{\rho-1}}{\rho}$                   |
-| **Ant Patrol (Phalanx)**   | $5 \cdot 10^{-10} \cdot 2^{\rho - 2} + 2.16 \cdot 10^{-2} \cdot \frac{2^{\rho - 1}}{\rho} + \frac{180 \cdot 2^{\rho - 1}}{\rho}$ |
-| **Owl Stare (Praos)**      | $5 \cdot 10^{-10} \cdot 2^{\rho-2} + (1.8 \cdot 10^{-4} + 5.02 \cdot 10^{-2}) \cdot \frac{2^{\rho-1}}{\rho}$ |
-| **Owl Stare (Phalanx)**    | $5 \cdot 10^{-10} \cdot 2^{\rho - 2} + (1.8 \cdot 10^{-4} + 5.02 \cdot 10^{-2}) \cdot \frac{2^{\rho - 1}}{\rho} + \frac{180 \cdot 2^{\rho - 1}}{\rho}$ |
-| **Owl Survey (Praos)**     | $5 \cdot 10^{-10} \cdot 2^{\rho-2} + (2.16 \cdot 10^{-2} + 5.02 \cdot 10^{-2}) \cdot \frac{2^{\rho-1}}{\rho}$ |
-| **Owl Survey (Phalanx)**   | $5 \cdot 10^{-10} \cdot 2^{\rho - 2} + (2.16 \cdot 10^{-2} + 5.02 \cdot 10^{-2}) \cdot \frac{2^{\rho - 1}}{\rho} + \frac{180 \cdot 2^{\rho - 1}}{\rho}$ |
-
-
-
-The **graph below** illustrates the **logarithmic cost** (in **USD**) of **grinding attacks** across all **Praos** and **Phalanx scenarios** as a function of the **grinding depth** ($`\rho`$).
-
-* **Solid lines** represent the original **Praos scenarios** (Ant Glance, Ant Patrol, Owl Stare, and Owl Survey).
-* **Dashed lines** represent their corresponding **Phalanx variants**, which include the fixed additional computational overhead $`T_{\Phi} = 3600 \, \text{seconds}`$.
-* The **shaded feasibility regions** indicate **economic thresholds** as defined in [**CPD Section 3.6 – Grinding Power Computational Feasibility**](https://github.com/input-output-hk/ouroboros-anti-grinding-design/blob/main/CPS/Readme.md#36-grinding-power-computational-feasibility). 
-
+The CPD analysis in [Section 3.5 - Scenarios](../CPS/CPD/README.md#35-scenarios) quantifies this vulnerability across four scenarios (**Ant Glance**, **Ant Patrol**, **Owl Stare**, and **Owl Survey**) highlighting the ranges of $\rho$ where attacks are feasible. The table below summarizes these ranges, showing the intervals where grinding attacks transition from trivial to infeasible:
+
+| **Feasibility Category**                  | **🔵 Ant Glance**   | **🟠 Ant Patrol**   | **🟢 Owl Stare**   | **🔴 Owl Survey**   |
+|--------------------------------------------|---------------------|---------------------|--------------------|--------------------|
+| **🟢 🌱 Trivial for Any Adversary**        | $0 \to 39.8$        | $0 \to 32.9$        | $0 \to 31.6$       | $0 \to 31.1$       |
+| **🟡 💰 Feasible with Standard Resources** | $39.8 \to 46.4$     | $32.9 \to 39.5$     | $31.6 \to 38.3$    | $31.1 \to 37.8$    |
+| **🟠 🏭 Large-Scale Infrastructure Required** | $46.4 \to 56.4$  | $39.5 \to 49.5$     | $38.2 \to 48.2$    | $37.8 \to 47.7$    |
+| **🔴 🚫 Borderline Infeasible**            | $56.4 \to 66.3$     | $49.5 \to 59.5$     | $48.2 \to 58.2$    | $47.7 \to 57.7$    |
+| **🔴 🚫 Infeasible**                      | $66.3 \to 256$      | $59.5 \to 256$      | $58.2 \to 256$     | $57.7 \to 256$     |
+
+This vulnerability is visually depicted in the graph below, which plots the logarithmic cost (in USD) of grinding attacks against grinding depth ($\rho$) for each scenario. The shaded feasibility layers indicate the economic thresholds where attacks become **trivial**, **feasible**, **possible**, **borderline infeasible**, or **infeasible**. The consistent gap of $\Delta \log_{10}(\text{Cost (USD)}) \approx 2.6$ between the least (Ant Glance) and most (Owl Survey) resource-intensive scenarios highlights how 88evaluation complexity** ($T_{\text{eval}}$) and **observation scope** ($w_T$) significantly amplify attack costs :
 
 <div align="center">
-<img src="./image/grinding_depth_scenarios_cost_praos_vs_phalanx.png" alt="Cost of Grinding Attacks: Praos vs Phalanx Scenarios"/>
+<img src="./image/grinding_depth_scenarios_cost_with_feasibility_layers_gradient.png" alt="Grinding Depth Scenarios with Feasibility Thresholds"/>
 </div>
 
-✏️ **Note**: The **code** to generate this **graph** is available at ➡️ [**this link**](./graph/scenario_cost_praos_vs_phalanx.py).
+These findings indicate that, under current protocol parameters, grinding attacks are computationally viable at lower $\rho$ values for adversaries with significant resources. However, as highlighted in [CPD Section 3.2](../CPS/CPD/README.md#32-entry-ticket-acquiring-stake-to-play-the-lottery), executing such attacks requires a substantial upfront investment—acquiring 20% of the total stake, equivalent to over 4.36 billion ADA as of March 1, 2025—and the ability to operate covertly to avoid detection. Publicly observable grinding attempts expose adversarial stake pool operators (SPOs) to severe economic and social consequences, such as loss of trust, delegator withdrawals, or protocol-level countermeasures, which could devalue their stake and undermine their efforts. Despite these barriers, the potential for well-funded adversaries to bias randomness remains a threat to Cardano’s decentralized ethos, as it could skew block production and transaction settlement in their favor.
 
-### **Interpretation of the Graph**
-
-The graph provides several key insights into the cost dynamics of grinding attacks under the Phalanx protocol compared to Praos, with deltas that remain consistent across all $\rho$ values due to the logarithmic scale:
-
-- **Moderate Cost Variation Within Phalanx Scenarios**:
-  Within the **Phalanx** protocol, the cost difference between different $`\Phi_{\text{power}}`$ levels for the same scenario is relatively moderate. For instance:
-  - The delta between $`\Phi^\text{power}_\text{max}`$ and $`\Phi^\text{power}_\text{min}`$ for the Owl Survey scenario is approximately 1.7 in $`\log_{10}(\text{Cost USD})`$, as annotated at $\rho=50$. This difference is consistent for all $\rho$ values.
-
-- **Substantial Cost Increase Compared to Praos**:
-  The cost difference between **Phalanx** and **Praos** is significantly larger, highlighting the increased computational burden imposed by Phalanx:
-  - The delta between Owl Survey under Phalanx with $`\Phi^\text{power}_\text{min}`$ and the original Owl Survey Praos is approximately 3.75 in $`\log_{10}(\text{Cost USD})`$, as annotated at $\rho=100$. This difference is consistent across all $\rho$ values.
-
-- **Impact Across Adversarial Strategies**:
-  When comparing Phalanx for a complex scenario like Owl Survey with Praos for a simpler scenario like Ant Glance, the cost difference further underscores Phalanx's effectiveness:
-  - The delta between Owl Survey under Phalanx with $`\Phi^\text{power}_\text{min}`$ and Ant Glance Praos is approximately 6.35 in $`\log_{10}(\text{Cost USD})`$, as annotated at $\rho=150$. This difference is consistent for all $\rho$ values.
-
-- **Uniformity Across Scenarios**:
-  The close overlap of cost curves for different scenarios under the same $\Phi_{\text{power}}$ indicates that the **computational cost** of a **grinding attack** under **Phalanx** is largely **independent of the adversary’s strategy** (i.e., the choice of **scenario**, which varies by $T_{\text{eval}}$ and $w_T$). This **uniformity** simplifies our reasoning about **adversarial behavior**: we no longer need to analyze **distinct scenarios** to assess the **feasibility of grinding attacks**. Moving forward, we can focus on a **single cost model** for **Phalanx**, treating the **attack cost** as a function of $\rho$ and the $\Phi_\text{power}$ parameter, without differentiating between **strategic variations**.
-
-### **Impact on Feasibility Categories**
-
-This **simplification** allows us to **revisit and improve** the **feasibility category table** presented in the **Motivation section**, which originally detailed the $\rho$ ranges for each **Praos scenario**. With **Phalanx**, the **overlap of scenarios** enables us to **consolidate** the analysis into a **single set** of **feasibility ranges** based on the $`\Phi^\text{power}_{\text{min}}`$ and $`\Phi^\text{power}_{\text{max}}`$ configurations. The **tables below** first present the **original Praos feasibility ranges**, followed by the **updated categories for Phalanx**, reflecting the **increased computational cost** and the **unified cost model**. The **Phalanx tables** include the **delta improvements** ($\Delta \rho$) for each **Praos scenario**, showing the **reduction** in the **upper bound** of each **feasibility category** compared to the **original Praos ranges**. A **positive** $\Delta \rho$ indicates that **Phalanx increases the cost** by making **attacks infeasible at lower** $\rho$ values.
-
-
-<div align="center">
-<img src="./image/image-13.png" alt="Cost of Grinding Attacks: Praos vs Phalanx Scenarios"/>
-</div>
-
-
-
-✏️ **Note**: The **code** to generate this **graph** is available at ➡️ [**this link**](./graph/scenario-cost-cross-thresholds.py).
-
-
-#### Feasibility Ranges 
-
-| **Feasibility Category**                        | **🔵 Ant Glance**   | **🟠 Ant Patrol**   | **🟢 Owl Stare**   | **🔴 Owl Survey**   | **Phalanx Φᵖᵒʷᵉʳₘᵢₙ** | **Phalanx Φᵖᵒʷᵉʳₘₐₓ** |
-|--------------------------------------------------|----------------------|----------------------|---------------------|----------------------|--------------------------|--------------------------|
-| **🟢 🌱 Trivial for Any Adversary**              | $0 \to 39.8$         | $0 \to 32.9$         | $0 \to 31.6$        | $0 \to 31.1$         | $0 \to 18.6$             | $0 \to 13.0$              |
-| **🟡 💰 Feasible with Standard Resources**       | $39.8 \to 46.4$      | $32.9 \to 39.5$      | $31.6 \to 38.3$     | $31.1 \to 37.8$      | $18.6 \to 25.2$          | $13.0 \to 19.6$           |
-| **🟠 🏭 Large-Scale Infrastructure Required**    | $46.4 \to 56.4$      | $39.5 \to 49.5$      | $38.2 \to 48.2$     | $37.8 \to 47.7$      | $25.2 \to 35.2$          | $19.6 \to 29.6$          |
-| **🔴 🚫 Borderline Infeasible**                 | $56.4 \to 66.3$      | $49.5 \to 59.5$      | $48.2 \to 58.2$     | $47.7 \to 57.7$      | $35.2 \to 45.2$          | $29.6 \to 39.5$          |
-| **🔴 🚫 Infeasible**                            | $66.3 \to 256$       | $59.5 \to 256$       | $58.2 \to 256$      | $57.7 \to 256$       | $45.2 \to 256$           | $39.5 \to 256$           |
-
-
-#### Improvements by Phalanx
-
-| **Scenario**       | **$\Phi^\text{power}_{\text{min}}$ $\Delta \rho$**  | **$\Phi^\text{power}_{\text{max}}$ $\Delta \rho$** |
-|--------------------|-----------------------------------------------------|---------------------------------------------------|
-| **🔵 Ant Glance**  | $+21.2$                                             | $+26.8$                                           |
-| **🟠 Ant Patrol**  | $+14.3$                                             | $+19.9$                                           |
-| **🟢 Owl Stare**   | $+13.0$                                             | $+18.7$                                           |
-| **🔴 Owl Survey**  | $+12.5$                                             | $+18.2$                                           |
-
-
-
-
-
-<br/>
-
-
-These **tables** demonstrate a **significant improvement** over the **Praos scenarios**. For **$\Phi^\text{power}_{\text{min}}$**, the "**Trivial**" range shrinks to **$\rho < 12$** (a **reduction of up to 21.2** for **Ant Glance Praos**), and the "**Possible**" range is limited to **$\rho < 35.2$** (a **reduction of up to 21.2** for **Ant Glance Praos**). For **$\Phi^\text{power}_{\text{max}}$**, the effect is even more pronounced, with the "**Trivial**" range reduced to **$\rho < 6.4$** (a **reduction of up to 26.8** for **Ant Glance Praos**) and the "**Possible**" range to **$\rho < 29.6$** (a **reduction of up to 26.8** for **Ant Glance Praos**). These substantial **$\Delta \rho$ values** indicate that **Phalanx significantly raises the bar** for **grinding attacks**, pushing the **feasibility thresholds** to much **lower $\rho$ values** across all **scenarios**. This makes such **attacks economically and computationally prohibitive** for **adversaries**, even those with **significant resources**, thereby **enhancing the security** of the **Ouroboros Praos protocol**.
-
-# DRAFT Land BELOW
-
-### 1. Cryptographic Primitive 
-
-#### 1.1 Evaluation
-
-Work in Progress in [google doc](https://docs.google.com/document/d/13TZF2jYLoKPjs6Aa9tLA4t9TtxqhBB7qMIZCy9SWKR4/edit?tab=t.0)
-
-[Consolidation of this google doc - Anti-Grinding: the Cryptography](https://docs.google.com/document/d/1zXMdoIlwnVSYjz46jxXuNPIWi-xPXxUjltF-8g7TJTc/edit?tab=t.0#heading=h.wefcmsmvzoy5)
-
-#### 1.2. Selection Rationale
-
-
-### 2. Adaptive Strategies for Efficient $\Phi$ Computation
-
-
-
-##### 2.4.3 Block-based approach
-
-In this approach, each newly produced block must include one additional iteration of $\Phi$ compared to the previous block in the chain. Over a period equivalent to one epoch, we expect a minimum of $i$ blocks to be appended to the chain. This value $i$ corresponds to the number of iterations we aim to compute for $\Phi$ during that period.
-
-To maximize the likelihood of deterministically producing $\phi^\text{evolving}_e$ without falling back to the Praos protocol, we require that the full iteration chain completes with probability at least $1 - 2^{-\epsilon}$, where $\epsilon$ is typically set to 128.
-
-To achieve this, we consider the number of honest blocks $N_h$ expected given an adversarial stake $s_a$ (assuming a coalition of adversaries can be modeled as a single adversary holding the combined stake). In practice, we may wish to concentrate computation in fewer blocks to account for network noise or timing uncertainties. To model this flexibility, we introduce the parameter $\alpha$, where $0 < \alpha \leq 1$, representing the fraction of $N_h$ that will actively contribute to the computation.
-
-The duration of anti-grinding computation assigned per block is then defined as:
-
-$$
-T_\Phi = \frac{\text{Accumulated Computation} \cdot f}{N_h \cdot \alpha}
-$$
-
-where:
-- $\text{Accumulated Computation}$ is the total duration of the computation window (in slots),
-- $f$ is the active slot coefficient,
-- and $1 - \alpha$ represents the tolerated margin of failure.
-
-The value $N_h$, the minimum number of honest blocks required in an epoch, is defined as the solution to the following equation:
-
-$$
-\Pr(X_h > N_h) = F(N_h, N_s, f \cdot (1 - s_a)) = 1 - 2^{-\epsilon}
-$$
-
-which is equivalent to:
-
-$$
-\Pr(X_h \leq N_h) = F(N_s - N_h, N_s, 1 - f \cdot (1 - s_a)) = 2^{-\epsilon}
-$$
-
-and thus:
-
-$$
--\log_2(\Pr(X_h \leq N_h)) = \epsilon
-$$
-
-
-###### Nₐ s.t. Pr(Xₐ < Nₐ) = F(Nₐ, 432,000, f * sₐ) = 1 - 2^-128
-
-| sₐ     | 0.005 | 0.01 | 0.02 | 0.05 | 0.1  | 0.2  | 0.25 | 0.3  | 0.33 | 0.4  | 0.45 | 0.49 | 0.5  |
-|--------|-------|------|------|------|------|------|------|------|------|------|------|------|------|
-| ε = 128|   269 |  434 |  730 | 1537 | 2794 | 5204 | 6384 | 7554 | 8252 | 9872 |11024 |11942 |12171 |
-
-
-
-###### Nₕ s.t. Pr(Xₕ > Nₕ) = F(432,000 - Nₕ, 432,000, 1 - f * (1 - sₐ)) = 1 - 2^-128
-
-| sₐ     | 0.005 | 0.01 | 0.02 | 0.05 | 0.1  | 0.2  | 0.25 | 0.3  | 0.33 | 0.4  | 0.45 | 0.49 | 0.5  |
-|--------|-------|------|------|------|------|------|------|------|------|------|------|------|------|
-| ε = 128| 19645 |19541 |18713 |17680 |15618 |14590 |13563 |12949 |11517 |10498 | 9685 | 9482 |
-
-
-![alt text](image-6.png)
-
-Empirically, assuming an adversarial stake of approximately 45%, requiring at least **10,000 honestly produced blocks** to derive the final value of $`\phi^\text{evolving}_e`$ appears to be a reasonable and secure choice.
-In practice, to ensure liveness in edge cases, the protocol reverts to standard Praos behavior, using $\text{pre-}\eta_e$ as $\eta_e$.  
-
-
-### 3. Performance Impacts on Consensus & Ledger Repository
-
-Todo : Simulation of Phalanx for Honest Participant for refining $\Phi_{\text{min}}$ and $\Phi_{\text{max}}$ defined in Specification.
-
-### 4. Maintainability
-
-Todo 
-
-### 5. Cryptographic primitives
-
-As shown previously in the CPS and CPD, Cardano’s randomness generation currently is biasable and this CIP aims at presenting solutions on top of the current Praos’ randomness generation algorithm to disincentivize adversaries from performing grinding attacks by increasing their computational cost. We do not intend to change the protocol in depth, as this would need a much greater initiative that may not bear fruits, but add an additional layer of security on top of the current protocol only.
-
-To argue about our decision, i.e. increasing the attack cost, we first list different ways to fix the last revealer attack as suggested in [1](https://eprint.iacr.org/2015/1249.pdf) that present a similar issue when combining different sources of randomness.
-- _Simultaneous lottery draws, so that all random nonces are revealed at once._ Unfortunately this solution is not possible in our context as nonces are revealed iteratively in block headers so that they can be easily extractable and verifiable from the blockchain directly.
-- _Using a slow function to generate the randomness on top of the revealed nonces, so that the adversary cannot decide in time whether to reveal their nonces or not._ In practice, time assumptions are delicate in cryptography for theoretical reasons (potential attacks, better algorithms) and practical ones (Moore’s law).
-- _Using a commitment, so that the revealed nonces are combined to some previously committed value._ This solution is not feasible as we would either need to rely on trusted parties, which is contrary to blockchain’s operandi, or to reveal the committed values, which is equivalent to RANDAO.
-- _Limiting the entropy of the last lottery draws, by combining it with sufficiently many low entropy - a single bit- randomness._ This solution is impractical as we would still have a revealer attack, but on the lone bits.
-
-As such, we should focus from now on using a weakened slow function, that is instead of solely relying on time based guarantees, we will principally count on computational costs: we will append to our existing protocol a computationally costly chain of computation that the adversary will have to process for each grinding attempt.
-
-#### 5.1 Requirements
-
-When choosing a cryptographic primitive, we need to balance several criteria. In particular, checking its _security strength and maturity_, _performance_, _deployability_ and _compliance_:
-- _Security strength & Maturity_:  the primitive is resistant to known attacks and comprise a sufficient security margin. Furthermore, it has been extensively reviewed by the cryptographic community, has been developed transparently and has been accepted and standardized.
-- _Performance_: the primitive is efficient in terms of size (input, output and if applicable proof size), and computation (CPU cycles, memory footprint, and power consumption) with respect to the application and intended platform.
-- _Deployability_: the primitive should be easy to set up, upgrade and, in case of attacks and if possible, switch
-- _Compliance_: the primitive should be free of licensing restrictions and meet regulatory standards.
-
-We furthermore require the following properties for the Phalanx project. The cryptographic primitive must be an **_NP deterministic function_**. More precisely, a primitive whose verification time is fast, that for each input corresponds to a unique output and whose latter is fixed.
-
-We can either support a primitive which computation can be split in different iterations, each of which is verifiable, or which is finely tunable so that we can solve a challenge in less than a block time and can be used in cascade. Being able to generate and verify a single proof for the whole chain of computation would be another advantage in the context of syncing.
-
-#### 5.2 Primitive selection
-
-To ensure fast verification, we face a first choice: relying on a cryptographic primitive based on trapdoor assumptions, which present NP problems and by definition have fast verification, or combine a primitive without fast verification with an efficient proof system such as a Succinct Non-interactive ARgument of Knowledge (SNARK).
-
-##### 5.2.1 RSA solutions
-
-An RSA group is the multiplicative group of integers modulo N, where N is the product of two large prime numbers p and q, N = p⋅q. This group is called RSA after the RSA cryptosystem by Rivest, Shamir and Adleman where the public encryption key is the group modulus N and a small exponent e, while the corresponding  decryption key is the number d such that d ⋅ e ≡ 1 (ϕ(N)) where ϕ(N) = (p−1)(q−1), where p and q remain private. To break the RSA cryptosystem, the adversary has to factorize N into its prime p and q which can be done most efficiently with the General Number Field Sieve algorithm, based on the NFS [2](https://dl.acm.org/doi/pdf/10.1145/100216.100295), in sub-exponential time. To reach 128 bit of security, the modulus must be at least 2048 bit long, and preferably at least 3072 bit long, according to NIST [3](https://csrc.nist.gov/pubs/sp/800/78/5/final).
-
-###### 5.2.1.1 Designs
-
-Three problems defined on RSA groups satisfy the requirements: solving the RSA problem or the integer factorization, or using verifiable delayed functions (VDFs, [6](https://eprint.iacr.org/2018/601.pdf)).
-RSA problem. The setup consists in generating an RSA public key (N, e) where N’s factorization is unknown and a ciphertext c. The challengers then have to find the plaintext corresponding to that ciphertext, that is finding the eth root the ciphertext modulo N, i.e. finding m such that c ≡ me (mod N). The verification is straightforward, re-encrypting the plaintext and checking it equals the ciphertext.
-The most efficient method to solve this problem is by first factoring the modulus N, which cannot be done in polynomial time without a quantum computer (in which case we would use Shor’s algorithm). The best published algorithm to solve this problem with classical computers is the general number field sieve (GNFS), that is sub-exponential in time.
-Integer factorization. This is a simpler case to the RSA problem: only the group modulus is given and needs to be factorized, by the same algorithm.
-VDF. Similarly to the other problems, we first start by generating an unknown order group of modulus N but also sample a random group element g. The challenge then consists in raising this element to a big exponent of the form 2T where T is set depending on the difficulty, the computation or time we want the challenger to need to solve the problem. The challengers eventually compute and output y = x^{2T} mod N by squaring the integer x exactly T times as well as generate an additional proof of this result. The verification consists in verifying the proof passes successfully together with the input, output and modulus.
-
-###### 5.2.1.2 Properties
-
-**Security Strength & Maturity.** RSA cryptography, since its introduction in 1977, has reached a high level of maturity and is widely considered one of the most reliable and well-understood public-key cryptographic systems. Its security is based on the computational difficulty of factoring large composite numbers, a problem that has remained challenging even with significant advances in both hardware and algorithmic techniques. Over the years, RSA has undergone extensive cryptanalysis, making it one of the most scrutinized cryptographic algorithms. Its applications have become deeply embedded in a wide range of security protocols, such as SSL/TLS for secure communications, digital signatures, and encryption. RSA is however vulnerable to quantum attacks; when large-scale quantum computers become practical, RSA’s security could be broken by quantum algorithms like Shor's algorithm, making it less future-proof compared to post-quantum cryptographic algorithms.
-
-**Performance.** One of the main drawbacks of the RSA cryptosystem relies on its inefficiency due to large modulus, making the group element large space-wise and operations computationally expensive. 
-
-**Deployability.**  As solving the RSA problem or integer factorization consists in breaking the group security, groups latter cannot be continuously reused in this scenario. More particularly, after finding the factorization of the group modulus, decrypting further ciphertexts in the same group becomes trivial. As for solving a VDF puzzle, the group can be reused safely as long as the modulus is of sufficient size, at least 2048 bit-long. We can in that scenario choose a known secure modulus, whose factorization is unknown, such as an RSA challenge to create a group. Such trusted unknown moduli are however limited in numbers and we would have to generate new ones, in a trustless manner, when updating security parameters or in case of an, potentially post-quantum, attack.
-In our context, setting up RSA groups would be challenging to say the least, as we would need to generate groups of unknown order, that is the RSA modulus must be public while the underlying prime numbers must remain unknown. There is no known method to generate such groups, even inefficiently, which becomes especially critical if we have to do it repeatedly. Generating such a group might be achievable via multi-party computation (MPC) where the network would compute random numbers passing distributive primality tests. This would however be highly impractical.
-
-**Compliance.** RSA is compliant with a wide range of security standards and regulations. It is one of the most widely accepted public-key cryptosystems and has been incorporated into many cryptographic protocols, including SSL/TLS for secure web communication, digital signatures, and email encryption. RSA complies with industry standards such as FIPS 186-4, X.509, PKCS#1 and NIST guidelines.
-None of the methods, GNFS or VDFs, are proprietary and there exists open source code implementing these.
-
-##### 5.2.2 ECC solutions
-
-Elliptic Curve Cryptography (ECC) is a form of public-key cryptography based on the mathematical structure of elliptic curves over finite fields. More particularly, ECC relies on a safe subgroup of elliptic curves, usually defined on a prime field for security and efficiency. It provides strong security with smaller key sizes compared to traditional methods like RSA, needing 256 to 384 bit long prime only [3],  making it ideal for constrained environments. To break ECC, one has to compute the discrete logarithm of the group (ECDLP), which can be done most efficiently with Pollard's Rho algorithm that solves the discrete logarithm in O(n​1/2) time and O(1) space. 
-
-###### 5.2.2.1 Designs
-
-The main problem satisfying our requirements is solving the discrete logarithmic on a secure subgroup of an elliptic curve. In that case, the setup consists in generating a curve and generator G, and sampling a random point P from its secure subgroup. The challengers then have to find the scalar a such that P = a ⋅ G. Verification is also straightforward, as it consists in raising G to the power a and verifying it equals P.
-The most efficient methods to find this scalar include the Index Calculus and Pollard’s ⍴.
-
-###### 5.2.2.2 Properties
-
-**Security Strength & Maturity.** Elliptic Curve Cryptography has reached a high level of maturity over the past few decades and is widely regarded as a modern, efficient alternative to traditional public-key cryptosystems like RSA. Its security is based on the hardness of the Elliptic Curve Discrete Logarithm Problem (ECDLP), which has been extensively analyzed, making ECC a trusted and well-understood cryptographic method. ECC is now widely adopted in industry standards, including TLS, SSH, Cardano, Bitcoin, and other blockchain technologies, where its efficiency and robustness are critical. 
-ECC is also vulnerable to post-quantum attacks and can be broken in polynomial time with  Pollard's Rho or the Index Calculus algorithm.
-
-**Performance.** ECC is known for its great performance, particularly in terms of computational efficiency and resource utilization. Compared to traditional public-key systems like RSA, ECC achieves the same level of security with much smaller key sizes, which translates into faster computation, reduced storage requirements, and lower power consumption.
-
-**Deployability.**  To make sure that our elliptic curves are not known too long in advance, or are precomputed in sufficient numbers [^1], to mitigate preprocessing [12](https://eprint.iacr.org/2017/1113.pdf)  as much as possible, we would need to generate the curves on the fly. While RSA groups only rely on the generation of sufficiently large prime numbers, ECC has an array of attacks to look out for as described in safecurves website and paper [7](https://eprint.iacr.org/2024/1265.pdf). As such, generating a secure elliptic curve is a complex and challenging task. Nevertheless, there have been methods to generate efficiently safe elliptic curves ([8](https://core.ac.uk/download/pdf/11679572.pdf), [9](https://link.springer.com/content/pdf/10.1007/s00145-009-9037-2.pdf), [10](https://infoscience.epfl.ch/server/api/core/bitstreams/e2890c5e-2c1e-42e0-92d6-29c6d8d33acf/content)) on the fly but these methods still necessitate minutes worth of probabilistic computation that is not easily verifiable. As finding the discrete logarithm of a number on a curve that has already been broken is significantly easier, thanks to the costly precomputation in  Pollard’s Rho algorithm that can be reused (also succinctly mentioned in [10, attacking multiple keys]), we would have to regularly change the elliptic curve which would make ensuring their number is sufficiently large an important yet difficult challenge to solve.
-
-[^1]: An open ended question is the number of safe elliptic curves for a specific security parameter.
-As finding the discrete logarithm 
-
-**Compliance.** ECC is widely compliant with numerous industry standards and regulations, making it a trusted choice for modern cryptographic applications, including NIST guidelines,  FIPS 186-4 and IETF standards for secure communication protocols.
-None of the methods, Index Calculus or Pollard’s ⍴, are proprietary and there exists open source code implementing these.
-
-##### 5.2.3 Class group solutions
-
-The class group of a number field is the group of fractional ideals modulo principal ideals, whose security is partially determined by a parameter called a discriminant. Class group of binary quadratic forms [14](https://github.com/Chia-Network/vdf-competition/blob/master/classgroups.pdf) omits trusted setup as the group order, also called class number, is believed to be difficult to compute when the discriminant is sufficiently large - more particularly the class number grows linearly to the square root of the discriminant. For a class group to be secure, the group size and discriminant must be sufficiently long - respectively at least 1900 and 3800 bit-long for 128 bit of security [4](https://arxiv.org/pdf/2211.16128)- negative, square free and congruent to 0 or 1 modulo 4. Similarly to ECC, to break a class group security one has to find a class group discrete logarithm (CDLP) which can be done most efficiently with index calculus algorithms that reduce CDLP to integer factorization in sub-exponential time [5](https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=b1e2870db7c2f1cdeb916afe072d84e581ce68b5).
-
-###### 5.2.3.1 Design
-
-Similarly to previous solutions, class groups present two types of problems satisfying the requirements: breaking the discrete logarithm by finding the class order, or using verifiable delayed functions.
-CDLP. In that case, the setup consists in generating a discriminant and generator G, and sampling a random point P from its secure subgroup. The challengers then have to find the scalar a such that P = a ⋅ G. Verification is also straightforward, as it consists in raising G to the power a and verifying it equals P.
-The most efficient methods to find this scalar include the Index Calculus algorithm.
-VDF. Similarly to the CLPD, we first start by generating a discriminant and sample a random group element g. The challenge then consists in raising this element to a big exponent of the form 2T where T is set depending on the difficulty, the computation or time we want the challenger to need to solve the problem. The challengers eventually compute and output y = x^{2T} mod N by squaring the integer x exactly T times as well as generate an additional proof of this result. The verification consists in verifying the proof passes successfully together with the input, output and modulus.
-
-###### 5.2.3.2 Properties
-
-**Security Strength & Maturity.** Class group-based cryptography has reached a moderate level of maturity in cryptographic research. While not as widely deployed as more traditional cryptographic methods like RSA or ECC, class group cryptography has gained attention due to its potential resistance to quantum computing attacks. The mathematical foundations, particularly the hardness of the class group discrete logarithm problem, are well-understood, and class group cryptosystems have been rigorously analyzed. However, practical deployment is still in the early stages, with ongoing efforts focused on optimizing efficiency, key management, and standardization. 
-
-**Performance.** Class group-based cryptography is generally less efficient than RSA or ECC due to the size of their elements and the computational complexity of the composition of elements.
-More particularly, to achieve strong security, class groups’ discriminants must be several thousands bit long, and group elements half of this. Operations are thus costly, especially as composition in class groups rely on finding the greatest common denominator between such numbers that is particularly expensive.
-
-**Deployability.**  Setting up class groups, even though their order is hidden, is much easier than previously discussed solutions as it consists in practice to generate a sufficiently long negative square-free random integer d, and such that d ≡ 1 mod 4. as discriminant. Generating a random element in a class group by hashing also is however more of a delicate but still feasible task as mentioned in [11](https://eprint.iacr.org/2024/034.pdf). Interestingly, there exist algorithms that have been designed to reuse the underlying group such as cascaded and continuous VDFs [13](https://par.nsf.gov/servlets/purl/10159432).
-
-**Compliance.** Since class group-based cryptography is still being researched, it is not as broadly standardized or regulated as more established cryptographic techniques like ECC. That said, once formal standards and guidelines are developed and adopted, class group-based cryptography could achieve compliance with relevant legal and regulatory frameworks. None of the VDF proof generation algorithms are proprietary and there exists open source code implementing these. 
-Other groups
-We mostly focused on commonly used groups, such as RSA and ECC, and class groups whose usage have been increasing lately, notably because of the popularity of VDF primitives. There exist however other groups such as lattices which are one of the main candidates for post quantum cryptography, supersingular isogenies, whose security is dubious at the moment since the attack on SIDH in 2022, and hyperelliptic Jacobians groups, which are still novel and need further time to get confidence in their security and for more protocols to be built upon, to cite a few.
-
-##### 5.2.4 OWF solutions
-
-To widen our spectrum of solutions, we are now exploring solutions based on well-established non-trapdoored cryptographic functions and pair them with efficient proof systems to enable fast verification.
-Hash-based approaches are generally more cost-effective than asymmetric cryptography, do not depend on potentially vulnerable trapdoors, and can be implemented using widely deployed primitives. They are well understood both cryptographically and economically, especially given the prevalence of hash farms.
-The main drawback of hash functions lies in their verification: traditionally, verification requires recomputing the hashes, which can be too time-consuming for our use case, especially when considering synching. To address this, we propose leveraging proof systems, such as Succinct Non-interactive Arguments of Knowledge (SNARKs) and Scalable Transparent ARguments of Knowledge (STARKs) to reduce verification time. This introduces a modest overhead in the form of small proof sizes—on the order of hundreds of bytes—which remains acceptable.
-Although SNARKs are relatively new and involve complex protocols, their adoption is growing, with some blockchains like Mina and Midnight fully built around them. While their use may raise concerns, it remains a practical choice. It is worth noting, however, that SNARKs are not quantum-resistant—unlike their hash-based counterpart, STARKs, which do offer quantum resistance.
-
-###### 5.2.4.1 Proofs of knowledge
-
-Proofs of knowledge have become an especially active and dynamic area of research in recent years. The foundations were laid in the 1990s with key contributions such as Bellare et al.'s work on Probabilistically Checkable Proofs (PCPs, [18](https://dl.acm.org/doi/pdf/10.1145/167088.167174)), Kilian’s results on interactive arguments of knowledge derived from PCPs [17], and Micali’s introduction of Computationally Sound Proofs (CS Proofs [16](https://people.csail.mit.edu/silvio/Selected%20Scientific%20Papers/Proof%20Systems/Computationally_Sound_Proofs.pdf)), which transformed interactive proofs into non-interactive ones using the Fiat-Shamir heuristic.
-In 2016, Groth introduced one of the most efficient PCP-based proof systems to date [15](https://eprint.iacr.org/2016/260.pdf), offering significant improvements in both verification time and proof size. Its main drawback, however, is its reliance on a lengthy trusted setup that cannot be reused across different applications.
-Subsequent advancements built on this foundation, with SNARKs compiling from interactive oracle proofs (IOPs) and polynomial commitment schemes (PCs) such as Plonk [19](https://eprint.iacr.org/2019/953.pdf) and Marlin [20](https://eprint.iacr.org/2019/1047.pdf). Researchers introduced novel techniques to optimize proving time—either by reducing asymptotic complexity, such as replacing FFTs with multivariate polynomials, or by enhancing circuit efficiency through the use of lookup tables [23](https://eprint.iacr.org/2020/315.pdf), custom gates [24](https://docs.zkproof.org/pages/standards/accepted-workshop3/proposal-turbo_plonk.pdf), and cryptographic primitives tailored for specific applications.
-More recently, proof aggregation has emerged as a promising paradigm. Techniques like folding and recursive proofs—exemplified by concepts such as Proof-Carrying Data (PCD, [21](https://eprint.iacr.org/2012/095.pdf)) and Incrementally Verifiable Computation (IVC, [22](https://g-city.sass.org.cn/_upload/article/files/b4/b1/dcb2f5064216b5751c14bc8366f8/e092766a-ddaa-4fa1-b052-8662bad2d2b6.pdf#page=12))—enable efficient step-by-step computation and verification.
-Despite ongoing debates about their security—particularly around the soundness of modeling a random oracle (RO) inside a SNARK—these systems are increasingly being integrated into blockchain technologies. Projects like ZCash, Mina, and Midnight blockchains leverage SNARKs for their powerful compression capabilities, and in some cases, for their privacy-preserving features as well.
-
-###### 5.2.4.2 OWFs
-
-**Non-Algebraic standard hashes.** SHA-2, SHA-3, and BLAKE2 are prominent cryptographic hash functions widely used today. SHA-2, standardized by NIST in 2001, remains the industry standard due to its strong security and broad adoption in applications like TLS and cryptocurrencies.
-Keccak [25](https://eprint.iacr.org/2015/389.pdf), selected through a NIST competition in 2015 as the new standard SHA-3, offers a fundamentally different sponge-based design, providing an alternative with enhanced flexibility and resilience at the cost of lower throughput.
-BLAKE2 [26], developed as a high-performance finalist in the same SHA-3 competition, is favored for its speed and security, often outperforming both SHA-2 and SHA-3 in practical settings. While not standardized by NIST, BLAKE2 is widely trusted and increasingly adopted in modern cryptographic implementations.
-Together, these functions represent a balance of security, performance, and diversity in cryptographic hashing today.
-
-While these hash functions are very efficient on CPU, they are very expensive to verify with classic SNARKs, as the latter are working on prime fields and not bits. Proving hash evaluation is several orders of magnitude higher than evaluating on CPU making this solution very impractical. Simple benchmarks demonstrate such results, with the generation of a proof asserting the evaluation of a few hundreds of hashes taking tens of seconds, while the evaluation itself is of the order of the microsecond. For instance, according to Figure 1, the a hundred evaluations of SHA-256 would take 32μs on CPU and require 300,000 gates. To generate a proof of these evaluations, we would require a circuit of size 219 , i.e. the smallest power of 2 above 300,000, which takes 6s to 18s depending on the commitment scheme, making this solution, combining standard hash functions and SNARKs, highly impractical.
-
-<center>
-
-<img src="./image/hash_functions_comparison.png" width="500px" >
-
-Figure 1, taken from Reinforced concrete paper [27]. Performance of various hash functions in the zero knowledge (preimage proof) and native (hashing 512 bits of data) settings on Intel i7-4790 CPU (3.6 GHz base frequency, 4 core, 8 threads).
-</center>
-
-
-<center>
-| $\text{log}_2(\text{gates})$ |   $\#\text{gates}$    | $\text{proving time - KZG} (ms)$ | $\text{proving time - IPA} (ms)$ |
-| :--------------------------: | :-------------------: | :------------------------------: |:-------------------------------: |
-| $8$                          |  256     	           |  43	                            |  77	                             |
-| $9$                          |  512	                 |  58	                            |  105	                           |
-| $10$                         |  1,024	               |  75	                            |  153	                           |
-| $11$                         |  2,048	               |  100                             |  210	                           |
-| $12$                         |  4,096   	           |  157                             |  330	                           |
-| $13$                         |  8,192   	           |  218                             |  500	                           |
-| $14$                         |  16,384  	           |  342                             |  856	                           |
-| $15$                         |  32,768  	           |  540                             |  1,432	                         |
-| $16$                         |  65,536  	           |  917	                            |  2,590	                         |
-| $17$                         |  131,072 	           |  1,646	                          |  4,779	                         |
-| $18$                         |  262,144 	           |  3,028	                          |  9,199                           |
-| $19$                         |  524,288 	           |  6,231	                          |  18,496	                         |
-| $20$                         |  1,048,576 	         |  12,743	                        |  37,287	                         |
-
-Table 2. Halo2 benchmarks, using KZG [28](https://www.cypherpunks.ca/~iang/pubs/PolyCommit-AsiaCrypt.pdf) and IPA [29](https://eprint.iacr.org/2017/1066.pdf) commitment schemes on Intel(R) Core(TM) i9-14900HX (2.2 GHz base frequency, 24 cores, 32 threads).
-</center>
-
-**Memory-hard functions (MHFs).** are primitives relying on hash functions designed to resist attacks by requiring significant memory and computational effort, making them particularly interesting in our use case, where memory would become another bottleneck to an adversary attempting a grinding attack.
-Argon2, the winner of the Password Hashing Competition in 2015, is the current industry standard due to its strong security, configurability, and resistance to known attacks.
-Balloon Hashing offers a simpler design focused on provable security guarantees and ease of analysis but is less widely adopted. 
-The MHF scrypt, introduced earlier and used notably in cryptocurrencies like Litecoin, was among the first practical memory-hard functions but has seen some theoretical attacks exploiting trade-offs between memory and computation. 
-Of the three, only Argon2 is formally standardized in RFC 9106 and recommended for new applications, while scrypt remains popular in legacy systems and Balloon Hashing is still primarily academic.
-Unfortunately, these primitives are much more expensive than hashes on CPU as well as on SNARKs, where the memory requirements become even more prohibitive.
-
-**SNARK-friendly hashes.** A novel branch of research started with the adoption of SNARKs to design SNARK friendly hash functions. We can classify them in two categories: algebraic or not. Algebraic hashes include, but are not limited to, Poseidon [30](https://www.usenix.org/system/files/sec21-grassi.pdf), Anemoi [31](https://hal.science/hal-04276646v1/file/2022-840%281%29.pdf), Rescue [32]((https://eprint.iacr.org/2020/1143.pdf)) which are based on prime fields. Choosing carefully the fields can result in optimizations of 2 to 3 orders of magnitude in SNARKs, but with higher CPU time unfortunately. For instance, a hundred evaluations of Poseidon hash would take 1.9ms, compared to 32μs for SHA-256, on CPU, but the proof generation would take 1s to 3s, compared to 6s to 18s for SHA-256.
-Other, non algebraic, hash functions have also been created such as Reinforced Concrete [27]((https://dl.acm.org/doi/pdf/10.1145/3548606.3560686)) and Monolith [33](https://ojs.ub.ruhr-uni-bochum.de/index.php/ToSC/article/download/11810/11315) to minimize the cost of binary operations by making the most of lookup tables, which store binary operations on vectors of bits.
-The fact that these hash functions are less efficient on CPUs is not problematic as we are only interested in computational cost. Unfortunately, the ratio between CPU and prove generation time still remains too high for our usage. More novel techniques in SNARKs, such as IVC or folding, would be needed to make the “snarkification” of hash practical but these progresses have yet to reach maturity, be it in both theory and practice.
-Another caveat to using SNARK-friendly hashes would be that adversaries could afford specialised hardware such as CPUs with special instructions such as AVX2, or GPUs, FPGAs or ASICs to accelerate prime field operations and widen the gap between honest users and adversaries.
-
-###### 5.2.4.3 Design
-Using OWFs and SNARKs in the context of Phalanx is straightforward. To each iteration is associated a input that we have to recursively hash a number of times set by the total duration and number of iterations with the desired primitive. Once the result is computed, a SNARK proof can be generated proving the correctness of the computation. We can remark that IVC based solutions are particularly adapted as a choice for SNARK primitves as we can prove a batch of iterations per step of IVC. Both the hash output and the SNARK are then published.
-
-###### 5.2.4.4 Properties
-
-**Security Strength & Maturity.** While traditional hashes have strong security, more novel ones, especially the more usable with SNARKs, can be deemed too novel for adoption. SNARKs, and SNARKs friendly primitives, are very complex pieces of technology that have been broken before and are still evolving at a rapid pace. SNARKs are not postquantum resistant but STARKs are.
-
-**Performance.** While hash functions are extremely efficient on commodity hardware, the proof generation with current SNARKs is far too slow for this solution to be practical
-
-**Deployability.**  SNARKs are difficult to deploy, they rely on different libraries that are not easy to update. Changing of SNARKs is also tedious as circuits would very likely need to be rewritten, adding further risk and complexity.
-
-**Compliance.** Hash functions are standardized and libraries are easily available. SNARK solutions are not copyrighted, there is however a limited number of available libraries, which can either be open source or proprietary (SP1, RISC0, STARKNET…).
-
-#### 5.3 Primitive recommendation
-
-The combination of OWFs and SNARKs, however elegant it may be for its modularity, is not practical for the proof generation overhead being prohibitive. 
-Trapdoor based solutions seem to be the best candidates for anti-grinding solutions. Out of the ones considered, VDFs seem the most practical primitive thanks to the possibility of reusing the group, and class groups offer the simplest deployment. The main caveat of such a solution is in its relative novelty, regular assessment would need to be done to ensure correct and up to date parametrization.
-
-
-## Path to Active
-
-### Acceptance Criteria
-<!-- Describes what are the acceptance criteria whereby a proposal becomes 'Active' -->
-
-Todo
-
-### Implementation Plan
-<!-- A plan to meet those criteria or `N/A` if an implementation plan is not applicable. -->
-Todo
-<!-- OPTIONAL SECTIONS: see CIP-0001 > Document > Structure table -->
-
-
-## References
-
-- [Cardano Disaster Recovery Plan](https://iohk.io/en/research/library/papers/cardano-disaster-recovery-plan)
-- [Baigneres, Thomas, et al. "Trap Me If You Can--Million Dollar Curve." Cryptology ePrint Archive (2015).](https://eprint.iacr.org/2015/1249.pdf)
-- [Lenstra, Arjen K., et al. "The number field sieve." Proceedings of the twenty-second annual ACM symposium on Theory of computing. 1990.](https://dl.acm.org/doi/pdf/10.1145/100216.100295)
--[National Institute of Standards and Technology (NIST). (April 2010). Special Publication  800-78-5: Cryptographic Algorithms and Key Sizes for Personal Identity Verification.](https://csrc.nist.gov/pubs/sp/800/78/5/final)
-- [Dobson, Samuel, Steven Galbraith, and Benjamin Smith. "Trustless unknown-order groups." arXiv preprint arXiv:2211.16128 (2022).](https://arxiv.org/pdf/2211.16128)
-- [Hamdy, Safuat, and Bodo Möller. "Security of cryptosystems based on class groups of imaginary quadratic orders." Advances in Cryptology—ASIACRYPT 2000: 6th International Conference on the Theory and Application of Cryptology and Information Security Kyoto, Japan, December 3–7, 2000 Proceedings 6. Springer Berlin Heidelberg, 2000.](https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=b1e2870db7c2f1cdeb916afe072d84e581ce68b5)
-- [Boneh, Dan, et al. "Verifiable delay functions." Annual international cryptology conference. Cham: Springer International Publishing, 2018.](https://eprint.iacr.org/2018/601.pdf)
-- [Bernstein, Daniel J., and Tanja Lange. "Safe curves for elliptic-curve cryptography." Cryptology ePrint Archive (2024).](https://eprint.iacr.org/2024/1265.pdf)
-- [Baier, Harald. Efficient algorithms for generating elliptic curves over finite fields suitable for use in cryptography. Diss. Technische Universität, 2002.](https://core.ac.uk/download/pdf/11679572.pdf)
-- [Konstantinou, Elisavet, et al. "On the efficient generation of prime-order elliptic curves." Journal of cryptology 23.3 (2010): 477-503.](https://link.springer.com/content/pdf/10.1007/s00145-009-9037-2.pdf)
-- [Miele, Andrea, and Arjen K. Lenstra. "Efficient ephemeral elliptic curve cryptographic keys." Information Security: 18th International Conference, ISC 2015, Trondheim, Norway, September 9-11, 2015, Proceedings 18. Springer International Publishing, 2015.](https://infoscience.epfl.ch/server/api/core/bitstreams/e2890c5e-2c1e-42e0-92d6-29c6d8d33acf/content)
-- [Seres, István András, Péter Burcsi, and Péter Kutas. "How (not) to hash into class groups of imaginary quadratic fields?." Cryptographers’ Track at the RSA Conference. Cham: Springer Nature Switzerland, 2025.](https://eprint.iacr.org/2024/034.pdf)
-- [Corrigan-Gibbs, Henry, and Dmitry Kogan. "The discrete-logarithm problem with preprocessing." Advances in Cryptology–EUROCRYPT 2018: 37th Annual International Conference on the Theory and Applications of Cryptographic Techniques, Tel Aviv, Israel, April 29-May 3, 2018 Proceedings, Part II 37. Springer International Publishing, 2018.](https://eprint.iacr.org/2017/1113.pdf)
-- [Ephraim, Naomi, et al. "Continuous verifiable delay functions." Annual International Conference on the Theory and Applications of Cryptographic Techniques. Cham: Springer International Publishing, 2020.](https://par.nsf.gov/servlets/purl/10159432)
-- [Long, Lipa. "Binary quadratic forms.", (2018)](https://github.com/Chia-Network/vdf-competition/blob/master/classgroups.pdf)
-- [Groth, Jens. "On the size of pairing-based non-interactive arguments." Advances in Cryptology–EUROCRYPT 2016: 35th Annual International Conference on the Theory and Applications of Cryptographic Techniques, Vienna, Austria, May 8-12, 2016, Proceedings, Part II 35. Springer Berlin Heidelberg, 2016.](https://eprint.iacr.org/2016/260.pdf)
-- [Micali, Silvio. "CS proofs." Proceedings 35th Annual Symposium on Foundations of Computer Science. IEEE, 1994](https://people.csail.mit.edu/silvio/Selected%20Scientific%20Papers/Proof%20Systems/Computationally_Sound_Proofs.pdf)
-- [Kilian, Joe. "A note on efficient zero-knowledge proofs and arguments." Proceedings of the twenty-fourth annual ACM symposium on Theory of computing. 1992.](https://dl.acm.org/doi/pdf/10.1145/129712.129782)
-- [Bellare, Mihir, et al. "Efficient probabilistically checkable proofs and applications to approximations." Proceedings of the twenty-fifth annual ACM symposium on Theory of computing. 1993.](https://dl.acm.org/doi/pdf/10.1145/167088.167174)
-- [Gabizon, Ariel, Zachary J. Williamson, and Oana Ciobotaru. "Plonk: Permutations over lagrange-bases for oecumenical noninteractive arguments of knowledge." Cryptology ePrint Archive (2019).](https://eprint.iacr.org/2019/953.pdf)
-- [Chiesa, Alessandro, et al. "Marlin: Preprocessing zkSNARKs with universal and updatable SRS." Advances in Cryptology–EUROCRYPT 2020: 39th Annual International Conference on the Theory and Applications of Cryptographic Techniques, Zagreb, Croatia, May 10–14, 2020, Proceedings, Part I 39. Springer International Publishing, 2020.](https://eprint.iacr.org/2019/1047.pdf)
-- [Bitansky, Nir, et al. "Recursive composition and bootstrapping for SNARKS and proof-carrying data." Proceedings of the forty-fifth annual ACM symposium on Theory of computing. 2013.](https://eprint.iacr.org/2012/095.pdf)
-- [Valiant, Paul. "Incrementally verifiable computation or proofs of knowledge imply time/space efficiency." Theory of Cryptography: Fifth Theory of Cryptography Conference, TCC 2008, New York, USA, March 19-21, 2008. Proceedings 5. Springer Berlin Heidelberg, 2008.](https://g-city.sass.org.cn/_upload/article/files/b4/b1/dcb2f5064216b5751c14bc8366f8/e092766a-ddaa-4fa1-b052-8662bad2d2b6.pdf#page=12)
-- [Gabizon, Ariel, and Zachary J. Williamson. "plookup: A simplified polynomial protocol for lookup tables." Cryptology ePrint Archive (2020).](https://eprint.iacr.org/2020/315.pdf)
-- [Gabizon, Ariel, and Zachary J. Williamson. "Proposal: The turbo-plonk program syntax for specifying snark programs.", 2020](https://docs.zkproof.org/pages/standards/accepted-workshop3/proposal-turbo_plonk.pdf)
-- [Bertoni, Guido, et al. "Keccak." Annual international conference on the theory and applications of cryptographic techniques. Berlin, Heidelberg: Springer Berlin Heidelberg, 2013.](https://eprint.iacr.org/2015/389.pdf)
-- [Aumasson, Jean-Philippe, et al. "BLAKE2: simpler, smaller, fast as MD5." International Conference on Applied Cryptography and Network Security. Berlin, Heidelberg: Springer Berlin Heidelberg, 2013.](https://eprint.iacr.org/2013/322.pdf)
-- [Grassi, Lorenzo, et al. "Reinforced concrete: A fast hash function for verifiable computation." Proceedings of the 2022 ACM SIGSAC Conference on Computer and Communications Security. 2022.](https://dl.acm.org/doi/pdf/10.1145/3548606.3560686)
-- [Kate, Aniket, Gregory M. Zaverucha, and Ian Goldberg. "Constant-size commitments to polynomials and their applications." International conference on the theory and application of cryptology and information security. Berlin, Heidelberg: Springer Berlin Heidelberg, 2010.](https://www.cypherpunks.ca/~iang/pubs/PolyCommit-AsiaCrypt.pdf)
-- [Bünz, Benedikt, et al. "Bulletproofs: Short proofs for confidential transactions and more." 2018 IEEE symposium on security and privacy (SP). IEEE, 2018.](https://eprint.iacr.org/2017/1066.pdf)
-- [Grassi, Lorenzo, et al. "Poseidon: A new hash function for {Zero-Knowledge} proof systems." 30th USENIX Security Symposium (USENIX Security 21). 2021.](https://www.usenix.org/system/files/sec21-grassi.pdf)
-- [Bouvier, Clémence, et al. "New design techniques for efficient arithmetization-oriented hash functions: Anemoi permutations and Jive compression mode." Annual International Cryptology Conference. Cham: Springer Nature Switzerland, 2023.](https://hal.science/hal-04276646v1/file/2022-840%281%29.pdf)
-- [Szepieniec, Alan, Tomer Ashur, and Siemen Dhooghe. "Rescue-prime: a standard specification (SoK)." Cryptology ePrint Archive (2020).](https://eprint.iacr.org/2020/1143.pdf)
-- [Grassi, Lorenzo, et al. "Monolith: Circuit-friendly hash functions with new nonlinear layers for fast and constant-time implementations." IACR Transactions on Symmetric Cryptology 2024.3 (2024): 44-83.](https://ojs.ub.ruhr-uni-bochum.de/index.php/ToSC/article/download/11810/11315)
-- [Wesolowski, Benjamin. "Efficient verifiable delay functions." Advances in Cryptology–EUROCRYPT 2019: 38th Annual International Conference on the Theory and Applications of Cryptographic Techniques, Darmstadt, Germany, May 19–23, 2019, Proceedings, Part III 38. Springer International Publishing, 2019.](https://eprint.iacr.org/2018/623.pdf)
-- [Pietrzak, Krzysztof. "Simple verifiable delay functions." 10th innovations in theoretical computer science conference (itcs 2019). Schloss Dagstuhl–Leibniz-Zentrum für Informatik, 2019.](https://drops.dagstuhl.de/storage/00lipics/lipics-vol124-itcs2019/LIPIcs.ITCS.2019.60/LIPIcs.ITCS.2019.60.pdf)
-
-
-
-## Copyright
-<!-- The CIP must be explicitly licensed under acceptable copyright terms.  Uncomment the one you wish to use (delete the other one) and ensure it matches the License field in the header: -->
-Todo
-<!-- This CIP is licensed under [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/legalcode). -->
-<!-- This CIP is licensed under [Apache-2.0](http://www.apache.org/licenses/LICENSE-2.0). -->
+TODO : Rework this section, it will be a summary of what we recommend and the gain we have if we put this in place, I would be ok to add results of settlement times of the previous overly optimistic algorithm for settlement times...
+- Explain Recommendation of 12h and gain of 2^ 

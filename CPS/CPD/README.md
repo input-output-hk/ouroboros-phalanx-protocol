@@ -25,7 +25,7 @@ Rather than prescribing specific solutions, this CPD urges the **Cardano communi
 
 ### Summary of Findings
 
-This **CPD** undertakes a thorough examination of the *Randomness Generation Sub-Protocol* within the *Ouroboros framework*, focusing on the *Coin-Flipping Problem* and its implications for the **security** of the *Cardano blockchain*. The principal findings are as follows:
+This **CPD** undertakes a thorough examination of the *Randomness Generation Sub-Protocol* within the *Ouroboros Praos*, focusing on the *Coin-Flipping Problem* and its implications for the **security** of the *Cardano blockchain*. The principal findings are as follows:
 
 - **Randomness Mechanism**: *Ouroboros Praos* utilizes **VRFs** for efficient randomness generation, yet this design exposes vulnerabilities to *grinding attacks*, wherein adversaries manipulate *nonce values* to influence **leader election** processes.
 - **Attack Feasibility**: The likelihood and impact of successful attacks rise significantly when an adversary controls **>20% of total stake** (~**4.36 billion ADA**, March 2025), while lesser stakes render such efforts statistically improbable over extended periods.
@@ -44,11 +44,11 @@ The table below delineates the **$\rho$ values** at which each scenario transiti
 
 | **Feasibility Category**                  | **🔵 Ant Glance**   | **🟠 Ant Patrol**   | **🟢 Owl Stare**   | **🔴 Owl Survey**   |
 |--------------------------------------------|---------------------|---------------------|--------------------|--------------------|
-| **🟢 🌱 Trivial for Any Adversary**        | $0 \to 39.8$        | $0 \to 32.9$        | $0 \to 31.6$       | $0 \to 31.1$       |
-| **🟡 💰 Feasible with Standard Resources** | $39.8 \to 46.4$     | $32.9 \to 39.5$     | $31.6 \to 38.3$    | $31.1 \to 37.8$    |
-| **🟠 🏭 Large-Scale Infrastructure Required** | $46.4 \to 56.4$  | $39.5 \to 49.5$     | $38.2 \to 48.2$    | $37.8 \to 47.7$    |
-| **🔴 🚫 Borderline Infeasible**            | $56.4 \to 66.3$     | $49.5 \to 59.5$     | $48.2 \to 58.2$    | $47.7 \to 57.7$    |
-| **🔴 🚫 Infeasible**                      | $66.3 \to 256$      | $59.5 \to 256$      | $58.2 \to 256$     | $57.7 \to 256$     |
+| **🟢 🌱 Trivial for Any Adversary**        | $0 \to 53.6$        | $0 \to 32.9$        | $0 \to 31.6$       | $0 \to 31.1$       |
+| **🟡 💰 Feasible with Standard Resources** | $53.6 \to 60$     | $32.9 \to 39.5$     | $31.6 \to 38.3$    | $31.1 \to 37.8$    |
+| **🟠 🏭 Large-Scale Infrastructure Required** | $60 \to 69.7$  | $39.5 \to 49.5$     | $38.2 \to 48.2$    | $37.8 \to 47.7$    |
+| **🔴 🚫 Borderline Infeasible**            | $69.7 \to 79.4$     | $49.5 \to 59.5$     | $48.2 \to 58.2$    | $47.7 \to 57.7$    |
+| **🔴 🚫 Infeasible**                      | $79.4 \to 256$      | $59.5 \to 256$      | $58.2 \to 256$     | $57.7 \to 256$     |
 
 
 ✏️ **Note**: For a detailed explanation of these scenarios and their feasibility thresholds, refer to **[Section 3.5 - Scenarios](https://github.com/cardano-foundation/CIPs/pull/1009#35-scenarios)** within this CPD.
@@ -1326,10 +1326,10 @@ Following the computational model from [Section 3.4.2 - Estimated Formula Using 
 
 | **Scenario**    | **$T_{\text{eval}}$ (Complexity)** | **$w_T$ (Scope)** | **Description**                                                                 |
 |-----------------|--------------------------------------|---------------------|---------------------------------------------------------------------------------|
-| **Ant Glance**  | 0 (Low)                              | 1h (3600 s)         | An ant quickly glancing at a small spot, representing simple evaluation (low $T_{\text{eval}}$) with basic effort and a narrow observation scope (small $w_T$). |
-| **Ant Patrol**  | 0 (Low)                              | 5d (432,000 s)      | An ant patrolling a wide area over time with simple instincts, representing simple evaluation (low $T_{\text{eval}} $) with basic effort and a broad observation scope (large $w_T$). |
-| **Owl Stare**   | 1 (High)                             | 1h (3600 s)         | An owl staring intently at a small area with keen focus, representing complex evaluation (high $T_{\text{eval}} $) with advanced effort and a narrow observation scope (small $w_T$). |
-| **Owl Survey**  | 1 (High)                             | 5d (432,000 s)      | An owl surveying a wide range with strategic awareness, representing complex evaluation (high $T_{\text{eval}} $) with advanced effort and a broad observation scope (large $w_T$). |
+| **Ant Glance**  | 0 (Low)                              | 0s          | An ant quickly glancing at a small spot, representing simple evaluation (low $T_{\text{eval}}$) with basic effort and a narrow observation scope (minimal $w_T$). |
+| **Ant Patrol**  | 0s (Low)                              | 5d (432,000 s)      | An ant patrolling a wide area over time with simple instincts, representing simple evaluation (low $T_{\text{eval}} $) with basic effort and a broad observation scope (large $w_T$). |
+| **Owl Stare**   | 1s (High)                             | 0s         | An owl staring intently at a small area with keen focus, representing complex evaluation (high $T_{\text{eval}} $) with advanced effort and a narrow observation scope (minimal $w_T$). |
+| **Owl Survey**  | 1s (High)                             | 5d (432,000 s)      | An owl surveying a wide range with strategic awareness, representing complex evaluation (high $T_{\text{eval}} $) with advanced effort and a broad observation scope (large $w_T$). |
 
 The $N_{\text{CPU}}$ formulas are derived by substituting the respective $w_T$ and $T_{\text{eval}}$ values from each scenario into the base expression : 
 ```math 
@@ -1338,9 +1338,9 @@ N_{\text{CPU}}  \geq  \left \lceil 5 \cdot 10^{-10} \cdot 2^{\rho-2} + 5 \cdot 1
 
 | **Scenario**    | **$N_{\text{CPU}}$ Formula**                                                                                     |
 |-----------------|-----------------------------------------------------------------------------------------------------------------|
-| **Ant Glance**  | $5 \cdot 10^{-10} \cdot 2^{\rho-2} + 1.8  \cdot 10^{-4} \cdot \frac{2^{\rho-1}}{\rho}$ |
+| **Ant Glance**  | $5 \cdot 10^{-10} \cdot 2^{\rho-2}$ |
 | **Ant Patrol**  | $5 \cdot 10^{-10} \cdot 2^{\rho-2} + 2.16 \cdot 10^{-2} \cdot \frac{2^{\rho-1}}{\rho}$ |
-| **Owl Stare**   | $5 \cdot 10^{-10} \cdot 2^{\rho-2} + 5.02 \cdot 10^{-2} \cdot \frac{2^{\rho-1}}{\rho}$ |
+| **Owl Stare**   | $5 \cdot 10^{-10} \cdot 2^{\rho-2} + 5 \cdot 10^{-2} \cdot \frac{2^{\rho-1}}{\rho}$ |
 | **Owl Survey**  | $5 \cdot 10^{-10} \cdot 2^{\rho-2} + 7.16 \cdot 10^{-2} \cdot \frac{2^{\rho-1}}{\rho}$ |
 
 
@@ -1350,16 +1350,18 @@ N_{\text{CPU}}  \geq  \left \lceil 5 \cdot 10^{-10} \cdot 2^{\rho-2} + 5 \cdot 1
 
 ✏️ **Note**: The code to generate this graph is available at ➡️ [this link](./graph/scenario_cpu_graph.py).
 
-The maximal delta $\Delta \log_{10}(N_{\text{CPU}})$ (Owl Survey minus Ant Glance) is $\sim 2.6$, matching the graph’s constant gap. This suggests $T_{\text{eval}}$ and $w_T$ drive a pre-exponential frame of $10^{2.6}$ CPUs, scaled exponentially by $2^{\rho}$. The yellow line (Ant Patrol) lies between the blue (Ant Glance) and green (Owl Stare) lines, with a delta of $\sim 2.08$ from Ant Glance, indicating it requires about 120 times more CPUs due to its larger $w_T = 432,000$ s compared to Ant Glance’s $w_T = 3600$ s, while both share $T_{\text{eval}} = 0$. 
 
-Additionally, the green line (Owl Stare) is very close to the red line (Owl Survey) on the graph, with a small delta of $\sim 0.154$ in $\log_{10}(N_{\text{CPU}})$, reflecting their similar computational demands despite Owl Stare having a smaller $w_T = 3600$ s compared to Owl Survey’s $w_T = 432,000$ s. Overall, both the green (Owl Stare) and yellow (Ant Patrol) lines are really close to the red (Owl Survey) line on the graph.
+The maximal delta $\Delta \log_{10}(N_{\text{CPU}})$ (**Owl Survey** minus **Ant Glance**) is now approximately $6.8$, reflecting a dramatic difference in computational requirements between the simplest and most complex scenarios. This illustrates that $T_{\text{eval}}$ and $w_T$ together form a pre-exponential amplification of up to $10^{6.8}$ CPUs, which is then further scaled by the exponential factor $2^{\rho}$. The yellow line (**Ant Patrol**) sits between the blue (**Ant Glance**) and red (**Owl Survey**) lines, with a delta of approximately $6.2$ from **Ant Glance**, confirming that its high $w_T = 432{,}000$ s causes a **~120x CPU increase** relative to **Ant Glance**, despite both having $T_{\text{eval}} = 0$.
 
+The green line (**Owl Stare**), lies below the red line (Owl Survey), with a delta of approximately 0.16 in $\log_{10}(N_{\text{CPU}})$. 
 
 At $\rho = 50$:
-- **Ant Glance** ($T_{\text{eval}} = 0$, $w_T = 3600$): $N_{\text{CPU}} \approx 2.17 \cdot 10^{9}$, $\log_{10}(N_{\text{CPU}}) \approx 9.336$.
-- **Ant Patrol** ($T_{\text{eval}} = 0$, $w_T = 432,000$): $N_{\text{CPU}} \approx 2.43 \cdot 10^{11}$, $\log_{10}(N_{\text{CPU}}) \approx 11.386$.
-- **Owl Stare** ($T_{\text{eval}} = 1$, $w_T = 3600$): $N_{\text{CPU}} \approx 5.65 \cdot 10^{11}$, $\log_{10}(N_{\text{CPU}}) \approx 11.752$.
-- **Owl Survey** ($T_{\text{eval}} = 1$, $w_T = 432,000$): $N_{\text{CPU}} \approx 8.06 \cdot 10^{11}$, $\log_{10}(N_{\text{CPU}}) \approx 11.906$.
+
+- **Ant Glance** ($T_{\text{eval}} = 0$, $w_T = 0$): $N_{\text{CPU}} \approx 5.36 \cdot 10^{7}$, $\log_{10}(N_{\text{CPU}}) \approx 5.16$
+- **Ant Patrol** ($T_{\text{eval}} = 0$, $w_T = 432{,}000$): $N_{\text{CPU}} \approx 6.32 \cdot 10^{9}$, $\log_{10}(N_{\text{CPU}}) \approx 11.40$
+- **Owl Stare** ($T_{\text{eval}} = 1$, $w_T = 0$): $N_{\text{CPU}} \approx 1.65 \cdot 10^{10}$, $\log_{10}(N_{\text{CPU}}) \approx 11.77$
+- **Owl Survey** ($T_{\text{eval}} = 1$, $w_T = 432{,}000$): $N_{\text{CPU}} \approx 2.37 \cdot 10^{11}$, $\log_{10}(N_{\text{CPU}}) \approx 11.92$
+
 
 ### 3.6 Grinding Power Computational Feasibility
 
@@ -1463,18 +1465,18 @@ This scenario is thus **Borderline Infeasible**, as the cost of $4.43 \, \text{b
 
 ✏️ **Note**: The code to generate this graph is available at ➡️ [this link](./graph/scenario_cost-graph.py).
 
-The cost difference between the most expensive scenario (Owl Survey) and the cheapest (Ant Glance) is significant, with a consistent $\Delta \log_{10}(\text{Cost (USD)}) \sim 2.6$, meaning Owl Survey costs approximately $10^{2.6}$ times more than Ant Glance, reflecting the substantial impact of $T_{\text{eval}}$ and $w_T$ on resource demands. 
+The cost difference between the most expensive scenario (Owl Survey) and the cheapest (Ant Glance) is significant, with a consistent $\Delta \log_{10}(\text{Cost (USD)}) \sim 6.8$, meaning Owl Survey costs approximately $10^{6.8}$ times more than Ant Glance, reflecting the substantial impact of $T_{\text{eval}}$ and $w_T$ on resource demands. 
 
 The table below shows the $\rho$ values where each scenario transitions across feasibility categories:
 
 
 | **Feasibility Category**                  | **🔵 Ant Glance**   | **🟠 Ant Patrol**   | **🟢 Owl Stare**   | **🔴 Owl Survey**   |
 |--------------------------------------------|---------------------|---------------------|--------------------|--------------------|
-| **🟢 🌱 Trivial for Any Adversary**        | $0 \to 39.8$        | $0 \to 32.9$        | $0 \to 31.6$       | $0 \to 31.1$       |
-| **🟡 💰 Feasible with Standard Resources** | $39.8 \to 46.4$     | $32.9 \to 39.5$     | $31.6 \to 38.3$    | $31.1 \to 37.8$    |
-| **🟠 🏭 Large-Scale Infrastructure Required** | $46.4 \to 56.4$  | $39.5 \to 49.5$     | $38.2 \to 48.2$    | $37.8 \to 47.7$    |
-| **🔴 🚫 Borderline Infeasible**            | $56.4 \to 66.3$     | $49.5 \to 59.5$     | $48.2 \to 58.2$    | $47.7 \to 57.7$    |
-| **🔴 🚫 Infeasible**                      | $66.3 \to 256$      | $59.5 \to 256$      | $58.2 \to 256$     | $57.7 \to 256$     |
+| **🟢 🌱 Trivial for Any Adversary**        | $0 \to 53.6$        | $0 \to 32.9$        | $0 \to 31.6$       | $0 \to 31.1$       |
+| **🟡 💰 Feasible with Standard Resources** | $53.6 \to 60$     | $32.9 \to 39.5$     | $31.6 \to 38.3$    | $31.1 \to 37.8$    |
+| **🟠 🏭 Large-Scale Infrastructure Required** | $60 \to 69.7$  | $39.5 \to 49.5$     | $38.2 \to 48.2$    | $37.8 \to 47.7$    |
+| **🔴 🚫 Borderline Infeasible**            | $69.7 \to 79.4$     | $49.5 \to 59.5$     | $48.2 \to 58.2$    | $47.7 \to 57.7$    |
+| **🔴 🚫 Infeasible**                      | $79.4 \to 256$      | $59.5 \to 256$      | $58.2 \to 256$     | $57.7 \to 256$     |
 
 
 ## 4. References 
