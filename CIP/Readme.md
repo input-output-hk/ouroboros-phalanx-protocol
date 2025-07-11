@@ -21,7 +21,7 @@ License: Apache-2.0
   - [1. High-Level Overview ](#1-high-level-overview)
     - [1.1 Changes Relative to Praos](#11-changes-relative-to-praos)
     - [1.2 Inputs & Outputs ](#12-inputs--outputs)
-      - [1.2.1 The η Stream`$](#121-the-etatextstream)
+      - [1.2.1 The η Stream](#121-the-etatextstream)
       - [1.2.2 The pre-ηₑ Synchronizations](#122-the-textpre-eta-synchronizations)
       - [1.2.3 The Φ Stream ](#123-the-phitextstream)
         - [1.2.3.1 The Setup](#1231-the-setup)
@@ -56,14 +56,19 @@ License: Apache-2.0
   - [4. Agda Mechanization](#38-agda-mechanization)
 - [Rationale: How does this CIP achieve its goals?](#rationale-how-does-this-cip-achieve-its-goals)
   - [1. How Phalanx Addresses CPS-21 - Ouroboros Randomness Manipulation ?](#1-how-phalanx-addresses-cps-21---ouroboros-randomness-manipulation)
-      - [1.1 Problem Overview](#11-problem-overview)
-      - [1.2 Phalanx Cost Amplification per Grinding Attempt](#12-phalanx-cost-amplification-per-grinding-attempt)
-      - [1.3 Phalanx Cost Amplification per Grinding Attack](#13-phalanx-cost-amplification-per-grinding-attack)
-        - [1.3.1 Formula](#131-formula)
-        - [1.3.2 Estimated Formula Using Mainnet Cardano Parameters](#132-estimated-formula-using-mainnet-cardano-parameters)
-        - [1.3.3 Impact of T<sub>Φ</sub> on Canonical Scenarios](#133-impact-of-t_phi-on-canonical-scenarios)
-        - [1.3.4 Impact of T<sub>Φ</sub> on Feasibility Categories](#134-impact-of-t_phi-on-feasibility-categories)
-  - [2. How Phalanx Improves CPS-17 - Settlement Speed  ?](#2-how-phalanx-improves-cps-17---settlement-speed--)
+    - [1.1 Problem Overview](#11-problem-overview)
+    - [1.2 Phalanx Cost Amplification per Grinding Attempt](#12-phalanx-cost-amplification-per-grinding-attempt)
+    - [1.3 Phalanx Cost Amplification per Grinding Attack](#13-phalanx-cost-amplification-per-grinding-attack)
+      - [1.3.1 Formula](#131-formula)
+      - [1.3.2 Estimated Formula Using Mainnet Cardano Parameters](#132-estimated-formula-using-mainnet-cardano-parameters)
+      - [1.3.3 Impact of T<sub>Φ</sub> on Canonical Scenarios](#133-impact-of-t_phi-on-canonical-scenarios)
+      - [1.3.4 Impact of T<sub>Φ</sub> on Feasibility Categories](#134-impact-of-t_phi-on-feasibility-categories)
+    - [1.4. Conclusion: How Much Risk is Mitigated?](#14-conclusion-how-much-risk-is-mitigated)
+  - [2. How Phalanx Improves CPS-17 - Settlement Speed ?](#2-how-phalanx-improves-cps-17---settlement-speed)
+    - [2.1 Settlement times without grinding attacks](#21-settlement-times-without-grinding-attacks)
+    - [2.2 How Grinding Power affects Settlement times](#22-how-grinding-power-affects-settlement-times)
+    - [2.3 How Phalanx improves compared to Praos?](#23-how-phalanx-improves-compared-to-praos-) 
+    - [2.4 Advocating for Peras: Phalanx as a Complementary Layer](#24-advocating-for-peras-phalanx-as-a-complementary-layer) 
   - [3. Why VDFs Were Chosen over other Cryptographic Primitives ?](#3-why-vdfs-were-chosen-over-other-cryptographic-primitives-)
     - [3.1 Requirements](#31-requirements)
     - [3.2 Primitive selection](#32-primitive-selection)
@@ -82,6 +87,11 @@ License: Apache-2.0
         - [3.2.4.3 Design](#3243-design)
         - [3.2.4.4 Properties](#3244-properties)
     - [3.3 Primitive recommendation](#33-primitive-recommendation)
+  - [4. Simulation and Prototyping](#4-simulation-and-prototyping)
+    - [4.1 Implementing Wesolowski’s VDF: The CHiA Approach](#41-implementing-wesolowskis-vdf-the-chia-approach)
+    - [4.2 Lightweight Simulation of Phalanx](#42-lightweight-simulation-of-phalanx)
+  - [5. Phalanx Performance Evaluation](#5-phalanx-performance-evaluation)
+  - [6. Recommended Parameters](#6-recommended-parameters)
 - [Path to Active](#path-to-active)
   - [Acceptance Criteria](#acceptance-criteria)
   - [Implementation Plan](#implementation-plan)
@@ -826,7 +836,7 @@ This topic requires further discussion in an upcoming meeting.
 It must also explain how the proposal affects the backward compatibility of existing solutions when applicable. If the proposal responds to a CPS, the 'Rationale' section should explain how it addresses the CPS, and answer any questions that the CPS poses for potential solutions.
 -->
 
-### 1. How Phalanx Addresses CPS-21 - Ouroboros Randomness Manipulation ?
+### 1. How Phalanx Addresses CPS-21 - Ouroboros Randomness Manipulation?
 
 #### 1.1 Problem Overview
 
@@ -1097,7 +1107,7 @@ We can now **simplify and generalize** the grinding cost formulas for different 
 These results confirm that even the **minimal configuration** ($`\text{Phalanx}_{1/100}`$) yields a **$10^{10.6}$-fold increase** in the computational cost of a grinding attack — a formidable barrier for adversaries. More aggressive deployments such as $`\text{Phalanx}_{1/10}`$ and $`\text{Phalanx}_{\text{max}}`$ push this cost further, to $10^{11.6}$ and $10^{12.6}$ times that of Praos, respectively — while still remaining practical for honest participants.
 
 
-##### 1.3.4 Impact of T<sub>Φ</sub> on Feasibility Categories**
+##### 1.3.4 Impact of T<sub>Φ</sub> on Feasibility Categories
 
 This **simplification** allows us to **revisit and improve** the **feasibility category table** presented in the **Problem Overview section** :
 
@@ -1127,13 +1137,138 @@ The **Phalanx tables** include **delta improvements** for each **Praos scenario*
 | **🟢 Owl Stare**  | $`+12.0`$               | $`+15.3`$              | $`+18.7`$                    |
 | **🔴 Owl Survey** | $`+11.5`$               | $`+14.8`$              | $`+18.2`$                    |
 
-<br/>
 
+### 1.4 Conclusion: How Much Risk is Mitigated?
 
+To quantify the **security improvement**, we compute the **percentage reduction in the “Trivial for Any Adversary” interval** compared to Praos. This represents the portion of grinding attacks that are now **pushed into more difficult feasibility regions**.
 
-### 2. How Phalanx Improves CPS-17 - Settlement Speed  ?  
+| **Scenario**      | **Praos Trivial** | $`\Delta \text{Phalanx}_{1/100}`$ | **% Reduction** |$`\Delta \text{Phalanx}_{1/10}`$ | **% Reduction** | $`\Delta \text{Phalanx}_{max}`$ | **% Reduction** |
+| ----------------- | ----------------- | --------------------------- | --------------- | -------------------------- | --------------- | ------------------------- | --------------- |
+| 🔵 **Ant Glance** | 53.6              | 19.6                        | **−63.4%**      | 16.3                       | **−69.6%**      | 13.0                      | **−75.7%**      |
+| 🟠 **Ant Patrol** | 32.9              | 19.6                        | **−40.4%**      | 16.3                       | **−50.5%**      | 13.0                      | **−60.5%**      |
+| 🟢 **Owl Stare**  | 31.6              | 19.6                        | **−38.0%**      | 16.3                       | **−48.4%**      | 13.0                      | **−58.9%**      |
+| 🔴 **Owl Survey** | 31.1              | 19.6                        | **−37.0%**      | 16.3                       | **−47.6%**      | 13.0                      | **−58.2%**      |
 
-TODO 
+These results show that **Phalanx makes low-effort grinding substantially harder**, reducing adversarial opportunity for trivial manipulation by up to **76%** in the most favorable configuration, and by **at least 37%** across all attack types and parameterizations.
+
+This concludes our **high-level assessment of feasibility mitigation** in security terms. In the next section, **“2. How Phalanx Improves CPS-17 – Settlement Speed?”**, we will examine how this risk reduction translates into a much more **tangible and practical benefit**: **faster and more reliable settlement times in Ouroboros**.
+
+### 2. How Phalanx Improves CPS-17 - Settlement Speed?  
+
+Let us recall that, like **Bitcoin**, **Cardano** relies on **probabilistic** and **unbiased randomness** for **leader election**. As a result, both systems inherently provide **statistical consensus guarantees**. For **Stake Pool Operators (SPOs)**, being elected as a **slot leader** grants some **control** over the protocol. This control increases with **stake**—more skin in the game means more chances to be selected. However, due to the **randomized** nature of the leader election, SPOs cannot predict or influence exactly *when* they will be selected.
+
+This makes **undesirable events**—such as **regional concentrations** of slot leadership deviating from the expected distribution, or **control over multiple consecutive blocks**—**statistically quantifiable** and, in the absence of **grinding attacks**, **extremely unlikely**. These include risks like **rollbacks**, **$k$-common prefix violations**, or **private chain attacks**. This is precisely the **security model** Ouroboros **Praos** was designed around—and so far, it has held up well.
+
+However, if **adversaries** manage to control more than **20% of the stake**, they gain **significant** and *exponentially growing* **grinding power**. This power allows them to **bend** the **statistical distribution** of events in their favor. For example, achieving a **grinding depth** of **79.4** means they can select from among **$2^{79.4}$ (~ $10^{24}$)** possible distributions to **optimize** the **timing** and **nature** of their attacks. At that scale, they can deliberately **amplify** the probability of "**bad events**" and execute a variety of **targeted attacks** against the protocol.
+
+In this section, we narrow our focus to a specific class of such bad events: those that **bias or delay the confirmation time of transactions on Cardano**. We’ll show how this issue is **directly tied to adversarial grinding power**, and how reducing that power leads to **faster and more reliable settlement guarantees**, thereby directly addressing  [CPS-0017 / Settlement Speed](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0017).
+
+#### 2.1 Settlement times without grinding attacks
+
+In longest-chain consensus protocols like Ouroboros Praos, settlement time refers to the duration required for a transaction to be considered irreversibly included in the blockchain with high probability. Without grinding attacks, this is primarily determined by the risk of chain reorganizations (e.g., forks or common prefix violations), where an adversary might create a competing chain that overtakes the honest one. The goal is to compute the minimum number of confirmations (blocks appended after the transaction's block) needed to achieve a target security level, such as a failure probability below $2^{-30}$ or $2^{-60}$.
+
+The methodology for computing settlement bounds, as detailed in the paper ["Practical Settlement Bounds for Longest-Chain Consensus" (Gaži et al., 2022)](https://eprint.iacr.org/2022/1571.pdf), uses a phase-based analytical model that divides time into intervals separated by the maximum network delay $\Delta$ (e.g., 2-5 seconds for Cardano). It tracks metrics like "margin" (for PoW) or "reach" and "margin" (for PoS) to bound the probability of an adversary overtaking the honest chain. 
+
+To obtain metrics, you can run the software from [https://github.com/renling/LCanalysis/](https://github.com/renling/LCanalysis/), which implements these evaluations in MATLAB. Clone the repo, open `PoSRandomWalk.m` (for PoS like Cardano), set parameters (e.g., honest ratio $\beta = 0.7$ (30% of stake adversary), network delay $\Delta = 5s$), and run to output failure probabilities vs. confirmations. Below is a representative graph: 
+
+![alt text](./image/settlement-times-30-2s.png)
+
+✏️ **Note**: The Python script used to generate this graph is available here ➡️ [**settlement-time-without-grinding.py**](./graph/settlement-time-without-grinding.py).
+
+A **60-bit confidence level** (failure probability ≤ **$2^{-60}$**) is a common threshold where events are considered negligible in practice. In the graph above, for example, this corresponds to a confirmation interval of **[438, 527]** blocks. Beyond this, the choice of confidence level and thus the number of confirmations required for transaction settlement, becomes **application-specific**, balancing security against efficiency.
+
+#### 2.2 How Grinding Power Affects Settlement Times
+
+What does it mean for settlement times when, in a scenario like the **Owl Survey Glance**, the adversary can observe a large portion of the candidate randomness distribution and perform an attack with a grinding power of $2^{57.7}$?
+
+A grinding power of $2^{57.7}$ / a grinding depth of **57.7 bits**, implies that:
+
+- The adversary can simulate approximately $2^{57.7}$ distinct randomness outcomes, derive the associated leader schedules for the next epoch, and select the most favorable one.
+- This drastically increases the likelihood of **bad events** (e.g., settlement failures) compared to a protocol with unbiased randomness.
+- More precisely, if a bad event occurs with probability $\varepsilon$ under honest randomness, then an adversary capable of evaluating $R$ different randomness candidates can amplify this probability up to $R \cdot \varepsilon$ (by the union bound).
+
+In practical terms, such grinding power **extends the number of confirmations required** to reach a desired security level. The stronger the adversary’s grinding capability, the longer it takes for a transaction to be considered truly settled.
+
+**For example**, assume that on mainnet, a rollback probability of $2^{-60}$ is achieved for a block at index $x$ after $y$ subsequent blocks are appended. If an adversary possesses grinding power of $2^{57.7}$, the effective risk increases to:
+
+```math
+2^{-60} \cdot 2^{57.7} = 2^{-2.3}
+```
+
+To preserve the original $2^{-60}$ confidence level *under adversarial grinding*, the protocol must instead target a baseline security of:
+
+```math
+2^{-(60 + 57.7)} = 2^{-117.7}
+```
+
+This implies that **many more blocks must be appended** before a block is considered settled, thereby **significantly increasing settlement times**.
+
+In the example above, we used the **Owl Survey Glance** scenario, which is the most computationally expensive in terms of grinding *cost*. However, when establishing a protocol-wide security threshold, it is more prudent to anchor on the **worst-case grinding *power*** — that is, the scenario with the **highest grinding depth**. In our analysis, this is the **Ant Glance** scenario, with a grinding depth of **79.4 bits**. To maintain the original $2^{-60}$ confidence level under such an adversary, the protocol must instead target:
+
+```math
+2^{-(60 + 79.4)} = 2^{-139.4}
+```
+
+This defines a **stricter baseline** and ensures security even against the most favorable conditions for the adversary. In our previous scenario (30% adversary and 5-second network delay), the effect can be visualized as follows:
+
+![alt text](./image/settlement-times-30-2s-praos.png)
+
+✏️ **Note**: The Python script used to generate this graph is available here ➡️ [**settlement-time-praos.py**](./graph/settlement-time-praos.py).
+
+Where the confirmation interval was **\[438, 527]** blocks in the absence of a grinding attack, it increases to **\[864, 1037]** blocks under grinding power $2^{57.7}$ in the **Owl Survey** scenario, and further to **\[1024, 1229]** blocks under the same grinding power in the **Ant Glance** scenario.
+
+Assuming a block is produced every 20 seconds, this extends the required confirmation window from approximately **\[2.43, 2.93] hours** to **\[4.80, 5.76] hours** in the Owl Survey case, and up to **\[5.69, 6.83] hours** in the Ant Glance case — more than doubling the settlement time.
+
+As discussed in [**Section 1: How Phalanx Addresses CPS-21 – Ouroboros Randomness Manipulation**](#1-how-phalanx-addresses-cps-21--ouroboros-randomness-manipulation), this is a key challenge in Praos: the presence of multiple attack scenarios with varying grinding power makes it difficult to define a single, consistent security threshold for settlement — a complexity that **Phalanx simplifies** by unifying the treatment of adversarial power across scenarios.
+ 
+#### 2.3 How Phalanx improves compared to Praos ? 
+
+In the conclusion of [**Section 1.4: How Much Risk Is Mitigated?**](#14-conclusion-how-much-risk-is-mitigated), we quantified Phalanx's improvement over Praos in terms of **grinding depth reduction** as follows:
+
+| **Scenario**      | $`\Delta \text{Phalanx}_{1/100}`$ | $`\Delta \text{Phalanx}_{1/10}`$ | $`\Delta \text{Phalanx}_{\text{max}}`$ |
+| ----------------- | ----------------------------------- | ---------------------------------- | ---------------------------------------- |
+| **🔵 Ant Glance** | $`+34.0`$                         | $`+36.5`$                        | $`+39.9`$                              |
+
+In our previous examples, we are given that under **Praos**, the Ant Glance scenario results in a required security level of $`2^{-139.4}`$, which translate into the following threshold for the Phalanx configurations : 
+
+| **Configuration**        | **Computation**       | **Resulting Security Level** |
+| ------------------------ | --------------------- | ---------------------------- |
+| $`\text{Phalanx}_{1/100}`$      | $2^{-139.4 + 34.0}$ | $2^{-105.4}$    |
+| $`\text{Phalanx}_{1/10}`$       | $2^{-139.4 + 36.5}$ | $2^{-102.9}$    |
+| $`\text{Phalanx}_{\text{max}}`$ | $2^{-139.4 + 39.9}$ | $2^{-99.5}$     |
+
+This can be visualized as follows:
+
+![alt text](./image/settlement-times-30-2s-phalanx.png)
+
+✏️ **Note**: The Python script used to generate this graph is available here ➡️ [**settlement-time-phalanx.py**](./graph/settlement-time-phalanx.py).
+
+In the absence of a grinding attack, the confirmation interval was **\[438, 527]** blocks. Under the actual version of **Praos**, accounting for a grinding depth of 79.4 bits in the **Ant Glance** scenario, this interval increases to **\[1024, 1229]** blocks.
+
+However, with Phalanx applied, the required confirmation windows are **significantly reduced**:
+
+| **Configuration**                 | **Confirmation Interval** | **Duration @ 20s/block** |
+| --------------------------------- | ------------------------- | ------------------------ |
+| $`\text{Phalanx}_{1/100}`$      | \[773, 928]               | \~4.29 h → \~5.16 h      |
+| $`\text{Phalanx}_{1/10}`$       | \[754, 906]               | \~4.19 h → \~5.03 h      |
+| $`\text{Phalanx}_{\text{max}}`$ | \[729, 876]               | \~4.05 h → \~4.87 h      |
+
+Compared to Praos' ~5.69 h → ~6.83 h (from blocks 1024 to 1229), these configurations reduce settlement time by approximately 20–30% while maintaining equivalent security.
+
+#### 2.4 Advocating for Peras: Phalanx as a Complementary Layer
+
+**[Ouroboros Peras](https://peras.cardano-scaling.org/)** is a recent protocol extension designed to accelerate settlement in Cardano by introducing **stake-weighted voting and certified blocks**. Built as a lightweight augmentation of Praos, it enables rapid finality—often within **1 to 2 minutes**—by allowing randomly selected committees to vote on blocks and issue certificates that elevate their importance in the chain selection rule ([Peras Intro](https://peras.cardano-scaling.org/docs/intro/)). Critically, Peras maintains full compatibility with Praos' security guarantees, reverting gracefully when quorum is not reached ([Peras FAQ](https://peras.cardano-scaling.org/docs/faq/)). Rather than replacing Praos, it overlays an additional mechanism for **fast, probabilistically final settlement**, offering a much-needed middle ground between immediate confirmation and the traditional **2160-block** security window.
+
+While Peras dramatically reduces settlement times compared to both Praos and Phalanx, it does so through a **certification mechanism** that depends on the timely participation of randomly selected committees. In practice, this mechanism offers fast settlement when quorum is achieved—but when participation conditions are not met (e.g., insufficient online stake or network asynchrony), **Peras gracefully falls back to standard Praos behavior** ([Peras Technical Report](https://peras.cardano-scaling.org/docs/reports/tech-report-2/)). This fallback mode retains the full settlement guarantees we've detailed in this CIP and in the accompanying [CPS-18: Ouroboros Randomness Manipulation](https://github.com/cardano-foundation/CIPs/pull/0000) and [CIP-Phalanx](https://github.com/input-output-hk/ouroboros-anti-grinding-design). In such scenarios, settlement times revert to those defined under grinding-aware Praos parameters—precisely where Phalanx becomes relevant as a **complementary defense layer**, ensuring that even in fallback conditions, the chain benefits from **stronger security guarantees** and **significantly improved settlement times** compared to unmodified Praos.
+
+Finally, a point of critical importance that we emphasized in the [CPS-21: Ouroboros Randomness Generation Sub-Protocol – The Coin-Flipping Problem](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021): **today, the protocol remains effectively blind to grinding attacks**. Within the *window of opportunity* defined in the CPD, detecting randomness manipulation is inherently difficult—both in terms of real-time monitoring and retrospective analysis. However, [Ouroboros Peras](https://peras.cardano-scaling.org/docs/intro/) introduces a meaningful defense: by reducing settlement times to **1–2 minutes** ([Peras FAQ](https://peras.cardano-scaling.org/docs/faq/)), it can **close the grinding window entirely**, provided it does **not fall back to Praos mode** during this period. If such a fallback *does* occur within the grinding window, it becomes a strong signal that a grinding attempt may be underway. In this case, examining which SPOs abstained from voting during the certification phase could provide actionable insights to **identify adversarial behavior**. In this light, Peras is not only a mechanism for faster settlement—it also contributes to **resilience against randomness manipulation**. 
+
+We therefore **strongly recommend deploying both mechanisms in tandem**:
+
+* [**Peras**](https://peras.cardano-scaling.org/) for rapid probabilistic finality and real-time detection,
+* [**Phalanx**](./Readme.md) as a fallback that offers **quantifiable grinding resistance** even in worst-case epochs.
+
+**Note:** If Peras committee selection ultimately relies on randomness from the standard beacon in its production version, it too inherits vulnerability to grinding — especially when a **Praos epoch precedes a Peras epoch**. In such cases, **Phalanx mitigates the grinding risk at the source**, reducing the manipulation surface of the beacon and thereby **indirectly strengthening Peras**. This highlights the **complementarity** of the two systems: **each reinforces the other**.
 
 ### 3. Why VDFs Were Chosen over other Cryptographic Primitives ? 
 
@@ -1317,17 +1452,26 @@ Using OWFs and SNARKs in the context of Phalanx is straightforward. To each iter
 The combination of OWFs and SNARKs, however elegant it may be for its modularity, is not practical for the proof generation overhead being prohibitive. 
 Trapdoor based solutions seem to be the best candidates for anti-grinding solutions. Out of the ones considered, VDFs seem the most practical primitive thanks to the possibility of reusing the group, and class groups offer the simplest deployment. The main caveat of such a solution is in its relative novelty, regular assessment would need to be done to ensure correct and up to date parametrization.
 
-
+### 4. Simulation and Prototyping
+TODO
+#### 4.1 Implementing Wesolowski’s VDF: The CHiA Approach  
+TODO
+#### 4.2 Lightweight Simulation of Phalanx
+TODO
+### 5. Phalanx Performance Evaluation
+TODO
+### 6. Recommended Parameters
+TODO
 ## Path to Active
 
 ### Acceptance Criteria
 <!-- Describes what are the acceptance criteria whereby a proposal becomes 'Active' -->
+TODO
 
-Todo
 
 ### Implementation Plan
 <!-- A plan to meet those criteria or `N/A` if an implementation plan is not applicable. -->
-Todo
+TODO
 <!-- OPTIONAL SECTIONS: see CIP-0001 > Document > Structure table -->
 
 
