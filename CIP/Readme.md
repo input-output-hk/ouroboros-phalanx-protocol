@@ -1402,8 +1402,8 @@ Figure 1, taken from Reinforced concrete paper [27]. Performance of various hash
 </center>
 
 
-<center>
-| $\text{log}_2(\text{gates})$ |   $\#\text{gates}$    | $\text{proving time - KZG} (ms)$ | $\text{proving time - IPA} (ms)$ |
+
+| $\text{log}_2(\text{gates})$ |   #gates   | Proving time - KZG (ms) | Proving time - IPA (ms) |
 | :--------------------------: | :-------------------: | :------------------------------: |:-------------------------------: |
 | $8$                          |  256     	           |  43	                            |  77	                             |
 | $9$                          |  512	                 |  58	                            |  105	                           |
@@ -1419,6 +1419,7 @@ Figure 1, taken from Reinforced concrete paper [27]. Performance of various hash
 | $19$                         |  524,288 	           |  6,231	                          |  18,496	                         |
 | $20$                         |  1,048,576 	         |  12,743	                        |  37,287	                         |
 
+<center>
 Table 2. Halo2 benchmarks, using KZG [28](https://www.cypherpunks.ca/~iang/pubs/PolyCommit-AsiaCrypt.pdf) and IPA [29](https://eprint.iacr.org/2017/1066.pdf) commitment schemes on Intel(R) Core(TM) i9-14900HX (2.2 GHz base frequency, 24 cores, 32 threads).
 </center>
 
@@ -1466,13 +1467,22 @@ TODO
 
 ### Acceptance Criteria
 <!-- Describes what are the acceptance criteria whereby a proposal becomes 'Active' -->
-TODO
 
+- [ ] The revised `cardano-node` implementations pass the node-level conformance test suites.
+- [ ] Audit.
+- [ ] Successful operation in testnet environments.
+- [ ] Community agreement on the settings for the Phalanx protocol parameters.
+- [ ] The upcoming CIP that establishes a *Consensus* category for CIPs may define additional acceptance criteria.
 
 ### Implementation Plan
 <!-- A plan to meet those criteria or `N/A` if an implementation plan is not applicable. -->
-TODO
-<!-- OPTIONAL SECTIONS: see CIP-0001 > Document > Structure table -->
+- [ ] Triage by intersect Core Infrastructure and Consensus functions.
+- [ ] Coordinate with related activities on other protocol enhancements.
+    - Compatibility between Peras, Leios, and Genesis.
+- [ ] Integrate a Wesolowski’s VDF lib to [cardano-crypto-class](https://github.com/IntersectMBO/cardano-base/blob/master/cardano-crypto-class/cardano-crypto-class.cabal)  
+- [ ] Detailed node-level (as opposed to this protocol-level) specification & design.
+- [ ] Node-level (as opposed to this protocol-level) implementation.
+- [ ] Node-level conformance test suite.
 
 
 ## References
