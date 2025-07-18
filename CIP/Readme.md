@@ -32,7 +32,8 @@ License: Apache-2.0
     - [2.2. Verifiable Delayed Functions (VDF)](#22-verifiable-delayed-functions-vdf)
     - [2.3 Wesolowski's VDF](#23-wesolowskis-vdf)
       - [2.3.1 VDF Primitives](#231-vdf-primitives)
-      - [2.3.1 VDF Aggregation Primitives](#231-vdf-aggregation-primitives)
+      - [2.3.2 VDF Aggregation Primitives](#232-vdf-aggregation-primitives)
+      - [2.3.3 CDDL schema for the ledger](#232-cddl-schema-for-the-ledger)
   - [3. $`\phi^{\text{stream}}`$ Specification](#3-phitextstream-specification)
     - [3.1 Distribution of Φ Iterations](#31-distribution-of-φ-iterations)
     - [3.2 The State Machine](#32-the-state-machine)
@@ -321,7 +322,7 @@ Let $`\text{VDF} = (\text{Setup},\ \text{Prove},\ \text{Verify})`$ be a Verifiab
   Returns 1 if $`\pi`$ successfully attests that $`y = x^{2^I}`$, with overwhelming probability. Returns 0 otherwise.
 
 
-##### 2.3.1. VDF Aggregation Primitives
+##### 2.3.2. VDF Aggregation Primitives
 
 Let $`\text{VDF.Aggregation} = (\text{Prove},\ \text{Verify},\ \text{ComputeChallenge},\ \text{VerifyChallenge})`$ denote an **Aggregated Verifiable Delay Function** constructed over class groups.
 
@@ -356,6 +357,32 @@ In the sections that follow, we present a mechanism for producing a **proof of a
 | **Input Parameters**       | <ul><li>$`\lambda \in \mathbb{N}`$ — Security parameter.</li><li>$`(\mathbb{G},\ \Delta,\ \cdot)`$ — Group and associated data.</li><li>$`\text{Hash}_\mathbb{G}`$ — Hash function into the group.</li><li>$`\text{Hash}^{(n)}_\mathbb{N}`$ — Hash to $`\mathbb{N}`$.</li><li>$`x \in \mathbb{G}`$ — Aggregated challenge to verify.</li><li>$`y \in \mathbb{G}`$ — Claimed output of the VDF.</li><li>$`[(x_i, y_i)]^n`$ — Sequence of challenge-output pairs.</li><li>$`I \in \mathbb{N}`$ — Number of VDF iterations.</li><li>$`\pi`$ — Claimed proof of the computation.</li></ul> |
 | **Steps** | <ol><li>Recompute and verify the challenge:<br>$`\texttt{VerifyChallenge}(\lambda,\ \text{Hash}_\mathbb{G},\ \text{Hash}^{(n)}_\mathbb{N},\ x,\  [(x_i, y_i)]^n))`$</li><li>Run the VDF verifier:<br>$`\text{VDF.Verify}((\mathbb{G},\ \Delta,\ \cdot),\ x,\ y,\ I,\ \pi)`$</li></ol>  |
 | **Returned Value**         | $`\texttt{true}`$ if both challenge and VDF proof are valid; otherwise $`\texttt{false}`$. |
+
+
+#### 2.3.3 CDDL schema for the ledger
+Phalanx requires a single addition , `phalanx_challenge`, on the ledger.
+
+```diff
+ block =
+   [ header
+   , transaction_bodies         : [* transaction_body]
+   , transaction_witness_sets   : [* transaction_witness_set]
+   , auxiliary_data_set         : {* transaction_index => auxiliary_data }
+   , invalid_transactions       : [* transaction_index ]
++  , ? phalanx_challenge        : phalanx_struct
+   ]
+```
+
+The structure is defined as follows,
+
+```cddl
+ block =
+   [ phalanx_output           : form_size
+   , phalanx_proof            : form_size
+   ]
+```
+
+Where `form_size = [bytes, bytes .size 388]`
 
 ### 3. $`\phi^{\text{stream}}`$ Specification
 
