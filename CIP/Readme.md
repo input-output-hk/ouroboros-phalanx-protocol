@@ -144,7 +144,7 @@ The core principle of the proposed protocol change is to **substantially escalat
 
 ### 1. High-Level Overview 
 
-#### 1.1 Changes Relative to Praos
+#### 1.1. Changes Relative to Praos
 
 In **Φalanx** , the randomness generation and leader election flows are modified as follows:
 
@@ -155,13 +155,13 @@ In **Φalanx** , the randomness generation and leader election flows are modifie
 3. The **pre-ηₑ candidate**, once finalized (after $`3 \cdot \frac{k}{f}`$), undergoes a **sequence of incremental hashings** using a **new deterministic cryptographic primitive Φ (Phi)**. This sequence spans a full epoch size, specifically during the interval:$`\left[\frac{9k}{f} \cdot \text{epoch}_{e-2},  \frac{9k}{f} \cdot \text{epoch}_{e-1}\right)`$.
 4. The final **ηₑ (eta nonce)**, resulting from the Φ computation, is stabilized and becomes available $`\frac{k}{f}`$ slots before the start of $`\text{epoch}_e`$ like in Praos.
 
-#### 1.2 Inputs & Outputs 
+#### 1.2. Inputs & Outputs 
 
 The Randomness Generation sub-protocol operates with two parallel streams $`\eta^\text{stream}`$ and $`\phi^\text{stream}`$, which synchronize at $`9.\frac{k}{f}`$ at each epoch :  
 
 ![alt text](./image/Phalanx-Streams.png)
 
-##### 1.2.1 **The $`\eta^\text{stream}`$** 
+##### 1.2.1. **The $`\eta^\text{stream}`$** 
 
    - Already present in Praos and retained in Phalanx 
    - Updated with every block produced in the blockchain tree, a $`\eta^\text{stream}`$ captures intermediate values $`\eta^\text{evolving}_t`$ in the block headers, defined as follows:
@@ -190,7 +190,7 @@ false & \text{otherwise.}
 | $a⭒b$    | The concatenation of $a$ and $b$ , followed by a BLAKE2b-256 hash computation.
 
 
-##### 1.2.2 The $`\text{pre-}\eta`$ Synchronizations  
+##### 1.2.2. The $`\text{pre-}\eta`$ Synchronizations  
 
 - To generate $`\eta_\text{e}`$ for epoch $`e`$, the stream $`\phi^\text{stream}`$ is reset with the value of $`\eta^\text{stream}`$ at $`t=9.\frac{k}{f}`$ at $epoch_{e-2}$
 - This specific value of $`\eta^\text{stream}`$ is referred to as **$`\text{pre-}\eta_e`$** and defined as :
@@ -198,9 +198,9 @@ false & \text{otherwise.}
 \text{pre-}\eta_e= \eta^{evolving}_{9.\frac{k}{f}(epoch_{e-2})}
 ```
 
-##### 1.2.3 The $`\phi^\text{stream}`$
+##### 1.2.3. The $`\phi^\text{stream}`$
 
-###### 1.2.3.1 The Setup
+###### 1.2.3.1. The Setup
 
 The stream is bootstrapped by calling the parametrize function of the cryptographic primitive $`\Phi`$ with:
 ```math
@@ -212,7 +212,7 @@ where :
   - Any change to these 2 parameters would require a decision through Cardano governance.
   - $\Phi.\text{Stream.State}$ will contain derived configuration specific to the algorithm and the cryptographic primitive used.
 
-###### 1.2.3.2 The Lifecycle
+###### 1.2.3.2. The Lifecycle
 
 It is reset at every $`\text{pre-}\eta`$ synchronization point every $`10.\frac{k}{f}`$ slots :
 ```math
@@ -252,7 +252,7 @@ At the synchronization point $`\text{pre-}\eta_{e+1}`$, the stream is closed pro
 \phi^{final}_e \leftarrow \Phi.\text{close}( \Phi.\text{StreamState})
 ```
 
-##### 1.2.4 The $`\eta`$ Generations
+##### 1.2.4. The $`\eta`$ Generations
    - This is the final nonce $`\eta_\text{e}`$ used to determine participant eligibility during epoch $`e`$.  
    - It originates from the operation ⭒ with  $`\phi^{\text{stream}}_{t}`$ at $`\text{pre-}\eta_\text{e+1}`$ Synchronization and $`\eta^\text{stream}_t`$ $`\text{when } t = \text{end of epoch}_\text{e-3}`$   
 
@@ -299,9 +299,9 @@ In Pietrzak’s paper, the proof is a tuple of group elements $\pi = \{x^{2^{T /
 We will choose Wesolowski design over Pietrzark because of its space efficiency and possibility to aggregate proofs.
 
 
-#### 2.3 Wesolowski's VDF 
+#### 2.3. Wesolowski's VDF 
 
-##### 2.3.1 VDF Primitives
+##### 2.3.1. VDF Primitives
 
 Let $`\text{VDF} = (\text{Setup},\ \text{Prove},\ \text{Verify})`$ be a Verifiable Delay Function based on class groups, defined as follows:
 
@@ -321,7 +321,7 @@ Let $`\text{VDF} = (\text{Setup},\ \text{Prove},\ \text{Verify})`$ be a Verifiab
   Returns 1 if $`\pi`$ successfully attests that $`y = x^{2^I}`$, with overwhelming probability. Returns 0 otherwise.
 
 
-##### 2.3.1 VDF Aggregation Primitives
+##### 2.3.1. VDF Aggregation Primitives
 
 Let $`\text{VDF.Aggregation} = (\text{Prove},\ \text{Verify},\ \text{ComputeChallenge},\ \text{VerifyChallenge})`$ denote an **Aggregated Verifiable Delay Function** constructed over class groups.
 
@@ -361,7 +361,7 @@ In the sections that follow, we present a mechanism for producing a **proof of a
 
 We previously outlined the purpose of the Phalanx sub-protocol and introduced the cryptographic primitive underpinning its security guarantees. In this section, we provide a precise technical specification of the protocol, focusing on how the $`\Phi`$ iterations are distributed and how Wesolowski’s Verifiable Delay Function (VDF) is integrated into the process.
 
-#### 3.1 Distribution of $\Phi$ Iterations
+#### 3.1. Distribution of $\Phi$ Iterations
 
 As previously mentioned, $`\phi^{\text{stream}}`$ is divided into epoch-sized *lifecycle segments*. They begin with an **init** function, end with a **close** function, and then followed by a new segment begins.
 
@@ -502,9 +502,9 @@ The diagram below illustrates how the lifecycle segment is structured:
 
 ![alt text](./image/structured-intervals.png)
 
-### 3.2 The State Machine
+### 3.2. The State Machine
 
-#### 3.2.1 Diagram Overview
+#### 3.2.1. Diagram Overview
 
 The figure below presents the **state transition diagram** for the Phalanx computation stream. Each node represents a distinct state in the lifecycle of the stream, and the arrows indicate transitions triggered by `Tick` events. These transitions are guarded by boolean predicates evaluated at each slot (e.g., `isWithinComputationPhase`, `isWithinCurrentInterval`).
 
@@ -513,7 +513,7 @@ The figure below presents the **state transition diagram** for the Phalanx compu
 In the following sections, we provide a detailed breakdown of each phase of the state machine, specifying its purpose, entry conditions, timing constraints, and transitions.
 
 
-#### 3.2.2 🟧 *Parametrization Phase*
+#### 3.2.2. 🟧 *Parametrization Phase*
 
 
 At the setup of $`\phi^{stream}`$, the total number of VDF iterations is derived from the time-bound parameter $`T_\Phi`$, using a reference hardware profile that reflects the minimal computational capacity expected of SPOs. While this derivation may not be fully automatable in practice, we include it here to clarify how time constraints are mapped to iteration counts during configuration.
@@ -531,11 +531,11 @@ Importantly, this **parametrization phase** occurs only once, either during the 
 | **Derivation Logic**  | <ul><li>$`\#\text{Iterations}_\Phi \leftarrow \text{VDF}.\texttt{IterationsFromDuration}(T_\Phi)`$</li><li>$`\#\text{Iterations}_\phi \leftarrow \left\lfloor \frac{\#\text{Iterations}_\Phi}{82} \right\rfloor`$</li></ul>                                  |
 | **Returned State** | $`\texttt{Parametrized} \left\{ \text{securityParameter} \mapsto \lambda,\quad I \mapsto \#\text{Iterations}_\phi \right\}`$|
 
-#### 3.2.3  🟩 *Initialization Grace Phase*
+#### 3.2.3.  🟩 *Initialization Grace Phase*
 
 Initialization occurs at every $`\text{pre-}\eta`$ synchronization point, followed by an *Initialization Grace* period during which the protocol waits long enough for the first iteration to be computed and its proof to be included within the first computation interval. This process recurs every $`10 \cdot \frac{k}{f}`$ slots.
 
-##### 3.2.3.1 *Initialize Command*
+##### 3.2.3.1. *Initialize Command*
 
 | `Initialized` | $`\Phi.\text{Stream.State} \in \texttt{Initialized} : \left\{ \text{parametrized} \in \texttt{Parametrized},\ \text{group} \in \mathbb{G},\  \text{discriminant} \in \mathbb{Z},\ \text{operation} : \mathbb{G} \times \mathbb{G} \to \mathbb{G} \right\}`$|
 | ----------- | -------------- |
@@ -548,7 +548,7 @@ Initialization occurs at every $`\text{pre-}\eta`$ synchronization point, follow
 | **Derivation Logic** | <ul><li>$`\Delta_{\text{challenge}} \leftarrow \text{Hash}(\text{bin}(\text{epochId}_e) \ \|\ \text{pre-}\eta_e)`$</li><li>$`(\mathbb{G},\ \Delta,\ \cdot) \leftarrow \text{VDF}.\text{Setup}(\lambda,\ \Delta_{\text{challenge}})`$</li></ul> |
 | **Returned State**   | $`\texttt{Initialized} \left\{ \text{parametrized} \mapsto (\lambda,\ I),\ \text{group} \mapsto \mathbb{G},\ \text{discriminant} \mapsto \Delta,\ \text{operation} \mapsto \cdot , \ \text{epochId}_e \mapsto \text{epochId}_e ,\ \text{pre-}\eta_e  \mapsto \text{pre-}\eta_e  \right\}`$                                        |
 
-##### 3.2.3.2 *Tick Commands* & Grace Period
+##### 3.2.3.2. *Tick Commands* & Grace Period
 
 | `AwaitingComputationPhase` | $`\Phi.\text{Stream.State} \in \texttt{AwaitingComputationPhase} : \left\{ \text{initialized} \in \texttt{Initialized},\ \text{currentSlot} \in\ \mathbb{N} \bmod \left(10 \cdot \frac{k}{f}\right) \right\}`$ |
 |--------------------|-------------|
@@ -570,9 +570,9 @@ Initialization occurs at every $`\text{pre-}\eta`$ synchronization point, follow
 | **Input Parameters** | <ul><li>$`\text{awaitingComputationPhaseState} \in \texttt{AwaitingComputationPhase}`$ — Configuration from the prior Initialized state.</li></ul> |
 | **Returned State**   | $` \begin{cases} \text{When } \texttt{isWithinInitializationGracePhase} :\ \texttt{AwaitingComputationPhase}\ \{ \text{initialized} ,\ \text{currentSlot++} \} \\\\ \text{When } \texttt{isWithinComputationPhase} :\ \texttt{AwaitingAttestedOutput}\ \{ \text{initialized} ,\ \text{currentSlot++} \} \end{cases}`$ |
 
-#### 3.2.4  🟥  *Computation Phase*
+#### 3.2.4.  🟥  *Computation Phase*
 
-##### 3.2.4.1 VDF integration
+##### 3.2.4.1. VDF integration
 
 We are now entering the **Computation Phase**. We have waited long enough for the first slot leader within the initial interval to have the opportunity to produce a block and submit the corresponding attested output. However, because the slot distribution is privately visible, leaders within the interval cannot determine whether they are the first to produce a block.
 
@@ -596,7 +596,7 @@ Finally, the node includes the attested outputs in the block header:
 
 In rare cases, an interval may produce no block, and consequently, no expected proof for the corresponding iteration. The computation phase simply acknowledges these gaps; they are handled during the subsequent **Catch-up Phase**, which is specifically designed to resolve such missing outputs.
 
-##### 3.2.4.2 The States
+##### 3.2.4.2. The States
 
 During the computation phase, the stream alternates between two closely related states: `AwaitingAttestedOutput` and `AttestedOutputProvided`. These two states are **structurally identical**, meaning they share the same underlying fields. What distinguishes them is their **semantic role** in the protocol’s lifecycle:
 
@@ -642,7 +642,7 @@ This version aligns both the field names and their types in two neat columns. Le
 | $`\text{currentSlot} \in\ \mathbb{N} \bmod \left(10 \cdot \frac{k}{f}\right)`$ | The current slot in the timeline.   |
 | $`\text{attestedOutputs} \in \left[\texttt{Maybe}\ (y, \pi)\right]^{82}`$ | <ul><li>An array of optional attested outputs, one per computation interval.</li><li>Each index corresponds to a specific interval and may contain a proof pair $`(y, \pi)`$.</li><li>If the output hasn't been submitted yet, the entry is `None`.</li><li>For the current interval, the output **has already been provided** in this state.</li></ul> |
 
-##### 3.2.4.3 ProvideAttestedOutput & Tick Commands
+##### 3.2.4.3. ProvideAttestedOutput & Tick Commands
 
 The `provideAttestedOutput` command is used to submit a new attested output $`\phi_i = (y_i, \pi_i)`$ for a specific interval $`i`$, when the protocol is in the `AwaitingAttestedOutput` state. This function verifies the validity of the provided proof and updates the stream state accordingly :
 
@@ -668,7 +668,7 @@ Alternatively, when still waiting for an attestation and no block was produced, 
 
 `isClosable` indicates that all attested outputs have been successfully provided, and only the final interval remains, during which the outputs are aggregated and the seed $`\eta_e`$ is derived and recorded on-chain.
 
-#### 3.2.5  🟦 *Catch-up Phase*
+#### 3.2.5.  🟦 *Catch-up Phase*
 
 This Catch-up Phase closely resembles the preceding Computation Phase, but its purpose is to recover from any blockless intervals that may have occurred — albeit such cases are extremely rare.
 
@@ -678,7 +678,7 @@ The faster these missing outputs are provided, the sooner the state machine can 
 
 This section focuses solely on the Catch-up Phase; the next section will describe the process of stream closure.
 
-##### 3.2.5.1 The States
+##### 3.2.5.1. The States
 
 Structurally, we define two states that are similar in form and semantics to `AwaitingMissingAttestedOutput` and `AttestedMissingOutputProvided`:
 
@@ -710,7 +710,7 @@ This phase focuses on recovering the missing attested outputs—specifically, th
 This ordered set defines the exact sequence in which the missing attestations must be submitted during the Catch-up Phase.
 
 
-##### 3.2.5.2 ProvideMissingAttestedOutput & Tick Commands
+##### 3.2.5.2. ProvideMissingAttestedOutput & Tick Commands
 
 The `provideMissingAttestedOutput` command is used to submit a missing attested output $`\phi_i = (y_i, \pi_i)`$ for a specific interval $`i`$, when the protocol is in the `AwaitingMissingAttestedOutput` state. This function checks the validity of the proof and updates the stream state accordingly:
 
@@ -752,7 +752,7 @@ In these cases, all attested outputs have been provided by the end of the catch-
 This occurs when the lifecycle segment reaches its end (i.e., the full $10 \cdot \frac{k}{f}$ slots), and despite the entire duration of the catch-up mechanism (up to interval 120), either some required attested outputs remain missing, or all outputs have been delivered but the final aggregation has not occurred.
 This scenario represents an extremely rare event—statistically far beyond 128-bit confidence—and reflects a severe disruption in which no blocks have been produced for over 36 hours. These edge cases are represented in the diagram by the transition `Tick / isFallbackClosable`.
 
-#### 3.2.6.1 The States 
+##### 3.2.6.1. The States 
 
 In this phase, we define two states:
 
@@ -781,8 +781,7 @@ In this phase, we define two states:
 \right\}
 ```
 
-
-#### 3.2.6.2 The Successful Scenario: The `Close` Command
+##### 3.2.6.2. The Successful Scenario: The `Close` Command
 
 At this stage, the system is in the `AwaitingGracefulClosure` state. All necessary data has been collected, and a block can now be produced within the remaining time before the end of the stream lifecycle (as previously discussed, this could occur at the 84th or 120th interval, depending on how smoothly the lifecycle progressed).
 
@@ -800,8 +799,7 @@ These values complete the stream and trigger the transition to the `Closed` stat
 | **Epoch Randomness** | $`\eta_e = \text{Hash}^{(256)}(y)`$ — Apply the SHA-256 hash function 256 times to \$`y`\$.  |
 | **Returned State**   | $`\texttt{Closed} \{ \text{initialized},\ \text{attestedOutputs},\ (x, y, \pi),\ \eta_e \}`$ — Final state embedding the verified computation and the derived epoch randomness.  |
 
-
-#### 3.2.6.3 `tick` Command
+##### 3.2.6.3. `tick` Command
 
 The `tick` command handles time progression within the `AwaitingGracefulClosure` state:
 
@@ -816,8 +814,7 @@ The `tick` command handles time progression within the `AwaitingGracefulClosure`
 
 `isFallbackClosable` indicates that the end of the lifecycle segment has been reached (i.e., `currentSlot++ == 0`) while some attested outputs are still missing. This condition triggers the `forceClose` process. Otherwise we are just update the current slot field
 
-
-#### 3.2.6.4 The Failure Scenario : The Force Close Process 
+##### 3.2.6.4. The Failure Scenario : The Force Close Process 
 
 
 **TODO: Handling $`\eta_e`$ in Statistically Impossible Scenarios**
@@ -828,6 +825,75 @@ A simple fallback is to set $`\eta_e = \text{pre-}\eta_e`$.
 Alternatively, the system could locally compute all missing attested outputs. This approach introduces latency in the state machine but guarantees progress and correctness.
 
 This topic requires further discussion in an upcoming meeting.
+
+### 4. Agda Mechanization
+
+The changes to the Agda specification are found [here](https://github.com/IntersectMBO/ouroboros-consensus/tree/polina/anti-grinding/docs/agda-spec).
+The main changes can be summarized as follows :
+
+- `RandomnessStabilisationWindow` was renamed to `RandomnessStabilisationWindowPlusOne`, because this aligns better with the 
+case splitting required for the changes. The implication is that `RandomnessStabilisationWindowPlusOne` is exactly 
+one slot more than the `RandomnessStabilisationWindow`
+
+- The following modules are parametrized by the function `grindingf : Nonce → Nonce` that gets applied repeatedly to 
+the pre-nonce at the arrival of each block, called `f` in the Quick Wins document. This function is left abstract
+in the specification. 
+  - `Spec.ChainHead` , `Spec.ChainHead.Properties` , `Spec.Protocol` , `Spec.Protocol.Properties` , `Spec.UpdateNonce` , `Spec.UpdateNonce.Properties`
+
+- The field `pre-η`, representing the current value of the pre-nonce, is added to the the following states :
+  - `UpdateNonceState` , `PrtclState` , `ChainHeadState`
+
+**`UPDN` Transition.** This transition is called by the `PTCL` transition every time a new block is being applied. 
+It specifies 
+
+- how the evolving nonce `ηv` is evolved by a VRF result from the incoming block header, i.e. in every 
+case, it is combined  with the result of the VRF calculation `η` 
+ 
+- how the candidate nonce `ηc` is updated : it is kept fixed whenever the current slot 
+is less than `RandomnessStabilisationWindowPlusOne` slots away from the first slot of the next epoch, 
+and is set equal to the evolving nonce otherwise
+
+This transition is changed from having two rules, `Update-Both` and `Only-Evolve`, which 
+correspond to whether `s + RandomnessStabilisationWindowPlusOne` is `<` or `≥` than `firstSlot (sucᵉ (epoch s))` (respectively) 
+to having three separate cases. In all cases, the evolving nonce `ηv` is evolved by applying the VRF result `η`, denoted `ηv * η` :
+
+1. `Update-All`, corresponding to `≡`
+    - old pre-nonce `pre-η` is discarded, and the value in this field is set to a new pre-nonce, which is the same as 
+  the updated evolving nonce, `ηv * η`,
+    - the old candidate nonce `ηc` is discarded, and the value in this field is set to `grinding pre-η`. This is the 
+  result of the application of the anti-grinding function `grindingf` 
+
+2. `New-PreN`, corresponding to `<`
+    - old pre-nonce `pre-η` is updated to the result of the application of the anti-grinding function `grindingf`, to 
+  the existing pre-nonce to get `grindingf pre-η` 
+    - the new candidate nonce `ηc` is discarded, and the field value is set to the same as the updated pre-nonce, i.e. `grindingf pre-η` 
+
+3. `Keep-PreN`, corresponding to `>`
+    - old pre-nonce `pre-η` is updated to the result of the application of the anti-grinding function `grindingf`, to 
+  the existing pre-nonce to get `grindingf pre-η` 
+    - the candidate nonce `ηc` is kept constant, because it needs to remain fixed for this last part of the epoch
+
+These rule changes ensure that a fresh pre-nonce (which comes from the VRF-based evolving nonce) is set in the 
+slot that is `RandomnessStabilisationWindowPlusOne`
+before the first slot of the next epoch, updated by applying the anti-grinding function `grindingf` for each 
+block in the span of the subsequent epoch. Once that is complete, the updated pre-nonce becomes the new 
+candidate nonce.
+
+**Changes to other Transitions.**
+The rule that calls `UPDN`, which is `PRTL`, still does so by requiring the correct execution of `UPDN`.
+This is achieved by including the the start state of  `UPDN` the pre-nonce `pre-η`, and in its end state, the updated 
+`pre-η'`, which is the update computed by `UPDN`. The pre-nonce is also included in the state updated 
+by `PRTL` itself. Changes to rule that calls `PRTL`, which is `CHAINHEAD`, follow the same pattern 
+as the changes to `PRTL` : including the pre-nonce in its state, and updating it by calling the `PRTL` 
+rule to compute the update.
+
+**NOTE** The rule `TICKN` is used to swap out the old epoch nonce 
+at the start of the new epoch. This rule does not swap the previous epoch's nonce for the candidate 
+nonce directly, but instead, it combines the candidate nonce with the hash of previous 
+epoch's last block header to obtain the new epoch nonce. This rule remains unchanged, however, 
+this divergence from the original design impacts the analysis of the effectiveness of the 
+new anti-grinding measures.
+
 
 
 ## Rationale: How does this CIP achieve its goals?
@@ -1549,9 +1615,6 @@ Below is under progress
 5. Use Cases
 7. Resource Requirements
 
-
-
-#### 3.8. Agda Mechanization
 
 ### 4. The Φ Cryptographic Primitive
 
