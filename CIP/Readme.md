@@ -725,16 +725,16 @@ Once a missing attested output has been provided, the next slot may trigger a `t
 | `tick`               | $`\Phi.\text{Stream.State} \leftarrow \Phi.\text{tick}(\text{missingAttestedOutputProvidedState})`$ |
 |----------------------|---------------------------------------------------------------------------------------------------|
 | **Input Parameters** | <ul><li>$`\text{missingAttestedOutputProvidedState} \in \texttt{MissingAttestedOutputProvided}`$ — The current state after an attestation has been successfully provided.</li></ul> |
-| **Returned State**   | $`\begin{cases} \text{When } \texttt{isWithinCurrentInterval} &: \texttt{MissingAttestedOutputProvided} \{ \dots,\ \text{currentSlot++} \} \\\\ \text{When } \texttt{isWithinNextInterval} &: \texttt{AwaitingMissingAttestedOutput} \{ \dots,\ \text{currentSlot++} \} \\\\ \text{When } \texttt{isClosable} &: \texttt{AwaitingGracefulClosure} \{ \dots,\ \text{currentSlot++} \} \\\\ \text{When } \texttt{isFallbackClosable} &: {forceClose}(missingAttestedOutputProvidedState) \} \end{cases}`$ |
+| **Returned State**   | $`\begin{cases} \text{When } \texttt{isWithinCurrentInterval} &: \texttt{MissingAttestedOutputProvided} \{ \dots,\ \text{currentSlot++} \} \\\\ \text{When } \texttt{isWithinNextInterval} &: \texttt{AwaitingMissingAttestedOutput} \{ \dots,\ \text{currentSlot++} \} \\\\ \text{When } \texttt{isClosable} &: \texttt{AwaitingGracefulClosure} \{ \dots,\ \text{currentSlot++} \} \\\\ \text{When } \texttt{isUngracefullyClosable} &: \texttt{UngracefullyClosed} \{.., {pre-}\eta_e = {initialized.}{pre-}\eta_e \} \} \end{cases}`$ |
 
 Alternatively, when still waiting for an attestation and no block was produced, a `tick` may trigger a transition based on the current time. This command applies to the `AwaitingMissingAttestedOutput` state before any attestation has been submitted :
 
 | `tick`               | $`\Phi.\text{Stream.State} \leftarrow \Phi.\text{tick}(\text{awaitingMissingAttestedOutputState})`$ |
 |--------------------|---------------------------------------------------------------------------------------------------|
 | **Input Parameters** | <ul><li>$`\text{awaitingMissingAttestedOutputState} \in \texttt{AwaitingMissingAttestedOutput}`$ — Current state awaiting an attested output $`\phi_i`$ for interval $`i`$.</li><li>$`\phi_i = (y_i, \pi_i)`$ — Attested output and corresponding proof.</li></ul> |
-| **Returned State**   | $` \begin{cases} \text{When } \texttt{isWithinCurrentInterval} :\ \texttt{AwaitingMissingAttestedOutput}\ \{ \text{..} ,\ \text{currentSlot++} \} \\\\ \text{When } \texttt{isClosable} :\ \texttt{AwaitingGracefulClosure}\ \{ \text{..} ,\ \text{currentSlot++} \} \\\\ \text{When } \texttt{isFallbackClosable} :\ {forceClose}(awaitingMissingAttestedOutputState) \}\end{cases}`$ |
+| **Returned State**   | $` \begin{cases} \text{When } \texttt{isWithinCurrentInterval} :\ \texttt{AwaitingMissingAttestedOutput}\ \{ \text{..} ,\ \text{currentSlot++} \} \\\\ \text{When } \texttt{isClosable} :\ \texttt{AwaitingGracefulClosure}\ \{ \text{..} ,\ \text{currentSlot++} \} \\\\ \text{When } \texttt{isUngracefullyClosable} :\ \texttt{UngracefullyClosed} \{.., {pre-}\eta_e = {initialized.}{pre-}\eta_e \} \}\end{cases}`$ |
 
-`isFallbackClosable` indicates that the end of the lifecycle segment has been reached (i.e., `currentSlot++ == 0`) while some attested outputs are still missing. This condition triggers the `forceClose` process.
+`isUngracefullyClosable` indicates that the end of the lifecycle segment has been reached (i.e., `currentSlot++ == 0`), while some attested outputs are still missing. When this condition holds, the lifecycle is forcefully closed in an ungraceful manner.
 
 
 #### 3.2.6 ⬛ *Closure Phase*
@@ -750,7 +750,7 @@ In these cases, all attested outputs have been provided by the end of the catch-
 **Failure Scenario:**
 
 This occurs when the lifecycle segment reaches its end (i.e., the full $10 \cdot \frac{k}{f}$ slots), and despite the entire duration of the catch-up mechanism (up to interval 120), either some required attested outputs remain missing, or all outputs have been delivered but the final aggregation has not occurred.
-This scenario represents an extremely rare event—statistically far beyond 128-bit confidence—and reflects a severe disruption in which no blocks have been produced for over 36 hours. These edge cases are represented in the diagram by the transition `Tick / isFallbackClosable`.
+This scenario represents an extremely rare event—statistically far beyond 128-bit confidence—and reflects a severe disruption in which no blocks have been produced for over 36 hours. These edge cases are represented in the diagram by the transition `Tick / isUngracefullyClosable`.
 
 ##### 3.2.6.1. The States 
 
@@ -768,7 +768,7 @@ In this phase, we define two states:
 \right\}
 ```
 
-- `Closed`: This is the final state in the stream lifecycle. It signifies that the aggregated output has been computed and verified, and the final epoch randomness \$`\eta_e`\$ has been successfully derived—achieving the core objective of the protocol. This state is reached in response to either a `Close` command or a `Tick` / `isFallbackClosable` trigger :
+- `Closed`: This is a final state in the stream lifecycle. It signifies that the aggregated output has been computed and verified, and the final epoch randomness \$`\eta_e`\$ has been successfully derived—achieving the core objective of the protocol. This state is reached in response to either a `Close` command :
 
 ```math
 \Phi.\text{Stream.State} \in \texttt{Closed} : \left\{
@@ -777,6 +777,18 @@ In this phase, we define two states:
     &\text{attestedOutputs}  &&\in\ \left[(y, \pi)\right]^{82}, \\
     &\text{aggregatedOutput} &&\in\ (x, y, \pi), \\
     &\eta_e                  &&\in\ \{0,1\}^{256} 
+  \end{aligned}
+\right\}
+```
+
+- `UngracefullyClosed`: This is a terminal state in the stream lifecycle. It indicates that either not all expected attested outputs were provided, or the aggregated output could not be computed. As a result, $`{pre-}\eta_e`$ is returned as the final value of $`\eta_e`$. Statistically, this state is highly unlikely to occur, but it is explicitly handled for completeness and structural consistency of the state machine. The transition to this state is triggered by `Tick` in combination with the `isUngracefullyClosable` condition.
+
+```math
+\Phi.\text{Stream.State} \in \texttt{UngracefullyClosed} : \left\{
+  \begin{aligned}
+    &\text{initialized}      &&\in\ \texttt{Initialized}, \\
+    &\text{attestedOutputs} &&\in\ \left[\texttt{Maybe}\ (y, \pi)\right]^{82} \\
+    &{pre-}\eta_e                  &&\in\ \{0,1\}^{256} 
   \end{aligned}
 \right\}
 ```
@@ -803,28 +815,24 @@ These values complete the stream and trigger the transition to the `Closed` stat
 
 The `tick` command handles time progression within the `AwaitingGracefulClosure` state:
 
--  **`isFallbackClosable`** is true when the stream reaches the end of its lifecycle segment (i.e., $`\texttt{currentSlot} + 1 \equiv 0 \pmod{T}`$), and some attested outputs are still missing. In this case, the system triggers a `forceClose`.
+-  **`isUngracefullyClosable`** is true when the stream reaches the end of its lifecycle segment (i.e., \$`\texttt{currentSlot} + 1 \equiv 0 \pmod{T}`\$) and some attested outputs are still missing. When this condition holds, the system transitions to the `UngracefullyClosed` state.
+
 -  **Otherwise**, the command simply increments the `currentSlot` field to reflect time advancement.
 
 
 | `tick`               | $`\Phi.\text{Stream.State} \leftarrow \Phi.\text{tick}(\text{awaitingGracefulClosureState})`$ |
 |--------------------|---------------------------------------------------------------------------------------------------|
 | **Input Parameters** | <ul><li>$`\text{awaitingGracefulClosureState} \in \texttt{AwaitingMissingAttestedOutput}`$ — State indicating readiness for closure.</li></ul> |
-| **Returned State**   | $`\begin{cases} \text{When } \texttt{isFallbackClosable} :\ \texttt{forceClose}(\text{awaitingGracefulClosureState}) \\\\ \text{Otherwise} :\ \texttt{AwaitingGracefulClosure} \{\, \ldots,\, \texttt{currentSlot} + 1 \,\} \end{cases}`$ |
+| **Returned State**   | $`\begin{cases} \text{When } \texttt{isUngracefullyClosable} :\ \texttt{UngracefullyClosed} \{.., {pre-}\eta_e = {initialized.}{pre-}\eta_e \} \\\\ \text{Otherwise} :\ \texttt{AwaitingGracefulClosure} \{\, \ldots,\, \texttt{currentSlot} + 1 \,\} \end{cases}`$ |
 
-`isFallbackClosable` indicates that the end of the lifecycle segment has been reached (i.e., `currentSlot++ == 0`) while some attested outputs are still missing. This condition triggers the `forceClose` process. Otherwise we are just update the current slot field
+`isUngracefullyClosable` indicates that the end of the lifecycle segment has been reached (i.e., `currentSlot++ == 0`), while some attested outputs are still missing. When this condition holds, the lifecycle is forcefully closed in an ungraceful manner. Otherwise we are just update the current slot field
 
-##### 3.2.6.4. The Failure Scenario : The Force Close Process 
+##### 3.2.6.4. The Failure Scenario: Ungraceful Closure
 
+If the protocol reaches the end of its lifecycle, or it becomes evident that too many consecutive blockless intervals have occurred—such that a valid $`\eta_e`$ can no longer be derived—the `Tick` signal triggers the `isUngracefullyClosable` condition. This causes a transition to the terminal state `UngracefullyClosed`, in which the precomputed value $`{pre-}\eta_e`$ is adopted as the official $`\eta_e`$.
 
-**TODO: Handling $`\eta_e`$ in Statistically Impossible Scenarios**
+While this state is statistically unexpected, it is explicitly defined to ensure completeness and structural consistency within the state machine.
 
-How should we ensure the production of $`\eta_e`$ even in edge cases where the expected number of attested outputs cannot be reached due to failure?
-
-A simple fallback is to set $`\eta_e = \text{pre-}\eta_e`$.
-Alternatively, the system could locally compute all missing attested outputs. This approach introduces latency in the state machine but guarantees progress and correctness.
-
-This topic requires further discussion in an upcoming meeting.
 
 ### 4. Agda Mechanization
 
@@ -1131,7 +1139,6 @@ The **graph below** presents the **logarithmic cost** (in **USD**) of executing 
 </div>
 
 ✏️ **Note**: The Python script used to generate this graph is available here ➡️ [**scenario\_cost\_praos\_vs\_phalanx.py**](./graph/scenario_cost_praos_vs_phalanx.py)
-
 
 ###### **Interpretation of the Graph**
 
@@ -1564,6 +1571,7 @@ To fulfill the above criteria, the following steps are planned:
 
 ## References
 
+- [Ouroboros Randomness Generation Sub-Protocol – The Coin-Flipping Problem](../CPS/CPD/README.md)
 - [Cardano Disaster Recovery Plan](https://iohk.io/en/research/library/papers/cardano-disaster-recovery-plan)
 - [Baigneres, Thomas, et al. "Trap Me If You Can--Million Dollar Curve." Cryptology ePrint Archive (2015).](https://eprint.iacr.org/2015/1249.pdf)
 - [Lenstra, Arjen K., et al. "The number field sieve." Proceedings of the twenty-second annual ACM symposium on Theory of computing. 1990.](https://dl.acm.org/doi/pdf/10.1145/100216.100295)
@@ -1607,7 +1615,7 @@ To fulfill the above criteria, the following steps are planned:
 <!-- The CIP must be explicitly licensed under acceptable copyright terms.  Uncomment the one you wish to use (delete the other one) and ensure it matches the License field in the header: -->
 Todo
 <!-- This CIP is licensed under [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/legalcode). -->
-<!-- This CIP is licensed under [Apache-2.0](http://www.apache.org/licenses/LICENSE-2.0). -->
+This CIP is licensed under [Apache-2.0](http://www.apache.org/licenses/LICENSE-2.0).
 
 
 
@@ -1617,14 +1625,6 @@ Todo
 Below is under progress 
 -------
 
-
-3. Feasible values for Phalanx protocol parameters 
-    3.1. Protocol Parameters
-    3.2. Recommended Crypto Lib 
-    3.3. Security Gains Compared to Praos
-4. Faster Settlement under Phalanx
-5. Use Cases
-7. Resource Requirements
 
 
 ### 4. The Φ Cryptographic Primitive
@@ -1744,36 +1744,3 @@ N.B. For future work, it could be interesting to snarkify the accumulators, thei
 Table 1. VDF benchmarks, means and standard deviation, perfomed on a discriminant $\Delta$ of different sizes and with a range of iterations on one core of Intel(R) Core(TM) i9-14900HX (2.2 GHz base frequency, 24 cores, 32 threads).
 </center>
 
-### 5. Recommended Parameterization
-
-**(To be completed)**
-
-We currently identify the following key parameters:
-
-- $\Phi_{\text{power}}$
-- $\Phi_{\text{margin}}$
-- $R$
-- (To be added: parameters related to the cryptographic primitive)
-
-
-
-The CPD analysis in [Section 3.5 - Scenarios](../CPS/CPD/README.md#35-scenarios) quantifies this vulnerability across four scenarios (**Ant Glance**, **Ant Patrol**, **Owl Stare**, and **Owl Survey**) highlighting the ranges of $\rho$ where attacks are feasible. The table below summarizes these ranges, showing the intervals where grinding attacks transition from trivial to infeasible:
-
-| **Feasibility Category**                  | **🔵 Ant Glance**   | **🟠 Ant Patrol**   | **🟢 Owl Stare**   | **🔴 Owl Survey**   |
-|--------------------------------------------|---------------------|---------------------|--------------------|--------------------|
-| **🟢 🌱 Trivial for Any Adversary**        | $0 \to 39.8$        | $0 \to 32.9$        | $0 \to 31.6$       | $0 \to 31.1$       |
-| **🟡 💰 Feasible with Standard Resources** | $39.8 \to 46.4$     | $32.9 \to 39.5$     | $31.6 \to 38.3$    | $31.1 \to 37.8$    |
-| **🟠 🏭 Large-Scale Infrastructure Required** | $46.4 \to 56.4$  | $39.5 \to 49.5$     | $38.2 \to 48.2$    | $37.8 \to 47.7$    |
-| **🔴 🚫 Borderline Infeasible**            | $56.4 \to 66.3$     | $49.5 \to 59.5$     | $48.2 \to 58.2$    | $47.7 \to 57.7$    |
-| **🔴 🚫 Infeasible**                      | $66.3 \to 256$      | $59.5 \to 256$      | $58.2 \to 256$     | $57.7 \to 256$     |
-
-This vulnerability is visually depicted in the graph below, which plots the logarithmic cost (in USD) of grinding attacks against grinding depth ($\rho$) for each scenario. The shaded feasibility layers indicate the economic thresholds where attacks become **trivial**, **feasible**, **possible**, **borderline infeasible**, or **infeasible**. The consistent gap of $\Delta \log_{10}(\text{Cost (USD)}) \approx 2.6$ between the least (Ant Glance) and most (Owl Survey) resource-intensive scenarios highlights how 88evaluation complexity** ($T_{\text{eval}}$) and **observation scope** ($w_T$) significantly amplify attack costs :
-
-<div align="center">
-<img src="./image/grinding_depth_scenarios_cost_with_feasibility_layers_gradient.png" alt="Grinding Depth Scenarios with Feasibility Thresholds"/>
-</div>
-
-These findings indicate that, under current protocol parameters, grinding attacks are computationally viable at lower $\rho$ values for adversaries with significant resources. However, as highlighted in [CPD Section 3.2](../CPS/CPD/README.md#32-entry-ticket-acquiring-stake-to-play-the-lottery), executing such attacks requires a substantial upfront investment—acquiring 20% of the total stake, equivalent to over 4.36 billion ADA as of March 1, 2025—and the ability to operate covertly to avoid detection. Publicly observable grinding attempts expose adversarial stake pool operators (SPOs) to severe economic and social consequences, such as loss of trust, delegator withdrawals, or protocol-level countermeasures, which could devalue their stake and undermine their efforts. Despite these barriers, the potential for well-funded adversaries to bias randomness remains a threat to Cardano’s decentralized ethos, as it could skew block production and transaction settlement in their favor.
-
-TODO : Rework this section, it will be a summary of what we recommend and the gain we have if we put this in place, I would be ok to add results of settlement times of the previous overly optimistic algorithm for settlement times...
-- Explain Recommendation of 12h and gain of 2^ 
