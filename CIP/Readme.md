@@ -895,7 +895,6 @@ this divergence from the original design impacts the analysis of the effectivene
 new anti-grinding measures.
 
 
-
 ## Rationale: How does this CIP achieve its goals?
 <!-- The rationale fleshes out the specification by describing what motivated the design and what led to particular design decisions. It should describe alternate designs considered and related work. The rationale should provide evidence of consensus within the community and discuss significant objections or concerns raised during the discussion.
 
@@ -1529,26 +1528,38 @@ TODO
 TODO
 ### 6. Recommended Parameters
 TODO
+
 ## Path to Active
 
 ### Acceptance Criteria
-<!-- Describes what are the acceptance criteria whereby a proposal becomes 'Active' -->
 
-- [ ] The revised `cardano-node` implementations pass the node-level conformance test suites.
-- [ ] Audit.
-- [ ] Successful operation in testnet environments.
-- [ ] Community agreement on the settings for the Phalanx protocol parameters.
-- [ ] The upcoming CIP that establishes a *Consensus* category for CIPs may define additional acceptance criteria.
+The proposal will be considered **Active** once the following criteria are met:
+
+* [ ] The revised `cardano-node` implementation passes all **node-level conformance test suites**.
+* [ ] A formal **security audit** is completed and its findings reviewed.
+* [ ] The solution demonstrates **stable and expected behavior in testnet environments**.
+* [ ] The **hard fork is successfully executed** and the protocol transition is secure.
+* [ ] The **community agrees on the initial Phalanx protocol parameters** and on a clear policy for their future updates.
+* [ ] The upcoming CIP introducing a **Consensus** category may define further acceptance criteria, which will be incorporated accordingly.
 
 ### Implementation Plan
-<!-- A plan to meet those criteria or `N/A` if an implementation plan is not applicable. -->
-- [ ] Triage by intersect Core Infrastructure and Consensus functions.
-- [ ] Coordinate with related activities on other protocol enhancements.
-    - Compatibility between Peras, Leios, and Genesis.
-- [ ] Integrate a Wesolowski’s VDF lib to [cardano-crypto-class](https://github.com/IntersectMBO/cardano-base/blob/master/cardano-crypto-class/cardano-crypto-class.cabal)  
-- [ ] Detailed node-level (as opposed to this protocol-level) specification & design.
-- [ ] Node-level (as opposed to this protocol-level) implementation.
-- [ ] Node-level conformance test suite.
+
+To fulfill the above criteria, the following steps are planned:
+
+* [ ] Triage and scope confirmation by Intersect’s **Core Infrastructure** and **Consensus** teams.
+* [ ] Coordination with ongoing workstreams on consensus protocol enhancements:
+
+  * [ ] Compatibility with **Peras**
+  * [ ] Compatibility with **Leios**
+  * [ ] Compatibility with **Ouroboros Genesis**
+* [ ] Development and publication of a **community communication plan** covering:
+
+  * The initial values of Phalanx parameters
+  * The procedure for evaluating and updating these parameters
+* [ ] Integration of a **Wesolowski-style VDF library** into [`cardano-crypto-class`](https://github.com/IntersectMBO/cardano-base/blob/master/cardano-crypto-class/cardano-crypto-class.cabal)
+* [ ] Implementation of the **node-level logic**, including support for the hard fork mechanism
+* [ ] Construction and execution of a comprehensive **node-level conformance test suite**
+
 
 
 ## References
