@@ -1,0 +1,3 @@
+[submodule "chiavdf"]
+	path = chiavdf
+	url = git@github.com:rrtoledo/chiavdf.git
