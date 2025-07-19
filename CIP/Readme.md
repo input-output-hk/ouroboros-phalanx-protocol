@@ -33,7 +33,7 @@ License: Apache-2.0
     - [2.3 Wesolowski's VDF](#23-wesolowskis-vdf)
       - [2.3.1 VDF Primitives](#231-vdf-primitives)
       - [2.3.2 VDF Aggregation Primitives](#232-vdf-aggregation-primitives)
-      - [2.3.3 CDDL schema for the ledger](#232-cddl-schema-for-the-ledger)
+      - [2.3.3 CDDL Schema For The Ledger](#233-cddl-schema-for-the-ledger)
   - [3. $`\phi^{\text{stream}}`$ Specification](#3-phitextstream-specification)
     - [3.1 Distribution of Φ Iterations](#31-distribution-of-φ-iterations)
     - [3.2 The State Machine](#32-the-state-machine)
@@ -287,7 +287,7 @@ As one can see, VDFs present _functionality_, _determinism_, _efficient verifica
 Verifiable Delayed Functions were introduced by Boneh et al. [6](https://eprint.iacr.org/2018/601.pdf) where the authors suggest several sequential functions combined with the use of proof systems in the incrementally verifiable computation framework (IVC) for viable proof generation and fast verification.
 VDF variants revolve around two primary SNARK-free designs: one from Pietrzak [36](https://drops.dagstuhl.de/storage/00lipics/lipics-vol124-itcs2019/LIPIcs.ITCS.2019.60/LIPIcs.ITCS.2019.60.pdf) and the second from Wesolowski [35](https://eprint.iacr.org/2018/623.pdf). They differ in the proof design. 
 
-In Wesolowski’s paper, the proof is defined as $x^{2^T} / l$ where $g$ is the challenge, $T$ the difficulty and $l$ is a prime number found by hashing the VDF input and output together.  
+In Wesolowski’s paper, the proof is defined as $x^{2^T} / p$ where $g$ is the challenge, $T$ the difficulty and $p$ is a prime number found by hashing the VDF input and output together.  
 
 The proof is thus a single group element that can be computed in at most $2 T$ group operations and constant space, or $(1+1/s) \cdot T$ time where the number $s$ is both the number of processors and space while the verification takes $log_2 T$ scalar multiplications in $\mathcal{Z}/l$ and two small exponentiations in the group $\mathbb{G}$. 
 
@@ -299,65 +299,107 @@ In Pietrzak’s paper, the proof is a tuple of group elements $\pi = \{x^{2^{T /
 
 We will choose Wesolowski design over Pietrzark because of its space efficiency and possibility to aggregate proofs.
 
+Specialized hardware such as ASICs can be used to evaluate VDF output much faster, up to a factor 5 in Chia's VDF project while Ethereum considers a factor 10. This, while unfortunate, is not prohibitive in our context as we only consider the use of VDFs for their computational cost. An attacker would still require a substantial budget to perform an anti-grinding attack in addition to purchasing at scale the specialized hardware that is not inexpensive nor readily available (Chia' ASICs can be purchased on a case per case basis for $1,000). We can also note that any solution would still be affected by hardware, like in the case of proof of works and hash farms.
 
 #### 2.3. Wesolowski's VDF 
 
 ##### 2.3.1. VDF Primitives
 
-Let $`\text{VDF} = (\text{Setup},\ \text{Prove},\ \text{Verify})`$ be a Verifiable Delay Function based on class groups, defined as follows:
+To define Wesolowski VDF construction, we first introduce a serie of hash functions: $`\text{Hash}^{(n)}_\mathbb{N}`$, which samples random integers of $`n`$ bits, $`\text{Hash}^{(n)}_\text{prime}`$, which samples a random integer from the set of the first $`2^{2n}`$ prime numbers, and $`\text{Hash}_\mathbb{G}`$, which samples a random group element of the class group $`\mathbb{G}`$.
 
-- $`(\mathbb{G},\ \Delta,\ \cdot) \leftarrow \text{VDF}.\text{Setup}(\lambda,\ \Delta_{\text{challenge}})`$
-  Takes as input a **security parameter** $`\lambda \in \mathbb{N}`$ and a **challenge discriminant** $`\Delta_{\text{challenge}}`$. This challenge discriminant acts as a source of public entropy used to deterministically derive the group discriminant $\Delta$, which defines a group of unknown order $\mathbb{G}$ along with its group operation $`\cdot`$. The use of a challenge ensures that the resulting group is unbiasable and unpredictable, preventing adversarial precomputation. Internally, we expect the setup procedure to invoke the following sub-operations:
+We define the interface of a Verifiable Delay Function as $`\text{VDF} = (\text{Setup},\ \text{Evalute},\ \text{Prove},\ \text{Verify})`$, and define its underlying functions based on class groups as follows:
+
+- $`(\mathbb{G},\ \Delta,\ \cdot) \leftarrow \text{VDF}.\text{Setup}(\lambda,\ \Delta_{\text{challenge}})\\`$
+  Takes as input a **security parameter** $`\lambda \in \mathbb{N}`$ and a **challenge discriminant** $`\Delta_{\text{challenge}} \in \{0,1\}^*`$. This challenge discriminant acts as a source of public entropy used to deterministically derive the group discriminant $\Delta$, which defines a group of unknown order $\mathbb{G}$ along with its group operation $`\cdot`$. The use of a challenge ensures that the resulting group is unbiasable and unpredictable, preventing adversarial precomputation. Internally, we expect the setup procedure to invoke the following sub-operations:
 ```math
     \Delta \leftarrow \texttt{VDF.CreateDiscriminant}(\lambda,\ \Delta_{\text{challenge}})
 ```
 ```math
-  (\mathbb{G},\ \cdot) \leftarrow \texttt{VDF.DeriveGroupClass}(\lambda,\ \Delta)
+  (\mathbb{G},\ \cdot) \leftarrow \texttt{VDF.DeriveClassGroup}(\lambda,\ \Delta)
 ```
 
-- $`(y,\ \pi) \leftarrow \text{VDF}.\text{Prove}((\mathbb{G},\ \Delta,\ \cdot), \ x,\ I)`$
-  Given a challenge $`x \in \mathbb{G}`$ and a number of iterations $`I \in \mathbb{N}`$, computes the VDF output $`y = x^{2^I}`$ and a corresponding **proof** $`\pi`$.
+- $`y \leftarrow \text{VDF}.\text{Evaluate}((\mathbb{G},\ \Delta,\ \cdot), \ x,\ I)\\`$
+  Given a challenge $`x \in \mathbb{G}`$ and a number of iterations $`I \in \mathbb{N}`$, computes the VDF output $`y = x^{2^I}`$.
 
-- $`\{0,1\} \leftarrow \text{VDF}.\text{Verify}((\mathbb{G},\ \Delta,\ \cdot), \ x,\ y,\ I,\ \pi)`$
-  Returns 1 if $`\pi`$ successfully attests that $`y = x^{2^I}`$, with overwhelming probability. Returns 0 otherwise.
+- $`\pi \leftarrow \text{VDF}.\text{Prove}((\mathbb{G},\ \Delta,\ \cdot), \ x,\ y,\ I)\\`$ 
+  Given a challenge and output $`(x,y) \in \mathbb{G}^2`$, computes the VDF  **proof** $`\pi`$ as $`\pi = x^{2^I / p}`$ where $`p \leftarrow \text{Hash}^{(2 \lambda)}_\text{prime}(x  y)`$ is sampled from the first $`2^{2 \lambda}`$ prime numbers.
+
+- $`\{0,1\} \leftarrow \text{VDF}.\text{Verify}((\mathbb{G},\ \Delta,\ \cdot), \ x,\ y,\ I,\ \pi)\\`$
+  Returns 1 if $`\pi`$ successfully attests that $`y = x^{2^I}`$ with overwhelming probability, that is if $\pi^r \cdot x^p == y$ where $`p \leftarrow \text{Hash}^{(2 \lambda)}_\text{prime}(x \| y)`$ and $`r \leftarrow 2^{2^I} \text{mod}\ p`$. Returns 0 otherwise.
+
+We now show evaluation, proving and verification benchmarks on the VDF primiitives for different discriminant sizes done on a Ubuntu computer with Intel® Core™ i9-14900HX with 32 cores and 64.0 GiB.
+
+|   Size Discriminant |   #iters |      IPS |   EvalProve  (s) |   σ proving | Eval (s)       |   σ proving | Prove (s)      |   σ proving | Verification (ms)   |   σ verification |
+|-------------------- | -------- | -------- | ---------------- | ----------- | -------------- | ----------- | -------------- | ----------- | ------------------- | ----------------|
+|                 256 |    10,000 | 637252   |           0.0187 |    0.000676 | 1.57E-02 (84%) |    0.000563 | 8.00E-03 (43%) |    0.000461 | 1.74E+00 (10%)      |           0.0786 |
+|                 256 |   100,000 | 641349   |           0.172  |    0.00115  | 1.56E-01 (91%) |    0.00188  | 5.68E-02 (33%) |    0.00165  | 1.12E+00 (1%)       |           0.0471 |
+|                 256 |  1,000,000 | 627336   |           1.72   |    0.0215   | 1.59E+00 (93%) |    0.0197   | 4.88E-01 (29%) |    0.00633  | 1.75E+00 (1%)       |           0.151  |
+|                 512 |    10,000 | 367449   |           0.0322 |    0.000635 | 2.72E-02 (85%) |    0.000648 | 1.31E-02 (41%) |    0.000204 | 3.25E+00 (11%)      |           0.0562 |
+|                 512 |   100,000 | 378942   |           0.289  |    0.0029   | 2.64E-01 (92%) |    0.00283  | 8.76E-02 (31%) |    0.000893 | 1.89E+00 (1%)       |           0.0268 |
+|                 512 |  1,000,000 | 378204   |           2.83   |    0.0287   | 2.64E+00 (94%) |    0.0279   | 7.29E-01 (26%) |    0.00873  | 2.11E+00 (1%)       |           0.134  |
+|                1024 |    10,000 | 206186   |           0.0537 |    0.000902 | 4.85E-02 (91%) |    0.00076  | 2.00E-02 (38%) |    0.000364 | 3.66E+00 (7%)       |           0.117  |
+|                1024 |   100,000 | 211921   |           0.503  |    0.00722  | 4.72E-01 (94%) |    0.00721  | 1.45E-01 (29%) |    0.00198  | 3.21E+00 (1%)       |           0.0467 |
+|                1024 |  1,000,000 | 213319   |           4.92   |    0.0506   | 4.69E+00 (96%) |    0.0475   | 1.20E+00 (25%) |    0.0136   | 3.20E+00 (1%)       |           0.135  |
+|                2048 |    10000 | 103135   |           0.105  |    0.000285 | 9.70E-02 (92%) |    0.000303 | 3.77E-02 (36%) |    0.000122 | 7.00E+00 (7%)       |           0.0409 |
+|                2048 |   100,000 | 105315   |           1.01   |    0.0165   | 9.50E-01 (94%) |    0.0123   | 2.78E-01 (28%) |    0.00516  | 9.33E+00 (1%)       |           0.147  |
+|                2048 |  1,000,000 | 107038   |           9.75   |    0.0746   | 9.34E+00 (96%) |    0.0828   | 2.20E+00 (23%) |    0.0209   | 6.40E+00 (1%)       |           0.218  |
+|                4096 |    10,000 |  44567.8 |           0.244  |    0.00463  | 2.24E-01 (92%) |    0.00454  | 8.30E-02 (35%) |    0.00168  | 1.58E+01 (7%)       |           0.316  |
+|                4096 |   100,000 |  45848.6 |           2.31   |    0.0253   | 2.18E+00 (95%) |    0.0229   | 6.00E-01 (26%) |    0.0089   | 1.47E+01 (1%)       |           0.248  |
+|                4096 |  1,000,000 |  46293.2 |          22.6    |    0.16     | 2.16E+01 (96%) |    0.148    | 4.79E+00 (22%) |    0.0422   | 1.37E+01 (1%)       |           0.303  |
 
 
 ##### 2.3.2. VDF Aggregation Primitives
 
-Let $`\text{VDF.Aggregation} = (\text{Prove},\ \text{Verify},\ \text{ComputeChallenge},\ \text{VerifyChallenge})`$ denote an **Aggregated Verifiable Delay Function** constructed over class groups.
+In this section, we present a mechanism for producing a Wesolowski VDF **aggregation proof**. This construction enables efficient synchronization for network participants and plays a central role in deriving the final epoch nonce $`\eta_e`$. 
+The aggregation mechanism has the following interface $`\text{VDF.Aggregation} = (\text{Init},\ \text{Update},\ \text{Prove},\ \text{Verify})`$ whose functions will be detailled afterwards. We assume that a class group $`\mathbb{G}`$ has already been set up, by $`(\mathbb{G},\ \Delta,\ \cdot) \leftarrow \text{VDF}.\text{Setup}(\lambda,\ \Delta_{\text{challenge}})`$.
 
-In the sections that follow, we present a mechanism for producing a **proof of aggregation**. This construction enables efficient synchronization for network participants and plays a central role in deriving the final epoch nonce $`\eta_e`$. Each function in the aggregation interface is detailed below, forming the core of this synchronization primitive.
-
-
-| `compute an aggregated output` | $`(x,\ y,\ \pi) \leftarrow \texttt{VDF.Aggregation.Prove}(\lambda,\ \text{Hash}_\mathbb{G},\ \text{Hash}^{(n)}_\mathbb{N},\ \text{pre-}\eta_e, \ [(x_i, y_i)]^n,\ I)`$     |
+At the beginning of each epoch, we initialize the VDF accumulators' state that will be used to generate the VDF aggregation proof using $`\texttt{VDF.Aggregation.Init}`$.
+| `Initialize accumulators` | $`(\text{Acc}_x, \text{Acc}_y, \alpha) \leftarrow \texttt{VDF.Aggregation.Init}(\lambda, \text{pre-}\eta_e)`$     |
 | ------------------------- | ------------------------- |
-| **Input Parameters**      | <ul><li>$`\lambda \in \mathbb{N}`$ — Security parameter.</li><li>$`\text{Hash}_\mathbb{G}`$ — Hash function mapping to the group $`\mathbb{G}`$.</li><li>$`\text{Hash}^{(n)}_\mathbb{N}`$ — Hash function mapping to $`\mathbb{N}`$ with domain size $`n`$.</li><li>$\text{pre-}\eta_e \in \{0,1\}^{256}$ — 256-bit pre-nonce entropy for epoch $e$.</li><li>$`[(x_i, y_i)]^n`$ — List of $`n`$ attested output pairs for intervals.</li><li>$`I \in \mathbb{N}`$ — Per-interval iteration count for the VDF.</li></ul> |
-| **Steps**                 | <ol><li>Compute the aggregated challenge:<br>$`x \leftarrow \texttt{VDF.Aggregation.computeChallenge}(\lambda,\ \text{Hash}_\mathbb{G},\ \text{Hash}^{(n)}_\mathbb{N},\ [(x_i, y_i)]^n)`$</li><li>Compute the VDF output and proof:<br>$`(y,\ \pi) \leftarrow \text{VDF}.\text{Prove}((\mathbb{G},\ \Delta,\ \cdot), \ x,\ I)`$</li></ol>                                                                                                          |
-| **Returned Output**       | $`(x,\ y,\ \pi)`$ — Aggregated input, output, and VDF proof.   |
+| **Input Parameters**      | <ul><li>$`\lambda \in \mathbb{N}`$ — Security parameter.</li><li>$\text{pre-}\eta_e \in \{0,1\}^{256}$ — 256-bit pre-nonce entropy for epoch $e$.</li></ul> |
+| **Steps**                 | <ol><li>Compute all VDF challenges:<br>$`\forall i\ x_i \leftarrow  \text{Hash}_\mathbb{G}(\text{pre-}\eta_e \|i) `$</li><li>Compute the initial aggregation nonce:<br>$`\alpha \leftarrow  \text{Hash}^{(\lambda)}_\mathbb{N}(x_1 \|\| \dots \|\| x_n) `$</li><li>Initializes the accumulators to the identity:<br>$`(\text{Acc}_x, \text{Acc}_y) \leftarrow (1_\mathbb{G},\ 1_\mathbb{G})`$</li></ol>                                                                                                          |
+| **Returned Output**       | $`(\text{Acc}_x,\ \text{Acc}_y,\ \alpha)`$ — Input and output accumulators and initial aggregation nocne.   |
 
 
-| `compute an aggregated challenge` | $`x \leftarrow \texttt{VDF.Aggregation.computeChallenge}(\lambda,\ \text{Hash}_\mathbb{G},\ \text{Hash}^{(n)}_\mathbb{N},\ \text{pre-}\eta_e, \ [(x_i, y_i)]^n)`$  |
-| ------------------- | ------------------- |
-| **Input Parameters**         | <ul><li>$`\lambda \in \mathbb{N}`$ — Security parameter (bit length).</li><li>$`\text{Hash}_\mathbb{G}`$ — Hash function mapping into the class group $`\mathbb{G}`$.</li><li>$`\text{Hash}^{(n)}_\mathbb{N}`$ — Hash function producing $`n`$-bit integers.</li><li>$\text{pre-}\eta_e \in \{0,1\}^{256}$ — 256-bit pre-nonce entropy for epoch $e$.</li><li>$`[(x_1, y_1), \dots, (x_n, y_n)]`$ — Sequence of $`n`$ tuples where $`x_i`$ is a VDF challenge and $`y_i`$ the corresponding output.</li></ul> |
-| **Per-element Computation**  | For each $`i \in \{1, \dots, n\}`$:<br><ul><li>$`x_i = \text{Hash}_\mathbb{G}(\text{pre-}\eta_e \,\|\, i)`$ — Compute individual VDF challenge from the pre-nonce and index.</li><li>$`\alpha_i = \text{Hash}^{(\lambda)}_\mathbb{N}(\cdots\text{Hash}^{(\lambda)}_\mathbb{N}(\text{Hash}^{(\lambda)}_\mathbb{N}(x_1 \,\|\, \cdots \,\|\, x_n) \,\|\, y_1)\cdots \,\|\, y_i)`$ — Derive exponent for aggregation.</li></ul>      |
-| **Final Aggregation**        | Compute the aggregated challenge:<br>$`x = \prod_{i=1}^{n} x_i^{\alpha_i}`$    |
-| **Returned Value**           | $`x \in \mathbb{G}`$ — Aggregated VDF challenge in the class group. |
+Every time a VDF output is published on-chain, if no previous VDF output are missing, we shall update the accumulators' state using $`\texttt{VDF.Aggregation.Update}`$.
+| `Update accumulators` | $`(\text{Acc}_x, \text{Acc}_y, \alpha) \leftarrow \texttt{VDF.Aggregation.Update}(\lambda, (x_i, y_i),\ (\text{Acc}_x,\ \text{Acc}_y,\ \alpha))`$     |
+| ------------------------- | ------------------------- |
+| **Input Parameters**      | <ul><li>$`\lambda \in \mathbb{N}`$ — Security parameter.</li><li>$`(x_i,\ y_i)`$ — Pair of VDF input and output for current interval.</li><li>$`(\text{Acc}_x,\ \text{Acc}_y,\ \alpha)`$ — Accumulators' state.</li></ul> |
+| **Steps**                 | <ol><li>Compute the aggregation nonce:<br>$`\alpha \leftarrow  \text{Hash}^{(\lambda)}_\mathbb{N}(\alpha \|\| y_i) `$</li><li>Update the accumulators:<br>$`(\text{Acc}_x, \text{Acc}_y) \leftarrow (\text{Acc}_x \cdot x_i^\alpha, \text{Acc}_y \cdot y_i^\alpha)`$</li></ol>                                                                                                    |
+| **Returned Output**       | $`(\text{Acc}_x, \text{Acc}_y, \alpha)`$ — Updated accumulator's state.   |
 
 
-| `Verify Challenge x` | $`\texttt{VDF.Aggregation.VerifyChallenge}(\lambda,\ \text{Hash}_\mathbb{G},\ \text{Hash}^{(n)}_\mathbb{N},\ x_{\text{expected}},\ [(x_i, y_i)]^n)`$     |
-| ------------- | ------ |
-| **Input Parameters**              | <ul><li>$`\lambda \in \mathbb{N}`$ — Security parameter.</li><li>$`\text{Hash}_\mathbb{G}`$ — Hash function mapping into the class group $`\mathbb{G}`$.</li><li>$`\text{Hash}^{(n)}_\mathbb{N}`$ — Hash function returning $`n`$-bit integers.</li><li>$`x_{\text{expected}} \in \mathbb{G}`$ — Expected aggregated challenge.</li><li>$`[(x_1, y_1)]^n`$ — Sequence of $`n`$ VDF challenge-output pairs.</li></ul> |
-| **Computation**                   | Recompute the challenge:<br>$`x \leftarrow \texttt{VDF.Aggregation.computeChallenge}(\lambda,\ (\mathbb{G},\ \Delta,\ \cdot),\ \text{Hash}_\mathbb{G},\ \text{Hash}^{(n)}_\mathbb{N},\ [(x_i, y_i)]^n)`$    |
-| **Check**                         | Verify equality:<br>$`x \stackrel{?}{=} x_{\text{expected}}`$   |
-| **Returned Value**                | $`\texttt{true}`$ if the computed $`x`$ matches $`x_{\text{expected}}`$; otherwise $`\texttt{false}`$.  |
+Once all VDF outputs have been generated and the accumulators updated, we can generate the VDF aggregation proof $`\pi`$ using $`\texttt{VDF.Aggregation.Prove}`$.
+| `Prove accumulators` | $`\pi \leftarrow \texttt{VDF.Aggregation.Prove}(\lambda,\ (\text{Acc}_x,\ \text{Acc}_y,\ \alpha),\ I)`$     |
+| ------------------------- | ------------------------- |
+| **Input Parameters**      | <ul><li>$`\lambda \in \mathbb{N}`$ — Security parameter.</li><li>$`(\text{Acc}_x,\ \text{Acc}_y,\ \alpha)`$ — Accumulators' state.</li><li>$`I \in \mathbb{N}`$ — Per-interval iteration count for the VDF.</li></ul> |
+| **Steps**                 | <ol><li>Compute the accumulator proof as a VDF proof:<br>$`\pi \leftarrow \text{VDF}.\text{Prove}((\mathbb{G},\ \Delta,\ \cdot), \ \text{Acc}_x,\ \text{Acc}_y,\ I)`$</li></ol>                                                                                                    |
+| **Returned Output**       | $`\pi`$ — Aggregated proof.   |
 
 
-| `Verify Aggregated Output` | $`\texttt{VDF.Aggregation.Verify}(\lambda,\  (\mathbb{G},\ \Delta,\ \cdot) ,\  \text{Hash}_\mathbb{G},\ \text{Hash}^{(n)}_\mathbb{N} ,\ x,\ y, [(x_i, y_i)]^n,\ I ,\ \ \pi,\ )`$   |
-| ------------------- | ------ |
-| **Input Parameters**       | <ul><li>$`\lambda \in \mathbb{N}`$ — Security parameter.</li><li>$`(\mathbb{G},\ \Delta,\ \cdot)`$ — Group and associated data.</li><li>$`\text{Hash}_\mathbb{G}`$ — Hash function into the group.</li><li>$`\text{Hash}^{(n)}_\mathbb{N}`$ — Hash to $`\mathbb{N}`$.</li><li>$`x \in \mathbb{G}`$ — Aggregated challenge to verify.</li><li>$`y \in \mathbb{G}`$ — Claimed output of the VDF.</li><li>$`[(x_i, y_i)]^n`$ — Sequence of challenge-output pairs.</li><li>$`I \in \mathbb{N}`$ — Number of VDF iterations.</li><li>$`\pi`$ — Claimed proof of the computation.</li></ul> |
-| **Steps** | <ol><li>Recompute and verify the challenge:<br>$`\texttt{VerifyChallenge}(\lambda,\ \text{Hash}_\mathbb{G},\ \text{Hash}^{(n)}_\mathbb{N},\ x,\  [(x_i, y_i)]^n))`$</li><li>Run the VDF verifier:<br>$`\text{VDF.Verify}((\mathbb{G},\ \Delta,\ \cdot),\ x,\ y,\ I,\ \pi)`$</li></ol>  |
-| **Returned Value**         | $`\texttt{true}`$ if both challenge and VDF proof are valid; otherwise $`\texttt{false}`$. |
+The VDF aggregation proof $`\pi`$ can then be efficiently be verified using $`\texttt{VDF.Aggregation.Verify}`$.
+| `Verify accumulators` | $`\{0,1\} \leftarrow \texttt{VDF.Aggregation.Verify}(\lambda,\ (\text{Acc}_x,\ \text{Acc}_y,\ \alpha),\ I,\ \pi)`$     |
+| ------------------------- | ------------------------- |
+| **Input Parameters**      | <ul><li>$`\lambda \in \mathbb{N}`$ — Security parameter.</li><li>$`(\text{Acc}_x,\ \text{Acc}_y,\ \alpha)`$ — Accumulators' state.</li><li>$`I \in \mathbb{N}`$ — Per-interval iteration count for the VDF.</li><li>$`\pi \in \mathbb{G}`$ — Aggregated VDF proof.</li></ul> |
+| **Steps**                 | <ol><li>Verfy the accumulators' proof:<br>$`b \leftarrow \text{VDF}.\text{Verify}((\mathbb{G},\ \Delta,\ \cdot), \ \text{Acc}_x,\ \text{Acc}_y,\ I,\ \pi)`$</li></ol>                                                                                                    |
+| **Returned Output**       | $`b`$ — Verification bit.   |
 
+
+
+For a discriminant of 4096 bits, we benchmarks the aggregation functions,
+
+|                            Function |    #iterations | time (ms) |
+| ----------------------------------- | -------------- | --------- |
+| $`\texttt{VDF.Aggregation.Init}`$   |            N/A |           |
+| $`\texttt{VDF.Aggregation.Update}`$ |            N/A |       8   |
+| $`\texttt{VDF.Aggregation.Prove}`$  |          1,000 |      23   |
+|                                     |         10,000 |     301   |
+|                                     |        100,000 |   3,082   |
+|                                     |      1,000,000 |  30,886   |
+| $`\texttt{VDF.Aggregation.Verify}`$ |          1,000 |    17.4   |
+|                                     |         10,000 |    17.2   |
+|                                     |        100,000 |    17.3   |
+|                                     |      1,000,000 |    17.3   |
 
 #### 2.3.3 CDDL schema for the ledger
 Phalanx requires a single addition , `phalanx_challenge`, on the ledger.
