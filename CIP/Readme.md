@@ -170,7 +170,6 @@ The Randomness Generation sub-protocol operates with two parallel streams $`\eta
 ```math
    \eta^{\text{evolving}}_{t+1} =
    \begin{cases}
-   \text{ProtocolParameter}_\text{extraEntropy} & \text{when } t = 0, \\
    \eta^{\text{evolving}}_{t} ⭒ VRF^\text{Output}_\text{t+1} & \text{when BlockProduced}(t) \\
    \eta^{\text{evolving}}_{t}  & \text{otherwise.}
    \end{cases}
@@ -223,7 +222,7 @@ At each slot $t$, update the stream state by :
 ```math
 Φ.\text{Stream.State} \leftarrow \Phi.\text{tick}(Φ.\text{Stream.State, t})
 ```
-A node must be able to determine, based on the current state, whether it should begin computing $\Phi$ iterations in order to provide a proof at its next scheduled leader slot:
+A node must be able to determine, based on the current state, whether it should begin computing $\Phi$ iterations in order to provide a proof at its next scheduled leader slot (see [Section "3.2.4.1. VDF integration"](#3241-vdf-integration) for details):
 ```math
 \{0,1\} \leftarrow \Phi.\text{shouldCompute}(Φ.\text{Stream.State,nextElectedSlot})
 ```
