@@ -158,14 +158,14 @@ In **Φalanx** , the randomness generation and leader election flows are modifie
 
 #### 1.2. Inputs & Outputs 
 
-The Randomness Generation sub-protocol operates with two parallel streams $`\eta^\text{stream}`$ and $`\phi^\text{stream}`$, which synchronize at $`9.\frac{k}{f}`$ at each epoch :  
+The Randomness Generation sub-protocol operates with two parallel streams $`\eta`$ stream and $`\phi^\text{stream}`$, which synchronize at $`9.\frac{k}{f}`$ at each epoch :  
 
 ![alt text](./image/Phalanx-Streams.png)
 
-##### 1.2.1. **The $`\eta^\text{stream}`$** 
+##### 1.2.1. **The $`\eta`$ stream** 
 
    - Already present in Praos and retained in Phalanx 
-   - Updated with every block produced in the blockchain tree, a $`\eta^\text{stream}`$ captures intermediate values $`\eta^\text{evolving}_t`$ in the block headers, defined as follows:
+   - Updated with every block produced in the blockchain tree, a $`\eta`$ stream captures intermediate values $`\eta^\text{evolving}_t`$ in the block headers, defined as follows:
 
 ```math
    \eta^{\text{evolving}}_{t+1} =
@@ -193,8 +193,8 @@ false & \text{otherwise.}
 
 ##### 1.2.2. The $`\text{pre-}\eta`$ Synchronizations  
 
-- To generate $`\eta_\text{e}`$ for epoch $`e`$, the stream $`\phi^\text{stream}`$ is reset with the value of $`\eta^\text{stream}`$ at $`t=9.\frac{k}{f}`$ at $epoch_{e-2}$
-- This specific value of $`\eta^\text{stream}`$ is referred to as **$`\text{pre-}\eta_e`$** and defined as :
+- To generate $`\eta_\text{e}`$ for epoch $`e`$, the stream $`\phi^\text{stream}`$ is reset with the value of $`\eta`$ stream at $`t=9.\frac{k}{f}`$ at $epoch_{e-2}$
+- This specific value of $`\eta`$ stream is referred to as **$`\text{pre-}\eta_e`$** and defined as :
 ```math
 \text{pre-}\eta_e= \eta^{evolving}_{9.\frac{k}{f}(epoch_{e-2})}
 ```
@@ -225,7 +225,7 @@ At each slot $t$, update the stream state by :
 ```
 A node must be able to determine, based on the current state, whether it should begin computing $\Phi$ iterations in order to provide a proof at its next scheduled leader slot:
 ```math
-\{0,1\} \leftarrow \Phi.\text{shouldCompute}(Φ.\text{Stream.State,nextSlotLeader})
+\{0,1\} \leftarrow \Phi.\text{shouldCompute}(Φ.\text{Stream.State,nextElectedSlot})
 ```
 A node must be able to compute a specific chunk of the $`\Phi`$ iteration independently of any global state. 
 The result is an *attested output*—a pair $`\phi_x =(\pi_x,\ o_x)`$ where : 
@@ -255,12 +255,11 @@ At the synchronization point $`\text{pre-}\eta_{e+1}`$, the stream is closed pro
 
 ##### 1.2.4. The $`\eta`$ Generations
    - This is the final nonce $`\eta_\text{e}`$ used to determine participant eligibility during epoch $`e`$.  
-   - It originates from the operation ⭒ with  $`\phi^{\text{stream}}_{t}`$ at $`\text{pre-}\eta_\text{e+1}`$ Synchronization and $`\eta^\text{stream}_t`$ $`\text{when } t = \text{end of epoch}_\text{e-3}`$   
+   - It originates from the operation ⭒ with  $`\phi^{\text{stream}}_{t}`$ at $`\text{pre-}\eta_\text{e+1}`$ Synchronization and $`\eta`$ stream  $`\text{when } t = \text{end of epoch}_\text{e-3}`$   
 
 ```math
 \eta_\text{e} = \eta^\text{evolving}_{epoch_\text{e-3}} ⭒ {o_e} , \quad \text{when } t = \text{pre-}\eta_\text{e+1}\text{ synchronization } 
 ```
-
 
 ### 2. The Φ Cryptographic Primitive
 
@@ -619,7 +618,7 @@ Initialization occurs at every $`\text{pre-}\eta`$ synchronization point, follow
 
 We are now entering the **Computation Phase**. We have waited long enough for the first slot leader within the initial interval to have the opportunity to produce a block and submit the corresponding attested output. However, because the slot distribution is privately visible, leaders within the interval cannot determine whether they are the first to produce a block.
 
-Each leader is free to adopt their own strategy for deciding whether to initiate the proof of computation. A simple and conservative approach is to wait until $`\text{currentSlot} \geq \text{nextSlotLeader} - \left(\frac{T_\Phi}{82} + C\right)`$, where $`C`$ is a small constant. At that point, the leader may begin computing. If a block has already been produced by then, the leader can either skip the computation or abort it if already in progress. This delay increases the chances that any earlier eligible leaders have already submitted their outputs, thereby minimizing the risk of redundant proofs.
+Each leader is free to adopt their own strategy for deciding whether to initiate the proof of computation. A simple and conservative approach is to wait until $`\text{currentSlot} \geq \text{nextElectedSlot} - \left(\frac{T_\Phi}{82} + C\right)`$, where $`C`$ is a small constant. At that point, the leader may begin computing. If a block has already been produced by then, the leader can either skip the computation or abort it if already in progress. This delay increases the chances that any earlier eligible leaders have already submitted their outputs, thereby minimizing the risk of redundant proofs.
 
 To publish the first block of interval $`i \in [1..82]`$, the node invokes:
 
