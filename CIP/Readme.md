@@ -309,7 +309,7 @@ To define Wesolowski VDF construction, we first introduce a serie of hash functi
 
 We define the interface of a Verifiable Delay Function as $`\text{VDF} = (\text{Setup},\ \text{Evalute},\ \text{Prove},\ \text{Verify})`$, and define its underlying functions based on class groups as follows:
 
-- $`(\mathbb{G},\ \Delta,\ \cdot) \leftarrow \text{VDF}.\text{Setup}(\lambda,\ \Delta_{\text{challenge}})\\`$
+- $`(\mathbb{G},\ \Delta,\ \cdot) \leftarrow \text{VDF}.\text{Setup}(\lambda,\ \Delta_{\text{challenge}})`$
   Takes as input a **security parameter** $`\lambda \in \mathbb{N}`$ and a **challenge discriminant** $`\Delta_{\text{challenge}} \in \{0,1\}^*`$. This challenge discriminant acts as a source of public entropy used to deterministically derive the group discriminant $\Delta$, which defines a group of unknown order $\mathbb{G}$ along with its group operation $`\cdot`$. The use of a challenge ensures that the resulting group is unbiasable and unpredictable, preventing adversarial precomputation. Internally, we expect the setup procedure to invoke the following sub-operations:
 ```math
     \Delta \leftarrow \texttt{VDF.CreateDiscriminant}(\lambda,\ \Delta_{\text{challenge}})
@@ -318,13 +318,13 @@ We define the interface of a Verifiable Delay Function as $`\text{VDF} = (\text{
   (\mathbb{G},\ \cdot) \leftarrow \texttt{VDF.DeriveClassGroup}(\lambda,\ \Delta)
 ```
 
-- $`y \leftarrow \text{VDF}.\text{Evaluate}((\mathbb{G},\ \Delta,\ \cdot), \ x,\ I)\\`$
+- $`y \leftarrow \text{VDF}.\text{Evaluate}((\mathbb{G},\ \Delta,\ \cdot), \ x,\ I)`$
   Given a challenge $`x \in \mathbb{G}`$ and a number of iterations $`I \in \mathbb{N}`$, computes the VDF output $`y = x^{2^I}`$.
 
-- $`\pi \leftarrow \text{VDF}.\text{Prove}((\mathbb{G},\ \Delta,\ \cdot), \ x,\ y,\ I)\\`$ 
+- $`\pi \leftarrow \text{VDF}.\text{Prove}((\mathbb{G},\ \Delta,\ \cdot), \ x,\ y,\ I)`$ 
   Given a challenge and output $`(x,y) \in \mathbb{G}^2`$, computes the VDF  **proof** $`\pi`$ as $`\pi = x^{2^I / p}`$ where $`p \leftarrow \text{Hash}^{(2 \lambda)}_\text{prime}(x  y)`$ is sampled from the first $`2^{2 \lambda}`$ prime numbers.
 
-- $`\{0,1\} \leftarrow \text{VDF}.\text{Verify}((\mathbb{G},\ \Delta,\ \cdot), \ x,\ y,\ I,\ \pi)\\`$
+- $`\{0,1\} \leftarrow \text{VDF}.\text{Verify}((\mathbb{G},\ \Delta,\ \cdot), \ x,\ y,\ I,\ \pi)`$
   Returns 1 if $`\pi`$ successfully attests that $`y = x^{2^I}`$ with overwhelming probability, that is if $\pi^r \cdot x^p == y$ where $`p \leftarrow \text{Hash}^{(2 \lambda)}_\text{prime}(x \| y)`$ and $`r \leftarrow 2^{2^I} \text{mod}\ p`$. Returns 0 otherwise.
 
 We now show evaluation, proving and verification benchmarks on the VDF primiitives for different discriminant sizes done on a Ubuntu computer with Intel® Core™ i9-14900HX with 32 cores and 64.0 GiB.
