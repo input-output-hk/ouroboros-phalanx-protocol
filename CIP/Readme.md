@@ -33,7 +33,6 @@ License: Apache-2.0
     - [2.3 Wesolowski's VDF](#23-wesolowskis-vdf)
       - [2.3.1 VDF Primitives](#231-vdf-primitives)
       - [2.3.2 VDF Aggregation Primitives](#232-vdf-aggregation-primitives)
-      - [2.3.3 CDDL Schema For The Ledger](#233-cddl-schema-for-the-ledger)
   - [3. $`\phi^{\text{stream}}`$ Specification](#3-phitextstream-specification)
     - [3.1 Distribution of Φ Iterations](#31-distribution-of-φ-iterations)
     - [3.2 The State Machine](#32-the-state-machine)
@@ -50,12 +49,16 @@ License: Apache-2.0
         - [3.2.5.1 The States](#3251-the-states)
         - [3.2.5.2 ProvideMissingAttestedOutput & Tick Commands](#3252-providemissingattestedoutput--tick-commands)
       - [3.2.6 Closure Phase](#326-closure-phase)
-        - [3.2.6.1 The States](#3261-the-states)
-        - [3.2.6.2 The Successful Scenario: The `Close` Command](#3262-the-successful-scenario-the-close-command)
-        - [3.2.6.3 `tick` Command](#3263-tick-command)
-        - [3.2.6.4 The Failure Scenario : The Force Close Process](#3264-the-failure-scenario--the-force-close-process)
-  - [4. Agda Mechanization](#38-agda-mechanization)
-  - [5. Recommended Parameter Values](#6-recommended-parameters)
+        - [3.2.6.1. The States](#3261-the-states)
+            - [3.2.6.2. The Successful Scenario: The `Close` Command](#3262-the-successful-scenario-the-close-command)
+            - [3.2.6.3. `tick` Command](#3263-tick-command)
+            - [3.2.6.4. The Failure Scenario: Ungraceful Closure](#3264-the-failure-scenario-ungraceful-closure)
+  - [4. Recommended Parameter Values](#4-recommended-parameter-values)
+    - [4.1. VDF Security Parameters λ and ρ](#41-vdf-security-parameters-λ-and-ρ)
+    - [4.2. Time Budget T<sub>Φ</sub> and Derived T](#42-time-budget-tsubφsub-and-derived-t)
+      - [4.2.1. Specialized ASIC vs CPU-Based Chips](#421-specialized-asic-vs-cpu-based-chips)
+      - [4.2.2. Deriving from T<sub>Φ</sub> to T](#422-deriving-from-tsubφsub-to-t)
+  - [5. CDDL Schema for the Ledger](#5-cddl-schema-for-the-ledger)
 - [Rationale: How does this CIP achieve its goals?](#rationale-how-does-this-cip-achieve-its-goals)
   - [1. How Phalanx Addresses CPS-21 - Ouroboros Randomness Manipulation ?](#1-how-phalanx-addresses-cps-21---ouroboros-randomness-manipulation)
     - [1.1 Problem Overview](#11-problem-overview)
@@ -846,92 +849,46 @@ If the protocol reaches the end of its lifecycle, or it becomes evident that too
 
 While this state is statistically unexpected, it is explicitly defined to ensure completeness and structural consistency within the state machine.
 
-
-### 4. Agda Mechanization
-
-The changes to the Agda specification are found [here](https://github.com/IntersectMBO/ouroboros-consensus/tree/polina/anti-grinding/docs/agda-spec).
-The main changes can be summarized as follows :
-
-- `RandomnessStabilisationWindow` was renamed to `RandomnessStabilisationWindowPlusOne`, because this aligns better with the 
-case splitting required for the changes. The implication is that `RandomnessStabilisationWindowPlusOne` is exactly 
-one slot more than the `RandomnessStabilisationWindow`
-
-- The following modules are parametrized by the function `grindingf : Nonce → Nonce` that gets applied repeatedly to 
-the pre-nonce at the arrival of each block, called `f` in the Quick Wins document. This function is left abstract
-in the specification. 
-  - `Spec.ChainHead` , `Spec.ChainHead.Properties` , `Spec.Protocol` , `Spec.Protocol.Properties` , `Spec.UpdateNonce` , `Spec.UpdateNonce.Properties`
-
-- The field `pre-η`, representing the current value of the pre-nonce, is added to the the following states :
-  - `UpdateNonceState` , `PrtclState` , `ChainHeadState`
-
-**`UPDN` Transition.** This transition is called by the `PTCL` transition every time a new block is being applied. 
-It specifies 
-
-- how the evolving nonce `ηv` is evolved by a VRF result from the incoming block header, i.e. in every 
-case, it is combined  with the result of the VRF calculation `η` 
- 
-- how the candidate nonce `ηc` is updated : it is kept fixed whenever the current slot 
-is less than `RandomnessStabilisationWindowPlusOne` slots away from the first slot of the next epoch, 
-and is set equal to the evolving nonce otherwise
-
-This transition is changed from having two rules, `Update-Both` and `Only-Evolve`, which 
-correspond to whether `s + RandomnessStabilisationWindowPlusOne` is `<` or `≥` than `firstSlot (sucᵉ (epoch s))` (respectively) 
-to having three separate cases. In all cases, the evolving nonce `ηv` is evolved by applying the VRF result `η`, denoted `ηv * η` :
-
-1. `Update-All`, corresponding to `≡`
-    - old pre-nonce `pre-η` is discarded, and the value in this field is set to a new pre-nonce, which is the same as 
-  the updated evolving nonce, `ηv * η`,
-    - the old candidate nonce `ηc` is discarded, and the value in this field is set to `grinding pre-η`. This is the 
-  result of the application of the anti-grinding function `grindingf` 
-
-2. `New-PreN`, corresponding to `<`
-    - old pre-nonce `pre-η` is updated to the result of the application of the anti-grinding function `grindingf`, to 
-  the existing pre-nonce to get `grindingf pre-η` 
-    - the new candidate nonce `ηc` is discarded, and the field value is set to the same as the updated pre-nonce, i.e. `grindingf pre-η` 
-
-3. `Keep-PreN`, corresponding to `>`
-    - old pre-nonce `pre-η` is updated to the result of the application of the anti-grinding function `grindingf`, to 
-  the existing pre-nonce to get `grindingf pre-η` 
-    - the candidate nonce `ηc` is kept constant, because it needs to remain fixed for this last part of the epoch
-
-These rule changes ensure that a fresh pre-nonce (which comes from the VRF-based evolving nonce) is set in the 
-slot that is `RandomnessStabilisationWindowPlusOne`
-before the first slot of the next epoch, updated by applying the anti-grinding function `grindingf` for each 
-block in the span of the subsequent epoch. Once that is complete, the updated pre-nonce becomes the new 
-candidate nonce.
-
-**Changes to other Transitions.**
-The rule that calls `UPDN`, which is `PRTL`, still does so by requiring the correct execution of `UPDN`.
-This is achieved by including the the start state of  `UPDN` the pre-nonce `pre-η`, and in its end state, the updated 
-`pre-η'`, which is the update computed by `UPDN`. The pre-nonce is also included in the state updated 
-by `PRTL` itself. Changes to rule that calls `PRTL`, which is `CHAINHEAD`, follow the same pattern 
-as the changes to `PRTL` : including the pre-nonce in its state, and updating it by calling the `PRTL` 
-rule to compute the update.
-
-**NOTE** The rule `TICKN` is used to swap out the old epoch nonce 
-at the start of the new epoch. This rule does not swap the previous epoch's nonce for the candidate 
-nonce directly, but instead, it combines the candidate nonce with the hash of previous 
-epoch's last block header to obtain the new epoch nonce. This rule remains unchanged, however, 
-this divergence from the original design impacts the analysis of the effectiveness of the 
-new anti-grinding measures.
-
-### 5. Recommended Parameter values
+### 4. Recommended Parameter values
 
 There are **two categories of parameters** in the Phalanx protocol that Cardano governance will need to oversee. The first category concerns the **VDF parameters**, which are essential to maintaining the protocol’s cryptographic security. The second concerns the **total time budget** \$T\_\Phi\$ that will be required from SPOs during the **Computation Phase**.
 
 The goal of this section is to provide **recommended values** for these parameters along with the **rationale** behind their selection, so that governance is well-equipped to **adjust them over time** in response to advances in adversarial computational power.
 
-#### 5.1 Time Budget T<sub>Φ</sub> and Derived T
+#### 4.1 VDF Security Parameters λ and ρ
+
+The VDF component in Phalanx relies on class group security, which is parameterized by two values:
+
+- $`\lambda`$, the **class group security parameter**, and
+- $`\rho`$, the **grinding resistance parameter**, newly introduced in the Phalanx design.
+
+Several combinations of $`\lambda`$ and $`\rho`$ are considered in the literature, depending on the desired level of paranoia or efficiency. Based on the recommendations from the paper [Trustless Unknown-Order Groups]((https://arxiv.org/pdf/2211.16128)), we highlight the following trade-offs: 
+
+- A **paranoid** setting, $(\lambda, \rho) = (128, 128)$, requires a **group size of \~3400 bits**.
+- A more **realistic yet cautious** setting, $(\lambda, \rho) = (128, 55)$, brings the group size down to **\~1900 bits**, but requires discriminants of at least **3800 bits**.
+- Based on those benchmarks and our needs, we opt for $(\lambda, \rho) = (128, 64)$, which corresponds to:
+
+  - a **discriminant size of 4096 bits**,
+  - and a **group size of 2048 bits**.
+
+This strikes a balance between long-term security and practical efficiency:
+
+- On one hand, **breaking the class group** is considered harder than **finding a collision in a 256-bit hash** (our minimum security baseline).
+- On the other hand, by following the paper’s recommendation and selecting a slightly lower $`\rho = 64`$, we can **reduce the size of on-chain group elements** while maintaining sufficient resistance against grinding.
+
+Since Phalanx is designed to operate with a **single class group instance “for the lifetime of the protocol”** (reparametrization would require explicit governance intervention), this configuration $(\lambda, \rho) = (128, 64)$ ensures protocol simplicity, consistency, and operational predictability.
+
+#### 4.2 Time Budget T<sub>Φ</sub> and Derived T
 
 In terms of efficiency, the section [**1. How Phalanx Addresses CPS-21 – Ouroboros Randomness Manipulation**](#1-how-phalanx-addresses-cps-21---ouroboros-randomness-manipulation) in the *Rationale* part of this document illustrates, through three scenarios $`\text{Phalanx}_{1/10}`$, $`\text{Phalanx}_{1/100}`$, and $`\text{Phalanx}_{\text{max}}`$, how different time budgets (2 hours, 12 hours, and 5 days, respectively) improve the protocol’s security guarantees against grinding attacks.
 
 In terms of computational load, we recommend setting the time budget at a **midpoint between minimal and maximal protocol capacity**, corresponding to approximately **12 hours** of execution on typical, CPU-based hardware as recommended for SPOs. However, this choice should ultimately be guided by **settlement time performance requirements** across the ecosystem, including the needs of **partner chains and other dependent components**.
 
-#### 5.1.1 Specialized ASIC vs CPU-Based Chips
+#### 4.2.1 Specialized ASIC vs CPU-Based Chips
 
 We need to account for the possibility that adversaries may equip themselves with specialized ASIC chips optimized for computing Wesolowski’s Verifiable Delay Function (VDF). The Chia team has already developed and deployed such **ASIC Timelords**, which demonstrate between **3× and 5× performance improvements** compared to standard CPU-based implementations. These ASICs reach up to **1,000,000 iterations per second**, while commodity CPU Timelords typically max out around **260,000 IPS** ([Chia Network, Oct 2023](https://www.chia.net/2023/10/26/were-going-to-ludicrous-speed)).
 
-To mitigate this performance asymmetry, our initial strategy is to require a **12-hour equivalent workload on standard CPU hardware** (as in \$`\text{Phalanx}_{1/10}`\$), which is calibrated to provide the **same security guarantees** as a more aggressive configuration like \$`\text{Phalanx}_{1/100}`\$. This gives us a conservative baseline for security, assuming an adversary might leverage ASIC acceleration.
+To mitigate this performance asymmetry, our initial strategy is to require a **12-hour equivalent workload on standard CPU hardware** (as in \$`\text{Phalanx}_{1/10}`\$), which is calibrated to provide the **same security guarantees** as a less aggressive configuration like \$`\text{Phalanx}_{1/100}`\$. This gives us a conservative baseline for security, assuming an adversary might leverage ASIC acceleration.
 
 Critically, scaling this kind of grinding capability is expensive. For an adversary to mount an effective grinding attack, they would need to build and operate a farm of VDF-optimized ASICs — a non-trivial financial and operational challenge. Chia’s rollout of these units has been tightly controlled and aimed at ensuring global distribution, not centralization ([Chia Global Expansion Update, June 2024](https://www.chia.net/2024/06/10/global-expansion-of-chia-network-security-with-successful-asic-timelord-rollout)).
 
@@ -941,85 +898,23 @@ Critically, scaling this kind of grinding capability is expensive. For an advers
 
 In summary, while ASIC-equipped adversaries could, in theory, gain a computational advantage during the grinding window, the cost and scale required to pose a real threat remains high. Our mitigation strategy is to raise the honest baseline to neutralize this advantage and prepare for possible hardware evolution over time.
 
+#### 4.1.2 Deriving from T<sub>Φ</sub> to T
 
-Time bugdet are a high level abstract, and we need to derive into T akka the number of iteration we are going to ask for each block produced. 
+We recommend a **12-hour computation budget** on standard **CPU-based machines**, which we estimate to be **10× slower** than specialized ASICs available to adversaries. This configuration corresponds to **Phalanx<sub>1/10</sub>** in terms of **time budget**, while achieving **Phalanx<sub>1/100</sub>** in terms of **security guarantees** against grinding attacks.
 
+However, this **time budget** ($T\_\Phi$) is a high-level abstraction. To implement it concretely, we must derive the **number of VDF iterations** ($T$) required for each **first block of an interval**. Assuming 82 intervals per epoch, this translates to:
 
-#### 5.2 VDF Security Parameters λ and ρ
+```math
+T = \frac{T_\Phi}{82} = \frac{12 \text{ hours} \times 3600 \text{ seconds/hour}}{82} \approx 527 \text{ seconds}
+```
 
+So, we ask for approximately **10 minutes of VDF computation** per published interval block on standard CPU-based hardware.
 
+To translate this into a concrete number of **VDF iterations** ($T$), we rely on performance benchmarks from the implementation available at [rrtoledo/chiavdf](https://github.com/rrtoledo/chiavdf/tree/fd90449967963c324d245e59edf86ec7f3ce8153). This library is a **highly optimized and production-hardened** implementation of Wesolowski's VDF, currently in use by the **Chia blockchain**. We have made minor, superficial modifications to this codebase solely to facilitate benchmarking.
 
-### 6. Efficiency Analysis
+Thanks to its well-established performance profile, this implementation provides a dependable baseline for estimating how many iterations can be executed within a fixed time frame on standard CPU hardware. Under our test environment—an Ubuntu machine equipped with an **Intel® Core™ i9-14900HX (32 cores, 64 GiB RAM)**—we observed approximately **27 million iterations** in a 10-minute window.
 
-To support Phalanx, one block per interval (3600 slots) and this for 83 intervals must include **2 group elements**. Each of these elements can be compressed to approximately $3/4 \cdot \log(|\Delta|)$ bits. For a discriminant of 3,800 bits, this amounts to **5,700 bits in total**. 
-
-### Block Publication
-
-To publish a block, a node must:
-
-* Perform $T$ squarings to compute the output,
-* Execute $O(T / \log(T))$ operations for the proof generation,
-* Update both accumulators, requiring:
-
-  * 2 hashes,
-  * 2 exponentiations,
-  * 2 group multiplications,
-    assuming the interval’s iteration has not already been published and no catch-up is required.
-
-If a past iteration needs to be caught up, the node must:
-
-* Compute an additional output and proof,
-* Update the accumulators with \$2 \cdot m\$ operations:
-
-  * \$m\$ hashes,
-  * \$m\$ exponentiations,
-  * \$m\$ multiplications,
-    where \$m\$ is the number of consecutive iterations from the missed one to the current slot.
-
-### Block Verification
-
-#### When Not Syncing
-
-For each block, a node performs:
-
-* 2 hashes,
-* 4 small exponentiations,
-* 3 group multiplications.
-
-Over an epoch with \$N\$ intervals, this results in:
-
-* \$2 \cdot N\$ hashes,
-* \$4 \cdot N\$ small exponentiations,
-* \$3 \cdot N\$ group multiplications.
-
-#### When Syncing
-
-Only the aggregations and their proofs need to be verified:
-
-* \$2 \cdot N\$ hashes,
-* \$2 \cdot N + 1\$ group multiplications,
-* \$2 \cdot (N + 1)\$ small exponentiations.
-
-Note: The exponentiations involving the \$\alpha\_i\$ values are **half as expensive** as those in the full proof verification.
-
-If we opted out of aggregation:
-
-* We would save **5,700 bits** per block,
-* Avoid 2 small exponentiations and 2 group multiplications per block,
-* However, syncing nodes would instead perform:
-
-  * \$2 \cdot N\$ **large** exponentiations (instead of small ones),
-  * 2 additional large exponentiations overall.
-
-### On Group Regeneration
-
-Because group generation is highly efficient, we can regenerate a fresh group every epoch. This allows us to **reduce the security parameter** while still making it computationally infeasible to break the group within a single epoch. In turn, this reduction decreases the on-chain size of each group element.
-
-### Future Work
-
-A promising optimization would be to **SNARKify** the accumulators, their updates, and the proof verification process. This could significantly reduce both space usage and potentially the verification time. An **incrementally verifiable computation** approach would be particularly well-suited here, enabling each iteration and accumulator update to be proven in small circuits, then aggregated into a single proof for the entire epoch.
-
-That said, **SNARK-based constructions come with a significant increase in proving time**, and any such integration must weigh trade-offs between prover cost and verifier efficiency.
+**Note** : We recommend that this benchmark be re-run on a **dedicated, representative SPO machine** to calibrate a more accurate production value for $T$.
 
 ## 6. CDDL Schema for the Ledger
 
@@ -1876,3 +1771,77 @@ The security proof of this accumulation can be found in [Building Cryptographic 
 Table 1. VDF benchmarks, means and standard deviation, perfomed on a discriminant $\Delta$ of different sizes and with a range of iterations on one core of Intel(R) Core(TM) i9-14900HX (2.2 GHz base frequency, 24 cores, 32 threads).
 </center>
 
+
+
+
+### 6. Efficiency Analysis
+
+To support Phalanx, one block per interval (3600 slots) and this for 83 intervals must include **2 group elements**. Each of these elements can be compressed to approximately $3/4 \cdot \log(|\Delta|)$ bits. For a discriminant of 3,800 bits, this amounts to **5,700 bits in total**. 
+
+### Block Publication
+
+To publish a block, a node must:
+
+* Perform $T$ squarings to compute the output,
+* Execute $O(T / \log(T))$ operations for the proof generation,
+* Update both accumulators, requiring:
+
+  * 2 hashes,
+  * 2 exponentiations,
+  * 2 group multiplications,
+    assuming the interval’s iteration has not already been published and no catch-up is required.
+
+If a past iteration needs to be caught up, the node must:
+
+* Compute an additional output and proof,
+* Update the accumulators with \$2 \cdot m\$ operations:
+
+  * \$m\$ hashes,
+  * \$m\$ exponentiations,
+  * \$m\$ multiplications,
+    where \$m\$ is the number of consecutive iterations from the missed one to the current slot.
+
+### Block Verification
+
+#### When Not Syncing
+
+For each block, a node performs:
+
+* 2 hashes,
+* 4 small exponentiations,
+* 3 group multiplications.
+
+Over an epoch with \$N\$ intervals, this results in:
+
+* \$2 \cdot N\$ hashes,
+* \$4 \cdot N\$ small exponentiations,
+* \$3 \cdot N\$ group multiplications.
+
+#### When Syncing
+
+Only the aggregations and their proofs need to be verified:
+
+* \$2 \cdot N\$ hashes,
+* \$2 \cdot N + 1\$ group multiplications,
+* \$2 \cdot (N + 1)\$ small exponentiations.
+
+Note: The exponentiations involving the \$\alpha\_i\$ values are **half as expensive** as those in the full proof verification.
+
+If we opted out of aggregation:
+
+* We would save **5,700 bits** per block,
+* Avoid 2 small exponentiations and 2 group multiplications per block,
+* However, syncing nodes would instead perform:
+
+  * \$2 \cdot N\$ **large** exponentiations (instead of small ones),
+  * 2 additional large exponentiations overall.
+
+### On Group Regeneration
+
+Because group generation is highly efficient, we can regenerate a fresh group every epoch. This allows us to **reduce the security parameter** while still making it computationally infeasible to break the group within a single epoch. In turn, this reduction decreases the on-chain size of each group element.
+
+### Future Work
+
+A promising optimization would be to **SNARKify** the accumulators, their updates, and the proof verification process. This could significantly reduce both space usage and potentially the verification time. An **incrementally verifiable computation** approach would be particularly well-suited here, enabling each iteration and accumulator update to be proven in small circuits, then aggregated into a single proof for the entire epoch.
+
+That said, **SNARK-based constructions come with a significant increase in proving time**, and any such integration must weigh trade-offs between prover cost and verifier efficiency.
