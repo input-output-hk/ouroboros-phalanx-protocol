@@ -55,6 +55,7 @@ License: Apache-2.0
         - [3.2.6.3 `tick` Command](#3263-tick-command)
         - [3.2.6.4 The Failure Scenario : The Force Close Process](#3264-the-failure-scenario--the-force-close-process)
   - [4. Agda Mechanization](#38-agda-mechanization)
+  - [5. Recommended Parameters](#6-recommended-parameters)
 - [Rationale: How does this CIP achieve its goals?](#rationale-how-does-this-cip-achieve-its-goals)
   - [1. How Phalanx Addresses CPS-21 - Ouroboros Randomness Manipulation ?](#1-how-phalanx-addresses-cps-21---ouroboros-randomness-manipulation)
     - [1.1 Problem Overview](#11-problem-overview)
@@ -88,11 +89,6 @@ License: Apache-2.0
         - [3.2.4.3 Design](#3243-design)
         - [3.2.4.4 Properties](#3244-properties)
     - [3.3 Primitive recommendation](#33-primitive-recommendation)
-  - [4. Simulation and Prototyping](#4-simulation-and-prototyping)
-    - [4.1 Implementing Wesolowski’s VDF: The CHiA Approach](#41-implementing-wesolowskis-vdf-the-chia-approach)
-    - [4.2 Lightweight Simulation of Phalanx](#42-lightweight-simulation-of-phalanx)
-  - [5. Phalanx Performance Evaluation](#5-phalanx-performance-evaluation)
-  - [6. Recommended Parameters](#6-recommended-parameters)
 - [Path to Active](#path-to-active)
   - [Acceptance Criteria](#acceptance-criteria)
   - [Implementation Plan](#implementation-plan)
@@ -398,31 +394,7 @@ For a discriminant of 4096 bits, we benchmarks the aggregation functions,
 |                                     |         10,000 |    17.2   |
 |                                     |        100,000 |    17.3   |
 |                                     |      1,000,000 |    17.3   |
-
-#### 2.3.3 CDDL schema for the ledger
-Phalanx requires a single addition , `phalanx_challenge`, on the ledger.
-
-```diff
- block =
-   [ header
-   , transaction_bodies         : [* transaction_body]
-   , transaction_witness_sets   : [* transaction_witness_set]
-   , auxiliary_data_set         : {* transaction_index => auxiliary_data }
-   , invalid_transactions       : [* transaction_index ]
-+  , ? phalanx_challenge        : phalanx_struct
-   ]
-```
-
-The structure is defined as follows,
-
-```cddl
- block =
-   [ phalanx_output           : form_size
-   , phalanx_proof            : form_size
-   ]
-```
-
-Where `form_size = [bytes, bytes .size 388]`
+ 
 
 ### 3. $`\phi^{\text{stream}}`$ Specification
 
@@ -942,6 +914,134 @@ nonce directly, but instead, it combines the candidate nonce with the hash of pr
 epoch's last block header to obtain the new epoch nonce. This rule remains unchanged, however, 
 this divergence from the original design impacts the analysis of the effectiveness of the 
 new anti-grinding measures.
+
+### 5. Recommended Parameters
+
+There are **two categories of parameters** in the Phalanx protocol that Cardano governance will need to oversee. The first category concerns the **VDF parameters**, which are essential to maintaining the protocol’s cryptographic security. The second concerns the **total time budget** \$T\_\Phi\$ that will be required from SPOs during the **Computation Phase**.
+
+The goal of this section is to provide **recommended values** for these parameters along with the **rationale** behind their selection, so that governance is well-equipped to **adjust them over time** in response to advances in adversarial computational power.
+
+#### 5.1 Time Budget T<sub>Φ</sub> and Derived T
+
+In terms of efficiency, the section [**1. How Phalanx Addresses CPS-21 – Ouroboros Randomness Manipulation**](#1-how-phalanx-addresses-cps-21---ouroboros-randomness-manipulation) in the *Rationale* part of this document illustrates, through three scenarios $`\text{Phalanx}_{1/10}`$, $`\text{Phalanx}_{1/100}`$, and $`\text{Phalanx}_{\text{max}}`$, how different time budgets (2 hours, 12 hours, and 5 days, respectively) improve the protocol’s security guarantees against grinding attacks.
+
+In terms of computational load, we recommend setting the time budget at a **midpoint between minimal and maximal protocol capacity**, corresponding to approximately **12 hours** of execution on typical, CPU-based hardware as recommended for SPOs. However, this choice should ultimately be guided by **settlement time performance requirements** across the ecosystem, including the needs of **partner chains and other dependent components**.
+
+
+Time bugdet are a high level abstract, and we need to derive into T akka the number of iteration we are going to ask for each block produced. 
+
+
+#### 5.2 VDF Security Parameters λ and ρ
+
+
+
+### 6. Efficiency Analysis
+
+To support Phalanx, one block per interval (3600 slots) and this for 83 intervals must include **2 group elements**. Each of these elements can be compressed to approximately $3/4 \cdot \log(|\Delta|)$ bits. For a discriminant of 3,800 bits, this amounts to **5,700 bits in total**. 
+
+### Block Publication
+
+To publish a block, a node must:
+
+* Perform $T$ squarings to compute the output,
+* Execute $O(T / \log(T))$ operations for the proof generation,
+* Update both accumulators, requiring:
+
+  * 2 hashes,
+  * 2 exponentiations,
+  * 2 group multiplications,
+    assuming the interval’s iteration has not already been published and no catch-up is required.
+
+If a past iteration needs to be caught up, the node must:
+
+* Compute an additional output and proof,
+* Update the accumulators with \$2 \cdot m\$ operations:
+
+  * \$m\$ hashes,
+  * \$m\$ exponentiations,
+  * \$m\$ multiplications,
+    where \$m\$ is the number of consecutive iterations from the missed one to the current slot.
+
+### Block Verification
+
+#### When Not Syncing
+
+For each block, a node performs:
+
+* 2 hashes,
+* 4 small exponentiations,
+* 3 group multiplications.
+
+Over an epoch with \$N\$ intervals, this results in:
+
+* \$2 \cdot N\$ hashes,
+* \$4 \cdot N\$ small exponentiations,
+* \$3 \cdot N\$ group multiplications.
+
+#### When Syncing
+
+Only the aggregations and their proofs need to be verified:
+
+* \$2 \cdot N\$ hashes,
+* \$2 \cdot N + 1\$ group multiplications,
+* \$2 \cdot (N + 1)\$ small exponentiations.
+
+Note: The exponentiations involving the \$\alpha\_i\$ values are **half as expensive** as those in the full proof verification.
+
+If we opted out of aggregation:
+
+* We would save **5,700 bits** per block,
+* Avoid 2 small exponentiations and 2 group multiplications per block,
+* However, syncing nodes would instead perform:
+
+  * \$2 \cdot N\$ **large** exponentiations (instead of small ones),
+  * 2 additional large exponentiations overall.
+
+### On Group Regeneration
+
+Because group generation is highly efficient, we can regenerate a fresh group every epoch. This allows us to **reduce the security parameter** while still making it computationally infeasible to break the group within a single epoch. In turn, this reduction decreases the on-chain size of each group element.
+
+### Future Work
+
+A promising optimization would be to **SNARKify** the accumulators, their updates, and the proof verification process. This could significantly reduce both space usage and potentially the verification time. An **incrementally verifiable computation** approach would be particularly well-suited here, enabling each iteration and accumulator update to be proven in small circuits, then aggregated into a single proof for the entire epoch.
+
+That said, **SNARK-based constructions come with a significant increase in proving time**, and any such integration must weigh trade-offs between prover cost and verifier efficiency.
+
+## 6. CDDL Schema for the Ledger
+
+Phalanx requires a single addition to the block body structure in the ledger: the field `phalanx_challenge`.
+
+```diff
+ block =
+   [ header
+   , transaction_bodies         : [* transaction_body]
+   , transaction_witness_sets   : [* transaction_witness_set]
+   , auxiliary_data_set         : {* transaction_index => auxiliary_data }
+   , invalid_transactions       : [* transaction_index ]
++  , ? phalanx_challenge        : vdf_attested_output
+   ]
+```
+
+The structure `vdf_attested_output` is defined as follows:
+
+```cddl
+vdf_attested_output =
+  [ output : form_size
+  , proof  : form_size
+  ]
+
+form_size = [ bytes, bytes .size 388 ]
+```
+
+We initially evaluated including the `phalanx_challenge` (i.e., the VDF attested output) in the **block header** (instead as proposed in the **block body**) colocated with the VRF outputs. However, this approach raised concerns due to **header size constraints**.
+
+The current **maximum block header size** in Cardano is **1100 bytes**, although actual usage today averages around **860 bytes**. Since TCP packet limits suggest keeping headers under **1500 bytes**, the available headroom is approximately **600 bytes**. The full `vdf_attested_output` in its default form requires:
+
+- **388 bytes** per group element (assuming the lowest acceptable security parameters)
+- 2 group elements (output + proof)
+- Total: **776 bytes**
+
+This would **exceed the 1500-byte limit**, risking fragmentation and violating guidance from the Cardano networking team.
 
 
 ## Rationale: How does this CIP achieve its goals?
@@ -1515,7 +1615,6 @@ Figure 1, taken from Reinforced concrete paper [27]. Performance of various hash
 </center>
 
 
-
 | $\text{log}_2(\text{gates})$ |   #gates   | Proving time - KZG (ms) | Proving time - IPA (ms) |
 | :--------------------------: | :-------------------: | :------------------------------: |:-------------------------------: |
 | $8$                          |  256     	           |  43	                            |  77	                             |
@@ -1566,16 +1665,6 @@ Using OWFs and SNARKs in the context of Phalanx is straightforward. To each iter
 The combination of OWFs and SNARKs, however elegant it may be for its modularity, is not practical for the proof generation overhead being prohibitive. 
 Trapdoor based solutions seem to be the best candidates for anti-grinding solutions. Out of the ones considered, VDFs seem the most practical primitive thanks to the possibility of reusing the group, and class groups offer the simplest deployment. The main caveat of such a solution is in its relative novelty, regular assessment would need to be done to ensure correct and up to date parametrization.
 
-### 4. Simulation and Prototyping
-TODO
-#### 4.1 Implementing Wesolowski’s VDF: The CHiA Approach  
-TODO
-#### 4.2 Lightweight Simulation of Phalanx
-TODO
-### 5. Phalanx Performance Evaluation
-TODO
-### 6. Recommended Parameters
-TODO
 
 ## Path to Active
 
@@ -1740,18 +1829,6 @@ The computation guarantees of VDFs relies on the fact that squaring elements in 
 The security proof of this accumulation can be found in [Building Cryptographic Proofs from Hash Functions, Chapter 14](https://github.com/hash-based-snargs-book/hash-based-snargs-book/blob/main/snargs-book.pdf) by Alessandro Chiesa and Eylon Yogev.
 
 
-#### 4.1.3 Efficiency analysis
-
-We will need to add to the block four group elements, each element can be compressed to $3/4 \cdot \text{log}(| \Delta|)$ bits, that is 11,400 bits in total for 3,800-bit-long discriminant, or half of it were we to not publish the accumulators and keep them in cache.
-
-To publish a block, the node would need to perform $T$ squaring for the output computation and $O(T / \text{log}(T))$ operations for the proof generation, and update both accumulators with two hashes, exponentiations and multiplications in total if the interval's iteration was not already published and no iteration needs to be caught up. If an iteration needs to be caught up, the node would need to compute an additional proof and computation, and update the accumulators with $2\cdot m$ hashes, multiplications and exponentiations where $m$ is the number of consecutive iterations published after the missing iteration and now.
-
-To verify a block, when not synching, the node would perform 2 hashes, 4 small exponentiations and 3 group multiplications. Over a whole epoch, with say $N$ intervals, we would thus need $2 \cdot N$ hashes, $4 \cdot N$ small exponentiations as well as $3 \cdot N$ group multiplications.
-When synching, the node would only need to check the aggregation at each step and the aggregation proof for a total of $2\cdot N$ hashes, $2\cdot N + 1$ group multiplications and $2 \cdot (N+1) $ small exponentiations. Note that the exponentiations with the $\alpha_i$ are half as cheap as the ones in the proof verification. As such, were we not to do the aggregation, we would save 5,700 bits on the block, 2 small exponentiations and group multiplications per block but the synching node would however have to perform $2 \cdot N$ larger exponentiations instead of $2 \cdot N$ smaller ones and 2 larger ones.
-
-Because the group generation algorithm is very efficient, we can re-generating a group every epoch easily. We can take advantage of this to reduce the security parameter such that it is still highly improbable to break the group within an epoch to reduce the size of the elements on-chain.
-
-N.B. For future work, it could be interesting to snarkify the accumulators, their update and the proof verification to save space and potentially reduce the verification time. An incrementally verifiable computation technique would be particularly interesting in that scenario as we would be able to prove each iteration and accumulator update in small circuits and generate a single proof for the whole epoch. Regardless of the techniques chosen, using SNARKs would significantly increase the proving time.
 
 
 <center>
