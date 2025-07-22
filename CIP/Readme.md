@@ -55,7 +55,7 @@ License: Apache-2.0
         - [3.2.6.3 `tick` Command](#3263-tick-command)
         - [3.2.6.4 The Failure Scenario : The Force Close Process](#3264-the-failure-scenario--the-force-close-process)
   - [4. Agda Mechanization](#38-agda-mechanization)
-  - [5. Recommended Parameters](#6-recommended-parameters)
+  - [5. Recommended Parameter Values](#6-recommended-parameters)
 - [Rationale: How does this CIP achieve its goals?](#rationale-how-does-this-cip-achieve-its-goals)
   - [1. How Phalanx Addresses CPS-21 - Ouroboros Randomness Manipulation ?](#1-how-phalanx-addresses-cps-21---ouroboros-randomness-manipulation)
     - [1.1 Problem Overview](#11-problem-overview)
@@ -915,7 +915,7 @@ epoch's last block header to obtain the new epoch nonce. This rule remains uncha
 this divergence from the original design impacts the analysis of the effectiveness of the 
 new anti-grinding measures.
 
-### 5. Recommended Parameters
+### 5. Recommended Parameter values
 
 There are **two categories of parameters** in the Phalanx protocol that Cardano governance will need to oversee. The first category concerns the **VDF parameters**, which are essential to maintaining the protocol’s cryptographic security. The second concerns the **total time budget** \$T\_\Phi\$ that will be required from SPOs during the **Computation Phase**.
 
@@ -926,6 +926,20 @@ The goal of this section is to provide **recommended values** for these paramete
 In terms of efficiency, the section [**1. How Phalanx Addresses CPS-21 – Ouroboros Randomness Manipulation**](#1-how-phalanx-addresses-cps-21---ouroboros-randomness-manipulation) in the *Rationale* part of this document illustrates, through three scenarios $`\text{Phalanx}_{1/10}`$, $`\text{Phalanx}_{1/100}`$, and $`\text{Phalanx}_{\text{max}}`$, how different time budgets (2 hours, 12 hours, and 5 days, respectively) improve the protocol’s security guarantees against grinding attacks.
 
 In terms of computational load, we recommend setting the time budget at a **midpoint between minimal and maximal protocol capacity**, corresponding to approximately **12 hours** of execution on typical, CPU-based hardware as recommended for SPOs. However, this choice should ultimately be guided by **settlement time performance requirements** across the ecosystem, including the needs of **partner chains and other dependent components**.
+
+#### 5.1.1 Specialized ASIC vs CPU-Based Chips
+
+We need to account for the possibility that adversaries may equip themselves with specialized ASIC chips optimized for computing Wesolowski’s Verifiable Delay Function (VDF). The Chia team has already developed and deployed such **ASIC Timelords**, which demonstrate between **3× and 5× performance improvements** compared to standard CPU-based implementations. These ASICs reach up to **1,000,000 iterations per second**, while commodity CPU Timelords typically max out around **260,000 IPS** ([Chia Network, Oct 2023](https://www.chia.net/2023/10/26/were-going-to-ludicrous-speed)).
+
+To mitigate this performance asymmetry, our initial strategy is to require a **12-hour equivalent workload on standard CPU hardware** (as in \$`\text{Phalanx}_{1/10}`\$), which is calibrated to provide the **same security guarantees** as a more aggressive configuration like \$`\text{Phalanx}_{1/100}`\$. This gives us a conservative baseline for security, assuming an adversary might leverage ASIC acceleration.
+
+Critically, scaling this kind of grinding capability is expensive. For an adversary to mount an effective grinding attack, they would need to build and operate a farm of VDF-optimized ASICs — a non-trivial financial and operational challenge. Chia’s rollout of these units has been tightly controlled and aimed at ensuring global distribution, not centralization ([Chia Global Expansion Update, June 2024](https://www.chia.net/2024/06/10/global-expansion-of-chia-network-security-with-successful-asic-timelord-rollout)).
+
+**Mid-term**, we propose encouraging — or potentially requiring — stake pool operators (SPOs) to adopt VDF ASIC hardware. This would ensure that honest participants remain competitive and are not systematically outperformed by well-resourced adversaries.
+
+**Long-term**, our strategy involves standardizing the use of verifiable delay ASICs across the network, or alternatively, establishing a dynamic calibration process. This would allow iteration requirements to be periodically adjusted based on the evolving performance gap between commodity and specialized hardware, maintaining consistent and predictable security guarantees.
+
+In summary, while ASIC-equipped adversaries could, in theory, gain a computational advantage during the grinding window, the cost and scale required to pose a real threat remains high. Our mitigation strategy is to raise the honest baseline to neutralize this advantage and prepare for possible hardware evolution over time.
 
 
 Time bugdet are a high level abstract, and we need to derive into T akka the number of iteration we are going to ask for each block produced. 
