@@ -323,27 +323,6 @@ We define the interface of a Verifiable Delay Function as $`\texttt{VDF} = (\tex
 - $`\{0,1\} \leftarrow \texttt{VDF.Verify}((\mathbb{G},\ \Delta,\ \cdot), \ x,\ y,\ I,\ \pi)`$
   Returns 1 if $`\pi`$ successfully attests that $`y = x^{2^I}`$ with overwhelming probability, that is if $\pi^r \cdot x^p == y$ where $`p \leftarrow \text{Hash}^{(2 \lambda)}_\text{prime}(x \| y)`$ and $`r \leftarrow 2^{2^I} \text{mod}\ p`$. Returns 0 otherwise.
 
-We now show evaluation, proving and verification benchmarks on the VDF primiitives for different discriminant sizes done on a Ubuntu computer with Intel® Core™ i9-14900HX with 32 cores and 64.0 GiB.
-
-|   Size Discriminant |   #iters |      IPS |   EvalProve  (s) |   σ proving | Eval (s)       |   σ proving | Prove (s)      |   σ proving | Verification (ms)   |   σ verification |
-|-------------------- | -------- | -------- | ---------------- | ----------- | -------------- | ----------- | -------------- | ----------- | ------------------- | ----------------|
-|                 256 |    10,000 | 637252   |           0.0187 |    0.000676 | 1.57E-02 (84%) |    0.000563 | 8.00E-03 (43%) |    0.000461 | 1.74E+00 (10%)      |           0.0786 |
-|                 256 |   100,000 | 641349   |           0.172  |    0.00115  | 1.56E-01 (91%) |    0.00188  | 5.68E-02 (33%) |    0.00165  | 1.12E+00 (1%)       |           0.0471 |
-|                 256 |  1,000,000 | 627336   |           1.72   |    0.0215   | 1.59E+00 (93%) |    0.0197   | 4.88E-01 (29%) |    0.00633  | 1.75E+00 (1%)       |           0.151  |
-|                 512 |    10,000 | 367449   |           0.0322 |    0.000635 | 2.72E-02 (85%) |    0.000648 | 1.31E-02 (41%) |    0.000204 | 3.25E+00 (11%)      |           0.0562 |
-|                 512 |   100,000 | 378942   |           0.289  |    0.0029   | 2.64E-01 (92%) |    0.00283  | 8.76E-02 (31%) |    0.000893 | 1.89E+00 (1%)       |           0.0268 |
-|                 512 |  1,000,000 | 378204   |           2.83   |    0.0287   | 2.64E+00 (94%) |    0.0279   | 7.29E-01 (26%) |    0.00873  | 2.11E+00 (1%)       |           0.134  |
-|                1024 |    10,000 | 206186   |           0.0537 |    0.000902 | 4.85E-02 (91%) |    0.00076  | 2.00E-02 (38%) |    0.000364 | 3.66E+00 (7%)       |           0.117  |
-|                1024 |   100,000 | 211921   |           0.503  |    0.00722  | 4.72E-01 (94%) |    0.00721  | 1.45E-01 (29%) |    0.00198  | 3.21E+00 (1%)       |           0.0467 |
-|                1024 |  1,000,000 | 213319   |           4.92   |    0.0506   | 4.69E+00 (96%) |    0.0475   | 1.20E+00 (25%) |    0.0136   | 3.20E+00 (1%)       |           0.135  |
-|                2048 |    10000 | 103135   |           0.105  |    0.000285 | 9.70E-02 (92%) |    0.000303 | 3.77E-02 (36%) |    0.000122 | 7.00E+00 (7%)       |           0.0409 |
-|                2048 |   100,000 | 105315   |           1.01   |    0.0165   | 9.50E-01 (94%) |    0.0123   | 2.78E-01 (28%) |    0.00516  | 9.33E+00 (1%)       |           0.147  |
-|                2048 |  1,000,000 | 107038   |           9.75   |    0.0746   | 9.34E+00 (96%) |    0.0828   | 2.20E+00 (23%) |    0.0209   | 6.40E+00 (1%)       |           0.218  |
-|                4096 |    10,000 |  44567.8 |           0.244  |    0.00463  | 2.24E-01 (92%) |    0.00454  | 8.30E-02 (35%) |    0.00168  | 1.58E+01 (7%)       |           0.316  |
-|                4096 |   100,000 |  45848.6 |           2.31   |    0.0253   | 2.18E+00 (95%) |    0.0229   | 6.00E-01 (26%) |    0.0089   | 1.47E+01 (1%)       |           0.248  |
-|                4096 |  1,000,000 |  46293.2 |          22.6    |    0.16     | 2.16E+01 (96%) |    0.148    | 4.79E+00 (22%) |    0.0422   | 1.37E+01 (1%)       |           0.303  |
-
-
 ##### 2.3.2. VDF Aggregation Primitives
 
 In this section, we present a mechanism for producing a Wesolowski VDF **aggregation proof**. This construction enables efficient synchronization for network participants and plays a central role in deriving the final epoch nonce $`\eta_e`$. 
@@ -379,23 +358,6 @@ The VDF aggregation proof $`\pi`$ can then be efficiently be verified using $`\t
 | **Input Parameters**      | <ul><li>$`\lambda \in \mathbb{N}`$ — Security parameter.</li><li>$`(\text{Acc}_x,\ \text{Acc}_y,\ \alpha)`$ — Accumulators' state.</li><li>$`I \in \mathbb{N}`$ — Per-interval iteration count for the VDF.</li><li>$`\pi \in \mathbb{G}`$ — Aggregated VDF proof.</li></ul> |
 | **Steps**                 | <ol><li>Verfy the accumulators' proof:<br>$`b \leftarrow \texttt{VDF.Verify}((\mathbb{G},\ \Delta,\ \cdot), \ \text{Acc}_x,\ \text{Acc}_y,\ I,\ \pi)`$</li></ol>                                                                                                    |
 | **Returned Output**       | $`b`$ — Verification bit.   |
-
-
-For a discriminant of 4096 bits, we benchmarks the aggregation functions,
-
-|                            Function |    #iterations | time (ms) |
-| ----------------------------------- | -------------- | --------- |
-| $`\texttt{VDF.Aggregation.Init}`$   |            N/A |           |
-| $`\texttt{VDF.Aggregation.Update}`$ |            N/A |       8   |
-| $`\texttt{VDF.Aggregation.Prove}`$  |          1,000 |      23   |
-|                                     |         10,000 |     301   |
-|                                     |        100,000 |   3,082   |
-|                                     |      1,000,000 |  30,886   |
-| $`\texttt{VDF.Aggregation.Verify}`$ |          1,000 |    17.4   |
-|                                     |         10,000 |    17.2   |
-|                                     |        100,000 |    17.3   |
-|                                     |      1,000,000 |    17.3   |
- 
 
 ### 3. $`\phi^{\text{stream}}`$ Specification
 
@@ -916,7 +878,33 @@ Thanks to its well-established performance profile, this implementation provides
 To publish a block, a node must:
 
 * Perform $T$ squarings to compute the output,
-* Execute $O(T / \log(T))$ operations for the proof generation,
+* Execute $O(T / \log(T))$ operations for the proof generation.
+
+
+
+We now show benchmarks for evaluating and proving together VDFs, as well as individually, for different discriminant sizes done on a Ubuntu computer with Intel® Core™ i9-14900HX with 32 cores and 64.0 GiB RAM.  For a 4,096 bit long discriminant, we perform around 45,000 iterations per second, and so evaluate and prove a VDF in 22.6s.
+
+<center>
+
+|   Size Discriminant |   #iterations |      IPS |   Evaluate and Prove  (s) |   σ proving | Eval (s)       |   σ proving | Prove (s)      |   σ proving |
+|-------------------- | ------------- | -------- | ------------------------- | ----------- | -------------- | ----------- | -------------- | ----------- |
+|                 256 |        10,000 | 637252   |                    0.0187 |    0.000676 | 1.57E-02 (84%) |    0.000563 | 8.00E-03 (43%) |    0.000461 |
+|                 256 |       100,000 | 641349   |                    0.172  |    0.00115  | 1.56E-01 (91%) |    0.00188  | 5.68E-02 (33%) |    0.00165  |
+|                 256 |     1,000,000 | 627336   |                    1.72   |    0.0215   | 1.59E+00 (93%) |    0.0197   | 4.88E-01 (29%) |    0.00633  |
+|                 512 |        10,000 | 367449   |                    0.0322 |    0.000635 | 2.72E-02 (85%) |    0.000648 | 1.31E-02 (41%) |    0.000204 |
+|                 512 |       100,000 | 378942   |                    0.289  |    0.0029   | 2.64E-01 (92%) |    0.00283  | 8.76E-02 (31%) |    0.000893 |
+|                 512 |     1,000,000 | 378204   |                    2.83   |    0.0287   | 2.64E+00 (94%) |    0.0279   | 7.29E-01 (26%) |    0.00873  |
+|                1024 |        10,000 | 206186   |                    0.0537 |    0.000902 | 4.85E-02 (91%) |    0.00076  | 2.00E-02 (38%) |    0.000364 |
+|                1024 |       100,000 | 211921   |                    0.503  |    0.00722  | 4.72E-01 (94%) |    0.00721  | 1.45E-01 (29%) |    0.00198  |
+|                1024 |     1,000,000 | 213319   |                    4.92   |    0.0506   | 4.69E+00 (96%) |    0.0475   | 1.20E+00 (25%) |    0.0136   |
+|                2048 |        10,000 | 103135   |                    0.105  |    0.000285 | 9.70E-02 (92%) |    0.000303 | 3.77E-02 (36%) |    0.000122 |
+|                2048 |       100,000 | 105315   |                    1.01   |    0.0165   | 9.50E-01 (94%) |    0.0123   | 2.78E-01 (28%) |    0.00516  |
+|                2048 |     1,000,000 | 107038   |                    9.75   |    0.0746   | 9.34E+00 (96%) |    0.0828   | 2.20E+00 (23%) |    0.0209   |
+|                4096 |        10,000 |  44567.8 |                    0.244  |    0.00463  | 2.24E-01 (92%) |    0.00454  | 8.30E-02 (35%) |    0.00168  |
+|                4096 |       100,000 |  45848.6 |                    2.31   |    0.0253   | 2.18E+00 (95%) |    0.0229   | 6.00E-01 (26%) |    0.0089   |
+|                4096 |     1,000,000 |  46293.2 |                   22.6    |    0.16     | 2.16E+01 (96%) |    0.148    | 4.79E+00 (22%) |    0.0422   |
+
+</center>
 
 #### 5.2 Block Verification
 
@@ -934,7 +922,32 @@ Over an epoch with $N$ intervals, this results in:
 * $4 \cdot N$ small exponentiations,
 * $3 \cdot N$ group multiplications.
 
-##### 5.2.1 When Syncing
+
+We now show verification benchmarks for discriminants of different sizes done on the same machine. For a 4,096 bit long discriminant, the verification takes around 17ms.
+
+<center>
+
+|   Size Discriminant |   #iterations | Verification (ms)   |   σ verification |
+|-------------------- | ------------- | ------------------- | ---------------- |
+|                 256 |        10,000 | 1.74E+00 (10%)      |           0.0786 |
+|                 256 |       100,000 | 1.12E+00 (1%)       |           0.0471 |
+|                 256 |     1,000,000 | 1.75E+00 (1%)       |           0.151  |
+|                 512 |        10,000 | 3.25E+00 (11%)      |           0.0562 |
+|                 512 |       100,000 | 1.89E+00 (1%)       |           0.0268 |
+|                 512 |     1,000,000 | 2.11E+00 (1%)       |           0.134  |
+|                1024 |        10,000 | 3.66E+00 (7%)       |           0.117  |
+|                1024 |       100,000 | 3.21E+00 (1%)       |           0.0467 |
+|                1024 |     1,000,000 | 3.20E+00 (1%)       |           0.135  |
+|                2048 |        10,000 | 7.00E+00 (7%)       |           0.0409 |
+|                2048 |       100,000 | 9.33E+00 (1%)       |           0.147  |
+|                2048 |     1,000,000 | 6.40E+00 (1%)       |           0.218  |
+|                4096 |        10,000 | 1.58E+01 (7%)       |           0.316  |
+|                4096 |       100,000 | 1.47E+01 (1%)       |           0.248  |
+|                4096 |     1,000,000 | 1.37E+01 (1%)       |           0.303  |
+
+</center>
+
+##### 5.2.2 When Syncing
 
 Only the aggregations and their proofs need to be verified:
 
@@ -944,7 +957,18 @@ Only the aggregations and their proofs need to be verified:
 
 Note: The exponentiations involving the $\alpha_i$ values are **half as expensive** as those in the full proof verification.
 
-Here is your corrected and improved section, with the numerical values filled in based on your prior recommendation of a **4096-bit discriminant**:
+For a discriminant of 4096 bits, we benchmarks the aggregation functions on the same machine. We can see that updating the accumulators in the aggregation indeed takes half as much as verifying a single VDF proof, and verifying the aggregation is as cheap as a normal VDF proof and that proving the aggregation is more expensive than a VDF output, this is due to the absence of intermediary value found when evaluating the VDF input, but less expensive than evaluating a VDF.
+
+<center>
+
+| Size Discriminant | #iterations | $`\texttt{VDF.Aggregation.Update}`$ (ms)| $`\texttt{VDF.Aggregation.Prove}`$  (s)| $`\texttt{VDF.Aggregation.Verify}`$ (ms)|
+| ----------------- | ----------- | --------------------------------------- | -------------------------------------- | --------------------------------------- |
+|            $4096$ |       1,000 |                                 8.0E+00 |                                2.3E-03 |                                 1.7E+01 |
+|            $4096$ |      10,000 |                                 8.0E+00 |                                3.0E-02 |                                 1.7E+01 |
+|            $4096$ |     100,000 |                                 8.0E+00 |                                3.0E+00 |                                 1.7E+01 |
+|            $4096$ |   1,000,000 |                                 8.0E+00 |                                3.1E+01 |                                 1.7E+01 |
+
+</center>
 
 ## 6. CDDL Schema for the Ledger
 
