@@ -633,7 +633,7 @@ The `provideAttestedOutput` command is used to submit a new attested output $`\p
 | `provideAttestedOutput` | $`\Phi.\text{Stream.State} \leftarrow \Phi.\text{provideAttestedOutput}(\text{awaitingAttestedOutputState},\ \phi_i)`$ |
 |-------------------------|--------------------------------------------------------------------------------------------------------------------------|
 | **Input Parameters**    | <ul><li>$`\text{awaitingAttestedOutputState} \in \texttt{AwaitingAttestedOutput}`$ — Current state awaiting an attested output $`\phi_i`$ for interval $`i`$.</li><li>$`\phi_i = (y_i, \pi_i)`$ — Attested output and corresponding proof.</li></ul> |
-| **Property Check**      | <ul><li>Ensure $`\phi_i`$ is valid by verifying:<br> $`\texttt{VDF.Verify}((\mathbb{G},\ \Delta,\ \cdot),\ x_i,\ y_i,\ I,\ \pi_i)`$</li> <li>Where:<br> $`x_i = \text{Hash}(\text{b"challenge"}\ \|\ \text{bin}(e)\ \|\ \text{pre-}\eta_e\ \|\ \text{bin}(i))`$<br> $`I \in \mathbb{N}`$ is the per-interval iteration count.</li></ul> |
+| **Property Check**      | <ul><li>Ensure $`\phi_i`$ is valid by verifying: $`\texttt{VDF.Verify}((\mathbb{G},\ \Delta,\ \cdot),\ x_i,\ y_i,\ I,\ \pi_i)`$</li> <li>Where:<br> $``x_i = \text{Hash}(\text{b"challenge"}\ \|\|\ \text{bin}(e)\ \|\|\ \text{pre-}\eta_e\ \|\|\ \text{bin}(i))`$<br> $`I \in \mathbb{N}`$ is the per-interval iteration count.</li></ul> |
 | **Returned State**      | $`\texttt{AttestedOutputProvided}\ \{ \text{initialized},\ \text{currentSlot} + 1,\ \text{attestedOutputs}[i] \mapsto \phi_i \}`$ — Updated state reflecting the verified attestation. |
 
 Once an attested output has been provided, the next slot may trigger a `tick` event. If no further action is taken, the system must determine whether it remains within the current interval, moves to the next, or enters the catch-up phase. The following command captures this logic when starting from the `AttestedOutputProvided` state :
@@ -701,7 +701,7 @@ The `provideMissingAttestedOutput` command is used to submit a missing attested 
 | `provideMissingAttestedOutput` | $`\Phi.\text{Stream.State} \leftarrow \Phi.\text{provideMissingAttestedOutput}(\text{awaitingMissingAttestedOutputState},\ \phi_i)`$  |
 | ----- | --- |
 | **Input Parameters**           | <ul><li>$`\text{awaitingMissingAttestedOutputState} \in \texttt{AwaitingMissingAttestedOutput}`$ — State awaiting a missing attestation $`\phi_i`$ for interval $`i`$.</li><li>$`\phi_i = (y_i, \pi_i)`$ — Attested output and its proof.</li></ul>                                            |
-| **Property Check**             | <ul><li>Verify $`\phi_i`$ with:<br> $`\texttt{VDF.Verify}((\mathbb{G},\ \Delta,\ \cdot),\ x_i,\ y_i,\ I,\ \pi_i)`$</li><li>Where:<br> $`x_i = \text{Hash}(\text{b"challenge"}\ \|\ \text{bin}(e)\ \|\ \text{pre-}\eta_e\ \|\ \text{bin}(i))`$</li><li>$`I \in \mathbb{N}`$ is the per-interval iteration count.</li></ul> |
+| **Property Check**             | <ul><li>Verify $`\phi_i`$ with: $`\texttt{VDF.Verify}((\mathbb{G},\ \Delta,\ \cdot),\ x_i,\ y_i,\ I,\ \pi_i)`$</li><li>Where:<br> $`x_i = \text{Hash}(\text{b"challenge"}\ \|\|\ \text{bin}(e)\ \|\|\ \text{pre-}\eta_e\ \|\|\ \text{bin}(i))`$</li><li>$`I \in \mathbb{N}`$ is the per-interval iteration count.</li></ul> |
 | **Returned State**             | $`\texttt{MissingAttestedOutputProvided} \{ \text{initialized},\ \text{currentSlot} + 1,\ \text{attestedOutputs}[i] \mapsto \phi_i \}`$ — Updated state reflecting the accepted missing output.                                                                                                      |
 
 Once a missing attested output has been provided, the next slot may trigger a `tick` event. The system must determine whether it remains within the current interval, moves to the next, or enters the closure phase. The following command captures this logic when starting from the `MissingAttestedOutputProvided` state :
@@ -781,7 +781,7 @@ In this phase, we define two states:
 
 At this stage, the system is in the `AwaitingGracefulClosure` state. All necessary data has been collected, and a block can now be produced within the remaining time before the end of the stream lifecycle (as previously discussed, this could occur at the 84th or 120th interval, depending on how smoothly the lifecycle progressed).
 
-In this scenario, the first block producer within the remaining intervals must include the following values in the block header:
+In this scenario, the first block producer within the remaining intervals must include the following values in the block body:
 
 - $`(y, \pi)`$: The aggregated output of the $`\Phi`$ computation, representing the final result and its corresponding proof.
 - $`\eta_e`$: The final objective of the protocol—a 256-bit epoch randomness beacon, which will be used to seed leader election in the next epoch.
@@ -790,9 +790,9 @@ These values complete the stream and trigger the transition to the `Closed` stat
 
 | `Close`    | $`\Phi.\text{Stream.State} \leftarrow \Phi.\text{Close}((x, y, \pi),\ \text{awaitingGracefulClosureState})`$  |
 | -------------------- | ---- |
-| **Input Parameters** | <ul><li>$`\text{awaitingGracefulClosureState} \in \texttt{AwaitingGracefulClosure}`$ — State indicating readiness for closure.</li><li>$`(x, y, \pi)`$ — Aggregated output and its proof for the entire stream.</li></ul>                                                                                                    |
-| **Property Check**   | <ul><li>Verify the aggregated output with:<br> $`\texttt{VDF.Aggregation.Verify}((\mathbb{G},\ \Delta,\ \cdot),\ \lambda,\ x,\ y,\ \text{attestedOutputs},\ \pi)`$</li><li>Where:<br> $`\lambda`$ is the security parameter, <br> $`x = \text{Hash}(\text{bin}(e)\ \|\ \text{pre-}\eta_e)`$<br>$`attestedOutputs = \text{awaitingGracefulClosureState.attestedOutputs}`$</li></ul> |
-| **Epoch Randomness** | $`\eta_e = \text{Hash}^{(256)}(y)`$ — Apply the SHA-256 hash function 256 times to \$`y`\$.  |
+| **Input Parameters** | <ul><li>$`\text{awaitingGracefulClosureState} \in \texttt{AwaitingGracefulClosure}`$ — State indicating readiness for closure.</li><li>$`(y,\ \pi)`$ — Aggregated output and its proof for the entire stream.</li></ul>                                                                                                    |
+| **Property Check**   | <ul><li>Verify the aggregated output with:<br> $`\texttt{VDF.Aggregation.Verify}((\mathbb{G},\ \Delta,\ \cdot),\ \lambda,\ x,\ y,\ \text{attestedOutputs},\ \pi)`$</li><li>Where:<br> $`\lambda`$ is the security parameter, <br> $`x`$ is the aggregated input of the $`\Phi`$ computation<br>$`attestedOutputs = \text{awaitingGracefulClosureState.attestedOutputs}`$</li></ul> |
+| **Epoch Randomness** | $`\eta_e = \text{Hash}^{(256)}(y)`$ — Apply the SHA-256 hash function to $`y`$.  |
 | **Returned State**   | $`\texttt{Closed} \{ \text{initialized},\ \text{attestedOutputs},\ (x, y, \pi),\ \eta_e \}`$ — Final state embedding the verified computation and the derived epoch randomness.  |
 
 ##### 3.2.6.3. `tick` Command
