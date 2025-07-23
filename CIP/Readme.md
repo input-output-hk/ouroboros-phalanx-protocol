@@ -944,8 +944,6 @@ Only the aggregations and their proofs need to be verified:
 
 Note: The exponentiations involving the $\alpha_i$ values are **half as expensive** as those in the full proof verification.
 
-Here is your corrected and improved section, with the numerical values filled in based on your prior recommendation of a **4096-bit discriminant**:
-
 ## 6. CDDL Schema for the Ledger
 
 To support Φalanx, **one block per interval** (every 3600 slots), across **83 intervals per epoch**, must include **2 group elements**. Each of these elements can be compressed to approximately $3/4 \cdot \log_2(|\Delta|)$ bits. Based on our recommended discriminant size of **4096 bits**:
