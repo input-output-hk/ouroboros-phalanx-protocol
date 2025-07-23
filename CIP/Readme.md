@@ -891,7 +891,7 @@ Critically, scaling this kind of grinding capability is expensive. For an advers
 
 In summary, while ASIC-equipped adversaries could, in theory, gain a computational advantage during the grinding window, the cost and scale required to pose a real threat remains high. Our mitigation strategy is to raise the honest baseline to neutralize this advantage and prepare for possible hardware evolution over time.
 
-##### 4.1.2 Deriving from T<sub>Φ</sub> to T
+##### 4.2.1 Deriving from T<sub>Φ</sub> to T
 
 We recommend a **12-hour computation budget** on standard **CPU-based machines**, which we estimate to be **10× slower** than specialized ASICs available to adversaries. This configuration corresponds to **Phalanx<sub>1/10</sub>** in terms of **time budget**, while achieving **Phalanx<sub>1/100</sub>** in terms of **security guarantees** against grinding attacks.
 
@@ -920,7 +920,7 @@ To publish a block, a node must:
 
 #### 5.2 Block Verification
 
-##### 5.1.1 When Not Syncing
+##### 5.2.1 When Not Syncing
 
 For each block, a node performs:
 
@@ -934,7 +934,7 @@ Over an epoch with $N$ intervals, this results in:
 * $4 \cdot N$ small exponentiations,
 * $3 \cdot N$ group multiplications.
 
-##### 5.1.1 When Syncing
+##### 5.2.1 When Syncing
 
 Only the aggregations and their proofs need to be verified:
 
