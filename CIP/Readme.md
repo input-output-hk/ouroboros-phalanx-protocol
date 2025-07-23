@@ -991,7 +991,7 @@ To support Φalanx, **one block per interval** (every 3600 slots), across **83 i
    ]
 ```
 
-The structure `vdf_attested_output` is defined as follows:
+The structure `phalanx_challenge` is defined as follows:
 
 ```cddl
 vdf_attested_output =
@@ -1004,7 +1004,7 @@ vdf_size = [ bytes, bytes .size 384 ]
 
 We initially evaluated including the `phalanx_challenge` (i.e., the VDF attested output) in the **block header** (instead as proposed in the **block body**) colocated with the VRF outputs. However, this approach raised concerns due to **header size constraints**.
 
-The current **maximum block header size** in Cardano is **1100 bytes**, although actual usage today averages around **860 bytes**. Since TCP packet limits suggest keeping headers under **1500 bytes**, the available headroom is approximately **600 bytes**. The full `vdf_attested_output` in its default form requires:
+The current **maximum block header size** in Cardano is **1100 bytes**, although actual usage today averages around **860 bytes**. Since TCP packet limits suggest keeping headers under **1500 bytes** (1,460 without headers), the available headroom is approximately **600 bytes**. The full `vdf_attested_output` in its default form requires:
 
 - **388 bytes** per group element (assuming the lowest acceptable security parameters)
 - 2 group elements (output + proof)
