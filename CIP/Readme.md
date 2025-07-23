@@ -304,9 +304,9 @@ Specialized hardware such as ASICs can be used to evaluate VDF output much faste
 
 To define Wesolowski VDF construction, we first introduce a serie of hash functions: $`\text{Hash}^{(n)}_\mathbb{N}`$, which samples random integers of $`n`$ bits, $`\text{Hash}^{(n)}_\text{prime}`$, which samples a random integer from the set of the first $`2^{2n}`$ prime numbers, and $`\text{Hash}_\mathbb{G}`$, which samples a random group element of the class group $`\mathbb{G}`$.
 
-We define the interface of a Verifiable Delay Function as $`\text{VDF} = (\text{Setup},\ \text{Evalute},\ \text{Prove},\ \text{Verify})`$, and define its underlying functions based on class groups as follows:
+We define the interface of a Verifiable Delay Function as $`\texttt{VDF} = (\texttt{Setup},\ \texttt{Evalute},\ \texttt{Prove},\ \texttt{Verify})`$, and define its underlying functions based on class groups as follows:
 
-- $`(\mathbb{G},\ \Delta,\ \cdot) \leftarrow \text{VDF}.\text{Setup}(\lambda,\ \Delta_{\text{challenge}})`$
+- $`(\mathbb{G},\ \Delta,\ \cdot) \leftarrow \texttt{VDF.Setup}(\lambda,\ \Delta_{\text{challenge}})`$
   Takes as input a **security parameter** $`\lambda \in \mathbb{N}`$ and a **challenge discriminant** $`\Delta_{\text{challenge}} \in \{0,1\}^*`$. This challenge discriminant acts as a source of public entropy used to deterministically derive the group discriminant $\Delta$, which defines a group of unknown order $\mathbb{G}$ along with its group operation $`\cdot`$. The use of a challenge ensures that the resulting group is unbiasable and unpredictable, preventing adversarial precomputation. Internally, we expect the setup procedure to invoke the following sub-operations:
 ```math
     \Delta \leftarrow \texttt{VDF.CreateDiscriminant}(\lambda,\ \Delta_{\text{challenge}})
@@ -315,13 +315,13 @@ We define the interface of a Verifiable Delay Function as $`\text{VDF} = (\text{
   (\mathbb{G},\ \cdot) \leftarrow \texttt{VDF.DeriveClassGroup}(\lambda,\ \Delta)
 ```
 
-- $`y \leftarrow \text{VDF}.\text{Evaluate}((\mathbb{G},\ \Delta,\ \cdot), \ x,\ I)`$
+- $`y \leftarrow \texttt{VDF.Evaluate}((\mathbb{G},\ \Delta,\ \cdot), \ x,\ I)`$
   Given a challenge $`x \in \mathbb{G}`$ and a number of iterations $`I \in \mathbb{N}`$, computes the VDF output $`y = x^{2^I}`$.
 
-- $`\pi \leftarrow \text{VDF}.\text{Prove}((\mathbb{G},\ \Delta,\ \cdot), \ x,\ y,\ I)`$ 
+- $`\pi \leftarrow \texttt{VDF.Prove}((\mathbb{G},\ \Delta,\ \cdot), \ x,\ y,\ I)`$ 
   Given a challenge and output $`(x,y) \in \mathbb{G}^2`$, computes the VDF  **proof** $`\pi`$ as $`\pi = x^{2^I / p}`$ where $`p \leftarrow \text{Hash}^{(2 \lambda)}_\text{prime}(x  y)`$ is sampled from the first $`2^{2 \lambda}`$ prime numbers.
 
-- $`\{0,1\} \leftarrow \text{VDF}.\text{Verify}((\mathbb{G},\ \Delta,\ \cdot), \ x,\ y,\ I,\ \pi)`$
+- $`\{0,1\} \leftarrow \texttt{VDF.Verify}((\mathbb{G},\ \Delta,\ \cdot), \ x,\ y,\ I,\ \pi)`$
   Returns 1 if $`\pi`$ successfully attests that $`y = x^{2^I}`$ with overwhelming probability, that is if $\pi^r \cdot x^p == y$ where $`p \leftarrow \text{Hash}^{(2 \lambda)}_\text{prime}(x \| y)`$ and $`r \leftarrow 2^{2^I} \text{mod}\ p`$. Returns 0 otherwise.
 
 We now show evaluation, proving and verification benchmarks on the VDF primiitives for different discriminant sizes done on a Ubuntu computer with Intel® Core™ i9-14900HX with 32 cores and 64.0 GiB.
@@ -348,7 +348,7 @@ We now show evaluation, proving and verification benchmarks on the VDF primiitiv
 ##### 2.3.2. VDF Aggregation Primitives
 
 In this section, we present a mechanism for producing a Wesolowski VDF **aggregation proof**. This construction enables efficient synchronization for network participants and plays a central role in deriving the final epoch nonce $`\eta_e`$. 
-The aggregation mechanism has the following interface $`\text{VDF.Aggregation} = (\text{Init},\ \text{Update},\ \text{Prove},\ \text{Verify})`$ whose functions will be detailled afterwards. We assume that a class group $`\mathbb{G}`$ has already been set up, by $`(\mathbb{G},\ \Delta,\ \cdot) \leftarrow \text{VDF}.\text{Setup}(\lambda,\ \Delta_{\text{challenge}})`$.
+The aggregation mechanism has the following interface $`\texttt{VDF.Aggregation} = (\text{Init},\ \text{Update},\ \text{Prove},\ \text{Verify})`$ whose functions will be detailled afterwards. We assume that a class group $`\mathbb{G}`$ has already been set up, by $`(\mathbb{G},\ \Delta,\ \cdot) \leftarrow \texttt{VDF.Setup}(\lambda,\ \Delta_{\text{challenge}})`$.
 
 At the beginning of each epoch, we initialize the VDF accumulators' state that will be used to generate the VDF aggregation proof using $`\texttt{VDF.Aggregation.Init}`$.
 | `Initialize accumulators` | $`(\text{Acc}_x, \text{Acc}_y, \alpha) \leftarrow \texttt{VDF.Aggregation.Init}(\lambda, \text{pre-}\eta_e)`$     |
@@ -370,7 +370,7 @@ Once all VDF outputs have been generated and the accumulators updated, we can ge
 | `Prove accumulators` | $`\pi \leftarrow \texttt{VDF.Aggregation.Prove}(\lambda,\ (\text{Acc}_x,\ \text{Acc}_y,\ \alpha),\ I)`$     |
 | ------------------------- | ------------------------- |
 | **Input Parameters**      | <ul><li>$`\lambda \in \mathbb{N}`$ — Security parameter.</li><li>$`(\text{Acc}_x,\ \text{Acc}_y,\ \alpha)`$ — Accumulators' state.</li><li>$`I \in \mathbb{N}`$ — Per-interval iteration count for the VDF.</li></ul> |
-| **Steps**                 | <ol><li>Compute the accumulator proof as a VDF proof:<br>$`\pi \leftarrow \text{VDF}.\text{Prove}((\mathbb{G},\ \Delta,\ \cdot), \ \text{Acc}_x,\ \text{Acc}_y,\ I)`$</li></ol>                                                                                                    |
+| **Steps**                 | <ol><li>Compute the accumulator proof as a VDF proof:<br>$`\pi \leftarrow \texttt{VDF.Prove}((\mathbb{G},\ \Delta,\ \cdot), \ \text{Acc}_x,\ \text{Acc}_y,\ I)`$</li></ol>                                                                                                    |
 | **Returned Output**       | $`\pi`$ — Aggregated proof.   |
 
 
@@ -378,7 +378,7 @@ The VDF aggregation proof $`\pi`$ can then be efficiently be verified using $`\t
 | `Verify accumulators` | $`\{0,1\} \leftarrow \texttt{VDF.Aggregation.Verify}(\lambda,\ (\text{Acc}_x,\ \text{Acc}_y,\ \alpha),\ I,\ \pi)`$     |
 | ------------------------- | ------------------------- |
 | **Input Parameters**      | <ul><li>$`\lambda \in \mathbb{N}`$ — Security parameter.</li><li>$`(\text{Acc}_x,\ \text{Acc}_y,\ \alpha)`$ — Accumulators' state.</li><li>$`I \in \mathbb{N}`$ — Per-interval iteration count for the VDF.</li><li>$`\pi \in \mathbb{G}`$ — Aggregated VDF proof.</li></ul> |
-| **Steps**                 | <ol><li>Verfy the accumulators' proof:<br>$`b \leftarrow \text{VDF}.\text{Verify}((\mathbb{G},\ \Delta,\ \cdot), \ \text{Acc}_x,\ \text{Acc}_y,\ I,\ \pi)`$</li></ol>                                                                                                    |
+| **Steps**                 | <ol><li>Verfy the accumulators' proof:<br>$`b \leftarrow \texttt{VDF.Verify}((\mathbb{G},\ \Delta,\ \cdot), \ \text{Acc}_x,\ \text{Acc}_y,\ I,\ \pi)`$</li></ol>                                                                                                    |
 | **Returned Output**       | $`b`$ — Verification bit.   |
 
 
@@ -544,7 +544,7 @@ Importantly, this **parametrization phase** occurs only once, either during the 
 |  `parametrize` | $`\Phi.\text{Stream.State} \leftarrow \Phi.\text{parametrize}(\lambda,\ T_\Phi)`$|
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | **Input Parameters**          | <ul><li>$`\lambda \in \mathbb{N}`$ — **Security parameter**, defines the size (in bits) of the VDF discriminant.</li><li>$`T_\Phi \in \mathbb{N}`$ — **Time budget** in seconds, representing the total computation time under reference hardware.</li></ul> |
-| **Derivation Logic**  | <ul><li>$`\#\text{Iterations}_\Phi \leftarrow \text{VDF}.\texttt{IterationsFromDuration}(T_\Phi)`$</li><li>$`\#\text{Iterations}_\phi \leftarrow \left\lfloor \frac{\#\text{Iterations}_\Phi}{82} \right\rfloor`$</li></ul>                                  |
+| **Derivation Logic**  | <ul><li>$`\#\text{Iterations}_\Phi \leftarrow \texttt{VDF}.\texttt{IterationsFromDuration}(T_\Phi)`$</li><li>$`\#\text{Iterations}_\phi \leftarrow \left\lfloor \frac{\#\text{Iterations}_\Phi}{82} \right\rfloor`$</li></ul>                                  |
 | **Returned State** | $`\texttt{Parametrized} \left\{ \text{securityParameter} \mapsto \lambda,\quad I \mapsto \#\text{Iterations}_\phi \right\}`$|
 
 #### 3.2.3.  🟩 *Initialization Grace Phase*
@@ -561,7 +561,7 @@ Initialization occurs at every $`\text{pre-}\eta`$ synchronization point, follow
 | `initialize`           | $\Phi.\text{Stream.State} \leftarrow \Phi.\text{Initialize}(\text{parametrizedState},\ \text{epochId}_e,\ \text{pre-}\eta_e)$ |
 | -------------------- | ----------------------------------------- |
 | **Input Parameters** | <ul><li>$\text{parametrizedState} = (\lambda,\ I) \in \texttt{Parametrized}$ — Configuration from the prior Parametrized state.</li><li>$\text{epochId}_e \in \mathbb{N}$ — Numerical identifier for epoch $e$.</li><li>$\text{pre-}\eta_e \in \{0,1\}^{256}$ — 256-bit pre-nonce entropy for epoch $e$.</li></ul>              |
-| **Derivation Logic** | <ul><li>$`\Delta_{\text{challenge}} \leftarrow \text{Hash}(\text{bin}(\text{epochId}_e) \ \|\ \text{pre-}\eta_e)`$</li><li>$`(\mathbb{G},\ \Delta,\ \cdot) \leftarrow \text{VDF}.\text{Setup}(\lambda,\ \Delta_{\text{challenge}})`$</li></ul> |
+| **Derivation Logic** | <ul><li>$`\Delta_{\text{challenge}} \leftarrow \text{Hash}(\text{bin}(\text{epochId}_e) \ \|\ \text{pre-}\eta_e)`$</li><li>$`(\mathbb{G},\ \Delta,\ \cdot) \leftarrow \texttt{VDF.Setup}(\lambda,\ \Delta_{\text{challenge}})`$</li></ul> |
 | **Returned State**   | $`\texttt{Initialized} \left\{ \text{parametrized} \mapsto (\lambda,\ I),\ \text{group} \mapsto \mathbb{G},\ \text{discriminant} \mapsto \Delta,\ \text{operation} \mapsto \cdot , \ \text{epochId}_e \mapsto \text{epochId}_e ,\ \text{pre-}\eta_e  \mapsto \text{pre-}\eta_e  \right\}`$                                        |
 
 ##### 3.2.3.2. *Tick Commands* & Grace Period
@@ -594,15 +594,15 @@ We are now entering the **Computation Phase**. We have waited long enough for th
 
 Each leader is free to adopt their own strategy for deciding whether to initiate the proof of computation. A simple and conservative approach is to wait until $`\text{currentSlot} \geq \text{nextElectedSlot} - \left(\frac{T_\Phi}{82} + C\right)`$, where $`C`$ is a small constant. At that point, the leader may begin computing. If a block has already been produced by then, the leader can either skip the computation or abort it if already in progress. This delay increases the chances that any earlier eligible leaders have already submitted their outputs, thereby minimizing the risk of redundant proofs.
 
-To publish the first block of interval $`i \in [1..82]`$, the node invokes:
+To publish the first block of interval $`i \in [1..82]`$ of epoch $`e`$, the node invokes:
 
 ```math
 (y_i, \pi_i) \leftarrow \Phi.\text{compute}(\text{initialized} \in \texttt{Initialized},\ i \in \texttt{Interval})
 ```
 
-This function internally calls the VDF primitive: $`(y, \pi) \leftarrow \text{VDF}.\text{Prove}((\mathbb{G},\ \Delta, \cdot),\ x,\ I)`$ with inputs constructed as:
+This function internally calls the VDF primitives: $`y_i \leftarrow \texttt{VDF.Evaluate}((\mathbb{G},\ \Delta,\ \cdot), \ x_i,\ I)`$ and $`\pi \leftarrow \texttt{VDF.Prove}((\mathbb{G},\ \Delta, \cdot),\ x_i,\ y_i,\ I)`$ with inputs constructed as:
 
-- $`x_i = \text{Hash}(\text{bin}(e) \,\|\, \text{pre-}\eta_e \,\|\, \text{bin}(i))`$
+- $`x_i \leftarrow \text{Hash}(\text{b"challenge"} ||\ \text{bin}(e) ||\ \text{pre-}\eta_e || \text{bin}(i))`$
 - The parameters $`(\mathbb{G}, \Delta, \cdot)`$ and $`I`$ are retrieved from the `Initialized` state.
 
 Finally, the node includes the attested outputs in the block header:
@@ -665,7 +665,7 @@ The `provideAttestedOutput` command is used to submit a new attested output $`\p
 | `provideAttestedOutput` | $`\Phi.\text{Stream.State} \leftarrow \Phi.\text{provideAttestedOutput}(\text{awaitingAttestedOutputState},\ \phi_i)`$ |
 |-------------------------|--------------------------------------------------------------------------------------------------------------------------|
 | **Input Parameters**    | <ul><li>$`\text{awaitingAttestedOutputState} \in \texttt{AwaitingAttestedOutput}`$ — Current state awaiting an attested output $`\phi_i`$ for interval $`i`$.</li><li>$`\phi_i = (y_i, \pi_i)`$ — Attested output and corresponding proof.</li></ul> |
-| **Property Check**      | <ul><li>Ensure $`\phi_i`$ is valid by verifying:<br> $`\text{VDF.Verify}((\mathbb{G},\ \Delta,\ \cdot),\ x_i,\ y_i,\ I,\ \pi_i)`$</li> <li>Where:<br> $`x_i = \text{Hash}(\text{bin}(e)\ \|\ \text{pre-}\eta_e\ \|\ \text{bin}(i))`$<br> $`I \in \mathbb{N}`$ is the per-interval iteration count.</li></ul> |
+| **Property Check**      | <ul><li>Ensure $`\phi_i`$ is valid by verifying:<br> $`\texttt{VDF.Verify}((\mathbb{G},\ \Delta,\ \cdot),\ x_i,\ y_i,\ I,\ \pi_i)`$</li> <li>Where:<br> $`x_i = \text{Hash}(\text{b"challenge"}\ \|\ \text{bin}(e)\ \|\ \text{pre-}\eta_e\ \|\ \text{bin}(i))`$<br> $`I \in \mathbb{N}`$ is the per-interval iteration count.</li></ul> |
 | **Returned State**      | $`\texttt{AttestedOutputProvided}\ \{ \text{initialized},\ \text{currentSlot} + 1,\ \text{attestedOutputs}[i] \mapsto \phi_i \}`$ — Updated state reflecting the verified attestation. |
 
 Once an attested output has been provided, the next slot may trigger a `tick` event. If no further action is taken, the system must determine whether it remains within the current interval, moves to the next, or enters the catch-up phase. The following command captures this logic when starting from the `AttestedOutputProvided` state :
@@ -733,7 +733,7 @@ The `provideMissingAttestedOutput` command is used to submit a missing attested 
 | `provideMissingAttestedOutput` | $`\Phi.\text{Stream.State} \leftarrow \Phi.\text{provideMissingAttestedOutput}(\text{awaitingMissingAttestedOutputState},\ \phi_i)`$  |
 | ----- | --- |
 | **Input Parameters**           | <ul><li>$`\text{awaitingMissingAttestedOutputState} \in \texttt{AwaitingMissingAttestedOutput}`$ — State awaiting a missing attestation $`\phi_i`$ for interval $`i`$.</li><li>$`\phi_i = (y_i, \pi_i)`$ — Attested output and its proof.</li></ul>                                            |
-| **Property Check**             | <ul><li>Verify $`\phi_i`$ with:<br> $`\text{VDF.Verify}((\mathbb{G},\ \Delta,\ \cdot),\ x_i,\ y_i,\ I,\ \pi_i)`$</li><li>Where:<br> $`x_i = \text{Hash}(\text{bin}(e)\ \|\ \text{pre-}\eta_e\ \|\ \text{bin}(i))`$</li><li>$`I \in \mathbb{N}`$ is the per-interval iteration count.</li></ul> |
+| **Property Check**             | <ul><li>Verify $`\phi_i`$ with:<br> $`\texttt{VDF.Verify}((\mathbb{G},\ \Delta,\ \cdot),\ x_i,\ y_i,\ I,\ \pi_i)`$</li><li>Where:<br> $`x_i = \text{Hash}(\text{b"challenge"}\ \|\ \text{bin}(e)\ \|\ \text{pre-}\eta_e\ \|\ \text{bin}(i))`$</li><li>$`I \in \mathbb{N}`$ is the per-interval iteration count.</li></ul> |
 | **Returned State**             | $`\texttt{MissingAttestedOutputProvided} \{ \text{initialized},\ \text{currentSlot} + 1,\ \text{attestedOutputs}[i] \mapsto \phi_i \}`$ — Updated state reflecting the accepted missing output.                                                                                                      |
 
 Once a missing attested output has been provided, the next slot may trigger a `tick` event. The system must determine whether it remains within the current interval, moves to the next, or enters the closure phase. The following command captures this logic when starting from the `MissingAttestedOutputProvided` state :
@@ -815,7 +815,7 @@ At this stage, the system is in the `AwaitingGracefulClosure` state. All necessa
 
 In this scenario, the first block producer within the remaining intervals must include the following values in the block header:
 
-- $`(x, y, \pi)`$: The aggregated output of the $`\Phi`$ computation, representing the final result and its corresponding proof.
+- $`(y, \pi)`$: The aggregated output of the $`\Phi`$ computation, representing the final result and its corresponding proof.
 - $`\eta_e`$: The final objective of the protocol—a 256-bit epoch randomness beacon, which will be used to seed leader election in the next epoch.
 
 These values complete the stream and trigger the transition to the `Closed` state.
@@ -823,7 +823,7 @@ These values complete the stream and trigger the transition to the `Closed` stat
 | `Close`    | $`\Phi.\text{Stream.State} \leftarrow \Phi.\text{Close}((x, y, \pi),\ \text{awaitingGracefulClosureState})`$  |
 | -------------------- | ---- |
 | **Input Parameters** | <ul><li>$`\text{awaitingGracefulClosureState} \in \texttt{AwaitingGracefulClosure}`$ — State indicating readiness for closure.</li><li>$`(x, y, \pi)`$ — Aggregated output and its proof for the entire stream.</li></ul>                                                                                                    |
-| **Property Check**   | <ul><li>Verify the aggregated output with:<br> $`\text{VDF.Aggregation.Verify}((\mathbb{G},\ \Delta,\ \cdot),\ x,\ y,\ \text{attestedOutputs},\ \pi)`$</li><li>Where:<br> $`x = \text{Hash}(\text{bin}(e)\ \|\ \text{pre-}\eta_e)`$<br>$`attestedOutputs = \text{awaitingGracefulClosureState.attestedOutputs}`$</li></ul> |
+| **Property Check**   | <ul><li>Verify the aggregated output with:<br> $`\texttt{VDF.Aggregation.Verify}((\mathbb{G},\ \Delta,\ \cdot),\ \lambda,\ x,\ y,\ \text{attestedOutputs},\ \pi)`$</li><li>Where:<br> $`\lambda`$ is the security parameter, <br> $`x = \text{Hash}(\text{bin}(e)\ \|\ \text{pre-}\eta_e)`$<br>$`attestedOutputs = \text{awaitingGracefulClosureState.attestedOutputs}`$</li></ul> |
 | **Epoch Randomness** | $`\eta_e = \text{Hash}^{(256)}(y)`$ — Apply the SHA-256 hash function 256 times to \$`y`\$.  |
 | **Returned State**   | $`\texttt{Closed} \{ \text{initialized},\ \text{attestedOutputs},\ (x, y, \pi),\ \eta_e \}`$ — Final state embedding the verified computation and the derived epoch randomness.  |
 
@@ -1686,6 +1686,14 @@ Verifiable Delayed Functions (VDFs) are cryptographic primitives designed to tak
 
 As one can see, VDFs present _functionality_, _determinism_, _efficient verification_ and _lower bound on computation_. The _compact representation_ depends on the chosen group as well as the instantiation, which we will tackle later on. The _implementation and maintenance_ is straightforward as the output of a VDF is a simple exponentiation of a group element, only the square operation is needed to be implemented to compute it. As for the proof, this depends on the precise VDF instantiation. Finally, the system is "adaptively secure" as we can set up a group with high security to be reused for a whole epoch, and set the number of squaring, also called difficulty, depending on how much computation we want the nodes to perform.
 
+Let $\texttt{VDF}.\left(\text{Setup}, \text{Prove}, \text{Verify} \right)$ a class group based VDF algorithm definition, with:
+- $`(\mathbb{G},\ \Delta,\ \cdot) \leftarrow \texttt{VDF.Setup}(\lambda,\ \Delta_{\text{challenge}})`$: Takes as input a security parameter $\lambda$ and seed $\Delta_{\text{challenge}}$ and returns a group description $\mathbb{G}$ with discriminant $\Delta$ and operation $\cdot$. We will omit $\lambda$ and $\mathbb{G}$ for simplicity;
+- $`y \leftarrow \texttt{VDF.Evaluate}((\mathbb{G},\ \Delta,\ \cdot), \ x,\ I)`$: Given a challenge $`x \in \mathbb{G}`$ and a number of iterations $`I \in \mathbb{N}`$, computes the VDF output $`y = x^{2^I}`$.
+- $`\pi \leftarrow \texttt{VDF.Prove}((\mathbb{G},\ \Delta,\ \cdot), \ x,\ y,\ I)`$: Given a challenge and output $`(x,y) \in \mathbb{G}^2`$, computes the VDF  **proof** $`\pi`$ as $`\pi = x^{2^I / p}`$ where $`p \leftarrow \text{Hash}^{(2 \lambda)}_\text{prime}(x  y)`$ is sampled from the first $`2^{2 \lambda}`$ prime numbers.
+- $`\{0,1\} \leftarrow \texttt{VDF.Verify}((\mathbb{G},\ \Delta,\ \cdot), \ x,\ y,\ I,\ \pi)`$: Returns 1 if $`\pi`$ successfully attests that $`y = x^{2^I}`$ with overwhelming probability, that is if $\pi^r \cdot x^p == y$ where $`p \leftarrow \text{Hash}^{(2 \lambda)}_\text{prime}(x \| y)`$ and $`r \leftarrow 2^{2^I} \text{mod}\ p`$. Returns 0 otherwise.
+
+For readability, we may remove the group description $(\mathbb{G},\ \Delta,\ \cdot)$ from the functions' inputs. We furthermore introduce the additional functions $\text{Hash}_\mathbb{G}(\cdot)$ a hash to the class group, and $\text{Hash}_\mathbb{N}^{(n)}(\cdot)$ a hash to the integers of size $n$ bits.
+
 #### 4.1.1 Wesolowski's VDF
 
 Verifiable Delayed Functions were introduced by Boneh et al. [6](https://eprint.iacr.org/2018/601.pdf) where the authors suggest several sequential functions combined with the use of proof systems in the incrementally verifiable computation framework (IVC) for viable proof generation and fast verification.
@@ -1702,7 +1710,7 @@ We will choose Wesolowski design over Pietrzark because of its space efficiency 
 
 Phalanx design is to run for each interval of slots a certain amount of computation, and prove this on-chain. As such, we can generate a VDF group of sufficient security or weaker ones at every epoch and associate to each of its intervals a VDF challenge. The nodes will then publish in block’s the VDF output and proof. The seed will then be computed by combining all the VDF output together, either by directly hashing them or by first accumulating them.
 
-To facilitate synching, we may add two accumulators that will be updated every time an iteration is published _in the correct order_. If an interval has no block, we will refrain from updating the accumulators until the nodes have caught up and the missing iteration is published, in which case we will update the accumulators for all consecutive available iterations.
+To facilitate synching, we may locally use two accumulators that will be updated every time an iteration is published _in the correct order_. If an interval has no block, we will refrain from updating the accumulators until the nodes have caught up and the missing iteration is published, in which case we will update the accumulators for all consecutive available iterations.
 After the last iteration has been revealed, we can choose to publish a proof of aggregation of all iterations to facilitate synching. The seed will be then computed as the hash of the VDF output accumulators.
 
 We will use Wesolowski's VDF on _class groups_ to generate efficiently on the fly the group at each epoch. Class groups are entirely determined by their discriminant $\Delta$ that is a negative prime number with specific properties. If we intend to reuse the same group for several epochs, we will generate a group with 128 bit of security, which means generate discriminants of length of at 3800 bits according to [4](https://arxiv.org/pdf/2211.16128). Were we to change groups at each epoch, we can reduce the security parameter and group size further. To evaluate the correct level of security to ensure that a class group remain secure for at least an epoch, we can look at the amount of work needed to break RSA challenges and deduce, for a given number of CPU and margin, corresponding class group discriminant size. For instance, the RSA-155 challenge, written over 155 decimal digits and 512 bits, was factored in 1999 with the general number feield sieve algorithm, taking an estimated 8000 MIPS-year. RSA-768, 768 bit long modulus, was factored in two years back in 2009 taking almost 2000 years of computing on a single-core 2.2 GHz CPU. More recently in 2020, the RSA-250 challenge, 250 decimal digits and 829 bits, was factored using a 2.1 GHz CPU in 2,700 CPU core-years. According to well-known [security organisations](https://www.keylength.com/en/compare/), 1024 bit long RSA correspond to less than 80 bits of security nowadays, the latter corresponding to 1920 to 2400 bit-long discriminants.
@@ -1711,28 +1719,21 @@ We will use Wesolowski's VDF on _class groups_ to generate efficiently on the fl
 As such, we add to a block the following two elements:
 - $y_i$, the $\text{i}^\text{th}$ interval VDF's output,
 - $\pi_i$, the $\text{i}^\text{th}$ interval VDF's proof.
+The new epoch's seed is defined as a combination of the VDF outputs. We can choose for efficiency $\eta = \text{Hash}(y_1 ||\ \dots ||\ y_n )$.
 
-We locally compute the following accumulators (or optionally publish them alongside $y_i$ and $\pi_i$ onchain):
+To faciliate synching, we can make use of accumulators and a proof of aggregation in which case we compute the following accumulators, that can optionally be published on-chain alongside $y_i$ and $\pi_i$:
 - $\textrm{Acc}_x$, the input accumulator,
-- $\textrm{Acc}_y$, the output accumulator,
+- $\textrm{Acc}_y$, the output accumulator.
+The final value of the output accumulator as well as the proof of aggregation needs to be published onchain, and respectively fit in the same field as $y_i$ and $\pi_i$, to prevent synching node to compute the costly proof of aggregation. Finally, if accumulators are used, we can choose as the new epoch's seed the output accumulator $\textrm{Acc}_y$ directly.
 
-We now show what happens at diverse points in time of the computation phase:
-- Before the computation phase, and when the preseed $\text{pre-}\eta_e$ is stabilized, we compute the epoch's discriminant $\Delta$ using $\text{Hash}(\text{bin}(e) || \text{pre-}\eta_e)$ as seed which determines the group $\mathbb{G}$. Finally, we will initialize both accumulators to $1_\mathbb{G}$.
-- To publish the first block of interval $i$, the node will compute the VDF input $x_i$ from the seed $\text{Hash}(\text{bin}(e) || \text{pre-}\eta_e || \text{bin}(i))$, its corrsponding output as well as a VDF proof of correctness. If there has been no missing iteration, the node will then compute $\alpha_i = \text{Hash} ( \dots  \text{Hash} (\text{Hash}( \text{Hash}(x_1\ ||\ \dots || x_n)\ ||\ y_1 )\ || y_2) \dots ||\ y_i)$ (note that $\alpha_i = \text{Hash}(\alpha_{i-1}\ ||\ y_i)$) and update the accumulator as follows: $\textrm{Acc}_x \leftarrow \textrm{Acc}_x \cdot x_i^{\alpha_i}$ and $\textrm{Acc}_y \leftarrow \textrm{Acc}_y \cdot y_i^{\alpha_i}$. If some iterations were not published, we will refrain from updating the accumulators until we havec caught back to ensure the ordering of the $x_i$ and $y_i$ in the computation of the $\alpha_i$.
-- When publishing the last iteration, may it be in the last interval if there was no empty interval or in the catch-up period, we will update the accumulator and may compute a proof of aggregation. This simply corresponds to a VDF proof on input $\textrm{Acc}_x$ and output $\textrm{Acc}_y$. The seed of the new epoch will be $\text{Hash}^{(256)}(\textrm{Acc}_y)$.
+We now show what happens at diverse points in time of the computation phase, given the usage of accummulators and without optimization or precomputation.
+- Before the computation phase, and when the pre-seed $\text{pre-}\eta_e$ is stabilized, if we change discriminants at each epoch, we compute the epoch's discriminant $\Delta^{(e)}$ using $\text{Hash}(\text{b"discriminant"}\ ||\ \text{bin}(e) ||\ \text{pre-}\eta_e)$ as seed which determines the group $\mathbb{G}$. Finally, we will initialize both accumulators to $1_\mathbb{G}$.
+- To publish the first block of interval $i$, the node needs to include the VDF output $y_i$ and VDF proof $\pi_i$. We define by $x_i \leftarrow \text{Hash}(\text{b"challenge"} ||\ \text{bin}(e) ||\ \text{pre-}\eta_e || \text{bin}(i))$ the challenge for interval $i$ of epoch $e$ using the pre-seed $\text{pre-}\eta_e$ of the current computation phase. Nodes will thus have to compute the evaluation $`y_i \leftarrow \texttt{VDF.Evaluate}(x_i,\ I)`$ where $I$ is the number of iterations per interval and its associated proof $`\pi_i \leftarrow \texttt{VDF.Prove}(x_i,\ y_i,\ I)`$ and publish them on-chain.
+If there has been no missing iterations, the node will then locally update the accumulators by first computing the batching random coin $\alpha_i \leftarrow \text{Hash}_\mathbb{N}^{(\lambda)} ( \dots  \text{Hash}_\mathbb{N}^{(\lambda)} (\text{Hash}_\mathbb{N}^{(\lambda)}( \text{Hash}_\mathbb{N}^{(\lambda)}(x_1\ ||\ \dots || x_n)\ ||\ y_1 )\ || y_2) \dots ||\ y_i)$ (note that $\alpha_i = \text{Hash}_\mathbb{N}^{(\lambda)}(\alpha_{i-1}\ ||\ y_i)$) and then the accumulators as follows: $\textrm{Acc}_x \leftarrow \textrm{Acc}_x \cdot x_i^{\alpha_i}$ and $\textrm{Acc}_y \leftarrow \textrm{Acc}_y \cdot y_i^{\alpha_i}$. If some iterations were not published, we will refrain from updating the accumulators until we have caught back to ensure the ordering of the $x_i$ and $y_i$ in the computation of the $\alpha_i$.
+- To publish another block of interval $i$, no additional computation is needed.
+- When catching up iterations, the node shall evaluate and prove the earliest missing VDF evaluation and proof.
+- In the interval after the last, potentially caught up, iteration was published, we will compute a proof of aggregation $\pi$ and publish on chain the accumulated evaluation $\textrm{Acc}_y$ and the proof of aggregation $\pi$. The proof of aggregation simply corresponds to a VDF proof on input $\textrm{Acc}_x$ and output $\textrm{Acc}_y$, i.e. $\pi \leftarrow \texttt{VDF.Prove}(\textrm{Acc}_x, I)$ ; as $\textrm{Acc}_y$ was not computed from $\textrm{Acc}_x$, the computation of $\pi$ may be more expensive than a normal proof but less than a VDF evaluation. The seed of the new epoch will be $\text{Hash}^{(256)}(\textrm{Acc}_y)$.
 - When verifying a block, if the node is not synching, they will verify the VDF proof as well as the correct aggregation of the accumulators. If the node is synching, they will verify only the correct aggregation of the accumulators and verify the proof of aggregation at the end.
-
-Let $\text{VDF}.\left(\text{Setup}, \text{Prove}, \text{Verify} \right)$ a class group based VDF algorithm definition, with:
-- $(\mathbb{G}, \Delta, \cdot) \leftarrow \text{VDF}.\text{Setup}(\lambda)$: Takes as input a security parameter $\lambda$ and returns a group description $\mathbb{G}$ with discriminant $\Delta$ and operation $\cdot$. We will omit $\lambda$ and $\mathbb{G}$ for simplicity;
-- $\left(y, \pi\right) \leftarrow \text{VDF}.\text{Prove}(x, T)$: Takes as input the challenge $x \in \mathbb{G}$ and difficulty $T \in \mathbb{N}$ and returns the VDF output $y = x^{2^T}$ and the VDF proof $\pi$;
-- $\{0,1\} \leftarrow \text{VDF}.\text{Verify}(x,y,T,\pi)$: Returns 1 if the verification of $\pi$ is successful, that is $y == x^{2^T}$ with overwhelming probability, otherwise 0.
-
-We furthermore introduce the two additional functions $\text{Hash}_\mathbb{G}(\cdot)$ a hash to the class group, and $\text{Hash}_\mathbb{N}^{(n)}(\cdot)$ a hash to the integers of size $n$ bits.
-
-To publish a block, nodes needs to include the VDF output and proof of the interval. We define by $x_i \leftarrow \text{Hash}_\mathbb{G}(\text{pre-}\eta_e || i)$ the challenge for interval $i$ using the pre-seed $\text{pre-}\eta_e$ of the current computation phase. Nodes will thus have to compute $\left(y_i, \pi_i\right) \leftarrow \text{VDF}.\text{Prove}(x_i, T)$ and publish them on-chain. Nodes also may publish accumulators, if there is no missing iterations. They do so by generate a random coin as $\alpha_i = \text{Hash}_\mathbb{N}^{(\lambda)} ( \dots  \text{Hash}_\mathbb{N}^{(\lambda)} (\text{Hash}_\mathbb{N}^{(\lambda)}( \text{Hash}_\mathbb{N}^{(\lambda)}(x_1\ ||\ \dots || x_n)\ ||\ y_1 )\ || y_2) \dots ||\ y_i)$ (note that $\alpha_i = \text{Hash}_\mathbb{N}^{(\lambda)}(\alpha_{i-1}\ ||\ y_i)$) and update $\textrm{Acc}_x$ (resp. $\textrm{Acc}_y$) to $\textrm{Acc}_x \cdot x_i^{\alpha_i}$ (resp. to $\textrm{Acc}_y \cdot y_i^{\alpha_i}$).
-When an iteration is missing, we shall wait until the network has caught up to respect the sequentiality of the $\alpha_i$.
-
-When all iterations have been computed, we generate a proof of aggregation $\pi$ using the same proving algorithm on $\textrm{Acc}_x$, but without recomputing the VDF output which is $\textrm{Acc}_y$. Hence we have, $\left(\textrm{Acc}_y, \pi\right) \leftarrow \text{VDF}.\text{Prove}(\textrm{Acc}_x, T)$.
 
 The computation guarantees of VDFs relies on the fact that squaring elements in an unknown order group is believed to be difficult to parallelize without specialised hardware. The goal of the adversary is to compute the seed as efficiently and quickly as possible. Regardless of whether the seed is defined as the hash of all VDF outputs - the $y_i$s or the hash of the output aggregator $\textrm{Acc}_y$, the adversary cannot batch the computation with significant probability. Indeed. we can see that the adverasry needs to compute the individual $y_i$ to compute the seed as he would need to hash all of them in the first solution, and similarly in the second as the batching coefficient $\alpha_i$ depends on the outputs $y_i$. If the adversary were to batch the $x_i$ with random coefficients, this would be equal to $\textrm{Acc}_x$ with negligeable property, and so the VDF evaluation of it would likewise equal $\textrm{Acc}_y$ with negligeable probability.
 The security proof of this accumulation can be found in [Building Cryptographic Proofs from Hash Functions, Chapter 14](https://github.com/hash-based-snargs-book/hash-based-snargs-book/blob/main/snargs-book.pdf) by Alessandro Chiesa and Eylon Yogev.
