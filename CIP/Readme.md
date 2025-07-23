@@ -329,35 +329,48 @@ In this section, we present a mechanism for producing a Wesolowski VDF **aggrega
 The aggregation mechanism has the following interface $`\texttt{VDF.Aggregation} = (\text{Init},\ \text{Update},\ \text{Prove},\ \text{Verify})`$ whose functions will be detailled afterwards. We assume that a class group $`\mathbb{G}`$ has already been set up, by $`(\mathbb{G},\ \Delta,\ \cdot) \leftarrow \texttt{VDF.Setup}(\lambda,\ \Delta_{\text{challenge}})`$.
 
 At the beginning of each epoch, we initialize the VDF accumulators' state that will be used to generate the VDF aggregation proof using $`\texttt{VDF.Aggregation.Init}`$.
+<center>
+
 | `Initialize accumulators` | $`(\text{Acc}_x, \text{Acc}_y, \alpha) \leftarrow \texttt{VDF.Aggregation.Init}(\lambda, \text{pre-}\eta_e)`$     |
 | ------------------------- | ------------------------- |
 | **Input Parameters**      | <ul><li>$`\lambda \in \mathbb{N}`$ — Security parameter.</li><li>$\text{pre-}\eta_e \in \{0,1\}^{256}$ — 256-bit pre-nonce entropy for epoch $e$.</li></ul> |
 | **Steps**                 | <ol><li>Compute all VDF challenges:<br>$`\forall i\ x_i \leftarrow  \text{Hash}_\mathbb{G}(\text{pre-}\eta_e \|i) `$</li><li>Compute the initial aggregation nonce:<br>$`\alpha \leftarrow  \text{Hash}^{(\lambda)}_\mathbb{N}(x_1 \|\| \dots \|\| x_n) `$</li><li>Initializes the accumulators to the identity:<br>$`(\text{Acc}_x, \text{Acc}_y) \leftarrow (1_\mathbb{G},\ 1_\mathbb{G})`$</li></ol>                                                                                                          |
 | **Returned Output**       | $`(\text{Acc}_x,\ \text{Acc}_y,\ \alpha)`$ — Input and output accumulators and initial aggregation nocne.   |
 
+</center>
 
 Every time a VDF output is published on-chain, if no previous VDF output are missing, we shall update the accumulators' state using $`\texttt{VDF.Aggregation.Update}`$.
+<center>
+
 | `Update accumulators` | $`(\text{Acc}_x, \text{Acc}_y, \alpha) \leftarrow \texttt{VDF.Aggregation.Update}(\lambda, (x_i, y_i),\ (\text{Acc}_x,\ \text{Acc}_y,\ \alpha))`$     |
 | ------------------------- | ------------------------- |
 | **Input Parameters**      | <ul><li>$`\lambda \in \mathbb{N}`$ — Security parameter.</li><li>$`(x_i,\ y_i)`$ — Pair of VDF input and output for current interval.</li><li>$`(\text{Acc}_x,\ \text{Acc}_y,\ \alpha)`$ — Accumulators' state.</li></ul> |
 | **Steps**                 | <ol><li>Compute the aggregation nonce:<br>$`\alpha \leftarrow  \text{Hash}^{(\lambda)}_\mathbb{N}(\alpha \|\| y_i) `$</li><li>Update the accumulators:<br>$`(\text{Acc}_x, \text{Acc}_y) \leftarrow (\text{Acc}_x \cdot x_i^\alpha, \text{Acc}_y \cdot y_i^\alpha)`$</li></ol>                                                                                                    |
 | **Returned Output**       | $`(\text{Acc}_x, \text{Acc}_y, \alpha)`$ — Updated accumulator's state.   |
 
+</center>
 
 Once all VDF outputs have been generated and the accumulators updated, we can generate the VDF aggregation proof $`\pi`$ using $`\texttt{VDF.Aggregation.Prove}`$.
+<center>
+
 | `Prove accumulators` | $`\pi \leftarrow \texttt{VDF.Aggregation.Prove}(\lambda,\ (\text{Acc}_x,\ \text{Acc}_y,\ \alpha),\ I)`$     |
 | ------------------------- | ------------------------- |
 | **Input Parameters**      | <ul><li>$`\lambda \in \mathbb{N}`$ — Security parameter.</li><li>$`(\text{Acc}_x,\ \text{Acc}_y,\ \alpha)`$ — Accumulators' state.</li><li>$`I \in \mathbb{N}`$ — Per-interval iteration count for the VDF.</li></ul> |
 | **Steps**                 | <ol><li>Compute the accumulator proof as a VDF proof:<br>$`\pi \leftarrow \texttt{VDF.Prove}((\mathbb{G},\ \Delta,\ \cdot), \ \text{Acc}_x,\ \text{Acc}_y,\ I)`$</li></ol>                                                                                                    |
 | **Returned Output**       | $`\pi`$ — Aggregated proof.   |
 
+</center>
 
 The VDF aggregation proof $`\pi`$ can then be efficiently be verified using $`\texttt{VDF.Aggregation.Verify}`$.
+<center>
+
 | `Verify accumulators` | $`\{0,1\} \leftarrow \texttt{VDF.Aggregation.Verify}(\lambda,\ (\text{Acc}_x,\ \text{Acc}_y,\ \alpha),\ I,\ \pi)`$     |
 | ------------------------- | ------------------------- |
 | **Input Parameters**      | <ul><li>$`\lambda \in \mathbb{N}`$ — Security parameter.</li><li>$`(\text{Acc}_x,\ \text{Acc}_y,\ \alpha)`$ — Accumulators' state.</li><li>$`I \in \mathbb{N}`$ — Per-interval iteration count for the VDF.</li><li>$`\pi \in \mathbb{G}`$ — Aggregated VDF proof.</li></ul> |
 | **Steps**                 | <ol><li>Verfy the accumulators' proof:<br>$`b \leftarrow \texttt{VDF.Verify}((\mathbb{G},\ \Delta,\ \cdot), \ \text{Acc}_x,\ \text{Acc}_y,\ I,\ \pi)`$</li></ol>                                                                                                    |
 | **Returned Output**       | $`b`$ — Verification bit.   |
+
+</center>
 
 ### 3. $`\phi^{\text{stream}}`$ Specification
 
