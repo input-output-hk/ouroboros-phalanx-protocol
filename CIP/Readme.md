@@ -58,22 +58,28 @@ License: Apache-2.0
     - [4.2. Time Budget T<sub>Φ</sub> and Derived T](#42-time-budget-tsubφsub-and-derived-t)
       - [4.2.1. Specialized ASIC vs CPU-Based Chips](#421-specialized-asic-vs-cpu-based-chips)
       - [4.2.2. Deriving from T<sub>Φ</sub> to T](#422-deriving-from-tsubφsub-to-t)
-  - [5. CDDL Schema for the Ledger](#5-cddl-schema-for-the-ledger)
+  - [5. Efficiency Analysis](#5-efficiency-analysis)
+    - [5.1. Block Publication](#51-block-publication)
+    - [5.2. Block Verification](#52-block-verification)
+      - [5.2.1. When Not Syncing](#521-when-not-syncing)
+      - [5.2.2. When Syncing](#522-when-syncing)
+  - [6. CDDL Schema for the Ledger](#6-cddl-schema-for-the-ledger)
+
 - [Rationale: How does this CIP achieve its goals?](#rationale-how-does-this-cip-achieve-its-goals)
-  - [1. How Phalanx Addresses CPS-21 - Ouroboros Randomness Manipulation ?](#1-how-phalanx-addresses-cps-21---ouroboros-randomness-manipulation)
+  - [1. How Φalanx Addresses CPS-21 - Ouroboros Randomness Manipulation ?](#1-how-phalanx-addresses-cps-21---ouroboros-randomness-manipulation)
     - [1.1 Problem Overview](#11-problem-overview)
-    - [1.2 Phalanx Cost Amplification per Grinding Attempt](#12-phalanx-cost-amplification-per-grinding-attempt)
-    - [1.3 Phalanx Cost Amplification per Grinding Attack](#13-phalanx-cost-amplification-per-grinding-attack)
+    - [1.2 Φalanx Cost Amplification per Grinding Attempt](#12-phalanx-cost-amplification-per-grinding-attempt)
+    - [1.3 Φalanx Cost Amplification per Grinding Attack](#13-phalanx-cost-amplification-per-grinding-attack)
       - [1.3.1 Formula](#131-formula)
       - [1.3.2 Estimated Formula Using Mainnet Cardano Parameters](#132-estimated-formula-using-mainnet-cardano-parameters)
       - [1.3.3 Impact of T<sub>Φ</sub> on Canonical Scenarios](#133-impact-of-t_phi-on-canonical-scenarios)
       - [1.3.4 Impact of T<sub>Φ</sub> on Feasibility Categories](#134-impact-of-t_phi-on-feasibility-categories)
     - [1.4. Conclusion: How Much Risk is Mitigated?](#14-conclusion-how-much-risk-is-mitigated)
-  - [2. How Phalanx Improves CPS-17 - Settlement Speed ?](#2-how-phalanx-improves-cps-17---settlement-speed)
+  - [2. How Φalanx Improves CPS-17 - Settlement Speed ?](#2-how-phalanx-improves-cps-17---settlement-speed)
     - [2.1 Settlement times without grinding attacks](#21-settlement-times-without-grinding-attacks)
     - [2.2 How Grinding Power affects Settlement times](#22-how-grinding-power-affects-settlement-times)
-    - [2.3 How Phalanx improves compared to Praos?](#23-how-phalanx-improves-compared-to-praos-) 
-    - [2.4 Advocating for Peras: Phalanx as a Complementary Layer](#24-advocating-for-peras-phalanx-as-a-complementary-layer) 
+    - [2.3 How Φalanx improves compared to Praos?](#23-how-phalanx-improves-compared-to-praos-) 
+    - [2.4 Advocating for Peras: Φalanx as a Complementary Layer](#24-advocating-for-peras-phalanx-as-a-complementary-layer) 
   - [3. Why VDFs Were Chosen over other Cryptographic Primitives ?](#3-why-vdfs-were-chosen-over-other-cryptographic-primitives-)
     - [3.1 Requirements](#31-requirements)
     - [3.2 Primitive selection](#32-primitive-selection)
@@ -98,12 +104,7 @@ License: Apache-2.0
 - [References](#references)
 - [Copyright](#copyright)
 
-
-
-
 ## Abstract
-
-<!-- A short (\\\~200 word) description of the proposed solution and the technical issue being addressed. \-->
 
 Addressing the "[Ouroboros Randomness Manipulation](../CPS/README.md)" **Problem**,  **Ouroboros Φalanx (Pronounced Phalanx)** enhances **Ouroboros Praos** to mitigate grinding attacks by **increasing the cost of leader election manipulation**. It extends **nonce generation from 1 epoch to 2**, introducing a **computationally intensive function** that remains efficient for honest participants but makes it **significantly more costly for adversaries to bias the process**.
 
@@ -137,8 +138,6 @@ This CIP responds to two Cardano Problem Statements:
 
 ## Specification / The Φalanx Sub-Protocol
 
-<!-- The technical specification should describe the proposed improvement in sufficient technical detail. In particular, it should provide enough information that an implementation can be performed solely on the basis of the design in the CIP. This is necessary to facilitate multiple, interoperable implementations. This must include how the CIP should be versioned, if not covered under an optional Versioning main heading. If a proposal defines structure of on-chain data it must include a CDDL schema in its specification.-->
-
 The core principle of the proposed protocol change is to **substantially escalate the computational cost of each grinding attempt for an adversary**. To achieve this, every honest participant is required to perform a designated computation for each block they produce over an epoch (**432,000 slots - 5 days**). Consequently, an adversary attempting a grinding attack must **recompute these operations for every single attempt**, while being **constrained by the grinding window**, which dramatically increases the resource expenditure. By enforcing this computational burden, we **drastically reduce the feasible number of grinding attempts** an adversary with a fixed resource budget can execute, making randomness manipulation **more expensive and significantly less practical**.
  
 
@@ -163,7 +162,7 @@ The Randomness Generation sub-protocol operates with two parallel streams $`\eta
 
 ##### 1.2.1. **The $`\eta`$ stream** 
 
-   - Already present in Praos and retained in Phalanx 
+   - Already present in Praos and retained in Φalanx 
    - Updated with every block produced in the blockchain tree, a $`\eta`$ stream captures intermediate values $`\eta^\text{evolving}_t`$ in the block headers, defined as follows:
 
 ```math
@@ -382,7 +381,6 @@ The VDF aggregation proof $`\pi`$ can then be efficiently be verified using $`\t
 | **Returned Output**       | $`b`$ — Verification bit.   |
 
 
-
 For a discriminant of 4096 bits, we benchmarks the aggregation functions,
 
 |                            Function |    #iterations | time (ms) |
@@ -401,7 +399,7 @@ For a discriminant of 4096 bits, we benchmarks the aggregation functions,
 
 ### 3. $`\phi^{\text{stream}}`$ Specification
 
-We previously outlined the purpose of the Phalanx sub-protocol and introduced the cryptographic primitive underpinning its security guarantees. In this section, we provide a precise technical specification of the protocol, focusing on how the $`\Phi`$ iterations are distributed and how Wesolowski’s Verifiable Delay Function (VDF) is integrated into the process.
+We previously outlined the purpose of the Φalanx sub-protocol and introduced the cryptographic primitive underpinning its security guarantees. In this section, we provide a precise technical specification of the protocol, focusing on how the $`\Phi`$ iterations are distributed and how Wesolowski’s Verifiable Delay Function (VDF) is integrated into the process.
 
 #### 3.1. Distribution of $\Phi$ Iterations
 
@@ -420,7 +418,6 @@ We want to make sure that, in any given interval of $N$ slots, there's **at leas
 It is also important to note that we are operating in a context where fork-related concerns can be safely abstracted away. In particular, if an adversary were to attempt a private chain attack and succeed, it would imply that their chain is denser and that the proof of $\Phi$ computation is valid. In this setting, forks do not undermine security—they actually improve the probability of having at least one valid computation published within the interval.
 
 This means: $`\Pr(\text{at least one honest block in } N \text{ slots}) \geq 1 - 2^{-128}`$
-
 
 ##### 🎲 Step 1 — What’s the chance of *not* getting an honest block?
 
@@ -475,7 +472,6 @@ This structure can be illustrated as follows:
 
 ![alt text](./image/intervals.png)
 
-
 As previously described, we configure the stream using two key parameters, most notably the total computational budget $`T_\Phi`$. This value defines the total amount of work we require SPOs to collectively perform.
 
 We split $`T_\Phi`$ into discrete **iterations**, each with the following properties:
@@ -522,15 +518,13 @@ The diagram below illustrates how the lifecycle segment is structured:
 
 #### 3.2.1. Diagram Overview
 
-The figure below presents the **state transition diagram** for the Phalanx computation stream. Each node represents a distinct state in the lifecycle of the stream, and the arrows indicate transitions triggered by `Tick` events. These transitions are guarded by boolean predicates evaluated at each slot (e.g., `isWithinComputationPhase`, `isWithinCurrentInterval`).
+The figure below presents the **state transition diagram** for the Φalanx computation stream. Each node represents a distinct state in the lifecycle of the stream, and the arrows indicate transitions triggered by `Tick` events. These transitions are guarded by boolean predicates evaluated at each slot (e.g., `isWithinComputationPhase`, `isWithinCurrentInterval`).
 
-![Phalanx State Transition Diagram](./image/state-transition-diagram.png)
+![Φalanx State Transition Diagram](./image/state-transition-diagram.png)
 
 In the following sections, we provide a detailed breakdown of each phase of the state machine, specifying its purpose, entry conditions, timing constraints, and transitions.
 
-
 #### 3.2.2. 🟧 *Parametrization Phase*
-
 
 At the setup of $`\phi^{stream}`$, the total number of VDF iterations is derived from the time-bound parameter $`T_\Phi`$, using a reference hardware profile that reflects the minimal computational capacity expected of SPOs. While this derivation may not be fully automatable in practice, we include it here to clarify how time constraints are mapped to iteration counts during configuration.
 
@@ -650,7 +644,6 @@ The `AttestedOutputProvided` state reuses the exact same structure:
 ```
 
 This version aligns both the field names and their types in two neat columns. Let me know if you'd prefer the braces to be placed differently (e.g. outside the alignment block) for aesthetic reasons.
-
 
 | **Field**   | **Description**    |
 | ------------- | --------------- |
@@ -851,16 +844,16 @@ While this state is statistically unexpected, it is explicitly defined to ensure
 
 ### 4. Recommended Parameter values
 
-There are **two categories of parameters** in the Phalanx protocol that Cardano governance will need to oversee. The first category concerns the **VDF parameters**, which are essential to maintaining the protocol’s cryptographic security. The second concerns the **total time budget** \$T\_\Phi\$ that will be required from SPOs during the **Computation Phase**.
+There are **two categories of parameters** in the Φalanx protocol that Cardano governance will need to oversee. The first category concerns the **VDF parameters**, which are essential to maintaining the protocol’s cryptographic security. The second concerns the **total time budget** $T_\Phi$ that will be required from SPOs during the **Computation Phase**.
 
 The goal of this section is to provide **recommended values** for these parameters along with the **rationale** behind their selection, so that governance is well-equipped to **adjust them over time** in response to advances in adversarial computational power.
 
 #### 4.1 VDF Security Parameters λ and ρ
 
-The VDF component in Phalanx relies on class group security, which is parameterized by two values:
+The VDF component in Φalanx relies on class group security, which is parameterized by two values:
 
 - $`\lambda`$, the **class group security parameter**, and
-- $`\rho`$, the **grinding resistance parameter**, newly introduced in the Phalanx design.
+- $`\rho`$, the **grinding resistance parameter**, newly introduced in the Φalanx design.
 
 Several combinations of $`\lambda`$ and $`\rho`$ are considered in the literature, depending on the desired level of paranoia or efficiency. Based on the recommendations from the paper [Trustless Unknown-Order Groups]((https://arxiv.org/pdf/2211.16128)), we highlight the following trade-offs: 
 
@@ -876,19 +869,19 @@ This strikes a balance between long-term security and practical efficiency:
 - On one hand, **breaking the class group** is considered harder than **finding a collision in a 256-bit hash** (our minimum security baseline).
 - On the other hand, by following the paper’s recommendation and selecting a slightly lower $`\rho = 64`$, we can **reduce the size of on-chain group elements** while maintaining sufficient resistance against grinding.
 
-Since Phalanx is designed to operate with a **single class group instance “for the lifetime of the protocol”** (reparametrization would require explicit governance intervention), this configuration $(\lambda, \rho) = (128, 64)$ ensures protocol simplicity, consistency, and operational predictability.
+Since Φalanx is designed to operate with a **single class group instance “for the lifetime of the protocol”** (reparametrization would require explicit governance intervention), this configuration $(\lambda, \rho) = (128, 64)$ ensures protocol simplicity, consistency, and operational predictability.
 
 #### 4.2 Time Budget T<sub>Φ</sub> and Derived T
 
-In terms of efficiency, the section [**1. How Phalanx Addresses CPS-21 – Ouroboros Randomness Manipulation**](#1-how-phalanx-addresses-cps-21---ouroboros-randomness-manipulation) in the *Rationale* part of this document illustrates, through three scenarios $`\text{Phalanx}_{1/10}`$, $`\text{Phalanx}_{1/100}`$, and $`\text{Phalanx}_{\text{max}}`$, how different time budgets (2 hours, 12 hours, and 5 days, respectively) improve the protocol’s security guarantees against grinding attacks.
+In terms of efficiency, the section [**1. How Φalanx Addresses CPS-21 – Ouroboros Randomness Manipulation**](#1-how-phalanx-addresses-cps-21---ouroboros-randomness-manipulation) in the *Rationale* part of this document illustrates, through three scenarios $`\text{Phalanx}_{1/10}`$, $`\text{Phalanx}_{1/100}`$, and $`\text{Phalanx}_{\text{max}}`$, how different time budgets (2 hours, 12 hours, and 5 days, respectively) improve the protocol’s security guarantees against grinding attacks.
 
 In terms of computational load, we recommend setting the time budget at a **midpoint between minimal and maximal protocol capacity**, corresponding to approximately **12 hours** of execution on typical, CPU-based hardware as recommended for SPOs. However, this choice should ultimately be guided by **settlement time performance requirements** across the ecosystem, including the needs of **partner chains and other dependent components**.
 
-#### 4.2.1 Specialized ASIC vs CPU-Based Chips
+##### 4.2.1 Specialized ASIC vs CPU-Based Chips
 
 We need to account for the possibility that adversaries may equip themselves with specialized ASIC chips optimized for computing Wesolowski’s Verifiable Delay Function (VDF). The Chia team has already developed and deployed such **ASIC Timelords**, which demonstrate between **3× and 5× performance improvements** compared to standard CPU-based implementations. These ASICs reach up to **1,000,000 iterations per second**, while commodity CPU Timelords typically max out around **260,000 IPS** ([Chia Network, Oct 2023](https://www.chia.net/2023/10/26/were-going-to-ludicrous-speed)).
 
-To mitigate this performance asymmetry, our initial strategy is to require a **12-hour equivalent workload on standard CPU hardware** (as in \$`\text{Phalanx}_{1/10}`\$), which is calibrated to provide the **same security guarantees** as a less aggressive configuration like \$`\text{Phalanx}_{1/100}`\$. This gives us a conservative baseline for security, assuming an adversary might leverage ASIC acceleration.
+To mitigate this performance asymmetry, our initial strategy is to require a **12-hour equivalent workload on standard CPU hardware** (as in $`\text{Phalanx}_{1/10}`$), which is calibrated to provide the **same security guarantees** as a less aggressive configuration like $`\text{Phalanx}_{1/100}`$. This gives us a conservative baseline for security, assuming an adversary might leverage ASIC acceleration.
 
 Critically, scaling this kind of grinding capability is expensive. For an adversary to mount an effective grinding attack, they would need to build and operate a farm of VDF-optimized ASICs — a non-trivial financial and operational challenge. Chia’s rollout of these units has been tightly controlled and aimed at ensuring global distribution, not centralization ([Chia Global Expansion Update, June 2024](https://www.chia.net/2024/06/10/global-expansion-of-chia-network-security-with-successful-asic-timelord-rollout)).
 
@@ -898,7 +891,7 @@ Critically, scaling this kind of grinding capability is expensive. For an advers
 
 In summary, while ASIC-equipped adversaries could, in theory, gain a computational advantage during the grinding window, the cost and scale required to pose a real threat remains high. Our mitigation strategy is to raise the honest baseline to neutralize this advantage and prepare for possible hardware evolution over time.
 
-#### 4.1.2 Deriving from T<sub>Φ</sub> to T
+##### 4.1.2 Deriving from T<sub>Φ</sub> to T
 
 We recommend a **12-hour computation budget** on standard **CPU-based machines**, which we estimate to be **10× slower** than specialized ASICs available to adversaries. This configuration corresponds to **Phalanx<sub>1/10</sub>** in terms of **time budget**, while achieving **Phalanx<sub>1/100</sub>** in terms of **security guarantees** against grinding attacks.
 
@@ -916,9 +909,52 @@ Thanks to its well-established performance profile, this implementation provides
 
 **Note** : We recommend that this benchmark be re-run on a **dedicated, representative SPO machine** to calibrate a more accurate production value for $T$.
 
+### 5. Efficiency analysis
+
+#### 5.1 Block Publication
+
+To publish a block, a node must:
+
+* Perform $T$ squarings to compute the output,
+* Execute $O(T / \log(T))$ operations for the proof generation,
+
+#### 5.2 Block Verification
+
+##### 5.1.1 When Not Syncing
+
+For each block, a node performs:
+
+* 2 hashes,
+* 4 small exponentiations,
+* 3 group multiplications.
+
+Over an epoch with $N$ intervals, this results in:
+
+* $2 \cdot N$ hashes,
+* $4 \cdot N$ small exponentiations,
+* $3 \cdot N$ group multiplications.
+
+##### 5.1.1 When Syncing
+
+Only the aggregations and their proofs need to be verified:
+
+* $2 \cdot N$ hashes,
+* $2 \cdot N + 1$ group multiplications,
+* $2 \cdot (N + 1)$ small exponentiations.
+
+Note: The exponentiations involving the $\alpha_i$ values are **half as expensive** as those in the full proof verification.
+
+Here is your corrected and improved section, with the numerical values filled in based on your prior recommendation of a **4096-bit discriminant**:
+
 ## 6. CDDL Schema for the Ledger
 
-Phalanx requires a single addition to the block body structure in the ledger: the field `phalanx_challenge`.
+To support Φalanx, **one block per interval** (every 3600 slots), across **83 intervals per epoch**, must include **2 group elements**. Each of these elements can be compressed to approximately $3/4 \cdot \log_2(|\Delta|)$ bits. Based on our recommended discriminant size of **4096 bits**:
+
+* **3072 bits (384 bytes)** per element,
+* **6144 bits (768 bytes)** per block (2 elements),
+* **509,952 bits (63,744 bytes ≈ 62.25 KB)** per epoch (83 blocks × 6144 bits).
+
+Φalanx requires a single addition to the block body structure in the ledger: the field `phalanx_challenge`.
 
 ```diff
  block =
@@ -935,11 +971,11 @@ The structure `vdf_attested_output` is defined as follows:
 
 ```cddl
 vdf_attested_output =
-  [ output : form_size
-  , proof  : form_size
+  [ output : vdf_size
+  , proof  : vdf_size
   ]
 
-form_size = [ bytes, bytes .size 388 ]
+vdf_size = [ bytes, bytes .size 384 ]
 ```
 
 We initially evaluated including the `phalanx_challenge` (i.e., the VDF attested output) in the **block header** (instead as proposed in the **block body**) colocated with the VRF outputs. However, this approach raised concerns due to **header size constraints**.
@@ -950,16 +986,11 @@ The current **maximum block header size** in Cardano is **1100 bytes**, although
 - 2 group elements (output + proof)
 - Total: **776 bytes**
 
-This would **exceed the 1500-byte limit**, risking fragmentation and violating guidance from the Cardano networking team.
-
+This would **exceed the 1500-bytes limit**, risking fragmentation and violating guidance from the Cardano networking team.
 
 ## Rationale: How does this CIP achieve its goals?
-<!-- The rationale fleshes out the specification by describing what motivated the design and what led to particular design decisions. It should describe alternate designs considered and related work. The rationale should provide evidence of consensus within the community and discuss significant objections or concerns raised during the discussion.
 
-It must also explain how the proposal affects the backward compatibility of existing solutions when applicable. If the proposal responds to a CPS, the 'Rationale' section should explain how it addresses the CPS, and answer any questions that the CPS poses for potential solutions.
--->
-
-### 1. How Phalanx Addresses CPS-21 - Ouroboros Randomness Manipulation?
+### 1. How Φalanx Addresses CPS-21 - Ouroboros Randomness Manipulation?
 
 #### 1.1 Problem Overview
 
@@ -995,7 +1026,7 @@ The table below delineates the **$\rho$ values** at which each scenario transiti
 
 These thresholds reveal critical vulnerabilities in Cardano’s current consensus design. **Φalanx** aims to mitigate these risks.  In the following section, we revisit the core computational model, introduce the proposed enhancements, and quantify how they shift the feasibility landscape in favor of security.
 
-#### 1.2 Phalanx Cost Amplification per Grinding Attempt
+#### 1.2 Φalanx Cost Amplification per Grinding Attempt
 
 In **Φalanx**, we introduce an additional parameter and **computational cost**, denoted $T_\Phi$, for each **grinding attempt**. This cost represents the total cumulative effort required to compute $i$ iterations of the $\Phi$ primitive. This additional cost directly impacts the total estimated **time per grinding attempt**, as originally defined in [CPD Section 3.3.4 - Total Estimated Time per Grinding Attempt](../CPS/CPD/README.md#334-total-estimated-time-per-grinding-attempt). The baseline grinding time in **Praos** is:
 
@@ -1021,7 +1052,7 @@ Where:
 The introduction of $T_\Phi$ substantially increases the **computational burden** for adversaries, as they must **recompute** the $\Phi^i$ function for each of the $2^\rho$ possible **nonces** evaluated during a grinding attack. In contrast, for **honest participants**, this computation is **distributed** across the epoch, ensuring it remains **manageable and efficient**. 
 
 
-#### 1.3 Phalanx Cost Amplification per Grinding Attack
+#### 1.3 Φalanx Cost Amplification per Grinding Attack
 
 Building on the updated **grinding time formula** introduced in the previous section, which incorporates the additional **computational cost** $T_\Phi$, we can now revise the formula for a grinding attack from [CPD Section 3.4.1 - Formula](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021/CPS/CPD/README.md#341-formula), where we defined a total attack time that must fit within the **grinding opportunity window** $w_O$:
 
@@ -1142,7 +1173,7 @@ N_{\text{CPU}} > \left \lceil
 
 ##### 1.3.3 Impact of T<sub>Φ</sub> on Canonical Scenarios
 
-Now that we have an updated formula, we can evaluate how **Phalanx** directly affects the cost of grinding attempts when compared to the original CPD scenarios. As previously discussed, the goal is to strike a balance between the effort expected from honest **SPOs** during an epoch and the computational burden imposed on an adversary attempting to evaluate multiple $`\eta_e`$ candidates in preparation for an attack.
+Now that we have an updated formula, we can evaluate how **Φalanx** directly affects the cost of grinding attempts when compared to the original CPD scenarios. As previously discussed, the goal is to strike a balance between the effort expected from honest **SPOs** during an epoch and the computational burden imposed on an adversary attempting to evaluate multiple $`\eta_e`$ candidates in preparation for an attack.
 
 To anchor this analysis, we introduce a baseline configuration denoted as $`\text{Phalanx}_\text{1/100}`$: an overhead equal to **1/100 of an epoch**, corresponding to $432{,}000 \div 100 = 4{,}320$ slots. This represents a **modest but meaningful choice** — substantial enough to raise the adversary’s cost significantly, yet conservative enough to avoid overloading honest participants. In contrast, imposing a full-epoch overhead would likely be excessive in practice, potentially destabilizing the protocol or placing undue demands on block producers. We may refer to that upper bound as $`\text{Phalanx}_{\text{max}}`$, and the present section aims to explore and recommend a viable configuration somewhere between this maximum and our conservative baseline.
 
@@ -1574,39 +1605,36 @@ Using OWFs and SNARKs in the context of Phalanx is straightforward. To each iter
 The combination of OWFs and SNARKs, however elegant it may be for its modularity, is not practical for the proof generation overhead being prohibitive. 
 Trapdoor based solutions seem to be the best candidates for anti-grinding solutions. Out of the ones considered, VDFs seem the most practical primitive thanks to the possibility of reusing the group, and class groups offer the simplest deployment. The main caveat of such a solution is in its relative novelty, regular assessment would need to be done to ensure correct and up to date parametrization.
 
-
 ## Path to Active
 
 ### Acceptance Criteria
 
 The proposal will be considered **Active** once the following criteria are met:
 
-* [ ] The revised `cardano-node` implementation passes all **node-level conformance test suites**.
-* [ ] A formal **security audit** is completed and its findings reviewed.
-* [ ] The solution demonstrates **stable and expected behavior in testnet environments**.
-* [ ] The **hard fork is successfully executed** and the protocol transition is secure.
-* [ ] The **community agrees on the initial Phalanx protocol parameters** and on a clear policy for their future updates.
-* [ ] The upcoming CIP introducing a **Consensus** category may define further acceptance criteria, which will be incorporated accordingly.
+- [ ] The revised `cardano-node` implementation passes all **node-level conformance test suites**.
+- [ ] A formal **security audit** is completed and its findings reviewed.
+- [ ] The solution demonstrates **stable and expected behavior in testnet environments**.
+- [ ] The **hard fork is successfully executed** and the protocol transition is secure.
+- [ ] The **community agrees on the initial Phalanx protocol parameters** and on a clear policy for their future updates.
+- [ ] The upcoming CIP introducing a **Consensus** category may define further acceptance criteria, which will be incorporated accordingly.
 
 ### Implementation Plan
 
 To fulfill the above criteria, the following steps are planned:
 
-* [ ] Triage and scope confirmation by Intersect’s **Core Infrastructure** and **Consensus** teams.
-* [ ] Coordination with ongoing workstreams on consensus protocol enhancements:
+- [ ] Triage and scope confirmation by Intersect’s **Core Infrastructure** and **Consensus** teams.
+- [ ] Coordination with ongoing workstreams on consensus protocol enhancements:
 
-  * [ ] Compatibility with **Peras**
-  * [ ] Compatibility with **Leios**
-  * [ ] Compatibility with **Ouroboros Genesis**
-* [ ] Development and publication of a **community communication plan** covering:
+  - [ ] Compatibility with **Peras**
+  - [ ] Compatibility with **Leios**
+  - [ ] Compatibility with **Ouroboros Genesis**
+- [ ] Development and publication of a **community communication plan** covering:
 
   * The initial values of Phalanx parameters
   * The procedure for evaluating and updating these parameters
-* [ ] Integration of a **Wesolowski-style VDF library** into [`cardano-crypto-class`](https://github.com/IntersectMBO/cardano-base/blob/master/cardano-crypto-class/cardano-crypto-class.cabal)
-* [ ] Implementation of the **node-level logic**, including support for the hard fork mechanism
-* [ ] Construction and execution of a comprehensive **node-level conformance test suite**
-
-
+- [ ] Integration of a **Wesolowski-style VDF library** into [`cardano-crypto-class`](https://github.com/IntersectMBO/cardano-base/blob/master/cardano-crypto-class/cardano-crypto-class.cabal)
+- [ ] Implementation of the **node-level logic**, including support for the hard fork mechanism
+- [ ] Construction and execution of a comprehensive **node-level conformance test suite**
 
 ## References
 
@@ -1649,199 +1677,7 @@ To fulfill the above criteria, the following steps are planned:
 - [Pietrzak, Krzysztof. "Simple verifiable delay functions." 10th innovations in theoretical computer science conference (itcs 2019). Schloss Dagstuhl–Leibniz-Zentrum für Informatik, 2019.](https://drops.dagstuhl.de/storage/00lipics/lipics-vol124-itcs2019/LIPIcs.ITCS.2019.60/LIPIcs.ITCS.2019.60.pdf)
 
 
-
 ## Copyright
-<!-- The CIP must be explicitly licensed under acceptable copyright terms.  Uncomment the one you wish to use (delete the other one) and ensure it matches the License field in the header: -->
-Todo
-<!-- This CIP is licensed under [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/legalcode). -->
 This CIP is licensed under [Apache-2.0](http://www.apache.org/licenses/LICENSE-2.0).
 
 
-
-
-
--------
-Below is under progress 
--------
-
-
-
-### 4. The Φ Cryptographic Primitive
-
-The Φ cryptographic primitive is a critical component of the Φalanx protocol, designed to increase the computational cost of grinding attacks while remaining efficient for honest participants. To achieve this, Φ must adhere to a set of well-defined properties that ensure its security, efficiency, and practical usability within the Cardano ecosystem. These properties are outlined in the table below :
-
-| **Property**              | **Description**                                                                                                   |
-|---------------------------|-------------------------------------------------------------------------------------------------------------------|
-| **Functionality**         | Must be a well-defined mathematical function, ensuring a unique output for each given input (unlike proof-of-work, which allows multiple valid outputs). |
-| **Determinism**           | Must be fully deterministic, with the output entirely determined by the input, eliminating non-deterministic variations. |
-| **Efficient Verification**| Must allow for fast and lightweight verification, enabling rapid validation of outputs with minimal computational overhead. |
-| **Compact Representation**| Input and output sizes should be small enough to fit within a block, optimizing on-chain storage efficiency. Further reductions are desirable where feasible. |
-| **Lower Bound on Computation** | Computational cost of evaluation should be well-characterized and predictable, with a lower bound that is difficult to surpass, ensuring adversaries cannot gain an unfair efficiency advantage. |
-| **Ease of Implementation & Maintenance** | Should be simple to implement and maintain, ensuring long-term usability and minimizing technical debt. |
-| **Adaptive Security**     | Function and its parameters should be easily reconfigurable to accommodate evolving threats, such as advances in computational power or new cryptographic attacks. |
-
-#### 4.1. Verifiable Delayed Functions
-
-Verifiable Delayed Functions (VDFs) are cryptographic primitives designed to take a certain amount of time to compute, regardless of how much computing resources are avaialable. This delay is enforced by requiring a specific number of sequential steps that cannot be sped up through parallel processing. Once the computation is done, the result comes with a proof that can be checked quickly and efficiently by anyone. Importantly, for a given input, the output is always the same, ensuring consistency. They usually rely on repeatedly squaring numbers in a mathematical setting that prevents shortcuts and enables quick verification.
-
-As one can see, VDFs present _functionality_, _determinism_, _efficient verification_ and _lower bound on computation_. The _compact representation_ depends on the chosen group as well as the instantiation, which we will tackle later on. The _implementation and maintenance_ is straightforward as the output of a VDF is a simple exponentiation of a group element, only the square operation is needed to be implemented to compute it. As for the proof, this depends on the precise VDF instantiation. Finally, the system is "adaptively secure" as we can set up a group with high security to be reused for a whole epoch, and set the number of squaring, also called difficulty, depending on how much computation we want the nodes to perform.
-
-#### 4.1.1 Wesolowski's VDF
-
-Verifiable Delayed Functions were introduced by Boneh et al. [6](https://eprint.iacr.org/2018/601.pdf) where the authors suggest several sequential functions combined with the use of proof systems in the incrementally verifiable computation framework (IVC) for viable proof generation and fast verification.
-VDF variants revolve around two primary SNARK-free designs: one from Pietrzak [36](https://drops.dagstuhl.de/storage/00lipics/lipics-vol124-itcs2019/LIPIcs.ITCS.2019.60/LIPIcs.ITCS.2019.60.pdf) and the second from Wesolowski [35](https://eprint.iacr.org/2018/623.pdf). They differ in the proof design. 
-
-In Wesolowski’s paper, the proof is defined as $x^{2^T} / l$ where $g$ is the challenge, $T$ the difficulty and $l$ is a prime number found by hashing the VDF input and output together.  The proof is thus a single group element that can be computed in at most $2 T$ group operations and constant space, or $(1+1/s) \cdot T$ time where the number $s$ is both the number of processors and space while the verification takes $log_2 T$ scalar multiplications in $\mathcal{Z}/l$ and two small exponentiations in the group $\mathbb{G}$. The proving time can further be optimized to $O(T /  log(T))$ group multiplications by reusing the evaluation intermediary results.
-Wesolowski also presents aggregation and watermarking methods. The aggregation method does not consist in aggregating multiple proofs but computing a proof of several VDF challenges. This is done by batching all inputs and outputs together and creating a proof for this batched input. The watermarking is done by computing the VDF twice, once normally and another time on a combination of the challenger’s id and VDF input.
-
-In Pietrzak’s paper, the proof is a tuple of group elements $\pi = \{x^{2^{T / 2^i}}\}$, of size logarithmic in $T$, that can be computed in $(1+2 \sqrt{T}^-1) T$ time and can be optimized to $O(\sqrt{T} \cdot log_2 T)$ multiplications, the verification takes $2 \cdot log_2T$ small exponentiations. Subsequent work on Pietrzak’s paper shows how VDFs challenges can be structured in a Merkle tree to get a proof of the whole tree.
-
-We will choose Wesolowski design over Pietrzark because of its space efficiency and possibility to aggregate proofs.
-
-#### 4.1.2 VDF's integration
-
-Phalanx design is to run for each interval of slots a certain amount of computation, and prove this on-chain. As such, we can generate a VDF group of sufficient security or weaker ones at every epoch and associate to each of its intervals a VDF challenge. The nodes will then publish in block’s the VDF output and proof. The seed will then be computed by combining all the VDF output together, either by directly hashing them or by first accumulating them.
-
-To facilitate synching, we may add two accumulators that will be updated every time an iteration is published _in the correct order_. If an interval has no block, we will refrain from updating the accumulators until the nodes have caught up and the missing iteration is published, in which case we will update the accumulators for all consecutive available iterations.
-After the last iteration has been revealed, we can choose to publish a proof of aggregation of all iterations to facilitate synching. The seed will be then computed as the hash of the VDF output accumulators.
-
-We will use Wesolowski's VDF on _class groups_ to generate efficiently on the fly the group at each epoch. Class groups are entirely determined by their discriminant $\Delta$ that is a negative prime number with specific properties. If we intend to reuse the same group for several epochs, we will generate a group with 128 bit of security, which means generate discriminants of length of at 3800 bits according to [4](https://arxiv.org/pdf/2211.16128). Were we to change groups at each epoch, we can reduce the security parameter and group size further. To evaluate the correct level of security to ensure that a class group remain secure for at least an epoch, we can look at the amount of work needed to break RSA challenges and deduce, for a given number of CPU and margin, corresponding class group discriminant size. For instance, the RSA-155 challenge, written over 155 decimal digits and 512 bits, was factored in 1999 with the general number feield sieve algorithm, taking an estimated 8000 MIPS-year. RSA-768, 768 bit long modulus, was factored in two years back in 2009 taking almost 2000 years of computing on a single-core 2.2 GHz CPU. More recently in 2020, the RSA-250 challenge, 250 decimal digits and 829 bits, was factored using a 2.1 GHz CPU in 2,700 CPU core-years. According to well-known [security organisations](https://www.keylength.com/en/compare/), 1024 bit long RSA correspond to less than 80 bits of security nowadays, the latter corresponding to 1920 to 2400 bit-long discriminants.
-
-
-As such, we add to a block the following two elements:
-- $y_i$, the $\text{i}^\text{th}$ interval VDF's output,
-- $\pi_i$, the $\text{i}^\text{th}$ interval VDF's proof.
-
-We locally compute the following accumulators (or optionally publish them alongside $y_i$ and $\pi_i$ onchain):
-- $\textrm{Acc}_x$, the input accumulator,
-- $\textrm{Acc}_y$, the output accumulator,
-
-We now show what happens at diverse points in time of the computation phase:
-- Before the computation phase, and when the preseed $\text{pre-}\eta_e$ is stabilized, we compute the epoch's discriminant $\Delta$ using $\text{Hash}(\text{bin}(e) || \text{pre-}\eta_e)$ as seed which determines the group $\mathbb{G}$. Finally, we will initialize both accumulators to $1_\mathbb{G}$.
-- To publish the first block of interval $i$, the node will compute the VDF input $x_i$ from the seed $\text{Hash}(\text{bin}(e) || \text{pre-}\eta_e || \text{bin}(i))$, its corrsponding output as well as a VDF proof of correctness. If there has been no missing iteration, the node will then compute $\alpha_i = \text{Hash} ( \dots  \text{Hash} (\text{Hash}( \text{Hash}(x_1\ ||\ \dots || x_n)\ ||\ y_1 )\ || y_2) \dots ||\ y_i)$ (note that $\alpha_i = \text{Hash}(\alpha_{i-1}\ ||\ y_i)$) and update the accumulator as follows: $\textrm{Acc}_x \leftarrow \textrm{Acc}_x \cdot x_i^{\alpha_i}$ and $\textrm{Acc}_y \leftarrow \textrm{Acc}_y \cdot y_i^{\alpha_i}$. If some iterations were not published, we will refrain from updating the accumulators until we havec caught back to ensure the ordering of the $x_i$ and $y_i$ in the computation of the $\alpha_i$.
-- When publishing the last iteration, may it be in the last interval if there was no empty interval or in the catch-up period, we will update the accumulator and may compute a proof of aggregation. This simply corresponds to a VDF proof on input $\textrm{Acc}_x$ and output $\textrm{Acc}_y$. The seed of the new epoch will be $\text{Hash}^{(256)}(\textrm{Acc}_y)$.
-- When verifying a block, if the node is not synching, they will verify the VDF proof as well as the correct aggregation of the accumulators. If the node is synching, they will verify only the correct aggregation of the accumulators and verify the proof of aggregation at the end.
-
-Let $\text{VDF}.\left(\text{Setup}, \text{Prove}, \text{Verify} \right)$ a class group based VDF algorithm definition, with:
-- $(\mathbb{G}, \Delta, \cdot) \leftarrow \text{VDF}.\text{Setup}(\lambda)$: Takes as input a security parameter $\lambda$ and returns a group description $\mathbb{G}$ with discriminant $\Delta$ and operation $\cdot$. We will omit $\lambda$ and $\mathbb{G}$ for simplicity;
-- $\left(y, \pi\right) \leftarrow \text{VDF}.\text{Prove}(x, T)$: Takes as input the challenge $x \in \mathbb{G}$ and difficulty $T \in \mathbb{N}$ and returns the VDF output $y = x^{2^T}$ and the VDF proof $\pi$;
-- $\{0,1\} \leftarrow \text{VDF}.\text{Verify}(x,y,T,\pi)$: Returns 1 if the verification of $\pi$ is successful, that is $y == x^{2^T}$ with overwhelming probability, otherwise 0.
-
-We furthermore introduce the two additional functions $\text{Hash}_\mathbb{G}(\cdot)$ a hash to the class group, and $\text{Hash}_\mathbb{N}^{(n)}(\cdot)$ a hash to the integers of size $n$ bits.
-
-To publish a block, nodes needs to include the VDF output and proof of the interval. We define by $x_i \leftarrow \text{Hash}_\mathbb{G}(\text{pre-}\eta_e || i)$ the challenge for interval $i$ using the pre-seed $\text{pre-}\eta_e$ of the current computation phase. Nodes will thus have to compute $\left(y_i, \pi_i\right) \leftarrow \text{VDF}.\text{Prove}(x_i, T)$ and publish them on-chain. Nodes also may publish accumulators, if there is no missing iterations. They do so by generate a random coin as $\alpha_i = \text{Hash}_\mathbb{N}^{(\lambda)} ( \dots  \text{Hash}_\mathbb{N}^{(\lambda)} (\text{Hash}_\mathbb{N}^{(\lambda)}( \text{Hash}_\mathbb{N}^{(\lambda)}(x_1\ ||\ \dots || x_n)\ ||\ y_1 )\ || y_2) \dots ||\ y_i)$ (note that $\alpha_i = \text{Hash}_\mathbb{N}^{(\lambda)}(\alpha_{i-1}\ ||\ y_i)$) and update $\textrm{Acc}_x$ (resp. $\textrm{Acc}_y$) to $\textrm{Acc}_x \cdot x_i^{\alpha_i}$ (resp. to $\textrm{Acc}_y \cdot y_i^{\alpha_i}$).
-When an iteration is missing, we shall wait until the network has caught up to respect the sequentiality of the $\alpha_i$.
-
-When all iterations have been computed, we generate a proof of aggregation $\pi$ using the same proving algorithm on $\textrm{Acc}_x$, but without recomputing the VDF output which is $\textrm{Acc}_y$. Hence we have, $\left(\textrm{Acc}_y, \pi\right) \leftarrow \text{VDF}.\text{Prove}(\textrm{Acc}_x, T)$.
-
-The computation guarantees of VDFs relies on the fact that squaring elements in an unknown order group is believed to be difficult to parallelize without specialised hardware. The goal of the adversary is to compute the seed as efficiently and quickly as possible. Regardless of whether the seed is defined as the hash of all VDF outputs - the $y_i$s or the hash of the output aggregator $\textrm{Acc}_y$, the adversary cannot batch the computation with significant probability. Indeed. we can see that the adverasry needs to compute the individual $y_i$ to compute the seed as he would need to hash all of them in the first solution, and similarly in the second as the batching coefficient $\alpha_i$ depends on the outputs $y_i$. If the adversary were to batch the $x_i$ with random coefficients, this would be equal to $\textrm{Acc}_x$ with negligeable property, and so the VDF evaluation of it would likewise equal $\textrm{Acc}_y$ with negligeable probability.
-The security proof of this accumulation can be found in [Building Cryptographic Proofs from Hash Functions, Chapter 14](https://github.com/hash-based-snargs-book/hash-based-snargs-book/blob/main/snargs-book.pdf) by Alessandro Chiesa and Eylon Yogev.
-
-
-
-
-<center>
-
-| $\|\Delta\|$ (bits) | $\#\text{iterations}$ | $\text{proving time}$ (s)$           | $\text{verification time}$ (ms)       |
-| :-----------------: | :-------------------: | :----------------------------------: | :-----------------------------------: |
-| $256$               |  100,000 	            | $0.181\ (\sigma =7.31 \cdot 10^-4)$  | $1.643\ (\sigma =1.15 \cdot 10^-2)$   |
-|                     |  200,000 	            | $0.361\ (\sigma =7.32 \cdot 10^-4)$  | $3.188\ (\sigma =4.34 \cdot 10^-2)$   |
-|                     |  500,000 	            | $0.887\ (\sigma =3.19 \cdot 10^-3)$  | $1.896\ (\sigma =1.04 \cdot 10^-1)$   |
-|                     |  1,000,000 	          | $1.777\ (\sigma =1.01 \cdot 10^-2)$  | $1.740\ (\sigma =2.26 \cdot 10^-2)$   |
-|                     |  2,000,000 	          | $3.531\ (\sigma =4.32 \cdot 10^-2)$  | $1.540\ (\sigma =1.82 \cdot 10^-2)$   |
-|                     |  5,000,000 	          | $8.722\ (\sigma =5.89 \cdot 10^-2)$  | $1.650\ (\sigma =1.81 \cdot 10^-2)$   |
-|                     |  10,000,000           | $17.365\ (\sigma =7.30 \cdot 10^-2)$ | $1.660\ (\sigma =3.08 \cdot 10^-2)$   |
-| $512$               |  100,000 	            | $0.302\ (\sigma =6.86 \cdot 10^-3)$  | $2.000\ (\sigma =3.11 \cdot 10^-2)$   |
-|                     |  200,000 	            | $0.592\ (\sigma =1.58 \cdot 10^-3)$  | $1.929\ (\sigma =2.39 \cdot 10^-2)$   |
-|                     |  500,000 	            | $1.465\ (\sigma =1.66 \cdot 10^-2)$  | $2.205\ (\sigma =1.88 \cdot 10^-2)$   |
-|                     |  1,000,000 	          | $2.944\ (\sigma =2.90 \cdot 10^-2)$  | $1.835\ (\sigma =3.93 \cdot 10^-2)$   |
-|                     |  2,000,000 	          | $5.782\ (\sigma =1.56 \cdot 10^-2)$  | $1.961\ (\sigma =1.56 \cdot 10^-2)$   |
-|                     |  5,000,000 	          | $14.333\ (\sigma =2.92 \cdot 10^-2)$ | $2.499\ (\sigma =2.93 \cdot 10^-2)$   |
-|                     |  10,000,000           | $28.359\ (\sigma =5.73 \cdot 10^-2)$ | $5.041\ (\sigma =1.01 \cdot 10^1 )$   |
-| $1,024$             |  100,000 	            | $0.529\  (\sigma =7.23 \cdot 10^-4)$ | $3.401\ (\sigma =3.34 \cdot 10^-2)$   |
-|                     |  200,000 	            | $1.038\  (\sigma =8.52 \cdot 10^-4)$ | $3.214\ (\sigma =3.05 \cdot 10^-2)$   |
-|                     |  500,000 	            | $2.559\  (\sigma =1.71 \cdot 10^-2)$ | $3.409\ (\sigma =8.85 \cdot 10^-2)$   |
-|                     |  1,000,000 	          | $5.096\  (\sigma =1.75 \cdot 10^-2)$ | $3.584\ (\sigma =1.71 \cdot 10^-2)$   |
-|                     |  2,000,000 	          | $10.064\ (\sigma =2.88 \cdot 10^-2)$ | $3.228\ (\sigma =1.39 \cdot 10^-2)$   |
-|                     |  5,000,000 	          | $24.919\ (\sigma =4.70 \cdot 10^-2)$ | $3.787\ (\sigma =1.20 \cdot 10^-2)$   |
-|                     |  10,000,000           | $49.478\ (\sigma =7.79 \cdot 10^-2)$ | $3.895\ (\sigma =2.80 \cdot 10^-2)$   |
-
-
-
-Table 1. VDF benchmarks, means and standard deviation, perfomed on a discriminant $\Delta$ of different sizes and with a range of iterations on one core of Intel(R) Core(TM) i9-14900HX (2.2 GHz base frequency, 24 cores, 32 threads).
-</center>
-
-
-
-
-### 6. Efficiency Analysis
-
-To support Phalanx, one block per interval (3600 slots) and this for 83 intervals must include **2 group elements**. Each of these elements can be compressed to approximately $3/4 \cdot \log(|\Delta|)$ bits. For a discriminant of 3,800 bits, this amounts to **5,700 bits in total**. 
-
-### Block Publication
-
-To publish a block, a node must:
-
-* Perform $T$ squarings to compute the output,
-* Execute $O(T / \log(T))$ operations for the proof generation,
-* Update both accumulators, requiring:
-
-  * 2 hashes,
-  * 2 exponentiations,
-  * 2 group multiplications,
-    assuming the interval’s iteration has not already been published and no catch-up is required.
-
-If a past iteration needs to be caught up, the node must:
-
-* Compute an additional output and proof,
-* Update the accumulators with \$2 \cdot m\$ operations:
-
-  * \$m\$ hashes,
-  * \$m\$ exponentiations,
-  * \$m\$ multiplications,
-    where \$m\$ is the number of consecutive iterations from the missed one to the current slot.
-
-### Block Verification
-
-#### When Not Syncing
-
-For each block, a node performs:
-
-* 2 hashes,
-* 4 small exponentiations,
-* 3 group multiplications.
-
-Over an epoch with \$N\$ intervals, this results in:
-
-* \$2 \cdot N\$ hashes,
-* \$4 \cdot N\$ small exponentiations,
-* \$3 \cdot N\$ group multiplications.
-
-#### When Syncing
-
-Only the aggregations and their proofs need to be verified:
-
-* \$2 \cdot N\$ hashes,
-* \$2 \cdot N + 1\$ group multiplications,
-* \$2 \cdot (N + 1)\$ small exponentiations.
-
-Note: The exponentiations involving the \$\alpha\_i\$ values are **half as expensive** as those in the full proof verification.
-
-If we opted out of aggregation:
-
-* We would save **5,700 bits** per block,
-* Avoid 2 small exponentiations and 2 group multiplications per block,
-* However, syncing nodes would instead perform:
-
-  * \$2 \cdot N\$ **large** exponentiations (instead of small ones),
-  * 2 additional large exponentiations overall.
-
-### On Group Regeneration
-
-Because group generation is highly efficient, we can regenerate a fresh group every epoch. This allows us to **reduce the security parameter** while still making it computationally infeasible to break the group within a single epoch. In turn, this reduction decreases the on-chain size of each group element.
-
-### Future Work
-
-A promising optimization would be to **SNARKify** the accumulators, their updates, and the proof verification process. This could significantly reduce both space usage and potentially the verification time. An **incrementally verifiable computation** approach would be particularly well-suited here, enabling each iteration and accumulator update to be proven in small circuits, then aggregated into a single proof for the entire epoch.
-
-That said, **SNARK-based constructions come with a significant increase in proving time**, and any such integration must weigh trade-offs between prover cost and verifier efficiency.
