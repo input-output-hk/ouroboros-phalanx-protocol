@@ -44,7 +44,7 @@ pip install wheel setuptools_scm pybind11
 pip wheel .
 ```
 
-After installing the resulting wheel (`<>.whl` file) with pip, we can run the benchmarks as follows:
+After installing the resulting wheel (`<>.whl` file) with pip and tabulate `pip install tabulate`, we can run the benchmarks as follows:
 ```
 python3 python3 tests/benches.py
 ```
