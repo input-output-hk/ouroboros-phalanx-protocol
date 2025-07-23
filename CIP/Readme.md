@@ -285,13 +285,13 @@ VDF variants revolve around two primary SNARK-free designs: one from Pietrzak [3
 
 In Wesolowski’s paper, the proof is defined as $x^{2^T} / p$ where $g$ is the challenge, $T$ the difficulty and $p$ is a prime number found by hashing the VDF input and output together.  
 
-The proof is thus a single group element that can be computed in at most $2 T$ group operations and constant space, or $(1+1/s) \cdot T$ time where the number $s$ is both the number of processors and space while the verification takes $log_2 T$ scalar multiplications in $\mathcal{Z}/l$ and two small exponentiations in the group $\mathbb{G}$. 
+The proof is thus a single group element that can be computed in at most $2 T$ group operations and constant space, or $(1+1/s) \cdot T$ time where the number $s$ is both the number of processors and space while the verification takes $\text{log}_2 T$ scalar multiplications in $\mathcal{Z}/l$ and two small exponentiations in the group $\mathbb{G}$. 
 
-The proving time can further be optimized to $O(T /  log(T))$ group multiplications by reusing the evaluation intermediary results.
+The proving time can further be optimized to $O(T /\ \text{log}(T))$ group multiplications by reusing the evaluation intermediary results.
 
 Wesolowski also presents aggregation and watermarking methods. The aggregation method does not consist in aggregating multiple proofs but computing a proof of several VDF challenges. This is done by batching all inputs and outputs together and creating a proof for this batched input. The watermarking is done by computing the VDF twice, once normally and another time on a combination of the challenger’s id and VDF input.
 
-In Pietrzak’s paper, the proof is a tuple of group elements $\pi = \{x^{2^{T / 2^i}}\}$, of size logarithmic in $T$, that can be computed in $(1+2 \sqrt{T}^-1) T$ time and can be optimized to $O(\sqrt{T} \cdot log_2 T)$ multiplications, the verification takes $2 \cdot log_2T$ small exponentiations. Subsequent work on Pietrzak’s paper shows how VDFs challenges can be structured in a Merkle tree to get a proof of the whole tree.
+In Pietrzak’s paper, the proof is a tuple of group elements $\pi = \{x^{2^{T / 2^i}}\}$, of size logarithmic in $T$, that can be computed in $(1+2 \sqrt{T}^-1) T$ time and can be optimized to $O(\sqrt{T} \cdot \text{log}_2 T)$ multiplications, the verification takes $2 \cdot \text{log}_2T$ small exponentiations. Subsequent work on Pietrzak’s paper shows how VDFs challenges can be structured in a Merkle tree to get a proof of the whole tree.
 
 We will choose Wesolowski design over Pietrzark because of its space efficiency and possibility to aggregate proofs.
 
