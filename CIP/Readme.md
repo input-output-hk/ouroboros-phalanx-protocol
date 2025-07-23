@@ -66,20 +66,20 @@ License: Apache-2.0
   - [6. CDDL Schema for the Ledger](#6-cddl-schema-for-the-ledger)
 
 - [Rationale: How does this CIP achieve its goals?](#rationale-how-does-this-cip-achieve-its-goals)
-  - [1. How Φalanx Addresses CPS-21 - Ouroboros Randomness Manipulation ?](#1-how-phalanx-addresses-cps-21---ouroboros-randomness-manipulation)
+  - [1. How Φalanx Addresses CPS-21 - Ouroboros Randomness Manipulation ?](#1-how-φalanx-addresses-cps-21---ouroboros-randomness-manipulation)
     - [1.1 Problem Overview](#11-problem-overview)
-    - [1.2 Φalanx Cost Amplification per Grinding Attempt](#12-phalanx-cost-amplification-per-grinding-attempt)
-    - [1.3 Φalanx Cost Amplification per Grinding Attack](#13-phalanx-cost-amplification-per-grinding-attack)
+    - [1.2 Φalanx Cost Amplification per Grinding Attempt](#12-φalanx-cost-amplification-per-grinding-attempt)
+    - [1.3 Φalanx Cost Amplification per Grinding Attack](#13-φalanx-cost-amplification-per-grinding-attack)
       - [1.3.1 Formula](#131-formula)
       - [1.3.2 Estimated Formula Using Mainnet Cardano Parameters](#132-estimated-formula-using-mainnet-cardano-parameters)
       - [1.3.3 Impact of T<sub>Φ</sub> on Canonical Scenarios](#133-impact-of-t_phi-on-canonical-scenarios)
       - [1.3.4 Impact of T<sub>Φ</sub> on Feasibility Categories](#134-impact-of-t_phi-on-feasibility-categories)
     - [1.4. Conclusion: How Much Risk is Mitigated?](#14-conclusion-how-much-risk-is-mitigated)
-  - [2. How Φalanx Improves CPS-17 - Settlement Speed ?](#2-how-phalanx-improves-cps-17---settlement-speed)
+  - [2. How Φalanx Improves CPS-17 - Settlement Speed ?](#2-how-φalanx-improves-cps-17---settlement-speed)
     - [2.1 Settlement times without grinding attacks](#21-settlement-times-without-grinding-attacks)
     - [2.2 How Grinding Power affects Settlement times](#22-how-grinding-power-affects-settlement-times)
-    - [2.3 How Φalanx improves compared to Praos?](#23-how-phalanx-improves-compared-to-praos-) 
-    - [2.4 Advocating for Peras: Φalanx as a Complementary Layer](#24-advocating-for-peras-phalanx-as-a-complementary-layer) 
+    - [2.3 How Φalanx improves compared to Praos?](#23-how-φalanx-improves-compared-to-praos-) 
+    - [2.4 Advocating for Peras: Φalanx as a Complementary Layer](#24-advocating-for-peras-φalanx-as-a-complementary-layer) 
   - [3. Why VDFs Were Chosen over other Cryptographic Primitives ?](#3-why-vdfs-were-chosen-over-other-cryptographic-primitives-)
     - [3.1 Requirements](#31-requirements)
     - [3.2 Primitive selection](#32-primitive-selection)
@@ -363,7 +363,7 @@ The VDF aggregation proof $`\pi`$ can then be efficiently be verified using $`\t
 
 We previously outlined the purpose of the Φalanx sub-protocol and introduced the cryptographic primitive underpinning its security guarantees. In this section, we provide a precise technical specification of the protocol, focusing on how the $`\Phi`$ iterations are distributed and how Wesolowski’s Verifiable Delay Function (VDF) is integrated into the process.
 
-#### 3.1. Distribution of $\Phi$ Iterations
+#### 3.1. Distribution of Φ Iterations
 
 As previously mentioned, $`\phi^{\text{stream}}`$ is divided into epoch-sized *lifecycle segments*. Each segment begins with an **initialize** function, ends with a **close** function, and is immediately followed by the start of a new segment.
 
@@ -1330,7 +1330,7 @@ These results show that **Phalanx makes low-effort grinding substantially harder
 
 This concludes our **high-level assessment of feasibility mitigation** in security terms. In the next section, **“2. How Phalanx Improves CPS-17 – Settlement Speed?”**, we will examine how this risk reduction translates into a much more **tangible and practical benefit**: **faster and more reliable settlement times in Ouroboros**.
 
-### 2. How Phalanx Improves CPS-17 - Settlement Speed?  
+### 2. How Φalanx Improves CPS-17 - Settlement Speed?  
 
 Let us recall that, like **Bitcoin**, **Cardano** relies on **probabilistic** and **unbiased randomness** for **leader election**. As a result, both systems inherently provide **statistical consensus guarantees**. For **Stake Pool Operators (SPOs)**, being elected as a **slot leader** grants some **control** over the protocol. This control increases with **stake**—more skin in the game means more chances to be selected. However, due to the **randomized** nature of the leader election, SPOs cannot predict or influence exactly *when* they will be selected.
 
@@ -1398,7 +1398,7 @@ Assuming a block is produced every 20 seconds, this extends the required confirm
 
 As discussed in [**Section 1: How Phalanx Addresses CPS-21 – Ouroboros Randomness Manipulation**](#1-how-phalanx-addresses-cps-21--ouroboros-randomness-manipulation), this is a key challenge in Praos: the presence of multiple attack scenarios with varying grinding power makes it difficult to define a single, consistent security threshold for settlement — a complexity that **Phalanx simplifies** by unifying the treatment of adversarial power across scenarios.
  
-#### 2.3 How Phalanx improves compared to Praos ? 
+#### 2.3 How Φalanx improves compared to Praos ? 
 
 In the conclusion of [**Section 1.4: How Much Risk Is Mitigated?**](#14-conclusion-how-much-risk-is-mitigated), we quantified Phalanx's improvement over Praos in terms of **grinding depth reduction** as follows:
 
@@ -1432,7 +1432,7 @@ However, with Phalanx applied, the required confirmation windows are **significa
 
 Compared to Praos' ~5.69 h → ~6.83 h (from blocks 1024 to 1229), these configurations reduce settlement time by approximately 20–30% while maintaining equivalent security.
 
-#### 2.4 Advocating for Peras: Phalanx as a Complementary Layer
+#### 2.4 Advocating for Peras: Φalanx as a Complementary Layer
 
 **[Ouroboros Peras](https://peras.cardano-scaling.org/)** is a recent protocol extension designed to accelerate settlement in Cardano by introducing **stake-weighted voting and certified blocks**. Built as a lightweight augmentation of Praos, it enables rapid finality—often within **1 to 2 minutes**—by allowing randomly selected committees to vote on blocks and issue certificates that elevate their importance in the chain selection rule ([Peras Intro](https://peras.cardano-scaling.org/docs/intro/)). Critically, Peras maintains full compatibility with Praos' security guarantees, reverting gracefully when quorum is not reached ([Peras FAQ](https://peras.cardano-scaling.org/docs/faq/)). Rather than replacing Praos, it overlays an additional mechanism for **fast, probabilistically final settlement**, offering a much-needed middle ground between immediate confirmation and the traditional **2160-block** security window.
 
