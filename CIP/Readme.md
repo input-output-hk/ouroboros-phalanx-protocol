@@ -13,7 +13,9 @@ Created: 2025-10-03
 License: Apache-2.0
 ---
 
-## Table of Contents
+<details>
+<summary>🔍 Table of Contents</summary>
+
 
 - [Abstract](#abstract)
 - [Motivation: why is this CIP necessary?](#motivation-why-is-this-cip-necessary)
@@ -104,9 +106,11 @@ License: Apache-2.0
 - [References](#references)
 - [Copyright](#copyright)
 
+</details>
+
 ## Abstract
 
-Addressing the "[Ouroboros Randomness Manipulation](../CPS/README.md)" **Problem**,  **Ouroboros Φalanx (Pronounced Phalanx)** enhances **Ouroboros Praos** to mitigate grinding attacks by **increasing the cost of leader election manipulation**. It extends **nonce generation from 1 epoch to 2**, introducing a **computationally intensive function** that remains efficient for honest participants but makes it **significantly more costly for adversaries to bias the process**.
+Addressing both [CPS-0021 / Ouroboros Randomness Manipulation](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021) and [CPS-0017 / Settlement Speed](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0017) ,  **Ouroboros Φalanx (Pronounced Phalanx)** enhances **Ouroboros Praos** to mitigate grinding attacks by **increasing the cost of leader election manipulation**. It extends **nonce generation from 1 epoch to 2**, introducing a **computationally intensive function** that remains efficient for honest participants but makes it **significantly more costly for adversaries to bias the process**.
 
 A [**Phalanx**](https://en.wikipedia.org/wiki/Phalanx) is an **Ancient Greek military formation** where soldiers **stand in a tightly packed unit**, shielding and reinforcing one another to create a nearly impenetrable defense. This strategy made it far more difficult for enemies to break through compared to fighting individual soldiers.
 
@@ -152,7 +156,7 @@ In **Φalanx** , the randomness generation and leader election flows are modifie
 1. The **stake distribution stabilization phase** is shifted **back by one epoch :** The **active** **stake distribution** $`\mathbf{SD}_e`$ used for leader election is now derived from the **end of $epoch_\text{e-3}$** instead of **$epoch_\text{e-2}$**  as in the original Praos protocol.  
 2. The **honest contribution inclusion phase**, which originally resulted in a **ηₑ candidate**, is also **shifted back by one epoch**, aligning with the adjusted **stake distribution stabilization**. This value is now referred to as the **pre-ηₑ candidate**, signifying its role as an **intermediate randomness nonce** in the sub-protocol.  
 3. The **pre-ηₑ candidate**, once stabilized (after $`3 \cdot \frac{k}{f}`$), undergoes a **sequence of incremental operations** using a **new deterministic cryptographic primitive Φ (Phi)**. This sequence spans a full epoch size, specifically during the interval:$`\left[\frac{9k}{f} \cdot \text{epoch}_{e-2},  \frac{9k}{f} \cdot \text{epoch}_{e-1}\right)`$.
-4. The final **ηₑ (eta nonce)**, resulting from the Φ computation, as entirely determined from the pre-seed is stabilized pre-ηₑ, does not need stabilization and is availablea a whole $`\frac{k}{f}`$ slots before the start of $`\text{epoch}_e`$ .
+4. The final **ηₑ (eta nonce)**, resulting from the Φ computation, completely determined by the prior stabilized pre-seed pre-ηₑ, does not need stabilization and is availablea a whole $`\frac{k}{f}`$ slots before the start of $`\text{epoch}_e`$ .
 
 #### 1.2. Inputs & Outputs 
 
