@@ -110,9 +110,27 @@ ax.yaxis.set_minor_locator(ticker.LogLocator(base=2.0, subs=np.arange(2, 10) * .
 
 ax.set_xlabel('Number of Blocks (K)', fontsize=12)
 ax.set_ylabel('Probability of Failure', fontsize=12)
-ax.set_title('Cardano PoS Settlement Failure (30% Adversary, 2s Delay)', fontsize=14)
+ax.set_title('Cardano PoS Settlement Failure (30% Adversary, 5s Delay)', fontsize=14)
 ax.legend(loc='upper right', fontsize=12)
 ax.grid(True, which='both', linestyle='--', linewidth=0.5)
 ax.set_ylim([2**(-100), 1])  # Adjust to show down to very low probabilities (e.g., 2^{-100})
+
+# Add horizontal line at 2^{-60}
+target_prob = 2**(-60)
+ax.axhline(y=target_prob, color='r', linestyle='--', label='$2^{-60}$')
+
+# Find approximate K where curves cross 2^{-60}
+K_UB_60 = np.interp(np.log(target_prob), np.log(ErrorUB_all)[::-1], K_all[::-1])  # Reverse for increasing log
+K_LB_60 = np.interp(np.log(target_prob), np.log(ErrorLB_all)[::-1], K_all[::-1])
+
+# Add vertical lines and annotations
+ax.axvline(x=K_UB_60, color='b', linestyle=':', alpha=0.5)
+ax.axvline(x=K_LB_60, color='k', linestyle=':', alpha=0.5)
+ax.annotate(f'Upper Bound K ≈ {K_UB_60:.0f}', xy=(K_UB_60, target_prob), xytext=(K_UB_60 + 150, target_prob * 2**10),
+            arrowprops=dict(facecolor='blue', shrink=0.05, width=2, headwidth=8), fontsize=12, color='b', bbox=dict(facecolor='white', edgecolor='blue', boxstyle='round,pad=0.5'))
+ax.annotate(f'Lower Bound K ≈ {K_LB_60:.0f}', xy=(K_LB_60, target_prob), xytext=(K_LB_60 - 300, target_prob / 2**10),
+            arrowprops=dict(facecolor='black', shrink=0.05, width=2, headwidth=8), fontsize=12, color='k', bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.5'))
+
+ax.legend(fontsize=12)  # Update legend with the new line
 
 plt.show()

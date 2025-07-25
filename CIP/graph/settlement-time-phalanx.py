@@ -110,9 +110,92 @@ ax.yaxis.set_minor_locator(ticker.LogLocator(base=2.0, subs=np.arange(2, 10) * .
 
 ax.set_xlabel('Number of Blocks (K)', fontsize=12)
 ax.set_ylabel('Probability of Failure', fontsize=12)
-ax.set_title('Cardano PoS Settlement Failure (30% Adversary, 2s Delay)', fontsize=14)
+ax.set_title('Cardano PoS Settlement Failure (30% Adversary, 5s Delay)', fontsize=14)
 ax.legend(loc='upper right', fontsize=12)
 ax.grid(True, which='both', linestyle='--', linewidth=0.5)
-ax.set_ylim([2**(-100), 1])  # Adjust to show down to very low probabilities (e.g., 2^{-100})
+ax.set_ylim([2**(-150), 1])  # Adjusted to show down to 2^{-150}
+
+# Add horizontal line at 2^{-60}
+target_prob_60 = 2**(-60)
+ax.axhline(y=target_prob_60, color='r', linestyle='--', label='Without Grinding($2^{-60}$)')
+
+# Add horizontal line at 2^{-139.4}
+target_prob_1394 = 2**(-139.4)
+ax.axhline(y=target_prob_1394, color='m', linestyle='--', label='Praos($2^{-139.4}$)')
+
+# Add horizontal line at 2^{-105.4}
+target_prob_1054 = 2**(-105.4)
+ax.axhline(y=target_prob_1054, color='c', linestyle='--', label='$Phalanx_{1/100}$($2^{-105.4}$)')
+
+# Add horizontal line at 2^{-102.9}
+target_prob_1029 = 2**(-102.9)
+ax.axhline(y=target_prob_1029, color='orange', linestyle='--', label='$Phalanx_{1/100}$($2^{-102.9}$)')
+
+# Add horizontal line at 2^{-99.5}
+target_prob_995 = 2**(-99.5)
+ax.axhline(y=target_prob_995, color='purple', linestyle='--', label='$Phalanx_{max}$($2^{-99.5}$)')
+
+# Find approximate K where curves cross 2^{-60}
+K_UB_60 = np.interp(np.log(target_prob_60), np.log(ErrorUB_all)[::-1], K_all[::-1])  # Reverse for increasing log
+K_LB_60 = np.interp(np.log(target_prob_60), np.log(ErrorLB_all)[::-1], K_all[::-1])
+
+# Find approximate K where curves cross 2^{-139.4}
+K_UB_1394 = np.interp(np.log(target_prob_1394), np.log(ErrorUB_all)[::-1], K_all[::-1])
+K_LB_1394 = np.interp(np.log(target_prob_1394), np.log(ErrorLB_all)[::-1], K_all[::-1])
+
+# Find approximate K where curves cross 2^{-105.4}
+K_UB_1054 = np.interp(np.log(target_prob_1054), np.log(ErrorUB_all)[::-1], K_all[::-1])
+K_LB_1054 = np.interp(np.log(target_prob_1054), np.log(ErrorLB_all)[::-1], K_all[::-1])
+
+# Find approximate K where curves cross 2^{-102.9}
+K_UB_1029 = np.interp(np.log(target_prob_1029), np.log(ErrorUB_all)[::-1], K_all[::-1])
+K_LB_1029 = np.interp(np.log(target_prob_1029), np.log(ErrorLB_all)[::-1], K_all[::-1])
+
+# Find approximate K where curves cross 2^{-99.5}
+K_UB_995 = np.interp(np.log(target_prob_995), np.log(ErrorUB_all)[::-1], K_all[::-1])
+K_LB_995 = np.interp(np.log(target_prob_995), np.log(ErrorLB_all)[::-1], K_all[::-1])
+
+# Add vertical lines and annotations for 2^{-60}
+ax.axvline(x=K_UB_60, color='b', linestyle=':', alpha=0.5)
+ax.axvline(x=K_LB_60, color='k', linestyle=':', alpha=0.5)
+ax.annotate(f'Upper Bound K ≈ {K_UB_60:.0f}', xy=(K_UB_60, target_prob_60), xytext=(K_UB_60 + 150, target_prob_60 * 2**10),
+            arrowprops=dict(facecolor='blue', shrink=0.05, width=2, headwidth=8), fontsize=12, color='b', bbox=dict(facecolor='white', edgecolor='blue', boxstyle='round,pad=0.5'))
+ax.annotate(f'Lower Bound K ≈ {K_LB_60:.0f}', xy=(K_LB_60, target_prob_60), xytext=(K_LB_60 - 450, target_prob_60 / 2**10),
+            arrowprops=dict(facecolor='black', shrink=0.05, width=2, headwidth=8), fontsize=12, color='k', bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.5'))
+
+
+# Add vertical lines and annotations for 2^{-139.4}
+ax.axvline(x=K_UB_1394, color='b', linestyle=':', alpha=0.5)
+ax.axvline(x=K_LB_1394, color='k', linestyle=':', alpha=0.5)
+ax.annotate(f'Upper Bound K ≈ {K_UB_1394:.0f}', xy=(K_UB_1394, target_prob_1394), xytext=(K_UB_1394 + 50, target_prob_1394 * 2**10 ),
+            arrowprops=dict(facecolor='blue', shrink=0.05, width=2, headwidth=8), fontsize=12, color='b', bbox=dict(facecolor='white', edgecolor='blue', boxstyle='round,pad=0.5'))
+ax.annotate(f'Lower Bound K ≈ {K_LB_1394:.0f}', xy=(K_LB_1394, target_prob_1394), xytext=(K_LB_1394 - 450, target_prob_1394 / 2**10),
+            arrowprops=dict(facecolor='black', shrink=0.05, width=2, headwidth=8), fontsize=12, color='k', bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.5'))
+
+# Add vertical lines and annotations for 2^{-105.4}
+ax.axvline(x=K_UB_1054, color='b', linestyle=':', alpha=0.5)
+ax.axvline(x=K_LB_1054, color='k', linestyle=':', alpha=0.5)
+ax.annotate(f'Upper Bound K ≈ {K_UB_1054:.0f}', xy=(K_UB_1054, target_prob_1054), xytext=(K_UB_1054 + 150, target_prob_1054 * 2**3),
+            arrowprops=dict(facecolor='blue', shrink=0.05, width=2, headwidth=8), fontsize=12, color='b', bbox=dict(facecolor='white', edgecolor='blue', boxstyle='round,pad=0.5'))
+ax.annotate(f'Lower Bound K ≈ {K_LB_1054:.0f}', xy=(K_LB_1054, target_prob_1054), xytext=(K_LB_1054 - 450, target_prob_1054 / 2**15),
+            arrowprops=dict(facecolor='black', shrink=0.05, width=2, headwidth=8), fontsize=12, color='k', bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.5'))
+
+# Add vertical lines and annotations for 2^{-102.9}
+ax.axvline(x=K_UB_1029, color='b', linestyle=':', alpha=0.5)
+ax.axvline(x=K_LB_1029, color='k', linestyle=':', alpha=0.5)
+ax.annotate(f'Upper Bound K ≈ {K_UB_1029:.0f}', xy=(K_UB_1029, target_prob_1029), xytext=(K_UB_1029 + 150, target_prob_1029 * 2**10),
+            arrowprops=dict(facecolor='blue', shrink=0.05, width=2, headwidth=8), fontsize=12, color='b', bbox=dict(facecolor='white', edgecolor='blue', boxstyle='round,pad=0.5'))
+ax.annotate(f'Lower Bound K ≈ {K_LB_1029:.0f}', xy=(K_LB_1029, target_prob_1029), xytext=(K_LB_1029 - 450, target_prob_1029 / 2**10),
+            arrowprops=dict(facecolor='black', shrink=0.05, width=2, headwidth=8), fontsize=12, color='k', bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.5'))
+
+# Add vertical lines and annotations for 2^{-99.5}
+ax.axvline(x=K_UB_995, color='b', linestyle=':', alpha=0.5)
+ax.axvline(x=K_LB_995, color='k', linestyle=':', alpha=0.5)
+ax.annotate(f'Upper Bound K ≈ {K_UB_995:.0f}', xy=(K_UB_995, target_prob_995), xytext=(K_UB_995 + 150, target_prob_995 * 2**15),
+            arrowprops=dict(facecolor='blue', shrink=0.05, width=2, headwidth=8), fontsize=12, color='b', bbox=dict(facecolor='white', edgecolor='blue', boxstyle='round,pad=0.5'))
+ax.annotate(f'Lower Bound K ≈ {K_LB_995:.0f}', xy=(K_LB_995, target_prob_995), xytext=(K_LB_995 - 450, target_prob_995 / 2**3),
+            arrowprops=dict(facecolor='black', shrink=0.05, width=2, headwidth=8), fontsize=12, color='k', bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.5'))
+
+ax.legend(fontsize=12)  # Update legend with the new lines
 
 plt.show()
