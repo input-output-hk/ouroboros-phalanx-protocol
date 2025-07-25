@@ -941,7 +941,7 @@ T = \frac{T_\Phi}{82} = \frac{12 \text{ hours} \times 3600 \text{ seconds/hour}}
 
 So, we ask for approximately **10 minutes of VDF computation** per published interval block on standard CPU-based hardware.
 
-To translate this into a concrete number of **VDF iterations** ($T$), we rely on performance benchmarks from the implementation available at [ouroboros-phalanx/chiavdf](https://github.com/input-output-hk/ouroboros-phalanx). This library is a **highly optimized and production-hardened** implementation of Wesolowski's VDF, currently in use by the **Chia blockchain**. We have made minor, superficial modifications to this codebase solely to facilitate benchmarking and increase the discriminant size.
+To translate this into a concrete number of **VDF iterations** ($T$), we rely on performance benchmarks from the implementation available in the repository [rrtoledo/chiavdf](https://github.com/rrtoledo/chiavdf). This library is a **highly optimized and production-hardened** implementation of Wesolowski's VDF, currently in use by the **Chia blockchain**. We have made minor, superficial modifications to this codebase solely to facilitate benchmarking and increase the discriminant size.
 
 Thanks to its well-established performance profile, this implementation provides a dependable baseline for estimating how many iterations can be executed within a fixed time frame on standard CPU hardware. Under our test environment—an Ubuntu machine equipped with an **Intel® Core™ i9-14900HX (32 cores, 64 GiB RAM)**—we observed approximately **27 million iterations** in a 10-minute window.
 
