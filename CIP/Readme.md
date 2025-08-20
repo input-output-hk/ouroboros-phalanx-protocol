@@ -33,10 +33,11 @@ License: Apache-2.0
     - [2.1. Expected Properties](#21-expected-properties)
     - [2.2. Verifiable Delayed Functions (VDF)](#22-verifiable-delayed-functions-vdf)
     - [2.3 Wesolowski's VDF](#23-wesolowskis-vdf)
-      - [2.3.1 VDF Primitives](#231-vdf-primitives)
-      - [2.3.2 VDF Aggregation Primitives](#232-vdf-aggregation-primitives)
-  - [3. $`\phi^{\text{stream}}`$ Specification](#3-phitextstream-specification)
-    - [3.1 Distribution of Φ Iterations](#31-distribution-of-φ-iterations)
+      - [2.3.1 VDF Primitive](#231-vdf-primitive)
+      - [2.3.2 VDF Usage](#232-vdf-usage)
+      - [2.3.2 VDF Aggregation](#233-vdf-aggregation)
+  - [3. $Stream Specification](#3-stream-specification)
+    - [3.1 Distribution of the Iterations](#31-distribution-of-the-iterations)
     - [3.2 The State Machine](#32-the-state-machine)
       - [3.2.1 Diagram Overview](#321-diagram-overview)
       - [3.2.2 Parametrization Phase](#322-parametrization-phase)
@@ -280,99 +281,39 @@ The Φ cryptographic primitive is a critical component of the Φalanx protocol, 
 
 #### 2.2. Verifiable Delayed Functions (VDF)
 
-Verifiable Delayed Functions (VDFs) are cryptographic primitives designed to take a certain amount of time to compute, regardless of how much computing resources are available. This delay is enforced by requiring a specific number of sequential steps that cannot be easily sped up through parallel processing. Once the computation is done, the result, $`y = g^{2^T}`$, comes with a proof, $`\pi`$, that can be checked quickly and efficiently by anyone. Importantly, for a given input, the output is always the same (deterministic function), ensuring consistency. They usually rely on repeatedly squaring numbers in a mathematical setting that prevents shortcuts and enables quick verification.
+Verifiable Delayed Functions (VDFs) are cryptographic primitives designed to take a certain amount of time to compute, regardless of how much computing resources are available. This delay is enforced by requiring a specific number of sequential steps that cannot be easily sped up through parallel processing. Once the computation is done, the result comes with a proof that can be checked quickly and efficiently by anyone. Importantly, VDFs are deterministic: for a given input, the output is always the same ensuring consistency across machines. 
 
-As one can see, VDFs present _functionality_, _determinism_, _efficient verification_ and _lower bound on computation_. The _compact representation_ depends on the chosen group as well as the instantiation, which we will tackle later on. The _implementation and maintenance_ is straightforward as the output of a VDF is a simple exponentiation of a group element, only the square operation is needed to be implemented to compute it. As for the proof, this depends on the precise VDF instantiation. Finally, the system is "adaptively secure" as we can set up a group with high security to be reused for a whole epoch or more, and set the number of squaring, also called difficulty, depending on how much computation we want the nodes to perform.
+As one can see, VDFs present functionality, determinism, efficient verification and lower bound on computation. The compact representation depends on the chosen group as well as the instantiation, which we will tackle later on. The implementation and maintenance is straightforward as the output of a VDF is a simple exponentiation of a group element, only the square operation is needed to be implemented to compute it. As for the proof, this depends on the precise VDF instantiation. Finally, the system is "adaptively secure" as we can set up a group with high security to be reused for a whole epoch or more, and set the number of squaring, also called difficulty, depending on how much computation we want the nodes to perform.
 
-Verifiable Delayed Functions were introduced by Boneh et al. [[6]](https://eprint.iacr.org/2018/601.pdf) where the authors suggest several sequential functions combined with the use of proof systems in the incrementally verifiable computation framework (IVC) for viable proof generation and fast verification.
-VDF variants revolve around two primary SNARK-free designs: one from Pietrzak [[36]](https://drops.dagstuhl.de/storage/00lipics/lipics-vol124-itcs2019/LIPIcs.ITCS.2019.60/LIPIcs.ITCS.2019.60.pdf) and the second from Wesolowski [[35]](https://eprint.iacr.org/2018/623.pdf). They differ in the proof design. 
+We made the choice to settle for Wesolowski’s VDF protocol as it presents the smallest proof and fastest proof verification. The VDF evaluation can also be aggregated and watermarked which can be of use in our scenario. More particularly, instead of verifying many VDF proofs, one can batch the associated VDF outputs and produce a single proof showing correctness of all underlying challenges. This can be interesting to speed up synching.
 
-In Wesolowski’s paper, the proof is defined as $g^{{2^T} /\ p}$ where $g$ is the challenge, $T$ the difficulty and $p$ is a prime number found by hashing the VDF input and output together.  
-The proof is thus a single group element that can be computed in at most $2\cdot T$ group operations and constant space, or $(1+1/s) \cdot T$ time where the number $s$ is both the number of processors and space while the verification takes $\text{log}_2 T$ scalar multiplications in $\mathbb{Z}/p$ and two small exponentiations in the group $\mathbb{G}$. The proving time can further be optimized to $O(T /\ \text{log}(T))$ group multiplications by reusing the evaluation intermediary results.  
-Wesolowski also presents aggregation and watermarking methods. The aggregation method does not consist in aggregating multiple proofs but computing a proof of several VDF challenges. This is done by batching all inputs and outputs together and creating a proof for this batched input. The watermarking is done by computing the VDF twice, once normally and another time on a combination of the challenger’s id and VDF input.
+Before talking more in detail about the scheme itself, we want to stress that while VDFs were designed to be resistant to hardware acceleration, the latter is still possible. In particular, specialized hardware such as ASICs can be used to evaluate VDF output much faster, up to a factor 5 in Chia's VDF project while Ethereum theoretically, considers a factor 10. This, while unfortunate, is not prohibitive in our context as we only consider the use of VDFs for their computational cost, and not time guarantees. An attacker would still require a substantial budget to perform an anti-grinding attack in addition to purchasing at scale the specialized hardware that is not inexpensive nor readily available (Chia' ASICs can be purchased on a case per case basis for $1,000). We can also note that any solution would still be affected by hardware, like in the case of proof of works and hash farms.
 
-In Pietrzak’s paper, the proof is a tuple of group elements $\pi = \{x^{2^{T / 2^i}}\}$, of size logarithmic in $T$, that can be computed in $(1+2 /\sqrt{T})\cdot T$ time and can be optimized to $O(\sqrt{T} \cdot \text{log}_2 T)$ multiplications. The verification takes $2 \cdot \text{log}_2T$ small exponentiations. Subsequent work on Pietrzak’s paper shows how VDFs challenges can be structured in a Merkle tree to get a proof of the whole tree.
-
-We will choose Wesolowski design over Pietrzark because of its space efficiency and possibility to aggregate proofs.
-
-Specialized hardware such as ASICs can be used to evaluate VDF output much faster, up to a factor 5 in Chia's VDF project while Ethereum considers a factor 10. This, while unfortunate, is not prohibitive in our context as we only consider the use of VDFs for their computational cost. An attacker would still require a substantial budget to perform an anti-grinding attack in addition to purchasing at scale the specialized hardware that is not inexpensive nor readily available (Chia' ASICs can be purchased on a case per case basis for $1,000). We can also note that any solution would still be affected by hardware, like in the case of proof of works and hash farms.
 
 #### 2.3. Wesolowski's VDF 
 
-##### 2.3.1. VDF Primitives
+##### 2.3.1. VDF Primitive
 
-To define Wesolowski VDF construction, we first introduce a serie of hash functions: $`\text{Hash}^{(n)}_\mathbb{N}`$, which samples random integers of $`n`$ bits, $`\text{Hash}^{(n)}_\text{prime}`$, which samples a random integer from the set of the first $`2^{2n}`$ prime numbers, and $`\text{Hash}_\mathbb{G}`$, which samples a random group element of the class group $`\mathbb{G}`$.
+We shortly introduce here the interface of a Verifiable Delay Function as $\texttt{VDF=(Setup, Evaluate, Prove, Verify)}$ to show how it would be used in Phalanx:
 
-We define the interface of a Verifiable Delay Function as $`\texttt{VDF} = (\texttt{Setup},\ \texttt{Evalute},\ \texttt{Prove},\ \texttt{Verify})`$, and define its underlying functions based on class groups as follows:
+- $`(\mathbb{G},\ \Delta,\ \cdot) \leftarrow \texttt{VDF.Setup}(\lambda,\ \Delta_{\text{challenge}})`$. The setup algorithm takes as input a **security parameter** $`\lambda \in \mathbb{N}`$ and a **challenge discriminant** $`\Delta_{\text{challenge}} \in \{0,1\}^*`$ and output a deterministic group description G. The use of a challenge ensures that the resulting group is unbiasable and unpredictable, preventing adversarial precomputation. We shall drop the group description from further functions for readability. 
+- $`y \leftarrow \texttt{VDF.Evaluate}(x,\ I)`$. Given an input challenge $`x \in \mathbb{G}`$ and a number of iterations $`I \in \mathbb{N}`$, computes the VDF output $`y = x^{2^I}`$.
+- $`\pi \leftarrow \texttt{VDF.Prove}(x,\ y,\ I)`$. Given an input challenge and VDF output $`(x,y) \in \mathbb{G}^2`$, computes the VDF  **proof** $`\pi`$.
+- $`\{0,1\} \leftarrow \texttt{VDF.Verify}(x,\ y,\ I,\ \pi)`$. Returns 1 if the proof π successfully attests that the variable y is indeed a correct VDF evaluation of x with I iterations with overwhelming probability, returns 0 otherwise.
 
-- $`(\mathbb{G},\ \Delta,\ \cdot) \leftarrow \texttt{VDF.Setup}(\lambda,\ \Delta_{\text{challenge}})`$
-  Takes as input a **security parameter** $`\lambda \in \mathbb{N}`$ and a **challenge discriminant** $`\Delta_{\text{challenge}} \in \{0,1\}^*`$. This challenge discriminant acts as a source of public entropy used to deterministically derive the group discriminant $\Delta$, which defines a group of unknown order $\mathbb{G}$ along with its group operation $`\cdot`$. The use of a challenge ensures that the resulting group is unbiasable and unpredictable, preventing adversarial precomputation. We shall drop the group settings $`(\mathbb{G},\ \Delta,\ \cdot)`$ from further functions for readability. Internally, we expect the setup procedure to invoke the following sub-operations:
-```math
-    \Delta \leftarrow \texttt{VDF.CreateDiscriminant}(\lambda,\ \Delta_{\text{challenge}})
-```
-```math
-  (\mathbb{G},\ \cdot) \leftarrow \texttt{VDF.DeriveClassGroup}(\lambda,\ \Delta)
-```
+##### 2.3.2. VDF Usage
 
-- $`y \leftarrow \texttt{VDF.Evaluate}(\ x,\ I)`$
-  Given a challenge $`x \in \mathbb{G}`$ and a number of iterations $`I \in \mathbb{N}`$, computes the  output $`y = x^{2^I}`$.
+We can choose to either generate a group with security high enough to be reused across epochs, or lower the security parameter to and generate a new group at the beginning of each epoch. On the one hand, the former option seems more robust, as the security margin to break the protocol would be higher. On the other hand, the latter option lowers the number of bits to add on-chain.
 
-- $`\pi \leftarrow \texttt{VDF.Prove}(\ x,\ y,\ I)`$ 
-  Given a challenge and output $`(x,y) \in \mathbb{G}^2`$, computes the VDF  **proof** as $`\pi = x^{2^I / p}`$ where $`p \leftarrow \text{Hash}^{(2 \lambda)}_\text{prime}(x \| y)`$ is sampled from the first $`2^{2 \lambda}`$ prime numbers.
+Once the group is set, at the beginning of each epoch, the nodes will need to compute which slot they are the leader of and the associated VDF challenges. When publishing a block, they will need to publish the related VDF output and proof.
 
-- $`\{0,1\} \leftarrow \texttt{VDF.Verify}( \ x,\ y,\ I,\ \pi)`$
-  Returns 1 if $`\pi`$ successfully attests that $`y = x^{2^I}`$ with overwhelming probability, that is if $\pi^r \cdot x^p == y$ where $`p \leftarrow \text{Hash}^{(2 \lambda)}_\text{prime}(x \| y)`$ and $`r \leftarrow 2^I \text{mod}\ p`$. Returns 0 otherwise.
+Once the Iteration phase is finished, all VDF outputs will be combined to generate the next epoch's nonce.
 
-##### 2.3.2. VDF Aggregation Primitives
+##### 2.3.3. VDF Aggregation
 
-In this section, we present a mechanism for producing a Wesolowski VDF **aggregation proof**. This construction enables efficient synchronization for network participants and may play a central role in deriving the final epoch nonce $`\eta_e`$. 
-The aggregation mechanism has the following interface $`\texttt{VDF.Aggregation} = (\text{Init},\ \text{Update},\ \text{Prove},\ \text{Verify})`$ whose functions will be detailled afterwards. We assume that a class group $`\mathbb{G}`$ has already been set up, by $`(\mathbb{G},\ \Delta,\ \cdot) \leftarrow \texttt{VDF.Setup}(\lambda,\ \Delta_{\text{challenge}})`$.
+For synching nodes, a cheaper solution to verify all VDF outputs exists. Wesolowski's scheme support an aggregation technique where all VDF challenges (resp. outputs) are aggregated to become a new VDF challenge (resp. output). Computing a proof for this newly defined pair of input and output, and publishing on-chain, allows to verify all VDF games at once. Synching nodes would have to check the correct aggregation of the inputs and outputs as well as verify a _single_ proof. This method should halve the computational cost and time of verifying Phalanx overhead.
 
-**N.B.** We are showing here the core algorithms for simplicity and readability. In practice, we may use further techniques, for instance using an arbitrary byte and the epoch's number as personalization tags to ensure domain separation.
-
-At the beginning of each epoch, we initialize the VDF accumulators' state that will be used to generate the VDF aggregation proof using $`\texttt{VDF.Aggregation.Init}`$.
-<center>
-
-| `Initialize accumulators` | $`(\text{Acc}_x, \text{Acc}_y, \alpha) \leftarrow \texttt{VDF.Aggregation.Init}(\lambda, \text{pre-}\eta_e)`$     |
-| ------------------------- | ------------------------- |
-| **Input Parameters**      | <ul><li>$`\lambda \in \mathbb{N}`$ — Security parameter.</li><li>$\text{pre-}\eta_e \in \{0,1\}^{256}$ — 256-bit pre-nonce entropy for epoch $e$.</li></ul> |
-| **Steps**                 | <ol><li>Compute all VDF challenges:<br>$`\forall i\ x_i \leftarrow  \text{Hash}_\mathbb{G}(\text{pre-}\eta_e \|\|\ i) `$</li><li>Compute the initial aggregation nonce:<br>$`\alpha \leftarrow  \text{Hash}^{(\lambda)}_\mathbb{N}(x_1 \|\| \dots \|\| x_n) `$</li><li>Initializes the accumulators to the identity:<br>$`(\text{Acc}_x,\ \text{Acc}_y) \leftarrow (1_\mathbb{G},\ 1_\mathbb{G})`$</li></ol>                                                                                                          |
-| **Returned Output**       | $`(\text{Acc}_x,\ \text{Acc}_y,\ \alpha)`$ — Input and output accumulators and initial aggregation nocne.   |
-
-</center>
-
-Every time a VDF output is published on-chain, if no previous VDF output are missing, we shall update the accumulators' state using $`\texttt{VDF.Aggregation.Update}`$.
-<center>
-
-| `Update accumulators` | $`(\text{Acc}_x, \text{Acc}_y, \alpha) \leftarrow \texttt{VDF.Aggregation.Update}(\lambda, (x_i, y_i),\ (\text{Acc}_x,\ \text{Acc}_y,\ \alpha))`$     |
-| ------------------------- | ------------------------- |
-| **Input Parameters**      | <ul><li>$`\lambda \in \mathbb{N}`$ — Security parameter.</li><li>$`(x_i,\ y_i)`$ — Pair of VDF input and output for current interval.</li><li>$`(\text{Acc}_x,\ \text{Acc}_y,\ \alpha)`$ — Accumulators' state.</li></ul> |
-| **Steps**                 | <ol><li>Compute the aggregation nonce:<br>$`\alpha \leftarrow  \text{Hash}^{(\lambda)}_\mathbb{N}(\alpha\ \|\|\ y_i) `$</li><li>Update the accumulators:<br>$`(\text{Acc}_x, \text{Acc}_y) \leftarrow (\text{Acc}_x \cdot x_i^\alpha,\ \text{Acc}_y \cdot y_i^\alpha)`$</li></ol>                                                                                                    |
-| **Returned Output**       | $`(\text{Acc}_x,\ \text{Acc}_y,\ \alpha)`$ — Updated accumulator's state.   |
-
-</center>
-
-Once all VDF outputs have been generated and the accumulators updated, we can generate the VDF aggregation proof $`\pi`$ using $`\texttt{VDF.Aggregation.Prove}`$.
-<center>
-
-| `Prove accumulators` | $`\pi \leftarrow \texttt{VDF.Aggregation.Prove}(\ (\text{Acc}_x,\ \text{Acc}_y,\ \_\alpha),\ I)`$     |
-| ------------------------- | ------------------------- |
-| **Input Parameters**      | <ul><li>$`(\text{Acc}_x,\ \text{Acc}_y,\ \alpha)`$ — Accumulators' state.</li><li>$`I \in \mathbb{N}`$ — Per-interval iteration count for the VDF.</li></ul> |
-| **Steps**                 | <ol><li>Compute the accumulator proof as a VDF proof:<br>$`\pi \leftarrow \texttt{VDF.Prove}(\text{Acc}_x,\ \text{Acc}_y,\ I)`$</li></ol>                                                                                                    |
-| **Returned Output**       | $`\pi`$ — Aggregated proof.   |
-
-</center>
-
-The VDF aggregation proof $`\pi`$ can then be efficiently be verified using $`\texttt{VDF.Aggregation.Verify}`$.
-<center>
-
-| `Verify accumulators` | $`\{0,1\} \leftarrow \texttt{VDF.Aggregation.Verify}(\ (\text{Acc}_x,\ \text{Acc}_y,\ \_\alpha),\ I,\ \pi)`$     |
-| ------------------------- | ------------------------- |
-| **Input Parameters**      | <ul><li>$`(\text{Acc}_x,\ \text{Acc}_y,\ \alpha)`$ — Accumulators' state.</li><li>$`I \in \mathbb{N}`$ — Per-interval iteration count for the VDF.</li><li>$`\pi \in \mathbb{G}`$ — Aggregated VDF proof.</li></ul> |
-| **Steps**                 | <ol><li>Verfy the accumulators' proof:<br>$`b \leftarrow \texttt{VDF.Verify}(\text{Acc}_x,\ \text{Acc}_y,\ I,\ \pi)`$</li></ol>                                                                                                    |
-| **Returned Output**       | $`b`$ — Verification bit.   |
-
-</center>
+**N.B.** As this aggregation of inputs and outputs is deterministic, we can use the hash of this aggregated output as final nonce.
 
 ### 3. $`\phi^{\text{stream}}`$ Specification
 
