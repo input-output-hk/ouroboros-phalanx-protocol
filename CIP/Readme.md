@@ -1,6 +1,6 @@
 ---
-CPS: ??
-Title: Φalanx (Phalanx) : Increasing the Computational Cost of Grinding Attacks
+CIP: ??
+Title: Ouroboros Phalanx: Breaking Grinding Incentives
 Category: Consensus/Security
 Status: Proposed
 Authors:
@@ -9,13 +9,12 @@ Authors:
 Proposed Solutions: []
 Discussions:
     - https://github.com/cardano-foundation/CIPs/pull/1009
-Created: 2025-10-03
+Created: 2025-25-07
 License: Apache-2.0
 ---
 
 <details>
 <summary>🔍 Table of Contents</summary>
-
 
 - [Abstract](#abstract)
 - [Motivation: why is this CIP necessary?](#motivation-why-is-this-cip-necessary)
@@ -23,19 +22,19 @@ License: Apache-2.0
   - [1. High-Level Overview ](#1-high-level-overview)
     - [1.1 Changes Relative to Praos](#11-changes-relative-to-praos)
     - [1.2 Inputs & Outputs ](#12-inputs--outputs)
-      - [1.2.1 The η Stream](#121-the-etatextstream)
-      - [1.2.2 The pre-ηₑ Synchronizations](#122-the-textpre-eta-synchronizations)
-      - [1.2.3 The Φ Stream ](#123-the-phitextstream)
+      - [1.2.1 The η Stream](#121-the-η-stream)
+      - [1.2.2 The pre-ηₑ Synchronizations](#122-the-pre-ηₑ-synchronizations)
+      - [1.2.3 The Φ Stream ](#123-the-φ-stream)
         - [1.2.3.1 The Setup](#1231-the-setup)
         - [1.2.3.2 The Lifecycle](#1232-the-lifecycle)
-      - [1.2.4 The η Generations](#124-the-eta-generations)
+      - [1.2.4 The η Generations](#124-the-η-generations)
   - [2. The Φ Cryptographic Primitive](#2-the-φ-cryptographic-primitive)
     - [2.1. Expected Properties](#21-expected-properties)
     - [2.2. Verifiable Delayed Functions (VDF)](#22-verifiable-delayed-functions-vdf)
     - [2.3 Wesolowski's VDF](#23-wesolowskis-vdf)
       - [2.3.1 VDF Primitives](#231-vdf-primitives)
       - [2.3.2 VDF Aggregation Primitives](#232-vdf-aggregation-primitives)
-  - [3. $`\phi^{\text{stream}}`$ Specification](#3-phitextstream-specification)
+  - [3. Φ Stream Specification](#3-φ-stream-specification)
     - [3.1 Distribution of Φ Iterations](#31-distribution-of-φ-iterations)
     - [3.2 The State Machine](#32-the-state-machine)
       - [3.2.1 Diagram Overview](#321-diagram-overview)
@@ -57,9 +56,9 @@ License: Apache-2.0
             - [3.2.6.4. The Failure Scenario: Ungraceful Closure](#3264-the-failure-scenario-ungraceful-closure)
   - [4. Recommended Parameter Values](#4-recommended-parameter-values)
     - [4.1. VDF Security Parameters λ and ρ](#41-vdf-security-parameters-λ-and-ρ)
-    - [4.2. Time Budget T<sub>Φ</sub> and Derived T](#42-time-budget-tsubφsub-and-derived-t)
+    - [4.2. Time Budget Tᵩ and Derived T](#42-time-budget-tᵩ-and-derived-t)
       - [4.2.1. Specialized ASIC vs CPU-Based Chips](#421-specialized-asic-vs-cpu-based-chips)
-      - [4.2.2. Deriving from T<sub>Φ</sub> to T](#422-deriving-from-tsubφsub-to-t)
+      - [4.2.2. Deriving from Tᵩ to T](#421-deriving-from-tᵩ-to-t)
   - [5. Efficiency Analysis](#5-efficiency-analysis)
     - [5.1. Block Publication](#51-block-publication)
     - [5.2. Block Verification](#52-block-verification)
@@ -74,8 +73,8 @@ License: Apache-2.0
     - [1.3 Φalanx Cost Amplification per Grinding Attack](#13-φalanx-cost-amplification-per-grinding-attack)
       - [1.3.1 Formula](#131-formula)
       - [1.3.2 Estimated Formula Using Mainnet Cardano Parameters](#132-estimated-formula-using-mainnet-cardano-parameters)
-      - [1.3.3 Impact of T<sub>Φ</sub> on Canonical Scenarios](#133-impact-of-t_phi-on-canonical-scenarios)
-      - [1.3.4 Impact of T<sub>Φ</sub> on Feasibility Categories](#134-impact-of-t_phi-on-feasibility-categories)
+      - [1.3.3 Impact of Tᵩ on Canonical Scenarios](#133-impact-of-tᵩ-on-canonical-scenarios)
+      - [1.3.4 Impact of Tᵩ on Feasibility Categories](#134-impact-of-tᵩ-on-feasibility-categories)
     - [1.4. Conclusion: How Much Risk is Mitigated?](#14-conclusion-how-much-risk-is-mitigated)
   - [2. How Φalanx Improves CPS-17 - Settlement Speed ?](#2-how-φalanx-improves-cps-17---settlement-speed)
     - [2.1 Settlement times without grinding attacks](#21-settlement-times-without-grinding-attacks)
@@ -114,15 +113,13 @@ Addressing both [CPS-0021 / Ouroboros Randomness Manipulation](https://github.co
 
 A [**Phalanx**](https://en.wikipedia.org/wiki/Phalanx) is an **Ancient Greek military formation** where soldiers **stand in a tightly packed unit**, shielding and reinforcing one another to create a nearly impenetrable defense. This strategy made it far more difficult for enemies to break through compared to fighting individual soldiers.
 
-![alt text](./image/phalanx-soldiers.png)
-
 In **Φalanx Protocol**, we apply this idea cryptographically by **enhancing the VRF-based randomness generation sub-protocol** with a cryptographic primitive that is **efficient for honest participants** but **computationally expensive for adversaries** attempting to bias leader election. While it won’t eliminate grinding attacks entirely, it **significantly increases their cost**, and our work focuses on **precisely quantifying this added expense**.
 
-Please refer to the CPD "[Ouroboros Randomness Generation Sub-Protocol – The Coin-Flipping Problem](../CPS/CPD/README.md)" for a detailed understanding of **randomness generation, leader election in Praos, and the coin-flipping dilemma in consensus protocols**. Moving forward, we will **dive into the core details**, assuming you have the **relevant background** to understand the proposal.
+Please refer to the CPD "[Ouroboros Randomness Generation Sub-Protocol – The Coin-Flipping Problem](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021/CPD/README.md)" for a detailed understanding of **randomness generation, leader election in Praos, and the coin-flipping dilemma in consensus protocols**. Moving forward, we will **dive into the core details**, assuming you have the **relevant background** to understand the proposal.
 
 ## Motivation: why is this CIP necessary?
 
-The "[Ouroboros Randomness Generation Sub-Protocol – The Coin-Flipping Problem](../CPS/CPD/README.md)" CPD highlights a potential attack vector in **Ouroboros Praos**: adversaries controlling a substantial portion of stake can execute **grinding attacks** to manipulate leader election, compromising the protocol’s fairness and security. As detailed in [CPD Section 3.2 - Entry Ticket: Acquiring Stake to Play the Lottery](../CPS/CPD/README.md#32-entry-ticket-acquiring-stake-to-play-the-lottery), an adversary with **around 20% or more of the total stake** gains an exponential advantage in influencing randomness, with attack feasibility increasing rapidly as stake grows. This critical threshold is further explored in [CPD Section 3.6 - Grinding Power Computational Feasibility](../CPS/CPD/README.md#36-grinding-power-computational-feasibility), which shows that grinding attacks become computationally viable for well-resourced adversaries, particularly in the "Owl Survey" scenario, where costs remain within the "Possible" range (up to $\$1$ billion USD) for grinding depths ($\rho$) up to $57.7$.
+The "[Ouroboros Randomness Generation Sub-Protocol – The Coin-Flipping Problem](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021/CPD/README.md)" CPD highlights a potential attack vector in **Ouroboros Praos**: adversaries controlling a substantial portion of stake can execute **grinding attacks** to manipulate leader election, compromising the protocol’s fairness and security. As detailed in [CPD Section 3.2 - Entry Ticket: Acquiring Stake to Play the Lottery](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021/CPD/README.md#32-entry-ticket-acquiring-stake-to-play-the-lottery), an adversary with **around 20% or more of the total stake** gains an exponential advantage in influencing randomness, with attack feasibility increasing rapidly as stake grows. This critical threshold is further explored in [CPD Section 3.6 - Grinding Power Computational Feasibility](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021/CPD/README.md#36-grinding-power-computational-feasibility), which shows that grinding attacks become computationally viable for well-resourced adversaries, particularly in the "Owl Survey" scenario, where costs remain within the "Possible" range (up to 1 billion USD) for grinding depths ($\rho$) up to $57.7$.
 
 A grinding depth of **57.7** bits means:
   - The adversary can simulate approximately $2^{57.7}$ possible randomness outcomes, derive the corresponding leader distribution for the next epoch, and select the most favorable one.
@@ -132,7 +129,7 @@ A grinding depth of **57.7** bits means:
 
 Because the protocol must account for the possibility of grinding attacks, settlement times are currently calibrated with conservative assumptions. Mitigating this attack presents a compelling opportunity to improve settlement speed which the core objective of [CPS-0017 / Settlement Speed](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0017).
 
-**Φalanx** proposes a solution by introducing a computationally intensive mechanism that disproportionately burdens attackers while remaining manageable for honest participants. By elevating the resource threshold required for successful attacks, as analyzed in [CPD Section 3.4 - Cost of a Grinding Attack](../CPS/CPD/README.md#34-cost-of-a-grinding-attack), this CIP aims to shift the feasibility curve, making randomness manipulation more economically and practically infeasible. 
+**Φalanx** proposes a solution by introducing a computationally intensive mechanism that disproportionately burdens attackers while remaining manageable for honest participants. By elevating the resource threshold required for successful attacks, as analyzed in [CPD Section 3.4 - Cost of a Grinding Attack](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021/CPD/README.md#34-cost-of-a-grinding-attack), this CIP aims to shift the feasibility curve, making randomness manipulation more economically and practically infeasible. 
 
 This CIP responds to two Cardano Problem Statements:
 
@@ -160,14 +157,14 @@ In **Φalanx** , the randomness generation and leader election flows are modifie
 
 #### 1.2. Inputs & Outputs 
 
-The Randomness Generation sub-protocol pipelines two parallel streams $`\eta`$ stream and $`\phi^\text{stream}`$, which synchronize at $`9.\frac{k}{f}`$ at each epoch :  
+The Randomness Generation sub-protocol pipelines two parallel streams η stream and Φ Stream, which synchronize at $`9.\frac{k}{f}`$ at each epoch :  
 
 ![alt text](./image/Phalanx-Streams.png)
 
-##### 1.2.1. **The $`\eta`$ stream** 
+##### 1.2.1. The η stream 
 
    - Already present in Praos and retained in Φalanx 
-   - Updated with every block produced in the blockchain tree, a $`\eta`$ stream captures intermediate values $`\eta^\text{evolving}_t`$ in the block headers, defined as follows:
+   - Updated with every block produced in the blockchain tree, a η stream captures intermediate values $`\eta^\text{evolving}_t`$ in the block headers, defined as follows:
 
 ```math
    \eta^{\text{evolving}}_{t+1} =
@@ -192,15 +189,15 @@ The Randomness Generation sub-protocol pipelines two parallel streams $`\eta`$ s
 | $a\ \star\ b$    | The concatenation of $a$ and $b$ , followed by a BLAKE2b-256 hash computation.
 
 
-##### 1.2.2. The $`\text{pre-}\eta`$ Synchronizations  
+##### 1.2.2. The pre-ηₑ Synchronizations  
 
-- To generate $`\eta_\text{e}`$ for epoch $`e`$, the stream $`\phi^\text{stream}`$ is reset with the value of $`\eta`$ stream at $`t=9.\frac{k}{f}`$ at $epoch_{e-2}$
-- This specific value of $`\eta`$ stream is referred to as **$`\text{pre-}\eta_e`$** and defined as :
+- To generate $`\eta_\text{e}`$ for epoch $`e`$, the stream Φ Stream is reset with the value of η stream at $`t=9.\frac{k}{f}`$ at $epoch_{e-2}$
+- This specific value of η stream is referred to as **$`\text{pre-}\eta_e`$** and defined as :
 ```math
 \text{pre-}\eta_e= \eta^{evolving}_{9.\frac{k}{f}(epoch_{e-2})}
 ```
 
-##### 1.2.3. The $`\phi^\text{stream}`$
+##### 1.2.3. The Φ Stream
 
 ###### 1.2.3.1. The Setup
 
@@ -216,7 +213,7 @@ where :
 
 ###### 1.2.3.2. The Lifecycle
 
-It is reset at every $`\text{pre-}\eta`$ synchronization point every $`10.\frac{k}{f}`$ slots :
+It is reset at every pre-ηₑ synchronization point every $`10.\frac{k}{f}`$ slots :
 ```math
 Φ.\text{Stream.State} \leftarrow \Phi.\text{initialize}(Φ.\text{Configuration}, \text{pre-}\eta)
 ```
@@ -254,9 +251,9 @@ At the synchronization point $`\text{pre-}\eta_{e+1}`$, the stream is closed pro
 \phi^{final}_e \leftarrow \Phi.\text{close}( \Phi.\text{StreamState})
 ```
 
-##### 1.2.4. The $`\eta`$ Generations
+##### 1.2.4. The η Generations
    - This is the final nonce $`\eta_\text{e}`$ used to determine participant eligibility during epoch $`e`$.  
-   - It originates from the operation $`\star`$ with $`\phi^{\text{stream}}_{t}`$ at $`\text{pre-}\eta_\text{e+1}`$ synchronization and $`\eta`$ stream  $`\text{when } t = \text{end of epoch}_\text{e-3}`$ and the combination of the outputs $`\{o_i\}_{[1,i]}`$ using an aggregation function $`f_\text{agg}`$.
+   - It originates from the operation $`\star`$ with $`\phi^{\text{stream}}_{t}`$ at $`\text{pre-}\eta_\text{e+1}`$ synchronization and η stream  $`\text{when } t = \text{end of epoch}_\text{e-3}`$ and the combination of the outputs $`\{o_i\}_{[1,i]}`$ using an aggregation function $`f_\text{agg}`$.
 
 ```math
 \eta_\text{e} = \eta^\text{evolving}_{epoch_\text{e-3}}\ \star\ f_\text{agg}(o_1, \dots, o_e) , \quad \text{when } t = \text{pre-}\eta_\text{e+1}\text{ synchronization } 
@@ -374,13 +371,13 @@ The VDF aggregation proof $`\pi`$ can then be efficiently be verified using $`\t
 
 </center>
 
-### 3. $`\phi^{\text{stream}}`$ Specification
+### 3. Φ Stream Specification
 
 We previously outlined the purpose of the Φalanx sub-protocol and introduced the cryptographic primitive underpinning its security guarantees. In this section, we provide a precise technical specification of the protocol, focusing on how the $`\Phi`$ iterations are distributed and how Wesolowski’s Verifiable Delay Function (VDF) is integrated into the process.
 
 #### 3.1. Distribution of Φ Iterations
 
-As previously mentioned, $`\phi^{\text{stream}}`$ is divided into epoch-sized *lifecycle segments*. Each segment begins with an **initialize** function, ends with a **close** function, and is immediately followed by the start of a new segment.
+As previously mentioned, Φ Stream is divided into epoch-sized *lifecycle segments*. Each segment begins with an **initialize** function, ends with a **close** function, and is immediately followed by the start of a new segment.
 
 We further partition this segment into **intervals**, each large enough to guarantee (with 128-bit confidence) that at least one block will be produced within it. This corresponds to **3435 slots** per interval. For simplicity, we round this to **3600 slots** (~1 hour), resulting in exactly 120 intervals per segment, which conveniently aligns with the 120 hours in five days.
 
@@ -388,7 +385,7 @@ We further partition this segment into **intervals**, each large enough to guara
 <summary>🔍 How 128-bit Confidence gives 3435 Slots ?</summary>
 <p> 
 
-## 📦 Guaranteeing Honest Block Inclusion with 128-bit Confidence in our context
+<span style="display:block; font-size:1.25em; font-weight:bold"> 📦 Guaranteeing Honest Block Inclusion with 128-bit Confidence in our context </span>
 
 We want to make sure that, in any given interval of $N$ slots, there's **at least one honest block** produced — with a failure probability of at most $2^{-128}$ (which is a standard for cryptographic security).
 
@@ -396,7 +393,7 @@ It is also important to note that we are operating in a context where fork-relat
 
 This means: $`\Pr(\text{at least one honest block in } N \text{ slots}) \geq 1 - 2^{-128}`$
 
-##### 🎲 Step 1 — What’s the chance of *not* getting an honest block?
+<span style="display:block; font-size:1.1em; font-weight:bold"> 🎲 Step 1 — What’s the chance of *not* getting an honest block? </span>
 
 Each slot gives honest participants a chance to be selected as leader.
 
@@ -413,13 +410,13 @@ So, the chance that **at least one honest party** is selected in a slot is: $`p_
 
 This means that **each slot has a 2.584% chance** of having an honest leader.
 
-##### 📐 Step 2 — What about across $N$ slots?
+<span style="display:block; font-size:1.1em; font-weight:bold"> 📐 Step 2 — What about across $N$ slots? </span>
 
 The chance that **no honest block** is produced in $N$ consecutive slots is: $`(1 - p_h)^N`$
 
 We want this to be **less than or equal to** $2^{-128}$, so: $(1 - p_h)^N \leq 2^{-128}$
 
-##### ✏️ Step 3 — Solve for $N$
+<span style="display:block; font-size:1.1em; font-weight:bold"> ✏️ Step 3 — Solve for $N$ </span>
 
 Take log base 2 of both sides:
 
@@ -501,7 +498,7 @@ The figure below presents the **state transition diagram** for the Φalanx compu
 
 In the following sections, we provide a detailed breakdown of each phase of the state machine, specifying its purpose, entry conditions, timing constraints, and transitions.
 
-#### 3.2.2. 🟧 *Parametrization Phase*
+#### 3.2.2. 🟧 Parametrization Phase
 
 At the setup of $`\phi^{stream}`$, the total number of VDF iterations is derived from the time-bound parameter $`T_\Phi`$, using a reference hardware profile that reflects the minimal computational capacity expected of SPOs. While this derivation may not be fully automatable in practice, we include it here to clarify how time constraints are mapped to iteration counts during configuration.
 
@@ -522,11 +519,11 @@ Importantly, this **parametrization phase** occurs only once, either during the 
 
 </center>
 
-#### 3.2.3.  🟩 *Initialization Grace Phase*
+#### 3.2.3.  🟩 Initialization Grace Phase
 
-Initialization occurs at every $`\text{pre-}\eta`$ synchronization point, followed by an *Initialization Grace* period during which the protocol waits long enough for the first iteration to be computed and its proof to be included within the first computation interval. This process recurs every $`10 \cdot \frac{k}{f}`$ slots.
+Initialization occurs at every pre-ηₑ synchronization point, followed by an *Initialization Grace* period during which the protocol waits long enough for the first iteration to be computed and its proof to be included within the first computation interval. This process recurs every $`10 \cdot \frac{k}{f}`$ slots.
 
-##### 3.2.3.1. *Initialize Command*
+##### 3.2.3.1. Initialize Command
 We show here how to initialize the class-group based VDF algorithm when generating a group for each different epoch. Were we to use the same group for many, if not all, epochs, we would run these steps in the *Parametrization phase* and change the discriminant seed $`\Delta_{\text{challenge}}`$ accordingly, e.g. if we use the same group forever we could use $`\Delta_{\text{challenge}} \leftarrow \text{Hash}(\text{bin}(\text{``IOHKΦalanx2025"}))`$.
 
 <center>
@@ -547,7 +544,7 @@ We show here how to initialize the class-group based VDF algorithm when generati
 
 </center>
 
-##### 3.2.3.2. *Tick Commands* & Grace Period
+##### 3.2.3.2. Tick Commands & Grace Period
 
 <center>
 
@@ -579,7 +576,7 @@ We show here how to initialize the class-group based VDF algorithm when generati
 
 </center>
 
-#### 3.2.4.  🟥  *Computation Phase*
+#### 3.2.4.  🟥  Computation Phase
 
 ##### 3.2.4.1. VDF integration
 
@@ -696,7 +693,7 @@ Alternatively, when still waiting for an attestation and no block was produced, 
 
 `isClosable` indicates that all attested outputs have been successfully provided, and only the final interval remains, during which the outputs are aggregated and the seed $`\eta_e`$ is derived and recorded on-chain.
 
-#### 3.2.5.  🟦 *Catch-up Phase*
+#### 3.2.5.  🟦 Catch-up Phase
 
 This Catch-up Phase closely resembles the preceding Computation Phase, but its purpose is to recover from any blockless intervals that may have occurred — albeit such cases are extremely rare.
 
@@ -777,7 +774,7 @@ Alternatively, when still waiting for an attestation and no block was produced, 
 `isUngracefullyClosable` indicates that the end of the lifecycle segment has been reached (i.e., `currentSlot++ == 0`), while some attested outputs are still missing. When this condition holds, the lifecycle is forcefully closed in an ungraceful manner.
 
 
-#### 3.2.6 ⬛ *Closure Phase*
+#### 3.2.6 ⬛ Closure Phase
 
 We now enter the final phase of the lifecycle, during which all collected outputs are expected to be aggregated and recorded on-chain, and the seed $\eta_e$ derived and committed.
 
@@ -909,7 +906,7 @@ This strikes a balance between long-term security and practical efficiency:
 
 Since Φalanx is designed to operate with a **single class group instance “for the lifetime of the protocol”** (reparametrization would require explicit governance intervention), this configuration $(\lambda, \rho) = (128, 64)$ ensures protocol simplicity, consistency, and operational predictability.
 
-#### 4.2 Time Budget T<sub>Φ</sub> and Derived T
+#### 4.2 Time Budget Tᵩ and Derived T
 
 In terms of efficiency, the section [**1. How Φalanx Addresses CPS-21 – Ouroboros Randomness Manipulation**](#1-how-phalanx-addresses-cps-21---ouroboros-randomness-manipulation) in the *Rationale* part of this document illustrates, through three scenarios $`\text{Phalanx}_{1/10}`$, $`\text{Phalanx}_{1/100}`$, and $`\text{Phalanx}_{\text{max}}`$, how different time budgets (2 hours, 12 hours, and 5 days, respectively) improve the protocol’s security guarantees against grinding attacks.
 
@@ -929,7 +926,7 @@ Critically, scaling this kind of grinding capability is expensive. For an advers
 
 In summary, while ASIC-equipped adversaries could, in theory, gain a computational advantage during the grinding window, the cost and scale required to pose a real threat remains high. Our mitigation strategy is to raise the honest baseline to neutralize this advantage and prepare for possible hardware evolution over time.
 
-##### 4.2.1 Deriving from T<sub>Φ</sub> to T
+##### 4.2.1 Deriving from Tᵩ to T
 
 We recommend a **12-hour computation budget** on standard **CPU-based machines**, which we estimate to be **10× slower** than specialized ASICs available to adversaries. This configuration corresponds to **Phalanx<sub>1/10</sub>** in terms of **time budget**, while achieving **Phalanx<sub>1/100</sub>** in terms of **security guarantees** against grinding attacks.
 
@@ -955,8 +952,6 @@ To publish a block, a node must:
 
 * Perform $T$ squarings to compute the output,
 * Execute $O(T / \log(T))$ operations for the proof generation.
-
-
 
 We now show benchmarks for evaluating and proving together VDFs, as well as individually, for different discriminant sizes done on a Ubuntu computer with Intel® Core™ i9-14900HX with 32 cores and 64.0 GiB RAM.  For a 4,096 bit long discriminant, we perform around 45,000 iterations per second, and so evaluate and prove a VDF in 22.6s.
 
@@ -1129,7 +1124,7 @@ These thresholds reveal critical vulnerabilities in Cardano’s current consensu
 
 #### 1.2 Φalanx Cost Amplification per Grinding Attempt
 
-In **Φalanx**, we introduce an additional parameter and **computational cost**, denoted $T_\Phi$, for each **grinding attempt**. This cost represents the total cumulative effort required to compute $i$ iterations of the $\Phi$ primitive. This additional cost directly impacts the total estimated **time per grinding attempt**, as originally defined in [CPD Section 3.3.4 - Total Estimated Time per Grinding Attempt](../CPS/CPD/README.md#334-total-estimated-time-per-grinding-attempt). The baseline grinding time in **Praos** is:
+In **Φalanx**, we introduce an additional parameter and **computational cost**, denoted $T_\Phi$, for each **grinding attempt**. This cost represents the total cumulative effort required to compute $i$ iterations of the $\Phi$ primitive. This additional cost directly impacts the total estimated **time per grinding attempt**, as originally defined in [CPD Section 3.3.4 - Total Estimated Time per Grinding Attempt](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021/CPD/README.md#334-total-estimated-time-per-grinding-attempt). The baseline grinding time in **Praos** is:
 
 ```math
 T_{\text{grinding}}^{\text{Praos}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}}
@@ -1168,7 +1163,11 @@ N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot T_{\text{grinding}}^{\text
 
 ##### 1.3.1 Formula
 
-###### Expanding $T_{\text{grinding}}^{\text{Phalanx}}$
+<div style="font-size:0.8em; font-weight:bold; margin-top:0.5em">
+
+Expanding $T_{\text{grinding}}^{\text{Phalanx}}$
+
+</div>
 
 From **Section 1.1**, the per-attempt grinding time under **Φalanx** is:
 
@@ -1182,7 +1181,12 @@ Substituting this into the inequality:
 N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_{\Phi} \right)}{w_O} \right \rceil
 ```
 
-###### Expanding $w_O$ in Terms of $\rho$ and $f$
+<div style="font-size:0.8em; font-weight:bold; margin-top:0.5em">
+
+Expanding $w_O$ in Terms of $\rho$ and $f$
+
+</div>
+ 
 
 The grinding opportunity window is:
 
@@ -1233,8 +1237,9 @@ Starting from the final expression at the end of the last section:
 ```math
 N_{\text{CPU}} > \left \lceil f \cdot 2^{\rho-2} \cdot T_{\text{BLAKE2b}} + \frac{f}{\rho} \cdot 2^{\rho-1} \cdot \left( w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_{\Phi} \right) \right \rceil
 ```
-
-###### Applying Cardano Mainnet Parameters
+<div style="font-size:0.8em; font-weight:bold; margin-top:0.5em">
+Applying Cardano Mainnet Parameters
+</div>
 
 Using Cardano’s mainnet values:
 
@@ -1272,7 +1277,7 @@ N_{\text{CPU}} > \left \lceil
 \right \rceil
 ```
 
-##### 1.3.3 Impact of T<sub>Φ</sub> on Canonical Scenarios
+##### 1.3.3 Impact of Tᵩ on Canonical Scenarios
 
 Now that we have an updated formula, we can evaluate how **Φalanx** directly affects the cost of grinding attempts when compared to the original CPD scenarios. As previously discussed, the goal is to strike a balance between the effort expected from honest **SPOs** during an epoch and the computational burden imposed on an adversary attempting to evaluate multiple $`\eta_e`$ candidates in preparation for an attack.
 
@@ -1325,7 +1330,9 @@ The **graph below** presents the **logarithmic cost** (in **USD**) of executing 
 
 ✏️ **Note**: The Python script used to generate this graph is available here ➡️ [**scenario\_cost\_praos\_vs\_phalanx.py**](./graph/scenario_cost_praos_vs_phalanx.py)
 
-###### **Interpretation of the Graph**
+<div style="font-size:0.8em; font-weight:bold; margin-top:0.5em">
+ Interpretation of the Graph
+</div>
 
 The graph highlights how the **$\text{Phalanx}_\text{1/100}$ protocol** dramatically increases the **cost of grinding attacks** compared to **Praos**, using a logarithmic scale to represent costs in **USD** as a function of the grinding depth $`\rho`$: 
 
@@ -1370,7 +1377,7 @@ We can now **simplify and generalize** the grinding cost formulas for different 
 These results confirm that even the **minimal configuration** ($`\text{Phalanx}_{1/100}`$) yields a **$10^{10.6}$-fold increase** in the computational cost of a grinding attack — a formidable barrier for adversaries. More aggressive deployments such as $`\text{Phalanx}_{1/10}`$ and $`\text{Phalanx}_{\text{max}}`$ push this cost further, to $10^{11.6}$ and $10^{12.6}$ times that of Praos, respectively — while still remaining practical for honest participants.
 
 
-##### 1.3.4 Impact of T<sub>Φ</sub> on Feasibility Categories
+##### 1.3.4 Impact of Tᵩ on Feasibility Categories
 
 This **simplification** allows us to **revisit and improve** the **feasibility category table** presented in the **Problem Overview section** :
 
@@ -1769,7 +1776,7 @@ To fulfill the above criteria, the following steps are planned:
 
 ## References
 
-1. [Ouroboros Randomness Generation Sub-Protocol – The Coin-Flipping Problem](../CPS/CPD/README.md)
+1. [Ouroboros Randomness Generation Sub-Protocol – The Coin-Flipping Problem](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021/CPD/README.md)
 2. [Cardano Disaster Recovery Plan](https://iohk.io/en/research/library/papers/cardano-disaster-recovery-plan)
 3. [Baigneres, Thomas, et al. "Trap Me If You Can--Million Dollar Curve." Cryptology ePrint Archive (2015).](https://eprint.iacr.org/2015/1249.pdf)
 4. [Lenstra, Arjen K., et al. "The number field sieve." Proceedings of the twenty-second annual ACM symposium on Theory of computing. 1990.](https://dl.acm.org/doi/pdf/10.1145/100216.100295)
