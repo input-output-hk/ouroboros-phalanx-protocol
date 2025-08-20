@@ -1820,3 +1820,7 @@ To fulfill the above criteria, the following steps are planned:
 
 ## Copyright
 This CIP is licensed under [Apache-2.0](http://www.apache.org/licenses/LICENSE-2.0).
+
+Portions of this document were prepared with the assistance of AI-based tools.The use of AI was limited to drafting, editing, and improving clarity of expression. All **technical ideas, specifications, and cryptographic designs** originate from the human authors, who take full responsibility for their novelty, correctness, and originality.  
+
+The AI contribution is comparable to that of a copy-editor: it helped improve formatting, emphasis, and readability, but did not generate or propose the underlying concepts.
