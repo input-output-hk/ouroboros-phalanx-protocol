@@ -86,20 +86,8 @@ License: Apache-2.0
   - [3. Why VDFs Were Chosen over other Cryptographic Primitives ?](#3-why-vdfs-were-chosen-over-other-cryptographic-primitives-)
     - [3.1 Requirements](#31-requirements)
     - [3.2 Primitive selection](#32-primitive-selection)
-      - [3.2.1 RSA solutions](#321-rsa-solutions)
-        - [3.2.1.1 Designs](#3211-designs)
-        - [3.2.1.2 Properties](#3212-properties)
-      - [3.2.2 ECC solutions](#322-ecc-solutions)
-        - [3.2.2.1 Designs](#3221-designs)
-        - [3.2.2.2 Properties](#3222-properties)
-      - [3.2.3 Class group solutions](#323-class-group-solutions)
-        - [3.2.3.1 Design](#3231-design)
-        - [3.2.3.2 Properties](#3232-properties)
-      - [3.2.4 OWF solutions](#324-owf-solutions)
-        - [3.2.4.1 Proofs of knowledge](#3241-proofs-of-knowledge)
-        - [3.2.4.2 OWFs](#3242-owfs)
-        - [3.2.4.3 Design](#3243-design)
-        - [3.2.4.4 Properties](#3244-properties)
+      - [3.2.1 Asymmetric solutions](#321-asymmetric-solutions)
+      - [3.2.2 Symmetric solutions](#322-symmetric-solutions)
     - [3.3 Primitive recommendation](#33-primitive-recommendation)
 - [Path to Active](#path-to-active)
   - [Acceptance Criteria](#acceptance-criteria)
@@ -1520,153 +1508,20 @@ We can either support a primitive which computation can be split in different it
 
 To ensure fast verification, we face a first choice: relying on a cryptographic primitive based on trapdoor assumptions, which present NP problems and by definition have fast verification, or combine a primitive without fast verification with an efficient proof system such as a Succinct Non-interactive ARgument of Knowledge (SNARK).
 
-##### 3.2.1 RSA solutions
+##### 3.2.1 Asymmetric solutions
 
-An RSA group is the multiplicative group of integers modulo $N$, where $N$ is the product of two large prime numbers $p$ and $q$, $N = p \cdot q$. This group is called RSA after the RSA cryptosystem by Rivest, Shamir and Adleman where the public encryption key is the group modulus $N$ and a small exponent $e$, while the corresponding  decryption key is the number $d$ such that $d \cdot e \equiv 1\ (\text{mod }\Phi(N))$ where $\Phi(N) = (p−1)(q−1)$, where $p$ and $q$ remain private. To break the RSA cryptosystem, the adversary has to factorize $N$ into its prime $p$ and $q$ which can be done most efficiently with the General Number Field Sieve algorithm, based on the NFS [[2]](https://dl.acm.org/doi/pdf/10.1145/100216.100295), in sub-exponential time. To reach 128 bit of security, the modulus must be at least 2,048 bit long, and preferably at least 3,072 bit long, according to NIST [[3]](https://csrc.nist.gov/pubs/sp/800/78/5/final).
+We focused on two main types of solutions: breaking the hardness of a cryptographic primitive, for instance finding an RSA private, and Verifiable Delayed Functions.
+The first category of solutions gives us the most ample choice, we can break the discrete logarithm of diverse groups (elliptic curve, class groups, hyperelliptic jacobians, or factorize numbers in an RSA group.
+The advantages of these solutions are that the problems are well understood and documented, and their verification is quite efficient space-wise as no separate proof is needed.
+Unfortunately, it is no easy feat to set up these problems, and as the groups get broken, we need to continuously generate new ones making these unviable solutions.
+The second category does not have much problem, as participants would not be asked to break the security of a protocol. VDFs are akin to exponentiating values inefficiently as the trapdoor of the set up group is hidden, and the proofs are functions of the intermediary variables computed to find desired value. Two main variations of VDFs exist, whether we are working on RSA groups or Class groups.
+On the first hand, RSA groups are older and much more understood but there is no simple algorithm to set them up for our use case. Class groups are newer and have not been as standardized but can be generated very quickly, and values are smaller on the other hand. 
 
-###### 3.2.1.1 Designs
+##### 3.2.2 Symmetric solutions
 
-Three problems defined on RSA groups satisfy the requirements: solving the RSA problem or the integer factorization, or using verifiable delayed functions (VDFs, [[6]](https://eprint.iacr.org/2018/601.pdf)).
-RSA problem. The setup consists in generating an RSA public key $(N,\ e)$ where $N$’s factorization is unknown and a ciphertext c. The challengers then have to find the plaintext corresponding to that ciphertext, that is finding the eth root the ciphertext modulo N, i.e. finding $m$ such that $c \equiv m \cdot e (\text{mod } N)$. The verification is straightforward, re-encrypting the plaintext and checking it equals the ciphertext.
-The most efficient method to solve this problem is by first factoring the modulus $N$, which cannot be done in polynomial time without a quantum computer (in which case we would use Shor’s algorithm). The best published algorithm to solve this problem with classical computers is the general number field sieve (GNFS), that is sub-exponential in time.
-Integer factorization. This is a simpler case to the RSA problem: only the group modulus is given and needs to be factorized, by the same algorithm.
-VDF. Similarly to the other problems, we first start by generating an unknown order group of modulus $N$ but also sample a random group element $g$. The challenge then consists in raising this element to a big exponent of the form $2^T$ where $T$ is set depending on the difficulty, the computation or time we want the challenger to need to solve the problem. The challengers eventually compute and output $y = x^{2^T} (\text{mod }N)$ by squaring the integer $x$ exactly $T$ times as well as generate an additional proof of this result. The verification consists in verifying the proof passes successfully together with the input, output and modulus.
+To widen our spectrum of solutions, we also explored sequential hashing, with different variants such as memory-hard functions, with proof of computations for fast verification. Hash-based approaches are generally more cost-effective than asymmetric cryptography, do not depend on potentially vulnerable trapdoors, and can be implemented using widely deployed primitives. They are well understood both cryptographically and economically, especially given the prevalence of hash farms. The main drawback of hash functions lies in their verification: traditionally, verification requires recomputing the hashes, which can be too time-consuming for our use case, especially when considering synching. To address this, we looked at leveraging proof systems, such as Succinct Non-interactive Arguments of Knowledge (SNARKs) and Scalable Transparent ARguments of Knowledge (STARKs) to reduce the verification time. This introduces a modest overhead in the form of small proof sizes—on the order of hundreds of bytes—which remains acceptable. Although SNARKs are relatively new and involve complex protocols, their adoption is growing, with some blockchains like Mina and Midnight fully built around them. While their use may raise concerns, it remains a practical choice. It is worth noting, however, that SNARKs are not quantum-resistant—unlike their hash-based counterpart, STARKs, which do offer quantum resistance.
 
-###### 3.2.1.2 Properties
-
-**Security Strength & Maturity.** RSA cryptography, since its introduction in 1977, has reached a high level of maturity and is widely considered one of the most reliable and well-understood public-key cryptographic systems. Its security is based on the computational difficulty of factoring large composite numbers, a problem that has remained challenging even with significant advances in both hardware and algorithmic techniques. Over the years, RSA has undergone extensive cryptanalysis, making it one of the most scrutinized cryptographic algorithms. Its applications have become deeply embedded in a wide range of security protocols, such as SSL/TLS for secure communications, digital signatures, and encryption. RSA is however vulnerable to quantum attacks; when large-scale quantum computers become practical, RSA’s security could be broken by quantum algorithms like Shor's algorithm, making it less future-proof compared to post-quantum cryptographic algorithms.
-
-**Performance.** One of the main drawbacks of the RSA cryptosystem relies on its inefficiency due to large modulus, making the group element large space-wise and operations computationally expensive. 
-
-**Deployability.**  As solving the RSA problem or integer factorization consists in breaking the group security, groups latter cannot be continuously reused in this scenario. More particularly, after finding the factorization of the group modulus, decrypting further ciphertexts in the same group becomes trivial. As for solving a VDF puzzle, the group can be reused safely as long as the modulus is of sufficient size, at least 2,048 bit-long. We can in that scenario choose a known secure modulus, whose factorization is unknown, such as an RSA challenge to create a group. Such trusted unknown moduli are however limited in numbers and we would have to generate new ones, in a trustless manner, when updating security parameters or in case of an, potentially post-quantum, attack.
-In our context, setting up RSA groups would be challenging to say the least, as we would need to generate groups of unknown order, that is the RSA modulus must be public while the underlying prime numbers must remain unknown. There is no known method to generate such groups, even inefficiently, which becomes especially critical if we have to do it repeatedly. Generating such a group might be achievable via multi-party computation (MPC) where the network would compute random numbers passing distributive primality tests. This would however be highly impractical.
-
-**Compliance.** RSA is compliant with a wide range of security standards and regulations. It is one of the most widely accepted public-key cryptosystems and has been incorporated into many cryptographic protocols, including SSL/TLS for secure web communication, digital signatures, and email encryption. RSA complies with industry standards such as FIPS 186-4, X.509, PKCS#1 and NIST guidelines.
-None of the methods, GNFS or VDFs, are proprietary and there exists open source code implementing these.
-
-##### 3.2.2 ECC solutions
-
-Elliptic Curve Cryptography (ECC) is a form of public-key cryptography based on the mathematical structure of elliptic curves over finite fields. More particularly, ECC relies on a safe subgroup of elliptic curves, usually defined on a prime field for security and efficiency. It provides strong security with smaller key sizes compared to traditional methods like RSA, needing 256 to 388 bit long prime only [[3]](https://csrc.nist.gov/pubs/sp/800/78/5/final),  making it ideal for constrained environments. To break ECC, one has to compute the discrete logarithm of the group (ECDLP), which can be done most efficiently with Pollard's Rho algorithm that solves the discrete logarithm in $\mathcal{O}(n​^{1/2})$ time and $\mathcal{O}(1)$ space. 
-
-###### 3.2.2.1 Designs
-
-The main problem satisfying our requirements is solving the discrete logarithmic on a secure subgroup of an elliptic curve. In that case, the setup consists in generating a curve and generator $G$, and sampling a random point $P$ from its secure subgroup. The challengers then have to find the scalar a such that $P = a \cdot G$. Verification is also straightforward, as it consists in raising $G$ to the power $a$ and verifying it equals $P$.
-The most efficient methods to find this scalar include the Index Calculus and Pollard’s $\rho$.
-
-###### 3.2.2.2 Properties
-
-**Security Strength & Maturity.** Elliptic Curve Cryptography has reached a high level of maturity over the past few decades and is widely regarded as a modern, efficient alternative to traditional public-key cryptosystems like RSA. Its security is based on the hardness of the Elliptic Curve Discrete Logarithm Problem (ECDLP), which has been extensively analyzed, making ECC a trusted and well-understood cryptographic method. ECC is now widely adopted in industry standards, including TLS, SSH, Cardano, Bitcoin, and other blockchain technologies, where its efficiency and robustness are critical. 
-ECC is also vulnerable to post-quantum attacks and can be broken in polynomial time with Pollard's Rho or the Index Calculus algorithm.
-
-**Performance.** ECC is known for its great performance, particularly in terms of computational efficiency and resource utilization. Compared to traditional public-key systems like RSA, ECC achieves the same level of security with much smaller key sizes, which translates into faster computation, reduced storage requirements, and lower power consumption.
-
-**Deployability.**  To make sure that our elliptic curves are not known too long in advance, or are precomputed in sufficient numbers, to mitigate preprocessing [[12]](https://eprint.iacr.org/2017/1113.pdf)  as much as possible, we would need to generate the curves on the fly. While RSA groups only rely on the generation of sufficiently large prime numbers, ECC has an array of attacks to look out for as described in safecurves website and paper [[7]](https://eprint.iacr.org/2024/1265.pdf). As such, generating a secure elliptic curve is a complex and challenging task. Nevertheless, there have been methods to generate efficiently safe elliptic curves ([[8]](https://core.ac.uk/download/pdf/11679572.pdf), [9](https://link.springer.com/content/pdf/10.1007/s00145-009-9037-2.pdf), [[10]](https://infoscience.epfl.ch/server/api/core/bitstreams/e2890c5e-2c1e-42e0-92d6-29c6d8d33acf/content)) on the fly but these methods still necessitate minutes worth of probabilistic computation that is not easily verifiable. As finding the discrete logarithm of a number on a curve that has already been broken is significantly easier, thanks to the costly precomputation in  Pollard’s Rho algorithm that can be reused (also succinctly mentioned in [10, attacking multiple keys]), we would have to regularly change the elliptic curve which would make ensuring their number is sufficiently large an important yet difficult challenge to solve.
-
-
-**Compliance.** ECC is widely compliant with numerous industry standards and regulations, making it a trusted choice for modern cryptographic applications, including NIST guidelines, FIPS 186-4 and IETF standards for secure communication protocols.
-None of the methods, Index Calculus or Pollard’s $\rho$, are proprietary and there exists open source code implementing these.
-
-##### 3.2.3 Class group solutions
-
-The class group of a number field is the group of fractional ideals modulo principal ideals, whose security is partially determined by a parameter called a discriminant. Class group of binary quadratic forms [[14]](https://github.com/Chia-Network/vdf-competition/blob/master/classgroups.pdf) omits trusted setup as the group order, also called class number, is believed to be difficult to compute when the discriminant is sufficiently large - more particularly the class number grows linearly to the square root of the discriminant. For a class group to be secure, the group size and discriminant must be sufficiently long - respectively at least 1,900 and 3,800 bit-long for 128 bit of security [[4]](https://arxiv.org/pdf/2211.16128)- negative, square free and congruent to 0 or 1 modulo 4. Similarly to ECC, to break a class group security one has to find a class group discrete logarithm (CDLP) which can be done most efficiently with index calculus algorithms that reduce CDLP to integer factorization in sub-exponential time [[5]](https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=b1e2870db7c2f1cdeb916afe072d84e581ce68b5).
-
-###### 3.2.3.1 Design
-
-Similarly to previous solutions, class groups present two types of problems satisfying the requirements: breaking the discrete logarithm by finding the class order, or using verifiable delayed functions.
-CDLP. In that case, the setup consists in generating a discriminant and generator $G$, and sampling a random point P from its secure subgroup. The challengers then have to find the scalar a such that $P = a \cdot G$. Verification is also straightforward, as it consists in raising $G$ to the power $a$ and verifying it equals $P$.
-The most efficient methods to find this scalar include the Index Calculus algorithm.
-VDF. Similarly to the CLPD, we first start by generating a discriminant and sample a random group element $G$. The challenge then consists in raising this element to a big exponent of the form $2^T$ where $T$ is set depending on the difficulty, the computation or time we want the challenger to need to solve the problem. The challengers eventually compute and output $y = x^{2^T} (\text{mod} N)$ by squaring the integer $x$ exactly $T$ times as well as generate an additional proof of this result. The verification consists in verifying the proof passes successfully together with the input, output and modulus.
-
-###### 3.2.3.2 Properties
-
-**Security Strength & Maturity.** Class group-based cryptography has reached a moderate level of maturity in cryptographic research. While not as widely deployed as more traditional cryptographic methods like RSA or ECC, class group cryptography has gained attention due to its potential resistance to quantum computing attacks. The mathematical foundations, particularly the hardness of the class group discrete logarithm problem, are well-understood, and class group cryptosystems have been rigorously analyzed. However, practical deployment is still in the early stages, with ongoing efforts focused on optimizing efficiency, key management, and standardization. 
-
-**Performance.** Class group-based cryptography is generally less efficient than RSA or ECC due to the size of their elements and the computational complexity of the composition of elements.
-More particularly, to achieve strong security, class groups’ discriminants must be several thousands bit long, and group elements half of this. Operations are thus costly, especially as composition in class groups rely on finding the greatest common denominator between such numbers that is particularly expensive.
-
-**Deployability.**  Setting up class groups, even though their order is hidden, is much easier than previously discussed solutions as it consists in practice to generate a sufficiently long negative square-free random integer d, and such that d ≡ 1 mod 4. as discriminant. Generating a random element in a class group by hashing also is however more of a delicate but still feasible task as mentioned in [[11]](https://eprint.iacr.org/2024/034.pdf). Mysten Labs recently iterated on this work and published a more efficient and secure hash function [[38]](https://eprint.iacr.org/2024/295.pdf) to class groups. Interestingly, there exist algorithms that have been designed to reuse the underlying group such as cascaded and continuous VDFs [[13]](https://par.nsf.gov/servlets/purl/10159432).
-
-**Compliance.** Since class group-based cryptography is still being researched, it is not as broadly standardized or regulated as more established cryptographic techniques like ECC. That said, once formal standards and guidelines are developed and adopted, class group-based cryptography could achieve compliance with relevant legal and regulatory frameworks. None of the VDF proof generation algorithms are proprietary and there exists open source code implementing these. 
-Other groups
-We mostly focused on commonly used groups, such as RSA and ECC, and class groups whose usage have been increasing lately, notably because of the popularity of VDF primitives. There exist however other groups such as lattices which are one of the main candidates for post quantum cryptography, supersingular isogenies, whose security is dubious at the moment since the attack on SIDH in 2022, and hyperelliptic Jacobians groups, which are still novel and need further time to get confidence in their security and for more protocols to be built upon, to cite a few.
-
-##### 3.2.4 OWF solutions
-
-To widen our spectrum of solutions, we are now exploring solutions based on well-established non-trapdoored cryptographic functions and pair them with efficient proof systems to enable fast verification.
-Hash-based approaches are generally more cost-effective than asymmetric cryptography, do not depend on potentially vulnerable trapdoors, and can be implemented using widely deployed primitives. They are well understood both cryptographically and economically, especially given the prevalence of hash farms.
-The main drawback of hash functions lies in their verification: traditionally, verification requires recomputing the hashes, which can be too time-consuming for our use case, especially when considering synching. To address this, we propose leveraging proof systems, such as Succinct Non-interactive Arguments of Knowledge (SNARKs) and Scalable Transparent ARguments of Knowledge (STARKs) to reduce verification time. This introduces a modest overhead in the form of small proof sizes—on the order of hundreds of bytes—which remains acceptable.
-Although SNARKs are relatively new and involve complex protocols, their adoption is growing, with some blockchains like Mina and Midnight fully built around them. While their use may raise concerns, it remains a practical choice. It is worth noting, however, that SNARKs are not quantum-resistant—unlike their hash-based counterpart, STARKs, which do offer quantum resistance.
-
-###### 3.2.4.1 Proofs of knowledge
-
-Proofs of knowledge have become an especially active and dynamic area of research in recent years. The foundations were laid in the 1990s with key contributions such as Bellare et al.'s work on Probabilistically Checkable Proofs (PCPs, [[18]](https://dl.acm.org/doi/pdf/10.1145/167088.167174)), Kilian’s results on interactive arguments of knowledge derived from PCPs [[17]], and Micali’s introduction of Computationally Sound Proofs (CS Proofs [[16]](https://people.csail.mit.edu/silvio/Selected%20Scientific%20Papers/Proof%20Systems/Computationally_Sound_Proofs.pdf)), which transformed interactive proofs into non-interactive ones using the Fiat-Shamir heuristic.
-In 2016, Groth introduced one of the most efficient PCP-based proof systems to date [[15]](https://eprint.iacr.org/2016/260.pdf), offering significant improvements in both verification time and proof size. Its main drawback, however, is its reliance on a lengthy trusted setup that cannot be reused across different applications.
-Subsequent advancements built on this foundation, with SNARKs compiling from interactive oracle proofs (IOPs) and polynomial commitment schemes (PCs) such as Plonk [[19]](https://eprint.iacr.org/2019/953.pdf) and Marlin [[20]](https://eprint.iacr.org/2019/1047.pdf). Researchers introduced novel techniques to optimize proving time—either by reducing asymptotic complexity, such as replacing FFTs with multivariate polynomials, or by enhancing circuit efficiency through the use of lookup tables [[23]](https://eprint.iacr.org/2020/315.pdf), custom gates [[24]](https://docs.zkproof.org/pages/standards/accepted-workshop3/proposal-turbo_plonk.pdf), and cryptographic primitives tailored for specific applications.
-More recently, proof aggregation has emerged as a promising paradigm. Techniques like folding and recursive proofs—exemplified by concepts such as Proof-Carrying Data (PCD, [[21]](https://eprint.iacr.org/2012/095.pdf)) and Incrementally Verifiable Computation (IVC, [[22]](https://g-city.sass.org.cn/_upload/article/files/b4/b1/dcb2f5064216b5751c14bc8366f8/e092766a-ddaa-4fa1-b052-8662bad2d2b6.pdf#page=12))—enable efficient step-by-step computation and verification.
-Despite ongoing debates about their security—particularly around the soundness of modeling a random oracle (RO) inside a SNARK—these systems are increasingly being integrated into blockchain technologies. Projects like ZCash, Mina, and Midnight blockchains leverage SNARKs for their powerful compression capabilities, and in some cases, for their privacy-preserving features as well.
-
-###### 3.2.4.2 OWFs
-
-**Non-Algebraic standard hashes.** SHA-2, SHA-3, and BLAKE2 are prominent cryptographic hash functions widely used today. SHA-2, standardized by NIST in 2001, remains the industry standard due to its strong security and broad adoption in applications like TLS and cryptocurrencies.
-Keccak [[25]](https://eprint.iacr.org/2015/389.pdf), selected through a NIST competition in 2015 as the new standard SHA-3, offers a fundamentally different sponge-based design, providing an alternative with enhanced flexibility and resilience at the cost of lower throughput.
-BLAKE2 [[26]], developed as a high-performance finalist in the same SHA-3 competition, is favored for its speed and security, often outperforming both SHA-2 and SHA-3 in practical settings. While not standardized by NIST, BLAKE2 is widely trusted and increasingly adopted in modern cryptographic implementations.
-Together, these functions represent a balance of security, performance, and diversity in cryptographic hashing today.
-
-While these hash functions are very efficient on CPU, they are very expensive to verify with classic SNARKs, as the latter are working on prime fields and not bits. Proving hash evaluation is several orders of magnitude higher than evaluating on CPU making this solution very impractical. Simple benchmarks demonstrate such results, with the generation of a proof asserting the evaluation of a few hundreds of hashes taking tens of seconds, while the evaluation itself is of the order of the microsecond. For instance, according to Figure 1, the a hundred evaluations of SHA-256 would take 32μs on CPU and require 300,000 gates. To generate a proof of these evaluations, we would require a circuit of size 219 , i.e. the smallest power of 2 above 300,000, which takes 6s to 18s depending on the commitment scheme, making this solution, combining standard hash functions and SNARKs, highly impractical.
-
-<center>
-
-<img src="./image/hash_functions_comparison.png" width="500px" >
-
-Figure 1, taken from Reinforced Concrete paper [[27]](https://dl.acm.org/doi/pdf/10.1145/3548606.3560686). Performance of various hash functions in the zero knowledge (preimage proof) and native (hashing 512 bits of data) settings on Intel i7-4790 CPU (3.6 GHz base frequency, 4 core, 8 threads).
-</center>
-
-<center>
-
-| $\text{log}_2(\text{gates})$ |   #gates   | Proving time - KZG (ms) | Proving time - IPA (ms) |
-| :--------------------------: | :-------------------: | :------------------------------: |:-------------------------------: |
-| $8$                          |  256     	           |  43	                            |  77	                             |
-| $9$                          |  512	                 |  58	                            |  105	                           |
-| $10$                         |  1,024	               |  75	                            |  153	                           |
-| $11$                         |  2,048	               |  100                             |  210	                           |
-| $12$                         |  4,096   	           |  157                             |  330	                           |
-| $13$                         |  8,192   	           |  218                             |  500	                           |
-| $14$                         |  16,384  	           |  342                             |  856	                           |
-| $15$                         |  32,768  	           |  540                             |  1,432	                         |
-| $16$                         |  65,536  	           |  917	                            |  2,590	                         |
-| $17$                         |  131,072 	           |  1,646	                          |  4,779	                         |
-| $18$                         |  262,144 	           |  3,028	                          |  9,199                           |
-| $19$                         |  524,288 	           |  6,231	                          |  18,496	                         |
-| $20$                         |  1,048,576 	         |  12,743	                        |  37,287	                         |
-
-Table 2. Halo2 benchmarks, using KZG [[28]](https://www.cypherpunks.ca/~iang/pubs/PolyCommit-AsiaCrypt.pdf) and IPA [[29]](https://eprint.iacr.org/2017/1066.pdf) commitment schemes on Intel(R) Core(TM) i9-14900HX (2.2 GHz base frequency, 24 cores, 32 threads).
-</center>
-
-
-**Memory-hard functions (MHFs).** are primitives relying on hash functions designed to resist attacks by requiring significant memory and computational effort, making them particularly interesting in our use case, where memory would become another bottleneck to an adversary attempting a grinding attack.
-Argon2, the winner of the Password Hashing Competition in 2015, is the current industry standard due to its strong security, configurability, and resistance to known attacks.
-Balloon Hashing offers a simpler design focused on provable security guarantees and ease of analysis but is less widely adopted. 
-The MHF scrypt, introduced earlier and used notably in cryptocurrencies like Litecoin, was among the first practical memory-hard functions but has seen some theoretical attacks exploiting trade-offs between memory and computation. 
-Of the three, only Argon2 is formally standardized in RFC 9106 and recommended for new applications, while scrypt remains popular in legacy systems and Balloon Hashing is still primarily academic.
-Unfortunately, these primitives are much more expensive than hashes on CPU as well as on SNARKs, where the memory requirements become even more prohibitive.
-
-**SNARK-friendly hashes.** A novel branch of research started with the adoption of SNARKs to design SNARK friendly hash functions. We can classify them in two categories: algebraic or not. Algebraic hashes include, but are not limited to, Poseidon [[30]](https://www.usenix.org/system/files/sec21-grassi.pdf), Anemoi [[31]](https://hal.science/hal-04276646v1/file/2022-840%281%29.pdf), Rescue [[32]]((https://eprint.iacr.org/2020/1143.pdf)) which are based on prime fields. Choosing carefully the fields can result in optimizations of 2 to 3 orders of magnitude in SNARKs, but with higher CPU time unfortunately. For instance, a hundred evaluations of Poseidon hash would take 1.9ms, compared to 32μs for SHA-256, on CPU, but the proof generation would take 1s to 3s, compared to 6s to 18s for SHA-256.
-Other, non algebraic, hash functions have also been created such as Reinforced Concrete [[27]](https://dl.acm.org/doi/pdf/10.1145/3548606.3560686) and Monolith [[33]](https://ojs.ub.ruhr-uni-bochum.de/index.php/ToSC/article/download/11810/11315) to minimize the cost of binary operations by making the most of lookup tables, which store binary operations on vectors of bits.
-The fact that these hash functions are less efficient on CPUs is not problematic as we are only interested in computational cost. Unfortunately, the ratio between CPU and prove generation time still remains too high for our usage. More novel techniques in SNARKs, such as IVC or folding, would be needed to make the “snarkification” of hash practical but these progresses have yet to reach maturity, be it in both theory and practice.
-Another caveat to using SNARK-friendly hashes would be that adversaries could afford specialised hardware such as CPUs with special instructions such as AVX2, or GPUs, FPGAs or ASICs to accelerate prime field operations and widen the gap between honest users and adversaries.
-
-###### 3.2.4.3 Design
-Using OWFs and SNARKs in the context of Phalanx is straightforward. To each iteration is associated a input that we have to recursively hash a number of times set by the total duration and number of iterations with the desired primitive. Once the result is computed, a SNARK proof can be generated proving the correctness of the computation. We can remark that IVC based solutions are particularly adapted as a choice for SNARK primitves as we can prove a batch of iterations per step of IVC. Both the hash output and the SNARK are then published.
-
-###### 3.2.4.4 Properties
-
-**Security Strength & Maturity.** While traditional hashes have strong security, more novel ones, especially the more usable with SNARKs, can be deemed too novel for adoption. SNARKs, and SNARKs friendly primitives, are very complex pieces of technology that have been broken before and are still evolving at a rapid pace. SNARKs are not postquantum resistant but STARKs are.
-
-**Performance.** While hash functions are extremely efficient on commodity hardware, the proof generation with current SNARKs is far too slow for this solution to be practical
-
-**Deployability.**  SNARKs are difficult to deploy, they rely on different libraries that are not easy to update. Changing of SNARKs is also tedious as circuits would very likely need to be rewritten, adding further risk and complexity.
-
-**Compliance.** Hash functions are standardized and libraries are easily available. SNARK solutions are not copyrighted, there is however a limited number of available libraries, which can either be open source or proprietary (SP1, RISC0, STARKNET…).
+We dismissed this solution as we cannot get viable proofs if we want to reach acceptable levels of computation for Phalanx. More particularly, the proving time would be orders of magnitude higher than the hashing, and even the use of SNARK-friendly hash functions, and advanced techniques such as folding, would not be enough.
 
 #### 3.3 Primitive recommendation
 
