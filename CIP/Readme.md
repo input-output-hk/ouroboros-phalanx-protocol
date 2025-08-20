@@ -1,14 +1,16 @@
 ---
 CIP: ??
 Title: Ouroboros Phalanx: Breaking Grinding Incentives
-Category: Consensus/Security
+Category: Consensus
 Status: Proposed
 Authors:
     - Nicolas Henin <nicolas.henin@iohk.io>
     - Raphael Toledo <raphael.toledo@iohk.io>
-Proposed Solutions: []
+Solution-To:
+  - CPS-0017
+  - CPS-0021
 Discussions:
-    - https://github.com/cardano-foundation/CIPs/pull/1009
+  - https://github.com/cardano-foundation/CIPs/pull/1065
 Created: 2025-25-07
 License: Apache-2.0
 ---
@@ -18,7 +20,7 @@ License: Apache-2.0
 
 - [Abstract](#abstract)
 - [Motivation: why is this CIP necessary?](#motivation-why-is-this-cip-necessary)
-- [Specification / The Φalanx Sub-Protocol](#specification--the-φalanx-sub-protocol)
+- [Specification / The Phalanx Sub-Protocol](#specification--the-phalanx-sub-protocol)
   - [1. High-Level Overview ](#1-high-level-overview)
     - [1.1 Changes Relative to Praos](#11-changes-relative-to-praos)
     - [1.2 Inputs & Outputs ](#12-inputs--outputs)
@@ -67,20 +69,20 @@ License: Apache-2.0
   - [6. CDDL Schema for the Ledger](#6-cddl-schema-for-the-ledger)
 
 - [Rationale: How does this CIP achieve its goals?](#rationale-how-does-this-cip-achieve-its-goals)
-  - [1. How Φalanx Addresses CPS-21 - Ouroboros Randomness Manipulation ?](#1-how-φalanx-addresses-cps-21---ouroboros-randomness-manipulation)
+  - [1. How Phalanx Addresses CPS-21 - Ouroboros Randomness Manipulation ?](#1-how-phalanx-addresses-cps-21---ouroboros-randomness-manipulation)
     - [1.1 Problem Overview](#11-problem-overview)
-    - [1.2 Φalanx Cost Amplification per Grinding Attempt](#12-φalanx-cost-amplification-per-grinding-attempt)
-    - [1.3 Φalanx Cost Amplification per Grinding Attack](#13-φalanx-cost-amplification-per-grinding-attack)
+    - [1.2 Phalanx Cost Amplification per Grinding Attempt](#12-phalanx-cost-amplification-per-grinding-attempt)
+    - [1.3 Phalanx Cost Amplification per Grinding Attack](#13-phalanx-cost-amplification-per-grinding-attack)
       - [1.3.1 Formula](#131-formula)
       - [1.3.2 Estimated Formula Using Mainnet Cardano Parameters](#132-estimated-formula-using-mainnet-cardano-parameters)
       - [1.3.3 Impact of Tᵩ on Canonical Scenarios](#133-impact-of-tᵩ-on-canonical-scenarios)
       - [1.3.4 Impact of Tᵩ on Feasibility Categories](#134-impact-of-tᵩ-on-feasibility-categories)
     - [1.4. Conclusion: How Much Risk is Mitigated?](#14-conclusion-how-much-risk-is-mitigated)
-  - [2. How Φalanx Improves CPS-17 - Settlement Speed ?](#2-how-φalanx-improves-cps-17---settlement-speed)
+  - [2. How Phalanx Improves CPS-17 - Settlement Speed ?](#2-how-phalanx-improves-cps-17---settlement-speed)
     - [2.1 Settlement times without grinding attacks](#21-settlement-times-without-grinding-attacks)
     - [2.2 How Grinding Power affects Settlement times](#22-how-grinding-power-affects-settlement-times)
-    - [2.3 How Φalanx improves compared to Praos?](#23-how-φalanx-improves-compared-to-praos-) 
-    - [2.4 Advocating for Peras: Φalanx as a Complementary Layer](#24-advocating-for-peras-φalanx-as-a-complementary-layer) 
+    - [2.3 How Phalanx improves compared to Praos?](#23-how-phalanx-improves-compared-to-praos-) 
+    - [2.4 Advocating for Peras: Phalanx as a Complementary Layer](#24-advocating-for-peras-phalanx-as-a-complementary-layer) 
   - [3. Why VDFs Were Chosen over other Cryptographic Primitives ?](#3-why-vdfs-were-chosen-over-other-cryptographic-primitives-)
     - [3.1 Requirements](#31-requirements)
     - [3.2 Primitive selection](#32-primitive-selection)
@@ -109,11 +111,11 @@ License: Apache-2.0
 
 ## Abstract
 
-Addressing both [CPS-0021 / Ouroboros Randomness Manipulation](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021) and [CPS-0017 / Settlement Speed](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0017) ,  **Ouroboros Φalanx (Pronounced Phalanx)** enhances **Ouroboros Praos** to mitigate grinding attacks by **increasing the cost of leader election manipulation**. It extends **nonce generation from 1 epoch to 2**, introducing a **computationally intensive function** that remains efficient for honest participants but makes it **significantly more costly for adversaries to bias the process**.
+Addressing both [CPS-0021 / Ouroboros Randomness Manipulation](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021) and [CPS-0017 / Settlement Speed](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0017) ,  **Ouroboros Phalanx** enhances **Ouroboros Praos** to mitigate grinding attacks by **increasing the cost of leader election manipulation**. It extends **nonce generation from 1 epoch to 2**, introducing a **computationally intensive function** that remains efficient for honest participants but makes it **significantly more costly for adversaries to bias the process**.
 
 A [**Phalanx**](https://en.wikipedia.org/wiki/Phalanx) is an **Ancient Greek military formation** where soldiers **stand in a tightly packed unit**, shielding and reinforcing one another to create a nearly impenetrable defense. This strategy made it far more difficult for enemies to break through compared to fighting individual soldiers.
 
-In **Φalanx Protocol**, we apply this idea cryptographically by **enhancing the VRF-based randomness generation sub-protocol** with a cryptographic primitive that is **efficient for honest participants** but **computationally expensive for adversaries** attempting to bias leader election. While it won’t eliminate grinding attacks entirely, it **significantly increases their cost**, and our work focuses on **precisely quantifying this added expense**.
+In **Phalanx Protocol**, we apply this idea cryptographically by **enhancing the VRF-based randomness generation sub-protocol** with a cryptographic primitive that is **efficient for honest participants** but **computationally expensive for adversaries** attempting to bias leader election. While it won’t eliminate grinding attacks entirely, it **significantly increases their cost**, and our work focuses on **precisely quantifying this added expense**.
 
 Please refer to the CPD "[Ouroboros Randomness Generation Sub-Protocol – The Coin-Flipping Problem](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021/CPD/README.md)" for a detailed understanding of **randomness generation, leader election in Praos, and the coin-flipping dilemma in consensus protocols**. Moving forward, we will **dive into the core details**, assuming you have the **relevant background** to understand the proposal.
 
@@ -129,7 +131,7 @@ A grinding depth of **57.7** bits means:
 
 Because the protocol must account for the possibility of grinding attacks, settlement times are currently calibrated with conservative assumptions. Mitigating this attack presents a compelling opportunity to improve settlement speed which the core objective of [CPS-0017 / Settlement Speed](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0017).
 
-**Φalanx** proposes a solution by introducing a computationally intensive mechanism that disproportionately burdens attackers while remaining manageable for honest participants. By elevating the resource threshold required for successful attacks, as analyzed in [CPD Section 3.4 - Cost of a Grinding Attack](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021/CPD/README.md#34-cost-of-a-grinding-attack), this CIP aims to shift the feasibility curve, making randomness manipulation more economically and practically infeasible. 
+**Phalanx** proposes a solution by introducing a computationally intensive mechanism that disproportionately burdens attackers while remaining manageable for honest participants. By elevating the resource threshold required for successful attacks, as analyzed in [CPD Section 3.4 - Cost of a Grinding Attack](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021/CPD/README.md#34-cost-of-a-grinding-attack), this CIP aims to shift the feasibility curve, making randomness manipulation more economically and practically infeasible. 
 
 This CIP responds to two Cardano Problem Statements:
 
@@ -137,7 +139,7 @@ This CIP responds to two Cardano Problem Statements:
 - [CPS-0017 / Settlement Speed](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0017), by making better settlement guarantees.
 
 
-## Specification / The Φalanx Sub-Protocol
+## Specification / The Phalanx Sub-Protocol
 
 The core principle of the proposed protocol change is to **substantially escalate the computational cost of each grinding attempt for an adversary**. To achieve this, every honest participant is required to perform a designated computation for each block they produce over an epoch (**432,000 slots - 5 days**). Consequently, an adversary attempting a grinding attack must **recompute these operations for every single attempt**, while being **constrained by the grinding window**, which dramatically increases the resource expenditure. By enforcing this computational burden, we **drastically reduce the feasible number of grinding attempts** an adversary with a fixed resource budget can execute, making randomness manipulation **more expensive and significantly less practical**.
  
@@ -146,7 +148,7 @@ The core principle of the proposed protocol change is to **substantially escalat
 
 #### 1.1. Changes Relative to Praos
 
-In **Φalanx** , the randomness generation and leader election flows are modified as follows:
+In **Phalanx** , the randomness generation and leader election flows are modified as follows:
 
 ![alt text](./image/Praos-vs-Phalanx-Highl-Level.png)
 
@@ -163,7 +165,7 @@ The Randomness Generation sub-protocol pipelines two parallel streams η stream 
 
 ##### 1.2.1. The η stream 
 
-   - Already present in Praos and retained in Φalanx 
+   - Already present in Praos and retained in Phalanx 
    - Updated with every block produced in the blockchain tree, a η stream captures intermediate values $`\eta^\text{evolving}_t`$ in the block headers, defined as follows:
 
 ```math
@@ -263,7 +265,7 @@ At the synchronization point $`\text{pre-}\eta_{e+1}`$, the stream is closed pro
 
 #### 2.1. Expected Properties
 
-The Φ cryptographic primitive is a critical component of the Φalanx protocol, designed to increase the computational cost of grinding attacks while remaining efficient for honest participants. To achieve this, Φ must adhere to a set of well-defined properties that ensure its security, efficiency, and practical usability within the Cardano ecosystem. These properties are outlined in the table below :
+The Φ cryptographic primitive is a critical component of the Phalanx protocol, designed to increase the computational cost of grinding attacks while remaining efficient for honest participants. To achieve this, Φ must adhere to a set of well-defined properties that ensure its security, efficiency, and practical usability within the Cardano ecosystem. These properties are outlined in the table below :
 
 | **Property**              | **Description**                                                                                                   |
 |---------------------------|-------------------------------------------------------------------------------------------------------------------|
@@ -373,7 +375,7 @@ The VDF aggregation proof $`\pi`$ can then be efficiently be verified using $`\t
 
 ### 3. Φ Stream Specification
 
-We previously outlined the purpose of the Φalanx sub-protocol and introduced the cryptographic primitive underpinning its security guarantees. In this section, we provide a precise technical specification of the protocol, focusing on how the $`\Phi`$ iterations are distributed and how Wesolowski’s Verifiable Delay Function (VDF) is integrated into the process.
+We previously outlined the purpose of the Phalanx sub-protocol and introduced the cryptographic primitive underpinning its security guarantees. In this section, we provide a precise technical specification of the protocol, focusing on how the $`\Phi`$ iterations are distributed and how Wesolowski’s Verifiable Delay Function (VDF) is integrated into the process.
 
 #### 3.1. Distribution of Φ Iterations
 
@@ -492,9 +494,9 @@ The diagram below illustrates how the lifecycle segment is structured:
 
 #### 3.2.1. Diagram Overview
 
-The figure below presents the **state transition diagram** for the Φalanx computation stream. Each node represents a distinct state in the lifecycle of the stream, and the arrows indicate transitions triggered by `Tick` events. These transitions are guarded by boolean predicates evaluated at each slot (e.g., `isWithinComputationPhase`, `isWithinCurrentInterval`).
+The figure below presents the **state transition diagram** for the Phalanx computation stream. Each node represents a distinct state in the lifecycle of the stream, and the arrows indicate transitions triggered by `Tick` events. These transitions are guarded by boolean predicates evaluated at each slot (e.g., `isWithinComputationPhase`, `isWithinCurrentInterval`).
 
-![Φalanx State Transition Diagram](./image/state-transition-diagram.png)
+![Phalanx State Transition Diagram](./image/state-transition-diagram.png)
 
 In the following sections, we provide a detailed breakdown of each phase of the state machine, specifying its purpose, entry conditions, timing constraints, and transitions.
 
@@ -524,7 +526,7 @@ Importantly, this **parametrization phase** occurs only once, either during the 
 Initialization occurs at every pre-ηₑ synchronization point, followed by an *Initialization Grace* period during which the protocol waits long enough for the first iteration to be computed and its proof to be included within the first computation interval. This process recurs every $`10 \cdot \frac{k}{f}`$ slots.
 
 ##### 3.2.3.1. Initialize Command
-We show here how to initialize the class-group based VDF algorithm when generating a group for each different epoch. Were we to use the same group for many, if not all, epochs, we would run these steps in the *Parametrization phase* and change the discriminant seed $`\Delta_{\text{challenge}}`$ accordingly, e.g. if we use the same group forever we could use $`\Delta_{\text{challenge}} \leftarrow \text{Hash}(\text{bin}(\text{``IOHKΦalanx2025"}))`$.
+We show here how to initialize the class-group based VDF algorithm when generating a group for each different epoch. Were we to use the same group for many, if not all, epochs, we would run these steps in the *Parametrization phase* and change the discriminant seed $`\Delta_{\text{challenge}}`$ accordingly, e.g. if we use the same group forever we could use $`\Delta_{\text{challenge}} \leftarrow \text{Hash}(\text{bin}(\text{``IOHKPhalanx2025"}))`$.
 
 <center>
 
@@ -879,16 +881,16 @@ While this state is statistically unexpected, it is explicitly defined to ensure
 
 ### 4. Recommended Parameter values
 
-There are **two categories of parameters** in the Φalanx protocol that Cardano governance will need to oversee. The first category concerns the **VDF parameters**, which are essential to maintaining the protocol’s cryptographic security. The second concerns the **total time budget** $T_\Phi$ that will be required from SPOs during the **Computation Phase**.
+There are **two categories of parameters** in the Phalanx protocol that Cardano governance will need to oversee. The first category concerns the **VDF parameters**, which are essential to maintaining the protocol’s cryptographic security. The second concerns the **total time budget** $T_\Phi$ that will be required from SPOs during the **Computation Phase**.
 
 The goal of this section is to provide **recommended values** for these parameters along with the **rationale** behind their selection, so that governance is well-equipped to **adjust them over time** in response to advances in adversarial computational power.
 
 #### 4.1 VDF Security Parameters λ and ρ
 
-The VDF component in Φalanx relies on class group security, which is parameterized by two values:
+The VDF component in Phalanx relies on class group security, which is parameterized by two values:
 
 - $`\lambda`$, the **class group security parameter**, and
-- $`\rho`$, the **grinding resistance parameter**, newly introduced in the Φalanx design.
+- $`\rho`$, the **grinding resistance parameter**, newly introduced in the Phalanx design.
 
 Several combinations of $`\lambda`$ and $`\rho`$ are considered in the literature, depending on the desired level of paranoia or efficiency. Based on the recommendations from the paper [Trustless Unknown-Order Groups]((https://arxiv.org/pdf/2211.16128)), we highlight the following trade-offs: 
 
@@ -904,11 +906,11 @@ This strikes a balance between long-term security and practical efficiency:
 - On one hand, **breaking the class group** is considered harder than **finding a collision in a 256-bit hash** (our minimum security baseline).
 - On the other hand, by following the paper’s recommendation and selecting a slightly lower $`\rho = 64`$, we can **reduce the size of on-chain group elements** while maintaining sufficient resistance against grinding.
 
-Since Φalanx is designed to operate with a **single class group instance “for the lifetime of the protocol”** (reparametrization would require explicit governance intervention), this configuration $(\lambda, \rho) = (128, 64)$ ensures protocol simplicity, consistency, and operational predictability.
+Since Phalanx is designed to operate with a **single class group instance “for the lifetime of the protocol”** (reparametrization would require explicit governance intervention), this configuration $(\lambda, \rho) = (128, 64)$ ensures protocol simplicity, consistency, and operational predictability.
 
 #### 4.2 Time Budget Tᵩ and Derived T
 
-In terms of efficiency, the section [**1. How Φalanx Addresses CPS-21 – Ouroboros Randomness Manipulation**](#1-how-phalanx-addresses-cps-21---ouroboros-randomness-manipulation) in the *Rationale* part of this document illustrates, through three scenarios $`\text{Phalanx}_{1/10}`$, $`\text{Phalanx}_{1/100}`$, and $`\text{Phalanx}_{\text{max}}`$, how different time budgets (2 hours, 12 hours, and 5 days, respectively) improve the protocol’s security guarantees against grinding attacks.
+In terms of efficiency, the section [**1. How Phalanx Addresses CPS-21 – Ouroboros Randomness Manipulation**](#1-how-phalanx-addresses-cps-21---ouroboros-randomness-manipulation) in the *Rationale* part of this document illustrates, through three scenarios $`\text{Phalanx}_{1/10}`$, $`\text{Phalanx}_{1/100}`$, and $`\text{Phalanx}_{\text{max}}`$, how different time budgets (2 hours, 12 hours, and 5 days, respectively) improve the protocol’s security guarantees against grinding attacks.
 
 In terms of computational load, we recommend setting the time budget at a **midpoint between minimal and maximal protocol capacity**, corresponding to approximately **12 hours** of execution on typical, CPU-based hardware as recommended for SPOs. However, this choice should ultimately be guided by **settlement time performance requirements** across the ecosystem, including the needs of **partner chains and other dependent components**.
 
@@ -1041,13 +1043,13 @@ For a discriminant of 4096 bits, we benchmarks the aggregation functions on the 
 
 ## 6. CDDL Schema for the Ledger
 
-To support Φalanx, **one block per interval** (every 3600 slots), across **83 intervals per epoch**, must include **2 group elements**. Each of these elements can be compressed to approximately $3/4 \cdot \log_2(|\Delta|)$ bits. Based on our recommended discriminant size of **4096 bits**:
+To support Phalanx, **one block per interval** (every 3600 slots), across **83 intervals per epoch**, must include **2 group elements**. Each of these elements can be compressed to approximately $3/4 \cdot \log_2(|\Delta|)$ bits. Based on our recommended discriminant size of **4096 bits**:
 
 * **3,104 bits (388 bytes)** per element (the benchmarked library adds 4 bytes to each element),
 * **6,208 bits (776 bytes)** per block (2 elements),
 * **515,264 bits (64,408 bytes ≈ 64.4 KB)** per epoch (83 blocks).
 
-Φalanx requires a single addition to the block body structure in the ledger: the field `phalanx_challenge`.
+Phalanx requires a single addition to the block body structure in the ledger: the field `phalanx_challenge`.
 
 ```diff
  block =
@@ -1083,7 +1085,7 @@ This would **exceed the 1500-bytes limit**, risking fragmentation and violating 
 
 ## Rationale: How does this CIP achieve its goals?
 
-### 1. How Φalanx Addresses CPS-21 - Ouroboros Randomness Manipulation?
+### 1. How Phalanx Addresses CPS-21 - Ouroboros Randomness Manipulation?
 
 #### 1.1 Problem Overview
 
@@ -1120,17 +1122,17 @@ The table below delineates the **$\rho$ values** at which each scenario transiti
 
 **Context**: The scenarios represent increasing attack sophistication (e.g., *Ant Glance* is a quick, low-effort attack; *Owl Survey* is a comprehensive, resource-intensive one). As $\rho$ increases, so does the difficulty, shifting feasibility from trivial (e.g., a lone actor with a laptop) to infeasible (e.g., requiring nation-state-level resources).
 
-These thresholds reveal critical vulnerabilities in Cardano’s current consensus design. **Φalanx** aims to mitigate these risks.  In the following section, we revisit the core computational model, introduce the proposed enhancements, and quantify how they shift the feasibility landscape in favor of security.
+These thresholds reveal critical vulnerabilities in Cardano’s current consensus design. **Phalanx** aims to mitigate these risks.  In the following section, we revisit the core computational model, introduce the proposed enhancements, and quantify how they shift the feasibility landscape in favor of security.
 
-#### 1.2 Φalanx Cost Amplification per Grinding Attempt
+#### 1.2 Phalanx Cost Amplification per Grinding Attempt
 
-In **Φalanx**, we introduce an additional parameter and **computational cost**, denoted $T_\Phi$, for each **grinding attempt**. This cost represents the total cumulative effort required to compute $i$ iterations of the $\Phi$ primitive. This additional cost directly impacts the total estimated **time per grinding attempt**, as originally defined in [CPD Section 3.3.4 - Total Estimated Time per Grinding Attempt](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021/CPD/README.md#334-total-estimated-time-per-grinding-attempt). The baseline grinding time in **Praos** is:
+In **Phalanx**, we introduce an additional parameter and **computational cost**, denoted $T_\Phi$, for each **grinding attempt**. This cost represents the total cumulative effort required to compute $i$ iterations of the $\Phi$ primitive. This additional cost directly impacts the total estimated **time per grinding attempt**, as originally defined in [CPD Section 3.3.4 - Total Estimated Time per Grinding Attempt](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021/CPD/README.md#334-total-estimated-time-per-grinding-attempt). The baseline grinding time in **Praos** is:
 
 ```math
 T_{\text{grinding}}^{\text{Praos}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}}
 ```
 
-With **Φalanx**, the total grinding time per attempt is updated to include $T_\Phi$:
+With **Phalanx**, the total grinding time per attempt is updated to include $T_\Phi$:
 
 ```math
 T_{\text{grinding}}^{\text{Phalanx}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_\Phi 
@@ -1142,13 +1144,13 @@ Where:
 - $w_T$ is the **target window size** (seconds),  
 - $\rho$ is the **grinding depth**,  
 - $T_{\text{eval}}$ is the **nonce selection and evaluation time** (**attack-specific**).
-- $T_\Phi$ is the additional computational cost of **Φalanx**
+- $T_\Phi$ is the additional computational cost of **Phalanx**
 
 
 The introduction of $T_\Phi$ substantially increases the **computational burden** for adversaries, as they must **recompute** the $\Phi^i$ function for each of the $2^\rho$ possible **nonces** evaluated during a grinding attack. In contrast, for **honest participants**, this computation is **distributed** across the epoch, ensuring it remains **manageable and efficient**. 
 
 
-#### 1.3 Φalanx Cost Amplification per Grinding Attack
+#### 1.3 Phalanx Cost Amplification per Grinding Attack
 
 Building on the updated **grinding time formula** introduced in the previous section, which incorporates the additional **computational cost** $T_\Phi$, we can now revise the formula for a grinding attack from [CPD Section 3.4.1 - Formula](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021/CPS/CPD/README.md#341-formula), where we defined a total attack time that must fit within the **grinding opportunity window** $w_O$:
 
@@ -1169,7 +1171,7 @@ Expanding $T_{\text{grinding}}^{\text{Phalanx}}$
 
 </div>
 
-From **Section 1.1**, the per-attempt grinding time under **Φalanx** is:
+From **Section 1.1**, the per-attempt grinding time under **Phalanx** is:
 
 ```math
 T_{\text{grinding}}^{\text{Phalanx}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_{\Phi}
@@ -1279,7 +1281,7 @@ N_{\text{CPU}} > \left \lceil
 
 ##### 1.3.3 Impact of Tᵩ on Canonical Scenarios
 
-Now that we have an updated formula, we can evaluate how **Φalanx** directly affects the cost of grinding attempts when compared to the original CPD scenarios. As previously discussed, the goal is to strike a balance between the effort expected from honest **SPOs** during an epoch and the computational burden imposed on an adversary attempting to evaluate multiple $`\eta_e`$ candidates in preparation for an attack.
+Now that we have an updated formula, we can evaluate how **Phalanx** directly affects the cost of grinding attempts when compared to the original CPD scenarios. As previously discussed, the goal is to strike a balance between the effort expected from honest **SPOs** during an epoch and the computational burden imposed on an adversary attempting to evaluate multiple $`\eta_e`$ candidates in preparation for an attack.
 
 To anchor this analysis, we introduce a baseline configuration denoted as $`\text{Phalanx}_\text{1/100}`$: an overhead equal to **1/100 of an epoch**, corresponding to $432{,}000 \div 100 = 4{,}320$ slots. This represents a **modest but meaningful choice** — substantial enough to raise the adversary’s cost significantly, yet conservative enough to avoid overloading honest participants. In contrast, imposing a full-epoch overhead would likely be excessive in practice, potentially destabilizing the protocol or placing undue demands on block producers. We may refer to that upper bound as $`\text{Phalanx}_{\text{max}}`$, and the present section aims to explore and recommend a viable configuration somewhere between this maximum and our conservative baseline.
 
@@ -1366,7 +1368,7 @@ We can now **simplify and generalize** the grinding cost formulas for different 
 </center>
 
 
-**N.B.** We can note that even with the use of ASICs, with a speed up of 3x to 10x, Φalanx would still add a significant term and reduce the cost amplification to still acceptable levels.
+**N.B.** We can note that even with the use of ASICs, with a speed up of 3x to 10x, Phalanx would still add a significant term and reduce the cost amplification to still acceptable levels.
 
 <div align="center">
 <img src="./image/grinding_depth_scenarios_cost_praos_vs_full_phalanx_scenarios.png" alt="Cost of Grinding Attacks: Praos vs Phalanx Scenarios"/>
@@ -1433,7 +1435,7 @@ These results show that **Phalanx makes low-effort grinding substantially harder
 
 This concludes our **high-level assessment of feasibility mitigation** in security terms. In the next section, **“2. How Phalanx Improves CPS-17 – Settlement Speed?”**, we will examine how this risk reduction translates into a much more **tangible and practical benefit**: **faster and more reliable settlement times in Ouroboros**.
 
-### 2. How Φalanx Improves CPS-17 - Settlement Speed?  
+### 2. How Phalanx Improves CPS-17 - Settlement Speed?  
 
 Let us recall that, like **Bitcoin**, **Cardano** relies on **probabilistic** and **unbiased randomness** for **leader election**. As a result, both systems inherently provide **statistical consensus guarantees**. For **Stake Pool Operators (SPOs)**, being elected as a **slot leader** grants some **control** over the protocol. This control increases with **stake**—more skin in the game means more chances to be selected. However, due to the **randomized** nature of the leader election, SPOs cannot predict or influence exactly *when* they will be selected.
 
@@ -1501,7 +1503,7 @@ Assuming a block is produced every 20 seconds, this extends the required confirm
 
 As discussed in [**Section 1: How Phalanx Addresses CPS-21 – Ouroboros Randomness Manipulation**](#1-how-phalanx-addresses-cps-21--ouroboros-randomness-manipulation), this is a key challenge in Praos: the presence of multiple attack scenarios with varying grinding power makes it difficult to define a single, consistent security threshold for settlement — a complexity that **Phalanx simplifies** by unifying the treatment of adversarial power across scenarios.
  
-#### 2.3 How Φalanx improves compared to Praos ? 
+#### 2.3 How Phalanx improves compared to Praos ? 
 
 In the conclusion of [**Section 1.4: How Much Risk Is Mitigated?**](#14-conclusion-how-much-risk-is-mitigated), we quantified Phalanx's improvement over Praos in terms of **grinding depth reduction** as follows:
 
@@ -1547,7 +1549,7 @@ However, with Phalanx applied, the required confirmation windows are **significa
 
 Compared to Praos' ~5.69 h → ~6.83 h (from blocks 1024 to 1229), these configurations reduce settlement time by approximately 20–30% while maintaining equivalent security.
 
-#### 2.4 Advocating for Peras: Φalanx as a Complementary Layer
+#### 2.4 Advocating for Peras: Phalanx as a Complementary Layer
 
 **[Ouroboros Peras](https://peras.cardano-scaling.org/)** is a recent protocol extension designed to accelerate settlement in Cardano by introducing **stake-weighted voting and certified blocks**. Built as a lightweight augmentation of Praos, it enables rapid finality—often within **1 to 2 minutes**—by allowing randomly selected committees to vote on blocks and issue certificates that elevate their importance in the chain selection rule ([Peras Intro](https://peras.cardano-scaling.org/docs/intro/)). Critically, Peras maintains full compatibility with Praos' security guarantees, reverting gracefully when quorum is not reached ([Peras FAQ](https://peras.cardano-scaling.org/docs/faq/)). Rather than replacing Praos, it overlays an additional mechanism for **fast, probabilistically final settlement**, offering a much-needed middle ground between immediate confirmation and the traditional **2160-block** security window.
 
