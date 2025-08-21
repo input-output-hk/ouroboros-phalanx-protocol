@@ -111,39 +111,84 @@ License: Apache-2.0
 
 ## Abstract
 
-Addressing both [CPS-0021 / Ouroboros Randomness Manipulation](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021) and [CPS-0017 / Settlement Speed](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0017) ,  **Ouroboros Phalanx** enhances **Ouroboros Praos** to mitigate grinding attacks by **increasing the cost of leader election manipulation**. It extends **nonce generation from 1 epoch to 2**, introducing a **computationally intensive function** that remains efficient for honest participants but makes it **significantly more costly for adversaries to bias the process**.
+We propose an extension to Ouroboros, called **Ouroboros Phalanx**. The name derives from the [**Phalanx**](https://en.wikipedia.org/wiki/Phalanx), an **Ancient Greek military formation** where soldiers stood in tightly packed units, shielding one another to form a nearly impenetrable defense. Just as the phalanx multiplied the strength of individual soldiers through coordination, this protocol enhances Cardano’s consensus by reinforcing its resistance to adversarial attacks.
 
-A [**Phalanx**](https://en.wikipedia.org/wiki/Phalanx) is an **Ancient Greek military formation** where soldiers **stand in a tightly packed unit**, shielding and reinforcing one another to create a nearly impenetrable defense. This strategy made it far more difficult for enemies to break through compared to fighting individual soldiers.
+At its core, **Phalanx Protocol** strengthens the **VRF-based randomness generation sub-protocol** that underpins leader election. It introduces an additional cryptographic primitive that is **lightweight for honest participants** yet **computationally expensive for adversaries** seeking to bias slot leader distributions. This design does not eliminate grinding attacks outright but makes them **economically infeasible at scale**.
 
-In **Phalanx Protocol**, we apply this idea cryptographically by **enhancing the VRF-based randomness generation sub-protocol** with a cryptographic primitive that is **efficient for honest participants** but **computationally expensive for adversaries** attempting to bias leader election. While it won’t eliminate grinding attacks entirely, it **significantly increases their cost**, and our work focuses on **precisely quantifying this added expense**.
+By addressing both [CPS-0021: Randomness Manipulation](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021) and [CPS-0017: Settlement Speed](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0017), Phalanx achieves two goals simultaneously:  
+- It raises the cost of grinding attacks by a factor of roughly <strong>10<sup>10</sup></strong>.  
+- It reduces settlement time by approximately **20–30%** compared to unmodified Praos, without compromising security.  
 
-Please refer to the CPD "[Ouroboros Randomness Generation Sub-Protocol – The Coin-Flipping Problem](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021/CPD/README.md)" for a detailed understanding of **randomness generation, leader election in Praos, and the coin-flipping dilemma in consensus protocols**. Moving forward, we will **dive into the core details**, assuming you have the **relevant background** to understand the proposal.
+Ouroboros Phalanx therefore represents a **complementary advancement**: reinforcing Cardano’s consensus security while improving performance, and ensuring the network remains robust against future adversarial strategies.
 
 ## Motivation: why is this CIP necessary?
 
-The "[Ouroboros Randomness Generation Sub-Protocol – The Coin-Flipping Problem](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021/CPD/README.md)" CPD highlights a potential attack vector in **Ouroboros Praos**: adversaries controlling a substantial portion of stake can execute **grinding attacks** to manipulate leader election, compromising the protocol’s fairness and security. As detailed in [CPD Section 3.2 - Entry Ticket: Acquiring Stake to Play the Lottery](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021/CPD/README.md#32-entry-ticket-acquiring-stake-to-play-the-lottery), an adversary with **around 20% or more of the total stake** gains an exponential advantage in influencing randomness, with attack feasibility increasing rapidly as stake grows. This critical threshold is further explored in [CPD Section 3.6 - Grinding Power Computational Feasibility](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021/CPD/README.md#36-grinding-power-computational-feasibility), which shows that grinding attacks become computationally viable for well-resourced adversaries, particularly in the "Owl Survey" scenario, where costs remain within the "Possible" range (up to 1 billion USD) for grinding depths ($\rho$) up to $57.7$.
+This proposal strengthens Cardano’s consensus protocol (Ouroboros Praos) against a class of weaknesses known as *grinding attacks*. These attacks allow adversaries to bias the randomness used in block leader elections, statistically slowing settlement and weakening security guarantees.
 
-A grinding depth of **57.7** bits means:
-  - The adversary can simulate approximately $2^{57.7}$ possible randomness outcomes, derive the corresponding leader distribution for the next epoch, and select the most favorable one.
-  - This amplifies the probability of bad events (such as rollbacks or forks) compared to the honest model. The key idea is that if a bad event, like a settlement failure, occurs with probability $\varepsilon$ under perfectly unbiased randomness, then an adversary who can try $R$ independent randomness candidates can increase the chance of that event up to $R \cdot \varepsilon$ (by the union bound).
+The improvement introduces an additional computation step that is lightweight for honest participants but significantly more expensive for attackers, making grinding attacks economically infeasible.
 
-**For example**, suppose that on mainnet we reach a rollback probability of $2^{-60}$ for a block at index $x$ after $y$ additional blocks are appended. If an adversary has grinding power of $2^{57.7}$, the effective risk becomes $2^{-60} \cdot 2^{57.7} = 2^{-2.3}$. To maintain the original $2^{-60}$ confidence level under grinding, the protocol must instead target a baseline security of $2^{-(60 + 57.7)} = 2^{117.7}$, requiring many more blocks to be appended, thus significantly increasing settlement times.
+### Recommended Configuration
 
-Because the protocol must account for the possibility of grinding attacks, settlement times are currently calibrated with conservative assumptions. Mitigating this attack presents a compelling opportunity to improve settlement speed which the core objective of [CPS-0017 / Settlement Speed](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0017).
+As an initial configuration, we recommend **12 hours of cumulative and distributed execution** of this cryptographic primitive per epoch on standard CPU architectures.  
+- The epoch is divided into **1-hour intervals**.  
+- The **first leader of each interval** must produce the corresponding proof.  
+- For any individual node, this requirement represents roughly **527 seconds (≈10 minutes)** of computation.  
 
-**Phalanx** proposes a solution by introducing a computationally intensive mechanism that disproportionately burdens attackers while remaining manageable for honest participants. By elevating the resource threshold required for successful attacks, as analyzed in [CPD Section 3.4 - Cost of a Grinding Attack](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021/CPD/README.md#34-cost-of-a-grinding-attack), this CIP aims to shift the feasibility curve, making randomness manipulation more economically and practically infeasible. 
+The algorithm is designed so that with **128-bit confidence**, all required proofs will be produced on time by the end of each epoch.
 
-This CIP responds to two Cardano Problem Statements:
+### Security Improvements
 
-- [CPS-0021 / Ouroboros Randomness Manipulation](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021), by reducing the probability of bad events facilitated by grinding attacks.
-- [CPS-0017 / Settlement Speed](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0017), by making better settlement guarantees.
+The proposal increases substantially the computational cost of a grinding attack by a factor of approximately <strong>10<sup>10</sup></strong> compared to the current situation.  
+
+To maintain this level of security over time:  
+- Governance may choose to **increase the 12-hour budget** as the cost of computation decreases.  
+- Execution could migrate to **ASIC-based architectures**, preserving the same budget while maintaining security guarantees, and later increasing the budget further.  
+
+Beyond parameter updates, adoption of this proposal would necessarily require a **hard fork**, since it modifies the consensus protocol in two fundamental ways:  
+1. The randomness for slot distribution is extended from **1 epoch to 2 epochs**. At the start of epoch *e*, the snapshot of the stake distribution will be taken at the end of *epoch e−2*, rather than at the end of *epoch e−1* as in Praos today.  
+2. The **general method of generating slot leader distributions** is changed, making leader election more resilient to adversarial bias.
+
+### Consensus Performance
+
+This proposal is not only about security, but also about **consensus performance**.  
+
+In Praos, because grinding allows adversaries to choose among multiple possible slot leader distributions, the probability of “bad events” (such as rollbacks or settlement failures) is statistically amplified compared to the honest model.  
+
+- If a bad event occurs with probability $`\varepsilon`$ under unbiased randomness,  
+- An adversary able to try $`R`$ independent randomness candidates can increase the likelihood of that event up to $`R \cdot \varepsilon`$ (by the union bound).  
+
+This translates into slower settlement and weaker guarantees for the network as a whole. By substantially reducing $`R`$ compared to Praos, we limit the impact of grinding attacks and therefore improve settlement. In fact, the recommended configuration reduces settlement time by approximately **20–30%** while maintaining equivalent security.
+
+### Relationship to Peras
+
+[Ouroboros Peras](https://peras.cardano-scaling.org/) is a recent extension of Praos designed to **accelerate settlement**.  
+- Instead of waiting for the traditional 2160-block window (around 5 days) to guarantee finality, Peras introduces **stake-weighted voting and certified blocks**.  
+- Randomly chosen committees of stake pool operators can “vote” on blocks, and when enough votes are collected, the block receives a certificate.  
+- Certified blocks are treated as more important in the chain, which enables **settlement in just 1–2 minutes**.
+
+Peras is fully compatible with Praos:  
+- When enough committee members participate, it achieves **rapid settlement**.  
+- When they do not (e.g., if too many operators are offline), Peras **gracefully falls back to Praos**.  
+
+In these fallback situations, the network still relies on Praos’ guarantees—precisely where Phalanx becomes relevant as a **complementary defense layer**. Phalanx ensures that even when Peras cannot certify blocks, the protocol still benefits from:  
+- **Stronger protection against grinding attacks**, and  
+- **Faster settlement** compared to unmodified Praos.  
+
+Together, they form a **complementary pair**:  
+- **Peras** provides speed when conditions are favorable.  
+- **Phalanx** ensures resilience and strong security guarantees in all cases.
+
+### Technical Depth
+
+The remainder of this document provides the full technical specification for node implementors and researchers. Because Cardano’s security is grounded in **cryptography, probability, and statistical guarantees**, understanding the full details of this proposal requires technical knowledge in these areas. The complete specification is therefore dense: it describes mathematical models, cryptographic primitives, and rigorous proofs to ensure the system can be trusted at scale. Readers interested only in the high-level motivation and community impact may stop here.
+
+Please refer to the CPD "[Ouroboros Randomness Generation Sub-Protocol – The Coin-Flipping Problem](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021/CPD/README.md)" for a detailed understanding of **randomness generation, leader election in Praos, and the coin-flipping dilemma in consensus protocols**. Moving forward, we will **dive into the core details**, assuming you have the **relevant background** to understand the proposal.
 
 
 ## Specification / The Phalanx Sub-Protocol
 
 The core principle of the proposed protocol change is to **substantially escalate the computational cost of each grinding attempt for an adversary**. To achieve this, every honest participant is required to perform a designated computation for each block they produce over an epoch (**432,000 slots - 5 days**). Consequently, an adversary attempting a grinding attack must **recompute these operations for every single attempt**, while being **constrained by the grinding window**, which dramatically increases the resource expenditure. By enforcing this computational burden, we **drastically reduce the feasible number of grinding attempts** an adversary with a fixed resource budget can execute, making randomness manipulation **more expensive and significantly less practical**.
  
-
 ### 1. High-Level Overview 
 
 #### 1.1. Changes Relative to Praos
@@ -1041,7 +1086,7 @@ For a discriminant of 4096 bits, we benchmarks the aggregation functions on the 
 
 </center>
 
-## 6. CDDL Schema for the Ledger
+### 6. CDDL Schema for the Ledger
 
 To support Phalanx, **one block per interval** (every 3600 slots), across **83 intervals per epoch**, must include **2 group elements**. Each of these elements can be compressed to approximately $3/4 \cdot \log_2(|\Delta|)$ bits. Based on our recommended discriminant size of **4096 bits**:
 
@@ -1416,7 +1461,7 @@ The **Phalanx tables** include **delta improvements** for each **Praos scenario*
 
 </center>
 
-### 1.4 Conclusion: How Much Risk is Mitigated?
+#### 1.4 Conclusion: How Much Risk is Mitigated?
 
 To quantify the **security improvement**, we compute the **percentage reduction in the “Trivial for Any Adversary” interval** compared to Praos. This represents the portion of grinding attacks that are now **pushed into more difficult feasibility regions**.
 
