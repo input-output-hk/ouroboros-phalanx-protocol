@@ -345,7 +345,7 @@ Specialized hardware such as ASICs can be used to evaluate VDF output much faste
 
 ##### 2.3.1. VDF Primitives
 
-To define Wesolowski VDF construction, we first introduce a serie of hash functions: $`\text{Hash}^{(n)}_\mathbb{N}`$, which samples random integers of $`n`$ bits, $`\text{Hash}^{(n)}_\text{prime}`$, which samples a random integer from the set of the first $`2^{2n}`$ prime numbers, and $`\text{Hash}_\mathbb{G}`$, which samples a random group element of the class group $`\mathbb{G}`$.
+To define Wesolowski VDF construction, we first introduce a series of hash functions: $`\text{Hash}^{(n)}_\mathbb{N}`$, which samples random integers of $`n`$ bits, $`\text{Hash}^{(n)}_\text{prime}`$, which samples a random integer from the set of the first $`2^{2n}`$ prime numbers, and $`\text{Hash}_\mathbb{G}`$, which samples a random group element of the class group $`\mathbb{G}`$.
 
 We define the interface of a Verifiable Delay Function as $`\texttt{VDF} = (\texttt{Setup},\ \texttt{Evalute},\ \texttt{Prove},\ \texttt{Verify})`$, and define its underlying functions based on class groups as follows:
 
@@ -381,11 +381,11 @@ At the beginning of each epoch, we initialize the VDF accumulators' state that w
 | ------------------------- | ------------------------- |
 | **Input Parameters**      | <ul><li>$`\lambda \in \mathbb{N}`$ — Security parameter.</li><li>$\text{pre-}\eta_e \in \{0,1\}^{256}$ — 256-bit pre-nonce entropy for epoch $e$.</li></ul> |
 | **Steps**                 | <ol><li>Compute all VDF challenges:<br>$`\forall i\ x_i \leftarrow  \text{Hash}_\mathbb{G}(\text{pre-}\eta_e \|\|\ i) `$</li><li>Compute the initial aggregation nonce:<br>$`\alpha \leftarrow  \text{Hash}^{(\lambda)}_\mathbb{N}(x_1 \|\| \dots \|\| x_n) `$</li><li>Initializes the accumulators to the identity:<br>$`(\text{Acc}_x,\ \text{Acc}_y) \leftarrow (1_\mathbb{G},\ 1_\mathbb{G})`$</li></ol>                                                                                                          |
-| **Returned Output**       | $`(\text{Acc}_x,\ \text{Acc}_y,\ \alpha)`$ — Input and output accumulators and initial aggregation nocne.   |
+| **Returned Output**       | $`(\text{Acc}_x,\ \text{Acc}_y,\ \alpha)`$ — Input and output accumulators and initial aggregation nonce.   |
 
 </center>
 
-Every time a VDF output is published on-chain, if no previous VDF output are missing, we shall update the accumulators' state using $`\texttt{VDF.Aggregation.Update}`$.
+Every time a VDF output is published on-chain, if no previous VDF outputs are missing, we shall update the accumulators' state using $`\texttt{VDF.Aggregation.Update}`$.
 <center>
 
 | `Update accumulators` | $`(\text{Acc}_x, \text{Acc}_y, \alpha) \leftarrow \texttt{VDF.Aggregation.Update}(\lambda, (x_i, y_i),\ (\text{Acc}_x,\ \text{Acc}_y,\ \alpha))`$     |
@@ -562,7 +562,7 @@ Importantly, this **parametrization phase** occurs only once, either during the 
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | **Input Parameters**          | <ul><li>$`\lambda \in \mathbb{N}`$ — **Security parameter**, defines the size (in bits) of the VDF discriminant.</li><li>$`T_\Phi \in \mathbb{N}`$ — **Time budget** in seconds, representing the total computation time under reference hardware.</li></ul> |
 | **Derivation Logic**  | <ul><li>$`\#\text{Iterations}_\Phi \leftarrow \texttt{VDF}.\texttt{IterationsFromDuration}(T_\Phi)`$</li><li>$`\#\text{Iterations}_\phi \leftarrow \left\lfloor \frac{\#\text{Iterations}_\Phi}{82} \right\rfloor`$</li></ul>                                  |
-| **Returned State** | $`\texttt{Parametrized} \left\{ \text{securityParameter} \mapsto \lambda,\quad I \mapsto \#\text{Iterations}_\phi \right\}`$|
+| **Returned State** | $`\texttt{Parametrized} \left\{ \text{securityParameter} \leftarrowtail \lambda,\quad I \leftarrowtail \#\text{Iterations}_\phi \right\}`$|
 
 </center>
 
@@ -587,7 +587,7 @@ We show here how to initialize the class-group based VDF algorithm when generati
 | -------------------- | ----------------------------------------- |
 | **Input Parameters** | <ul><li>$\text{parametrizedState} = (\lambda,\ I) \in \texttt{Parametrized}$ — Configuration from the prior Parametrized state.</li><li>$\text{epochId}_e \in \mathbb{N}$ — Numerical identifier for epoch $e$.</li><li>$\text{pre-}\eta_e \in \{0,1\}^{256}$ — 256-bit pre-nonce entropy for epoch $e$.</li></ul>              |
 | **Derivation Logic** | <ul><li>$`\Delta_{\text{challenge}} \leftarrow \text{Hash}(\text{bin}(\text{epochId}_e) \ \|\ \text{pre-}\eta_e)`$</li><li>$`(\mathbb{G},\ \Delta,\ \cdot) \leftarrow \texttt{VDF.Setup}(\lambda,\ \Delta_{\text{challenge}})`$</li></ul> |
-| **Returned State**   | $`\texttt{Initialized} \left\{ \text{parametrized} \mapsto (\lambda,\ I),\ \text{group} \mapsto \mathbb{G},\ \text{discriminant} \mapsto \Delta,\ \text{operation} \mapsto \cdot , \ \text{epochId}_e \mapsto \text{epochId}_e ,\ \text{pre-}\eta_e  \mapsto \text{pre-}\eta_e  \right\}`$                                        |
+| **Returned State**   | $`\texttt{Initialized} \left\{ \text{parametrized} \leftarrowtail (\lambda,\ I),\ \text{group} \leftarrowtail \mathbb{G},\ \text{discriminant} \leftarrowtail \Delta,\ \text{operation} \leftarrowtail \cdot , \ \text{epochId}_e \leftarrowtail \text{epochId}_e ,\ \text{pre-}\eta_e  \leftarrowtail \text{pre-}\eta_e  \right\}`$                                        |
 
 </center>
 
@@ -608,7 +608,7 @@ We show here how to initialize the class-group based VDF algorithm when generati
 | `tick`           | $\Phi.\text{Stream.State} \leftarrow \Phi.\text{tick}(\text{initializedState})$ |
 | -------------------- | ----------------------------------------- |
 | **Input Parameters** | <ul><li>$\text{initializedState} \in \texttt{Initialized}$ — Configuration from the prior Initialized state.</li></ul>              |
-| **Returned State**   | $`\texttt{AwaitingComputationPhase} \left\{ \text{initialized} \mapsto initialiinitializedzedState,\ \text{currentSlot} \mapsto 0 \right\}`$  
+| **Returned State**   | $`\texttt{AwaitingComputationPhase} \left\{ \text{initialized} \leftarrowtail initialiinitializedzedState,\ \text{currentSlot} \leftarrowtail 0 \right\}`$  
 
 </center>
 
@@ -711,8 +711,8 @@ The `provideAttestedOutput` command is used to submit a new attested output $`\p
 | `provideAttestedOutput` | $`\Phi.\text{Stream.State} \leftarrow \Phi.\text{provideAttestedOutput}(\text{awaitingAttestedOutputState},\ \phi_i)`$ |
 |-------------------------|--------------------------------------------------------------------------------------------------------------------------|
 | **Input Parameters**    | <ul><li>$`\text{awaitingAttestedOutputState} \in \texttt{AwaitingAttestedOutput}`$ — Current state awaiting an attested output $`\phi_i`$ for interval $`i`$.</li><li>$`\phi_i = (y_i, \pi_i)`$ — Attested output and corresponding proof.</li></ul> |
-| **Property Check**      | <ul><li>Ensure $`\phi_i`$ is valid by verifying: $`\texttt{VDF.Verify}((\mathbb{G},\ \Delta,\ \cdot),\ x_i,\ y_i,\ I,\ \pi_i)`$</li> <li>Where:<br> $``x_i = \text{Hash}(\text{b``challenge"}\ \|\|\ \text{bin}(e)\ \|\|\ \text{pre-}\eta_e\ \|\|\ \text{bin}(i))`$<br> $`I \in \mathbb{N}`$ is the per-interval iteration count.</li></ul> |
-| **Returned State**      | $`\texttt{AttestedOutputProvided}\ \{ \text{initialized},\ \text{currentSlot} + 1,\ \text{attestedOutputs}[i] \mapsto \phi_i \}`$ — Updated state reflecting the verified attestation. |
+| **Property Check**      | <ul><li>Ensure $`\phi_i`$ is valid by verifying: $`\texttt{VDF.Verify}((\mathbb{G},\ \Delta,\ \cdot),\ x_i,\ y_i,\ I,\ \pi_i)`$</li> <li>Where:<br> $`x_i = \text{Hash}(\text{b``challenge"}\ \|\|\ \text{bin}(e)\ \|\|\ \text{pre-}\eta_e\ \|\|\ \text{bin}(i))`$<br> $`I \in \mathbb{N}`$ is the per-interval iteration count.</li></ul> |
+| **Returned State**      | $`\texttt{AttestedOutputProvided}\ \{ \text{initialized},\ \text{currentSlot} + 1,\ \text{attestedOutputs}[i] \leftarrowtail \phi_i \}`$ — Updated state reflecting the verified attestation. |
 
 </center>
 
@@ -792,7 +792,7 @@ The `provideMissingAttestedOutput` command is used to submit a missing attested 
 | ----- | --- |
 | **Input Parameters**           | <ul><li>$`\text{awaitingMissingAttestedOutputState} \in \texttt{AwaitingMissingAttestedOutput}`$ — State awaiting a missing attestation $`\phi_i`$ for interval $`i`$.</li><li>$`\phi_i = (y_i, \pi_i)`$ — Attested output and its proof.</li></ul>                                            |
 | **Property Check**             | <ul><li>Verify $`\phi_i`$ with: $`\texttt{VDF.Verify}((\mathbb{G},\ \Delta,\ \cdot),\ x_i,\ y_i,\ I,\ \pi_i)`$</li><li>Where:<br> $`x_i = \text{Hash}(\text{b``challenge"}\ \|\|\ \text{bin}(e)\ \|\|\ \text{pre-}\eta_e\ \|\|\ \text{bin}(i))`$</li><li>$`I \in \mathbb{N}`$ is the per-interval iteration count.</li></ul> |
-| **Returned State**             | $`\texttt{MissingAttestedOutputProvided} \{ \text{initialized},\ \text{currentSlot} + 1,\ \text{attestedOutputs}[i] \mapsto \phi_i \}`$ — Updated state reflecting the accepted missing output.                                                                                                      |
+| **Returned State**             | $`\texttt{MissingAttestedOutputProvided} \{ \text{initialized},\ \text{currentSlot} + 1,\ \text{attestedOutputs}[i] \leftarrowtail \phi_i \}`$ — Updated state reflecting the accepted missing output.                                                                                                      |
 
 </center>
 
