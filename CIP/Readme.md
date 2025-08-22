@@ -1,6 +1,6 @@
 ---
 CIP: 161
-Title: Ouroboros Phalanx: Breaking Grinding Incentives
+Title: "Ouroboros Phalanx: Breaking Grinding Incentives"
 Category: Consensus
 Status: Proposed
 Authors:
