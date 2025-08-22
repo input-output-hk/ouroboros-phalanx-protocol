@@ -4,8 +4,8 @@ Title: Ouroboros Phalanx: Breaking Grinding Incentives
 Category: Consensus
 Status: Proposed
 Authors:
-    - Nicolas Henin <nicolas.henin@iohk.io>
-    - Raphael Toledo <raphael.toledo@iohk.io>
+  - Nicolas Henin <nicolas.henin@iohk.io>
+  - Raphael Toledo <raphael.toledo@iohk.io>
 Solution-To:
   - CPS-0017
   - CPS-0021
