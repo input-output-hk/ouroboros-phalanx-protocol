@@ -1,4 +1,6 @@
-# Ouroboros Phalanx – Breaking the Economics of Grinding Attacks
+<h1 align="center">Ouroboros Phalanx</h1>
+<h3 align="center">Breaking the Economics of Grinding Attacks</h3>
+
 
 Ouroboros Phalanx is a protocol-level extension of **Ouroboros Praos** that tackles a subtle weaknesses in proof-of-stake blockchains: **grinding attacks**.
 In Praos, adversaries can exploit their leadership slots to bias the randomness that drives future leader elections. While this does not make Praos insecure, it **inflates settlement times** because the system must be conservatively parameterized against such attacks.
