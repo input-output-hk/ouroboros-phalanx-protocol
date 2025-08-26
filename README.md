@@ -16,7 +16,8 @@ The result is a protocol that **preserves Ouroboros security guarantees** while 
 > * A local copy of [**CIP-0161: Ouroboros Phalanx – Breaking Grinding Incentives**](/CIP/).  
 > * A reference implementation of the **cryptographic primitive recommended** in these documents : It is a fork of [Chia's VDF](https://github.com/Chia-Network/chiavdf/tree/main) repository with minor modifications to support larger discriminant and adding accumulator functions and additional benchmarks.  
 > * Benchmarks and tests to evaluate this primitive, adapted from [Chia’s VDF](https://github.com/Chia-Network/chiavdf/tree/main).  
-> The actual integration of Phalanx into the Cardano node will be handled by the consensus/ledger teams in coordination with Intersect and IOG. This repository serves as the **research and specification baseline** for such work, not as a runnable node.
+
+The actual integration of Phalanx into the Cardano node will be handled by the consensus/ledger teams in coordination with Intersect and IOG. This repository serves as the **research and specification baseline** for such work, not as a runnable node.
 
 
 ## Getting Started
