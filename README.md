@@ -9,11 +9,15 @@ Phalanx breaks this dynamic by making every grinding attempt **computationally e
 
 The result is a protocol that **preserves Ouroboros security guarantees** while also enabling **faster settlement times**, creating a more efficient and more robust foundation for Cardano.
 
-This repository contains:  
-- A local copy of [**CPS-0021: Ouroboros Randomness Manipulation**](/CPS/CPD/).  
-- A local copy of [**CIP-0161: Ouroboros Phalanx – Breaking Grinding Incentives**](/CIP/).  
-- A reference implementation of the **cryptographic primitive recommended** in these documents : It is a fork of [Chia's VDF](https://github.com/Chia-Network/chiavdf/tree/main) repository with minor modifications to support larger discriminant and adding accumulator functions and additional benchmarks.  
-- Benchmarks and tests to evaluate this primitive, adapted from [Chia’s VDF](https://github.com/Chia-Network/chiavdf/tree/main).  
+> ⚠️ **Important Note**
+> This repository **does not contain a Cardano node implementation**.
+> Instead, it provides the **protocol definition** of Ouroboros Phalanx, including:
+> * A local copy of [**CPS-0021: Ouroboros Randomness Manipulation**](/CPS/CPD/).  
+> * A local copy of [**CIP-0161: Ouroboros Phalanx – Breaking Grinding Incentives**](/CIP/).  
+> * A reference implementation of the **cryptographic primitive recommended** in these documents : It is a fork of [Chia's VDF](https://github.com/Chia-Network/chiavdf/tree/main) repository with minor modifications to support larger discriminant and adding accumulator functions and additional benchmarks.  
+> * Benchmarks and tests to evaluate this primitive, adapted from [Chia’s VDF](https://github.com/Chia-Network/chiavdf/tree/main).  
+> The actual integration of Phalanx into the Cardano node will be handled by the consensus/ledger teams in coordination with Intersect and IOG. This repository serves as the **research and specification baseline** for such work, not as a runnable node.
+
 
 ## Getting Started
 
