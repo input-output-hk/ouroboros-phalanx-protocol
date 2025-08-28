@@ -90,8 +90,24 @@ Note that criterion saves the benchmarks output in `target/criterion` in the roo
 firefox target/criterion/report/index.html
 ```
 
-## Who We Are
-This project is developed by the **IOG Innovation Group**, with contributions from cryptographers, protocol engineers, and community reviewers.  
+## Contributing
+
+Thank you for your interest in this repository!
+
+This repository is published by **IOG R\&D Innovation** to share early-stage research and technology validation work with the Cardano community.
+
+### Community Engagement Model
+
+* **Status:** Open, but **not actively maintained** by R\&D Innovation.
+* **Contributions:** We are not accepting feature requests or code contributions.
+* **Questions / Comments:**
+  * You are welcome to open issues for clarifications or questions.
+  * Please understand that responses may be limited, as this repository is not under active development.
+
+### Ownership
+
+The repository is owned and managed by **IOG R\&D Innovation** with contributions from cryptographers, protocol engineers, and community reviewers.
+It is published to benefit the Cardano community by sharing insights, ideas, and experimental implementations.
 
 ## Disclaimer
 > **Important Disclaimer & Acceptance of Risk**  
