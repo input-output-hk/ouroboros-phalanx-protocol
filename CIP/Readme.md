@@ -341,6 +341,8 @@ We will choose Wesolowski design over Pietrzark because of its space efficiency 
 
 Specialized hardware such as ASICs can be used to evaluate VDF output much faster, up to a factor 5 in Chia's VDF project while Ethereum considers a factor 10. This, while unfortunate, is not prohibitive in our context as we only consider the use of VDFs for their computational cost. An attacker would still require a substantial budget to perform an anti-grinding attack in addition to purchasing at scale the specialized hardware that is not inexpensive nor readily available (Chia' ASICs can be purchased on a case per case basis for $1,000). We can also note that any solution would still be affected by hardware, like in the case of proof of works and hash farms.
 
+Generic attacks leveraging lookup tables can reduce the overhead associated with computing Phalanx's overhead, irrespective of the underlying cryptographic primitive, including VDFs. Such attacks are particularly effective in scenarios where the same group is reused over time, thereby impacting Phalanx not only across epochs but also across concurrent challenges, since multiple instances are computed in parallel. It is worth noting that chaining challenges, as proposed in cascading VDF constructions, offers limited mitigation against these attacks when faced with a strong adversary. Periodically refreshing the group and employing distinct groups for each parallel instantiation can help mitigate these generic amortization attacks, thereby preventing the possibility of batch verification of VDF outputs. We will show later that these changes, coupled with the inability to aggregate VDF instances, would only have a minimal influence on the performances of our design.
+
 #### 2.3. Wesolowski's VDF 
 
 ##### 2.3.1. VDF Primitives
@@ -369,7 +371,7 @@ We define the interface of a Verifiable Delay Function as $`\texttt{VDF} = (\tex
 
 ##### 2.3.2. VDF Aggregation Primitives
 
-In this section, we present a mechanism for producing a Wesolowski VDF **aggregation proof**. This construction enables efficient synchronization for network participants and may play a central role in deriving the final epoch nonce $`\eta_e`$. 
+In this section, we present a mechanism for producing a Wesolowski VDF **aggregation proof**. This construction enables efficient synchronization for network participants and may play a central role in deriving the final epoch nonce $`\eta_e`$ when _the same group is resued across instances_.
 The aggregation mechanism has the following interface $`\texttt{VDF.Aggregation} = (\text{Init},\ \text{Update},\ \text{Prove},\ \text{Verify})`$ whose functions will be detailled afterwards. We assume that a class group $`\mathbb{G}`$ has already been set up, by $`(\mathbb{G},\ \Delta,\ \cdot) \leftarrow \texttt{VDF.Setup}(\lambda,\ \Delta_{\text{challenge}})`$.
 
 **N.B.** We are showing here the core algorithms for simplicity and readability. In practice, we may use further techniques, for instance using an arbitrary byte and the epoch's number as personalization tags to ensure domain separation.
@@ -500,7 +502,7 @@ We split $`T_\Phi`$ into discrete **iterations**, each with the following proper
 - Iterations are fully independent and can be computed in parallel.
 - Slot leaders are responsible for submitting a proof of computation for the specific iteration assigned to them.
 - These computations are fully decoupled, there is no requirement to wait for previous iterations, enabling input precomputation and reducing latency.
-- All iterations must eventually be completed, and an additional and final iteration is used to aggregating all outputs along with a corresponding proof.
+- All iterations must eventually be completed.
 - The iterations are then used to compute the epoch randomness $\eta_e$.
 
 Each iteration is mapped to a specific interval, with the following constraints:
@@ -522,14 +524,14 @@ We define **4 sequential phases** in the stream lifecycle:
   The stream is configured but not yet active. Parameters such as $`\lambda`$ (computation hardness) and $`\#\text{iterations}_\phi`$ (number of iterations) are established during this phase.
 
 - 🟩 **Initialization Grace Phase**:
-  The stream is activated, and Stake Pool Operators (SPOs) are given a grace period to begin the first iteration of the computation.
+  The stream is activated, and Stake Pool Operators (SPOs) are given a grace period to initialize the Phalanx challenges and begin the first iteration of the computation.
 
 - 🟥 **Computation Phase**:
   During this phase, the protocol expects attested outputs to be published on-chain. It consists of **82 computation iterations**, each producing an intermediate output that contributes to the final result.
 
 - 🟦 **Catch-up & Closure Phase**:
   - A bounded recovery window that allows SPOs to submit any **missing attested outputs**, ensuring the completeness of the computation prior to finalization.
-  - A final dedicated interval to compute the **aggregation** of all previous outputs and derive the epoch’s final randomness $`\eta_e`$. This phase **seals the stream** and concludes a lifecycle.
+  - A final dedicated interval to derive the epoch’s final randomness $`\eta_e`$. This phase **seals the stream** and concludes a lifecycle.
 
 The diagram below illustrates how the lifecycle segment is structured:
 
@@ -568,16 +570,16 @@ Importantly, this **parametrization phase** occurs only once, either during the 
 
 #### 3.2.3.  🟩 Initialization Grace Phase
 
-Initialization occurs at every pre-ηₑ synchronization point, followed by an *Initialization Grace* period during which the protocol waits long enough for the first iteration to be computed and its proof to be included within the first computation interval. This process recurs every $`10 \cdot \frac{k}{f}`$ slots.
+Initialization occurs at every pre-ηₑ synchronization point, followed by an *Initialization Grace* period during which the protocol waits long enough for the group parameters, first iteration to be computed and its proof to be included within the first computation interval. This process recurs every $`10 \cdot \frac{k}{f}`$ slots.
 
 ##### 3.2.3.1. Initialize Command
-We show here how to initialize the class-group based VDF algorithm when generating a group for each different epoch. Were we to use the same group for many, if not all, epochs, we would run these steps in the *Parametrization phase* and change the discriminant seed $`\Delta_{\text{challenge}}`$ accordingly, e.g. if we use the same group forever we could use $`\Delta_{\text{challenge}} \leftarrow \text{Hash}(\text{bin}(\text{``IOHKPhalanx2025"}))`$.
+We show here how to initialize the class-group based VDF algorithm when generating a group for each different interval and epoch. Were we to use the same group for many, if not all, interval or epochs, we would run these steps in the *Parametrization phase* and change the discriminant seed $`\Delta_{\text{challenge}}`$ accordingly, e.g. if we use the same group forever we could use $`\Delta_{\text{challenge}} \leftarrow \text{Hash}(\text{bin}(\text{``IOHKPhalanx2025"}))`$.
 
 <center>
 
-| `Initialized` | $`\Phi.\text{Stream.State} \in \texttt{Initialized} : \left\{ \text{parametrized} \in \texttt{Parametrized},\ \text{group} \in \mathbb{G},\  \text{discriminant} \in \mathbb{Z},\ \text{operation} : \mathbb{G} \times \mathbb{G} \to \mathbb{G} \right\}`$|
+| `Initialized` | $`\Phi.\text{Stream.State} \in \texttt{Initialized} : \left\{ \text{parametrized} \in \texttt{Parametrized}, \text{discriminants}\ \{\Delta_i\} \in \mathbb{Z}^{120-36-1} \right\}`$|
 | ----------- | -------------- |
-| **Fields**  | <ul><li>$\text{parametrized} \in \texttt{Parametrized}$ — Reference to the prior configuration (security parameter and iteration count).</li><li>$\text{group} \in \mathbb{G}$ — VDF group used for exponentiation.</li><li>$\text{discriminant} \in \mathbb{Z}$ — Epoch-specific VDF discriminant.</li><li>$\text{operation} : \mathbb{G} \times \mathbb{G} \to \mathbb{G}$ — Group operation used for VDF evaluation (e.g., modular exponentiation).</li><li>$\text{epochId}_e \in \mathbb{N}$ — Numerical identifier for epoch $e$.</li><li>$\text{pre-}\eta_e \in \{0,1\}^{256}$ — 256-bit pre-nonce entropy for epoch $e$.</li></ul> |
+| **Fields**  | <ul><li>$\text{parametrized} \in \texttt{Parametrized}$ — Reference to the prior configuration (security parameter and iteration count).</li><li>$\text{discriminant} \{\Delta_i\}_I \in \mathbb{Z}$ — Epoch an interval-specific VDF discriminants entirely determining the groups' descriptions.</li><li>$\text{epochId}_e \in \mathbb{N}$ — Numerical identifier for epoch $e$.</li><li>$\text{pre-}\eta_e \in \{0,1\}^{256}$ — 256-bit pre-nonce entropy for epoch $e$.</li></ul> |
 
 </center>
 
@@ -586,8 +588,8 @@ We show here how to initialize the class-group based VDF algorithm when generati
 | `initialize`           | $\Phi.\text{Stream.State} \leftarrow \Phi.\text{Initialize}(\text{parametrizedState},\ \text{epochId}_e,\ \text{pre-}\eta_e)$ |
 | -------------------- | ----------------------------------------- |
 | **Input Parameters** | <ul><li>$\text{parametrizedState} = (\lambda,\ I) \in \texttt{Parametrized}$ — Configuration from the prior Parametrized state.</li><li>$\text{epochId}_e \in \mathbb{N}$ — Numerical identifier for epoch $e$.</li><li>$\text{pre-}\eta_e \in \{0,1\}^{256}$ — 256-bit pre-nonce entropy for epoch $e$.</li></ul>              |
-| **Derivation Logic** | <ul><li>$`\Delta_{\text{challenge}} \leftarrow \text{Hash}(\text{bin}(\text{epochId}_e) \ \|\ \text{pre-}\eta_e)`$</li><li>$`(\mathbb{G},\ \Delta,\ \cdot) \leftarrow \texttt{VDF.Setup}(\lambda,\ \Delta_{\text{challenge}})`$</li></ul> |
-| **Returned State**   | $`\texttt{Initialized} \left\{ \text{parametrized} \leftarrowtail (\lambda,\ I),\ \text{group} \leftarrowtail \mathbb{G},\ \text{discriminant} \leftarrowtail \Delta,\ \text{operation} \leftarrowtail \cdot , \ \text{epochId}_e \leftarrowtail \text{epochId}_e ,\ \text{pre-}\eta_e  \leftarrowtail \text{pre-}\eta_e  \right\}`$                                        |
+| **Derivation Logic** | <ul><li>$`\forall i \in [1, 120-36-1],\ \Delta_{\text{challenge}, i} \leftarrow \text{Hash}(b``init" \|\|\ \text{bin}(\text{epochId}_e) \ \|\|\ \text{pre-}\eta_e \ \|\| \ \text{bin}(i))`$</li><li>$`\forall i \in [1, 120-36-1],\ (\mathbb{G}_i,\ \Delta_i,\ \cdot) \leftarrow \texttt{VDF.Setup}(\lambda,\ \Delta_{\text{challenge}, i})`$</li></ul> |
+| **Returned State**   | $`\texttt{Initialized} \left\{ \text{parametrized} \leftarrowtail (\lambda,\ I),\ \text{discriminants} \leftarrowtail \{\Delta_i\},\ \text{operation} \leftarrowtail \cdot , \ \text{epochId}_e \leftarrowtail \text{epochId}_e ,\ \text{pre-}\eta_e  \leftarrowtail \text{pre-}\eta_e  \right\}`$                                        |
 
 </center>
 
@@ -637,10 +639,13 @@ To publish the first block of interval $`i \in [1..82]`$ of epoch $`e`$, the nod
 (y_i, \pi_i) \leftarrow \Phi.\text{compute}(\text{initialized} \in \texttt{Initialized},\ i \in \texttt{Interval})
 ```
 
-This function internally calls the VDF primitives: $`y_i \leftarrow \texttt{VDF.Evaluate}((\mathbb{G},\ \Delta,\ \cdot), \ x_i,\ I)`$ and $`\pi \leftarrow \texttt{VDF.Prove}((\mathbb{G},\ \Delta, \cdot),\ x_i,\ y_i,\ I)`$ with inputs constructed as:
+This function internally calls the VDF primitives:
+- $`y_i \leftarrow \texttt{VDF.Evaluate}((\mathbb{G}_i,\ \Delta_i,\ \cdot), \ x_i,\ I)`$ and
+- $`\pi \leftarrow \texttt{VDF.Prove}((\mathbb{G}_i,\ \Delta_i, \cdot),\ x_i,\ y_i,\ I)`$ 
 
+With inputs constructed as:
 - $`x_i \leftarrow \text{Hash}(\text{b``challenge"} ||\ \text{bin}(e) ||\ \text{pre-}\eta_e || \text{bin}(i))`$
-- The parameters $`(\mathbb{G}, \Delta, \cdot)`$ and $`I`$ are retrieved from the `Initialized` state.
+- The parameters $`(\mathbb{G}_i, \Delta_i, \cdot)`$ and $`I`$ are retrieved, or can be efficiently recomputed from the seeds retrieved, from the `Initialized` state.
 
 Finally, the node includes the attested outputs in the block header:
 
@@ -711,7 +716,7 @@ The `provideAttestedOutput` command is used to submit a new attested output $`\p
 | `provideAttestedOutput` | $`\Phi.\text{Stream.State} \leftarrow \Phi.\text{provideAttestedOutput}(\text{awaitingAttestedOutputState},\ \phi_i)`$ |
 |-------------------------|--------------------------------------------------------------------------------------------------------------------------|
 | **Input Parameters**    | <ul><li>$`\text{awaitingAttestedOutputState} \in \texttt{AwaitingAttestedOutput}`$ — Current state awaiting an attested output $`\phi_i`$ for interval $`i`$.</li><li>$`\phi_i = (y_i, \pi_i)`$ — Attested output and corresponding proof.</li></ul> |
-| **Property Check**      | <ul><li>Ensure $`\phi_i`$ is valid by verifying: $`\texttt{VDF.Verify}((\mathbb{G},\ \Delta,\ \cdot),\ x_i,\ y_i,\ I,\ \pi_i)`$</li> <li>Where:<br> $`x_i = \text{Hash}(\text{b``challenge"}\ \|\|\ \text{bin}(e)\ \|\|\ \text{pre-}\eta_e\ \|\|\ \text{bin}(i))`$<br> $`I \in \mathbb{N}`$ is the per-interval iteration count.</li></ul> |
+| **Property Check**      | <ul><li>Ensure $`\phi_i`$ is valid by verifying: $`\texttt{VDF.Verify}((\mathbb{G}_i,\ \Delta_i,\ \cdot),\ x_i,\ y_i,\ I,\ \pi_i)`$</li> <li>Where:<br> $`x_i = \text{Hash}(\text{b``challenge"}\ \|\|\ \text{bin}(e)\ \|\|\ \text{pre-}\eta_e\ \|\|\ \text{bin}(i))`$<br> $`I \in \mathbb{N}`$ is the per-interval iteration count.</li></ul> |
 | **Returned State**      | $`\texttt{AttestedOutputProvided}\ \{ \text{initialized},\ \text{currentSlot} + 1,\ \text{attestedOutputs}[i] \leftarrowtail \phi_i \}`$ — Updated state reflecting the verified attestation. |
 
 </center>
@@ -791,7 +796,7 @@ The `provideMissingAttestedOutput` command is used to submit a missing attested 
 | `provideMissingAttestedOutput` | $`\Phi.\text{Stream.State} \leftarrow \Phi.\text{provideMissingAttestedOutput}(\text{awaitingMissingAttestedOutputState},\ \phi_i)`$  |
 | ----- | --- |
 | **Input Parameters**           | <ul><li>$`\text{awaitingMissingAttestedOutputState} \in \texttt{AwaitingMissingAttestedOutput}`$ — State awaiting a missing attestation $`\phi_i`$ for interval $`i`$.</li><li>$`\phi_i = (y_i, \pi_i)`$ — Attested output and its proof.</li></ul>                                            |
-| **Property Check**             | <ul><li>Verify $`\phi_i`$ with: $`\texttt{VDF.Verify}((\mathbb{G},\ \Delta,\ \cdot),\ x_i,\ y_i,\ I,\ \pi_i)`$</li><li>Where:<br> $`x_i = \text{Hash}(\text{b``challenge"}\ \|\|\ \text{bin}(e)\ \|\|\ \text{pre-}\eta_e\ \|\|\ \text{bin}(i))`$</li><li>$`I \in \mathbb{N}`$ is the per-interval iteration count.</li></ul> |
+| **Property Check**             | <ul><li>Verify $`\phi_i`$ with: $`\texttt{VDF.Verify}((\mathbb{G}_i,\ \Delta_i,\ \cdot),\ x_i,\ y_i,\ I,\ \pi_i)`$</li><li>Where:<br> $`x_i = \text{Hash}(\text{b``challenge"}\ \|\|\ \text{bin}(e)\ \|\|\ \text{pre-}\eta_e\ \|\|\ \text{bin}(i))`$</li><li>$`I \in \mathbb{N}`$ is the per-interval iteration count.</li></ul> |
 | **Returned State**             | $`\texttt{MissingAttestedOutputProvided} \{ \text{initialized},\ \text{currentSlot} + 1,\ \text{attestedOutputs}[i] \leftarrowtail \phi_i \}`$ — Updated state reflecting the accepted missing output.                                                                                                      |
 
 </center>
@@ -823,17 +828,17 @@ Alternatively, when still waiting for an attestation and no block was produced, 
 
 #### 3.2.6 ⬛ Closure Phase
 
-We now enter the final phase of the lifecycle, during which all collected outputs are expected to be aggregated and recorded on-chain, and the seed $\eta_e$ derived and committed.
+We now enter the final phase of the lifecycle, during which all collected outputs are used to derive the seed $\eta_e$ which is then committed.
 
 **Successful Scenarios:**
 In these cases, all attested outputs have been provided by the end of the catch-up phase.
 
-- **Best-case scenario:** The closure phase begins at interval 84, giving the system 37 intervals to perform output aggregation and seed commitment under normal operating conditions.
+- **Best-case scenario:** The closure phase begins at interval 84, giving the system 37 intervals to perform seed commitment under normal operating conditions.
 - **Worst-case scenario:** The catch-up mechanism is fully utilized, and the system enters the closure phase at interval 120, the very last interval of the lifecycle segment. Even so, all necessary outputs have been successfully provided.
 
 **Failure Scenario:**
 
-This occurs when the lifecycle segment reaches its end (i.e., the full $10 \cdot \frac{k}{f}$ slots), and despite the entire duration of the catch-up mechanism (up to interval 120), either some required attested outputs remain missing, or all outputs have been delivered but the final aggregation has not occurred.
+This occurs when the lifecycle segment reaches its end (i.e., the full $10 \cdot \frac{k}{f}$ slots), and despite the entire duration of the catch-up mechanism (up to interval 120), either some required attested outputs remain missing.
 This scenario represents an extremely rare event—statistically far beyond 128-bit confidence—and reflects a severe disruption in which no blocks have been produced for over 36 hours. These edge cases are represented in the diagram by the transition `Tick / isUngracefullyClosable`.
 
 ##### 3.2.6.1. The States 
@@ -852,20 +857,19 @@ In this phase, we define two states:
 \right\}
 ```
 
-- `Closed`: This is a final state in the stream lifecycle. It signifies that the aggregated output has been computed and verified, and the final epoch randomness \$`\eta_e`\$ has been successfully derived—achieving the core objective of the protocol. This state is reached in response to either a `Close` command :
+- `Closed`: This is a final state in the stream lifecycle. It signifies that the final epoch randomness \$`\eta_e`\$ has been successfully derived—achieving the core objective of the protocol. This state is reached in response to either a `Close` command :
 
 ```math
 \Phi.\text{Stream.State} \in \texttt{Closed} : \left\{
   \begin{aligned}
     &\text{initialized}      &&\in\ \texttt{Initialized}, \\
     &\text{attestedOutputs}  &&\in\ \left[(y, \pi)\right]^{82}, \\
-    &\text{aggregatedOutput} &&\in\ (x, y, \pi), \\
     &\eta_e                  &&\in\ \{0,1\}^{256} 
   \end{aligned}
 \right\}
 ```
 
-- `UngracefullyClosed`: This is a terminal state in the stream lifecycle. It indicates that either not all expected attested outputs were provided, or the aggregated output could not be computed. As a result, $`{pre-}\eta_e`$ is returned as the final value of $`\eta_e`$. Statistically, this state is highly unlikely to occur, but it is explicitly handled for completeness and structural consistency of the state machine. The transition to this state is triggered by `Tick` in combination with the `isUngracefullyClosable` condition.
+- `UngracefullyClosed`: This is a terminal state in the stream lifecycle. It indicates that either not all expected attested outputs were provided. As a result, $`{pre-}\eta_e`$ is returned as the final value of $`\eta_e`$. Statistically, this state is highly unlikely to occur, but it is explicitly handled for completeness and structural consistency of the state machine. The transition to this state is triggered by `Tick` in combination with the `isUngracefullyClosable` condition.
 
 ```math
 \Phi.\text{Stream.State} \in \texttt{UngracefullyClosed} : \left\{
@@ -882,20 +886,17 @@ In this phase, we define two states:
 At this stage, the system is in the `AwaitingGracefulClosure` state. All necessary data has been collected, and a block can now be produced within the remaining time before the end of the stream lifecycle (as previously discussed, this could occur at the 84th or 120th interval, depending on how smoothly the lifecycle progressed).
 
 In this scenario, the first block producer within the remaining intervals must include the following values in the block body:
-
-- $`(y, \pi)`$: The aggregated output of the $`\Phi`$ computation, representing the final result and its corresponding proof.
 - $`\eta_e`$: The final objective of the protocol—a 256-bit epoch randomness beacon, which will be used to seed leader election in the next epoch.
 
 These values complete the stream and trigger the transition to the `Closed` state.
 
 <center>
 
-| `Close`    | $`\Phi.\text{Stream.State} \leftarrow \Phi.\text{Close}((x, y, \pi),\ \text{awaitingGracefulClosureState})`$  |
+| `Close`    | $`\Phi.\text{Stream.State} \leftarrow \Phi.\text{Close}(\{(y_i, \pi_i)\}_i,\ \text{awaitingGracefulClosureState})`$  |
 | -------------------- | ---- |
-| **Input Parameters** | <ul><li>$`\text{awaitingGracefulClosureState} \in \texttt{AwaitingGracefulClosure}`$ — State indicating readiness for closure.</li><li>$`(y,\ \pi)`$ — Aggregated output and its proof for the entire stream.</li></ul>                                                                                                    |
-| **Property Check**   | <ul><li>Verify the aggregated output with:<br> $`\texttt{VDF.Aggregation.Verify}((\mathbb{G},\ \Delta,\ \cdot),\ \lambda,\ x,\ y,\ \text{attestedOutputs},\ \pi)`$</li><li>Where:<br> $`\lambda`$ is the security parameter, <br> $`x`$ is the aggregated input of the $`\Phi`$ computation<br>$`\text{attestedOutputs} = \text{awaitingGracefulClosureState.attestedOutputs}`$</li></ul> |
-| **Epoch Randomness** | $`\eta_e = \text{Hash}^{(256)}(y)`$ — Apply the SHA-256 hash function to $`y`$.  |
-| **Returned State**   | $`\texttt{Closed} \{ \text{initialized},\ \text{attestedOutputs},\ (x, y, \pi),\ \eta_e \}`$ — Final state embedding the verified computation and the derived epoch randomness.  |
+| **Input Parameters** | <ul><li>$`\text{awaitingGracefulClosureState} \in \texttt{AwaitingGracefulClosure}`$ — State indicating readiness for closure.</li><li>$`\{(y_i,\ \pi_i)\}_i`$ — Set of outputs and proofs for the entire stream.</li></ul>                                                                                                    |
+| **Epoch Randomness** | $`\eta_e = \text{Hash}^{(256)}(\{y_i\}_{82})`$ — Apply the SHA-256 hash function to $`\{y_i\}_{82}`$.  |
+| **Returned State**   | $`\texttt{Closed} \{ \text{initialized},\ \text{attestedOutputs},\ \eta_e \}`$ — Final state embedding the verified computation and the derived epoch randomness.  |
 
 </center>
 
@@ -951,7 +952,7 @@ This strikes a balance between long-term security and practical efficiency:
 - On one hand, **breaking the class group** is considered harder than **finding a collision in a 256-bit hash** (our minimum security baseline).
 - On the other hand, by following the paper’s recommendation and selecting a slightly lower $`\rho = 64`$, we can **reduce the size of on-chain group elements** while maintaining sufficient resistance against grinding.
 
-Since Phalanx is designed to operate with a **single class group instance “for the lifetime of the protocol”** (reparametrization would require explicit governance intervention), this configuration $(\lambda, \rho) = (128, 64)$ ensures protocol simplicity, consistency, and operational predictability.
+To mitigate amortization attacks, based on lookup tables, and maximize their cost, we recommend designing Phalanx with **evolving epoch and interval-wise class group instances** with **fixed parametrization** (reparametrization would require explicit governance intervention), this configuration $(\lambda, \rho) = (128, 64)$ ensures protocol simplicity, consistency, and operational predictability.
 
 #### 4.2 Time Budget Tᵩ and Derived T
 
@@ -1064,9 +1065,9 @@ We now show verification benchmarks for discriminants of different sizes done on
 
 </center>
 
-##### 5.2.2 When Syncing
+##### 5.2.2 When Syncing with aggregation
 
-When synching, the nodes only need to update the accumulators and verify the final aggregation proof. As such, the node perform in total arounf half as less operations than verifying all proofs individually. More particularly, we have:
+When synching with aggregation, the nodes only need to update the accumulators and verify the final aggregation proof. As such, the node perform in total arounf half as less operations than verifying all proofs individually. More particularly, we have:
 * $2 \cdot N$ hashes,
 * $2 \cdot (N + 1)$ small exponentiations.
 * $2 \cdot N + 1$ group multiplications,
@@ -1085,6 +1086,8 @@ For a discriminant of 4096 bits, we benchmarks the aggregation functions on the 
 |            $4096$ |   1,000,000 |                                 8.0E+00 |                                3.1E+01 |                                 1.7E+01 |
 
 </center>
+
+We can see that verifying the aggregation verification would only save 20ms or so which is negligeable when synching.
 
 ### 6. CDDL Schema for the Ledger
 
