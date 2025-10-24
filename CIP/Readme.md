@@ -589,7 +589,7 @@ We show here how to initialize the class-group based VDF algorithm when generati
 | -------------------- | ----------------------------------------- |
 | **Input Parameters** | <ul><li>$\text{parametrizedState} = (\lambda,\ I) \in \texttt{Parametrized}$ — Configuration from the prior Parametrized state.</li><li>$\text{epochId}_e \in \mathbb{N}$ — Numerical identifier for epoch $e$.</li><li>$\text{pre-}\eta_e \in \{0,1\}^{256}$ — 256-bit pre-nonce entropy for epoch $e$.</li></ul>              |
 | **Derivation Logic** | <ul><li>$`\forall i \in [1, 120-36-1],\ \Delta_{\text{challenge}, i} \leftarrow \text{Hash}(b``init" \|\|\ \text{bin}(\text{epochId}_e) \ \|\|\ \text{pre-}\eta_e \ \|\| \ \text{bin}(i))`$</li><li>$`\forall i \in [1, 120-36-1],\ (\mathbb{G}_i,\ \Delta_i,\ \cdot) \leftarrow \texttt{VDF.Setup}(\lambda,\ \Delta_{\text{challenge}, i})`$</li></ul> |
-| **Returned State**   | $`\texttt{Initialized} \left\{ \text{parametrized} \leftarrowtail (\lambda,\ I),\ \text{discriminants} \leftarrowtail \{\Delta_i\},\ \text{operation} \leftarrowtail \cdot , \ \text{epochId}_e \leftarrowtail \text{epochId}_e ,\ \text{pre-}\eta_e  \leftarrowtail \text{pre-}\eta_e  \right\}`$                                        |
+| **Returned State**   | $`\texttt{Initialized} \left\{ \text{parametrized} \leftarrowtail (\lambda,\ I),\ \text{discriminants} \leftarrowtail \{\Delta_i\} , \ \text{epochId}_e \leftarrowtail \text{epochId}_e ,\ \text{pre-}\eta_e  \leftarrowtail \text{pre-}\eta_e  \right\}`$                                        |
 
 </center>
 
