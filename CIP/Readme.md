@@ -74,8 +74,9 @@ Ouroboros Phalanx therefore represents a **complementary advancement**: reinforc
       - [4.2.1. Specialized ASIC vs CPU-Based Chips](#421-specialized-asic-vs-cpu-based-chips)
       - [4.2.2. Deriving from Tᵩ to T](#421-deriving-from-tᵩ-to-t)
   - [5. Efficiency Analysis](#5-efficiency-analysis)
-    - [5.1. Block Publication](#51-block-publication)
-    - [5.2. Block Verification](#52-block-verification)
+    - [5.1. Phalanx Initialization](#51-phalanx-initialization)
+    - [5.2. Block Publication](#52-block-publication)
+    - [5.3. Block Verification](#53-block-verification)
       - [5.2.1. When Not Syncing](#521-when-not-syncing)
       - [5.2.2. When Syncing](#522-when-syncing)
   - [6. CDDL Schema for the Ledger](#6-cddl-schema-for-the-ledger)
@@ -994,7 +995,39 @@ Thanks to its well-established performance profile, this implementation provides
 
 ### 5. Efficiency analysis
 
-#### 5.1 Block Publication
+#### 5.1 Phalanx Initialization
+
+We now show benchmarks for setting up the VDFs, that is generate the group and challenges, for different discriminant sizes done on a Ubuntu computer with Intel® Core™ i9-14900HX with 32 cores and 64.0 GiB RAM.
+
+<center>
+
+|   Size Discriminant |  CreateDiscrimant (ms) | HashToClassGroup (ns) |
+|-------------------- | ---------------------- | --------------------- |
+|                 256 |                      1 |                  38   |
+|                 512 |                      1 |                  37   |
+|                1024 |                     11 |                  37   |
+|                2048 |                    133 |                  39   |
+|                4096 |                   1593 |                 690   |
+
+</center>
+
+An important question is to know how many class groups we can generate for a given security parameter, that is how many prime numbers equal to 1 modulo 4 exists of a certain bit length. We know that the prime-counting function, the function to count the number of prime lower than a variable $x$, can be lower bounded by $f(x) = x / \mathsf{ln}(x)$. As assymptotically all modulos occur equally, we can assume that for large numbers the number of discriminants is half the number of prime numbers. As we want to make sure the first bit of the prime number is set to one, we approximate a lower bound of number of class groups by $\#\Delta(x) = (f(x)-f(x/2))/2$.
+
+<center>
+
+|   Size Discriminant |  $f(2^x)$ | \#$\Delta(2^x)$ |
+|-------------------- | --------- | --------------- |
+|                 256 |   6.5E+74 |         1.6E+74 |
+|                 512 |  3.8E+151 |        9.4E+150 |
+|                1024 |  2.5E+305 |        5.1E+304 |
+|                2048 |  2.3E+613 |        4.6E+612 |
+|                4096 | 3.7E+1229 |       7.3E+1228 |
+
+</center>
+
+We can see that there are enough prime numbers to create class groups from.
+
+#### 5.2 Block Publication
 
 To publish a block, a node must:
 
@@ -1025,7 +1058,7 @@ We now show benchmarks for evaluating and proving together VDFs, as well as indi
 
 </center>
 
-#### 5.2 Block Verification
+#### 5.3 Block Verification
 
 ##### 5.2.1 When Not Syncing
 
