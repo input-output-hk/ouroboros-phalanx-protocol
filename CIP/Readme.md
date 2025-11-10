@@ -77,8 +77,8 @@ Ouroboros Phalanx therefore represents a **complementary advancement**: reinforc
     - [5.1. Phalanx Initialization](#51-phalanx-initialization)
     - [5.2. Block Publication](#52-block-publication)
     - [5.3. Block Verification](#53-block-verification)
-      - [5.2.1. When Not Syncing](#521-when-not-syncing)
-      - [5.2.2. When Syncing](#522-when-syncing)
+      - [5.3.1. When Not Syncing](#531-when-not-syncing)
+      - [5.3.2. When Syncing](#532-when-syncing)
   - [6. CDDL Schema for the Ledger](#6-cddl-schema-for-the-ledger)
 
 - [Rationale: How does this CIP achieve its goals?](#rationale-how-does-this-cip-achieve-its-goals)
@@ -1062,7 +1062,7 @@ We now show benchmarks for evaluating and proving together VDFs, as well as indi
 
 #### 5.3 Block Verification
 
-##### 5.2.1 When Not Syncing
+##### 5.3.1 When Not Syncing
 
 To verify a VDF proof, a node performs:
 
@@ -1100,7 +1100,7 @@ We now show verification benchmarks for discriminants of different sizes done on
 
 </center>
 
-##### 5.2.2 When Syncing with aggregation
+##### 5.3.2 When Syncing with aggregation
 
 When synching with aggregation, the nodes only need to update the accumulators and verify the final aggregation proof. As such, the node perform in total arounf half as less operations than verifying all proofs individually. More particularly, we have:
 * $2 \cdot N$ hashes,
