@@ -94,8 +94,8 @@ Ouroboros Phalanx therefore represents a **complementary advancement**: reinforc
   - [2. How Phalanx Improves CPS-17 - Settlement Speed ?](#2-how-phalanx-improves-cps-17---settlement-speed)
     - [2.1 Settlement times without grinding attacks](#21-settlement-times-without-grinding-attacks)
     - [2.2 How Grinding Power affects Settlement times](#22-how-grinding-power-affects-settlement-times)
-    - [2.3 How Phalanx improves compared to Praos?](#23-how-phalanx-improves-compared-to-praos-) 
-    - [2.4 Advocating for Peras: Phalanx as a Complementary Layer](#24-advocating-for-peras-phalanx-as-a-complementary-layer) 
+    - [2.3 How Phalanx improves compared to Praos?](#23-how-phalanx-improves-compared-to-praos-)
+    - [2.4 Advocating for Peras: Phalanx as a Complementary Layer](#24-advocating-for-peras-phalanx-as-a-complementary-layer)
   - [3. Why VDFs Were Chosen over other Cryptographic Primitives ?](#3-why-vdfs-were-chosen-over-other-cryptographic-primitives-)
     - [3.1 Requirements](#31-requirements)
     - [3.2 Primitive selection](#32-primitive-selection)
@@ -189,8 +189,8 @@ Please refer to the CPD "[Ouroboros Randomness Generation Sub-Protocol – The C
 ## Specification / The Phalanx Sub-Protocol
 
 The core principle of the proposed protocol change is to **substantially escalate the computational cost of each grinding attempt for an adversary**. To achieve this, every honest participant is required to perform a designated computation for each block they produce over an epoch (**432,000 slots - 5 days**). Consequently, an adversary attempting a grinding attack must **recompute these operations for every single attempt**, while being **constrained by the grinding window**, which dramatically increases the resource expenditure. By enforcing this computational burden, we **drastically reduce the feasible number of grinding attempts** an adversary with a fixed resource budget can execute, making randomness manipulation **more expensive and significantly less practical**.
- 
-### 1. High-Level Overview 
+
+### 1. High-Level Overview
 
 #### 1.1. Changes Relative to Praos
 
@@ -203,15 +203,15 @@ In **Phalanx** , the randomness generation and leader election flows are modifie
 3. The **pre-ηₑ candidate**, once stabilized (after $`3 \cdot \frac{k}{f}`$), undergoes a **sequence of incremental operations** using a **new deterministic cryptographic primitive Φ (Phi)**. This sequence spans a full epoch size, specifically during the interval:$`\left[\frac{9k}{f} \cdot \text{epoch}_{e-2},  \frac{9k}{f} \cdot \text{epoch}_{e-1}\right)`$.
 4. The final **ηₑ (eta nonce)**, resulting from the Φ computation, completely determined by the prior stabilized pre-seed pre-ηₑ, does not need stabilization and is availablea a whole $`\frac{k}{f}`$ slots before the start of $`\text{epoch}_e`$ .
 
-#### 1.2. Inputs & Outputs 
+#### 1.2. Inputs & Outputs
 
 The Randomness Generation sub-protocol pipelines two parallel streams η stream and Φ Stream, which synchronize at $`9.\frac{k}{f}`$ at each epoch :  
 
 ![alt text](./image/Phalanx-Streams.png)
 
-##### 1.2.1. The η stream 
+##### 1.2.1. The η stream
 
-   - Already present in Praos and retained in Phalanx 
+   - Already present in Praos and retained in Phalanx
    - Updated with every block produced in the blockchain tree, a η stream captures intermediate values $`\eta^\text{evolving}_t`$ in the block headers, defined as follows:
 
 ```math
@@ -220,11 +220,11 @@ The Randomness Generation sub-protocol pipelines two parallel streams η stream 
    \eta^{\text{evolving}}_{t}\ \star\ \mathsf{VRF}^\text{Output}_\text{t+1} & \text{when BlockProduced}(t) \\
    \eta^{\text{evolving}}_{t}  & \text{otherwise.}
    \end{cases}
-   
+
 ```
-```math 
-\text{BlockProduced}(t) = 
-\begin{cases} 
+```math
+\text{BlockProduced}(t) =
+\begin{cases}
 \text{true} & \text{if a block is produced at time } t, \\
 \text{false} & \text{otherwise.}
 \end{cases}
@@ -253,7 +253,7 @@ The stream is bootstrapped by calling the parametrize function of the cryptograp
 ```math
 Φ.\text{Stream.State} \leftarrow \Phi.\text{parametrize}(\lambda, T_\Phi)
 ```
-where : 
+where :
   -  $`\lambda`$ is a security parameter for the cryptographic primitive $`\Phi`$.
   - $`T_\Phi`$, a time-bound parameter representing the required computation  $`\Phi`$ duration, independent of available computing power.
   - Any change to these 2 parameters would require a decision through Cardano governance.
@@ -273,11 +273,11 @@ A node must be able to determine, based on the current state, whether it should 
 ```math
 \{0,1\} \leftarrow \Phi.\text{shouldCompute}(Φ.\text{Stream.State, nextElectedSlot})
 ```
-A node must be able to compute a specific chunk of the $`\Phi`$ iterations independently of any global state. 
-The result is an *attested output*—a pair $`\phi_x =(\pi_x,\ o_x)`$ where : 
+A node must be able to compute a specific chunk of the $`\Phi`$ iterations independently of any global state.
+The result is an *attested output*—a pair $`\phi_x =(\pi_x,\ o_x)`$ where :
 
- - $`o_x`$ is the computed output for iteration $`x`$, 
- - $`\pi_x`$ is a cryptographic proof attesting that $`o_x`$ was correctly derived from the input according to the rules of $`\Phi`$. 
+ - $`o_x`$ is the computed output for iteration $`x`$,
+ - $`\pi_x`$ is a cryptographic proof attesting that $`o_x`$ was correctly derived from the input according to the rules of $`\Phi`$.
  - Since this operation may be long-lived, intermediate attested outputs should be persistable to disk, allowing the node to stop, resume, or cancel computation from the latest completed sub-computation.
 
 A subset of block-producing slots must include in their block bodies a unique attested output $`\phi_x`$ with $`x \in \{1,\ \dots,\ i \}`$ denoting the iteration index within the $`\Phi`$ computation :
@@ -304,7 +304,7 @@ At the synchronization point $`\text{pre-}\eta_{e+1}`$, the stream is closed pro
    - It originates from the operation $`\star`$ with $`\phi^{\text{stream}}_{t}`$ at $`\text{pre-}\eta_\text{e+1}`$ synchronization and η stream  $`\text{when } t = \text{end of epoch}_\text{e-3}`$ and the combination of the outputs $`\{o_i\}_{[1,i]}`$ using an aggregation function $`f_\text{agg}`$.
 
 ```math
-\eta_\text{e} = \eta^\text{evolving}_{epoch_\text{e-3}}\ \star\ f_\text{agg}(o_1, \dots, o_e) , \quad \text{when } t = \text{pre-}\eta_\text{e+1}\text{ synchronization } 
+\eta_\text{e} = \eta^\text{evolving}_{epoch_\text{e-3}}\ \star\ f_\text{agg}(o_1, \dots, o_e) , \quad \text{when } t = \text{pre-}\eta_\text{e+1}\text{ synchronization }
 ```
 
 ### 2. The Φ Cryptographic Primitive
@@ -330,7 +330,7 @@ Verifiable Delayed Functions (VDFs) are cryptographic primitives designed to tak
 As one can see, VDFs present _functionality_, _determinism_, _efficient verification_ and _lower bound on computation_. The _compact representation_ depends on the chosen group as well as the instantiation, which we will tackle later on. The _implementation and maintenance_ is straightforward as the output of a VDF is a simple exponentiation of a group element, only the square operation is needed to be implemented to compute it. As for the proof, this depends on the precise VDF instantiation. Finally, the system is "adaptively secure" as we can set up a group with high security to be reused for a whole epoch or more, and set the number of squaring, also called difficulty, depending on how much computation we want the nodes to perform.
 
 Verifiable Delayed Functions were introduced by Boneh et al. [[6]](https://eprint.iacr.org/2018/601.pdf) where the authors suggest several sequential functions combined with the use of proof systems in the incrementally verifiable computation framework (IVC) for viable proof generation and fast verification.
-VDF variants revolve around two primary SNARK-free designs: one from Pietrzak [[36]](https://drops.dagstuhl.de/storage/00lipics/lipics-vol124-itcs2019/LIPIcs.ITCS.2019.60/LIPIcs.ITCS.2019.60.pdf) and the second from Wesolowski [[35]](https://eprint.iacr.org/2018/623.pdf). They differ in the proof design. 
+VDF variants revolve around two primary SNARK-free designs: one from Pietrzak [[36]](https://drops.dagstuhl.de/storage/00lipics/lipics-vol124-itcs2019/LIPIcs.ITCS.2019.60/LIPIcs.ITCS.2019.60.pdf) and the second from Wesolowski [[35]](https://eprint.iacr.org/2018/623.pdf). They differ in the proof design.
 
 In Wesolowski’s paper, the proof is defined as $g^{{2^T} /\ p}$ where $g$ is the challenge, $T$ the difficulty and $p$ is a prime number found by hashing the VDF input and output together.  
 The proof is thus a single group element that can be computed in at most $2\cdot T$ group operations and constant space, or $(1+1/s) \cdot T$ time where the number $s$ is both the number of processors and space while the verification takes $\text{log}_2 T$ scalar multiplications in $\mathbb{Z}/p$ and two small exponentiations in the group $\mathbb{G}$. The proving time can further be optimized to $O(T /\ \text{log}(T))$ group multiplications by reusing the evaluation intermediary results.  
@@ -346,7 +346,7 @@ Generic attacks leveraging lookup tables can reduce the overhead associated with
 As there are no formal guarantees regarding the non-amortizability of the currently suggested function, VDFs, or any others, our recommendation represents but a best-effort design. Further research in this area could provide valuable insights, and once found, a non-amortizable primitive could be swiftly integrated in our design once they become readily available.
 Periodically refreshing the group and employing distinct groups for each parallel instantiation can help mitigate these generic amortization attacks, thereby preventing the possibility of batch verification of VDF outputs. We will show later that these changes, coupled with the inability to aggregate VDF instances, would only have a minimal influence on the performances of our design.
 
-#### 2.3. Wesolowski's VDF 
+#### 2.3. Wesolowski's VDF
 
 ##### 2.3.1. VDF Primitives
 
@@ -366,7 +366,7 @@ We define the interface of a Verifiable Delay Function as $`\texttt{VDF} = (\tex
 - $`y \leftarrow \texttt{VDF.Evaluate}(\ x,\ I)`$
   Given a challenge $`x \in \mathbb{G}`$ and a number of iterations $`I \in \mathbb{N}`$, computes the  output $`y = x^{2^I}`$.
 
-- $`\pi \leftarrow \texttt{VDF.Prove}(\ x,\ y,\ I)`$ 
+- $`\pi \leftarrow \texttt{VDF.Prove}(\ x,\ y,\ I)`$
   Given a challenge and output $`(x,y) \in \mathbb{G}^2`$, computes the VDF  **proof** as $`\pi = x^{2^I / p}`$ where $`p \leftarrow \text{Hash}^{(2 \lambda)}_\text{prime}(x \| y)`$ is sampled from the first $`2^{2 \lambda}`$ prime numbers.
 
 - $`\{0,1\} \leftarrow \texttt{VDF.Verify}( \ x,\ y,\ I,\ \pi)`$
@@ -435,7 +435,7 @@ We further partition this segment into **intervals**, each large enough to guara
 
 <details>
 <summary>🔍 How 128-bit Confidence gives 3435 Slots ?</summary>
-<p> 
+<p>
 
 <span style="display:block; font-size:1.25em; font-weight:bold"> 📦 Guaranteeing Honest Block Inclusion with 128-bit Confidence in our context </span>
 
@@ -490,7 +490,7 @@ To guarantee with 128-bit confidence that an interval contains **at least one ho
 This ensures security even if up to **49% of stake is adversarial**.
 
 ----
-</p> 
+</p>
 </details>
 <br>
 
@@ -516,14 +516,14 @@ Each iteration is mapped to a specific interval, with the following constraints:
 
 At first glance, we could divide $`T_\Phi`$ evenly across the 120 intervals. However, to ensure resilience, the protocol must remain robust even in extreme scenarios—such as a global outage causing **36 hours** of consecutive downtime (**30% of an epoch**). This scenario is detailed in the [Cardano Disaster Recovery Plan](https://iohk.io/en/research/library/papers/cardano-disaster-recovery-plan).
 
-A global outage implies a sequence of blockless intervals. To tolerate such conditions, the protocol must be able to handle up to **36 intervals without block production**.  To address this, we introduce a catch-up mechanism: 
-  - We reserve the final 36 intervals of the segment specifically for recovering any missing attested outputs. 
+A global outage implies a sequence of blockless intervals. To tolerate such conditions, the protocol must be able to handle up to **36 intervals without block production**.  To address this, we introduce a catch-up mechanism:
+  - We reserve the final 36 intervals of the segment specifically for recovering any missing attested outputs.
   - These missing outputs must be submitted in order, according to their original indices, ensuring deterministic reconstruction of the full computation stream.
 
 
 We define **4 sequential phases** in the stream lifecycle:
 
-- 🟧 **Parametrization Phase** : 
+- 🟧 **Parametrization Phase** :
   The stream is configured but not yet active. Parameters such as $`\lambda`$ (computation hardness) and $`\#\text{iterations}_\phi`$ (number of iterations) are established during this phase.
 
 - 🟩 **Initialization Grace Phase**:
@@ -644,7 +644,7 @@ To publish the first block of interval $`i \in [1..82]`$ of epoch $`e`$, the nod
 
 This function internally calls the VDF primitives:
 - $`y_i \leftarrow \texttt{VDF.Evaluate}((\mathbb{G}_i,\ \Delta_i,\ \cdot), \ x_i,\ I)`$ and
-- $`\pi \leftarrow \texttt{VDF.Prove}((\mathbb{G}_i,\ \Delta_i, \cdot),\ x_i,\ y_i,\ I)`$ 
+- $`\pi \leftarrow \texttt{VDF.Prove}((\mathbb{G}_i,\ \Delta_i, \cdot),\ x_i,\ y_i,\ I)`$
 
 With inputs constructed as:
 - $`x_i \leftarrow \text{Hash}(\text{b``challenge"} ||\ \text{bin}(e) ||\ \text{pre-}\eta_e || \text{bin}(i))`$
@@ -844,7 +844,7 @@ In these cases, all attested outputs have been provided by the end of the catch-
 This occurs when the lifecycle segment reaches its end (i.e., the full $10 \cdot \frac{k}{f}$ slots), and despite the entire duration of the catch-up mechanism (up to interval 120), either some required attested outputs remain missing.
 This scenario represents an extremely rare event—statistically far beyond 128-bit confidence—and reflects a severe disruption in which no blocks have been produced for over 36 hours. These edge cases are represented in the diagram by the transition `Tick / isUngracefullyClosable`.
 
-##### 3.2.6.1. The States 
+##### 3.2.6.1. The States
 
 In this phase, we define two states:
 
@@ -867,7 +867,7 @@ In this phase, we define two states:
   \begin{aligned}
     &\text{initialized}      &&\in\ \texttt{Initialized}, \\
     &\text{attestedOutputs}  &&\in\ \left[(y, \pi)\right]^{82}, \\
-    &\eta_e                  &&\in\ \{0,1\}^{256} 
+    &\eta_e                  &&\in\ \{0,1\}^{256}
   \end{aligned}
 \right\}
 ```
@@ -879,7 +879,7 @@ In this phase, we define two states:
   \begin{aligned}
     &\text{initialized}      &&\in\ \texttt{Initialized}, \\
     &\text{attestedOutputs} &&\in\ \left[\texttt{Maybe}\ (y, \pi)\right]^{82} \\
-    &{pre-}\eta_e                  &&\in\ \{0,1\}^{256} 
+    &{pre-}\eta_e                  &&\in\ \{0,1\}^{256}
   \end{aligned}
 \right\}
 ```
@@ -941,7 +941,7 @@ The VDF component in Phalanx relies on class group security, which is parameteri
 - $`\lambda`$, the **class group security parameter**, and
 - $`\rho`$, the **grinding resistance parameter**, newly introduced in the Phalanx design.
 
-Several combinations of $`\lambda`$ and $`\rho`$ are considered in the literature, depending on the desired level of paranoia or efficiency. Based on the recommendations from the paper [Trustless Unknown-Order Groups]((https://arxiv.org/pdf/2211.16128)), we highlight the following trade-offs: 
+Several combinations of $`\lambda`$ and $`\rho`$ are considered in the literature, depending on the desired level of paranoia or efficiency. Based on the recommendations from the paper [Trustless Unknown-Order Groups]((https://arxiv.org/pdf/2211.16128)), we highlight the following trade-offs:
 
 - A **paranoid** setting, $(\lambda, \rho) = (128, 128)$, requires a **group size of \~3400 bits**.
 - A more **realistic yet cautious** setting, $(\lambda, \rho) = (128, 55)$, brings the group size down to **\~1900 bits**, but requires discriminants of at least **3800 bits**.
@@ -1166,6 +1166,57 @@ The current **maximum block header size** in Cardano is **1100 bytes**, although
 
 This would **exceed the 1500-bytes limit**, risking fragmentation and violating guidance from the Cardano networking team. We could safely decrease the group element size by decreasing the security parameters if we were to generate new class groups at each epoch. Doing so would however render the protocol more complex and potentially weaken the security of the protocol as we may have more chances to generate a weak class group.
 
+**Protocol Parameter Update Changes**. The Phalanx update also requires the addition of two new protocol parameters,
+`phalanx_security_parameter` and `phalanx_i_parameter`, as follows:
+
+```
+phalanx_security_parameter = uint .size 4
+
+phalanx_i_parameter = uint .size 4
+
+protocol_param_update =
+  { ? 0  : coin                   ; minfeeA
+    ...
+  , ? 33 : nonnegative_interval   ; minfee refscriptcoinsperbyte
+  , ? 34 : phalanx_security_parameter
+  , ? 35 : phalanx_i_parameter
+  }
+```
+
+### 7. Formal specification in Agda
+
+We also provide an update to the [Agda formal specfication](https://github.com/IntersectMBO/ouroboros-consensus/tree/polina/anti-grinding)
+of the (on-chain component of the) consensus protocol that implements the anti-grinding measures. The following modules  
+contain the majority of the relevant changes, which we summarize here :
+
+- `Spec.VDF` : Defines a type representing VDF functionality, which is not instantiated with actual VDFs
+
+- `Spec.OutsVec` : Contains functionality for manipulating vectors of VDF outputs
+
+- `Spec.UpdateNonce` : Specifies a new transition type `UPDNONESTREAM`, which corresponds to a single stream in the Phalanx State Transition Diagram. Also, the `UPDN` transition is updated to represent the rules of three nonce streams being updated simultaneously :
+  (1) `pre-η-candidate` which is the VRF output of the previous epoch, and is being stabilized for several intervals,
+
+  (2) `ηstate` which is the state of the Phalanx state machine, using the VDF procedure to evolve the nonce, and
+
+  (3) `next-η` which is the output of the state machine once it has finished a complete VDF round, and it will become the real current epoch nonce in several intervals.
+
+- `InterfaceLibrary.Ledger` : Updated to include a `LedgerInterface` API call `getPhalanxCommand  : BlockBody -> UpdateNonceCommand`
+which returns the command (either nothing or a pair of group elements) to the Phalanx state machine
+
+- `Spec.TickNonce` : Just some renaming here
+
+- `Ledger.PParams` : Updated to support a new parameter group *Phalanx Security Group*, which contains the two parameters
+required to parametrize Phalanx, `phalanxSecurityParam` and `phalanxSecurityParam`, which will be adopted by the Phalanx
+protocol when entering the Initialized state
+
+- `Spec.Protocol` : Updated to call `UPDN` rule with the appropriate parameters. This
+includes the stake
+distribution from the correct epoch (which is one epoch before than the one used in Praos),
+the relevant values from the nonce streams, and the correct Phalanx parameters.
+
+- `Spec.ChainHead` : Updated to call the `PRTCL` and `TICKN` rules with the appropriate signal, state, and environment.
+
+
 ## Rationale: How does this CIP achieve its goals?
 
 ### 1. How Phalanx Addresses CPS-21 - Ouroboros Randomness Manipulation?
@@ -1218,7 +1269,7 @@ T_{\text{grinding}}^{\text{Praos}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cd
 With **Phalanx**, the total grinding time per attempt is updated to include $T_\Phi$:
 
 ```math
-T_{\text{grinding}}^{\text{Phalanx}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_\Phi 
+T_{\text{grinding}}^{\text{Phalanx}} = \frac{\rho}{2} T_{\text{BLAKE2b}} + w_T \cdot ( T_{\mathsf{VRF}} + T_{\text{eligibility}} ) + T_{\text{eval}} + T_\Phi
 ```
 Where:  
 - $T_{\mathsf{VRF}}$ is the **VRF evaluation time**,  
@@ -1230,7 +1281,7 @@ Where:
 - $T_\Phi$ is the additional computational cost of **Phalanx**
 
 
-The introduction of $T_\Phi$ substantially increases the **computational burden** for adversaries, as they must **recompute** the $\Phi^i$ function for each of the $2^\rho$ possible **nonces** evaluated during a grinding attack. In contrast, for **honest participants**, this computation is **distributed** across the epoch, ensuring it remains **manageable and efficient**. 
+The introduction of $T_\Phi$ substantially increases the **computational burden** for adversaries, as they must **recompute** the $\Phi^i$ function for each of the $2^\rho$ possible **nonces** evaluated during a grinding attack. In contrast, for **honest participants**, this computation is **distributed** across the epoch, ensuring it remains **manageable and efficient**.
 
 
 #### 1.3 Phalanx Cost Amplification per Grinding Attack
@@ -1240,7 +1291,7 @@ Building on the updated **grinding time formula** introduced in the previous sec
 ```math
 \frac{2^{\rho} \cdot T_{\text{grinding}}^{\text{Phalanx}}}{N_{\text{CPU}}} \leq w_O
 ```
-which leads to the lower bound on computational power ($N_\text{CPU}$) : 
+which leads to the lower bound on computational power ($N_\text{CPU}$) :
 
 ```math
 N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot T_{\text{grinding}}^{\text{Phalanx}}}{w_O} \right \rceil
@@ -1271,7 +1322,7 @@ N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot \left( \frac{\rho}{2} T_{\
 Expanding $w_O$ in Terms of $\rho$ and $f$
 
 </div>
- 
+
 
 The grinding opportunity window is:
 
@@ -1419,7 +1470,7 @@ The **graph below** presents the **logarithmic cost** (in **USD**) of executing 
  Interpretation of the Graph
 </div>
 
-The graph highlights how the **$\text{Phalanx}_\text{1/100}$ protocol** dramatically increases the **cost of grinding attacks** compared to **Praos**, using a logarithmic scale to represent costs in **USD** as a function of the grinding depth $`\rho`$: 
+The graph highlights how the **$\text{Phalanx}_\text{1/100}$ protocol** dramatically increases the **cost of grinding attacks** compared to **Praos**, using a logarithmic scale to represent costs in **USD** as a function of the grinding depth $`\rho`$:
 
 1. **Consistent Cost Increase Across All $\rho$ Values**
   The differences (deltas) between **$\text{Phalanx}_\text{1/100}$** and **Praos** scenarios remain stable across all grinding depths due to the logarithmic scale. This allows us to make generalizable observations regardless of $\rho$.
@@ -1532,9 +1583,9 @@ In this section, we narrow our focus to a specific class of such bad events: tho
 
 In longest-chain consensus protocols like Ouroboros Praos, settlement time refers to the duration required for a transaction to be considered irreversibly included in the blockchain with high probability. Without grinding attacks, this is primarily determined by the risk of chain reorganizations (e.g., forks or common prefix violations), where an adversary might create a competing chain that overtakes the honest one. The goal is to compute the minimum number of confirmations (blocks appended after the transaction's block) needed to achieve a target security level, such as a failure probability below $2^{-30}$ or $2^{-60}$.
 
-The methodology for computing settlement bounds, as detailed in the paper ["Practical Settlement Bounds for Longest-Chain Consensus" (Gaži et al., 2022)](https://eprint.iacr.org/2022/1571.pdf), uses a phase-based analytical model that divides time into intervals separated by the maximum network delay $\Delta$ (e.g., 2-5 seconds for Cardano). It tracks metrics like "margin" (for PoW) or "reach" and "margin" (for PoS) to bound the probability of an adversary overtaking the honest chain. 
+The methodology for computing settlement bounds, as detailed in the paper ["Practical Settlement Bounds for Longest-Chain Consensus" (Gaži et al., 2022)](https://eprint.iacr.org/2022/1571.pdf), uses a phase-based analytical model that divides time into intervals separated by the maximum network delay $\Delta$ (e.g., 2-5 seconds for Cardano). It tracks metrics like "margin" (for PoW) or "reach" and "margin" (for PoS) to bound the probability of an adversary overtaking the honest chain.
 
-To obtain metrics, you can run the software from [https://github.com/renling/LCanalysis/](https://github.com/renling/LCanalysis/), which implements these evaluations in MATLAB. Clone the repo, open `PoSRandomWalk.m` (for PoS like Cardano), set parameters (e.g., honest ratio $\beta = 0.7$ (30% of stake adversary), network delay $\Delta = 5s$), and run to output failure probabilities vs. confirmations. Below is a representative graph: 
+To obtain metrics, you can run the software from [https://github.com/renling/LCanalysis/](https://github.com/renling/LCanalysis/), which implements these evaluations in MATLAB. Clone the repo, open `PoSRandomWalk.m` (for PoS like Cardano), set parameters (e.g., honest ratio $\beta = 0.7$ (30% of stake adversary), network delay $\Delta = 5s$), and run to output failure probabilities vs. confirmations. Below is a representative graph:
 
 ![alt text](./image/settlement-times-30-2s.png)
 
@@ -1585,8 +1636,8 @@ Where the confirmation interval was **\[438, 527]** blocks in the absence of a g
 Assuming a block is produced every 20 seconds, this extends the required confirmation window from approximately **\[2.43, 2.93] hours** to **\[4.80, 5.76] hours** in the Owl Survey case, and up to **\[5.69, 6.83] hours** in the Ant Glance case — more than doubling the settlement time.
 
 As discussed in [**Section 1: How Phalanx Addresses CPS-21 – Ouroboros Randomness Manipulation**](#1-how-phalanx-addresses-cps-21--ouroboros-randomness-manipulation), this is a key challenge in Praos: the presence of multiple attack scenarios with varying grinding power makes it difficult to define a single, consistent security threshold for settlement — a complexity that **Phalanx simplifies** by unifying the treatment of adversarial power across scenarios.
- 
-#### 2.3 How Phalanx improves compared to Praos ? 
+
+#### 2.3 How Phalanx improves compared to Praos ?
 
 In the conclusion of [**Section 1.4: How Much Risk Is Mitigated?**](#14-conclusion-how-much-risk-is-mitigated), we quantified Phalanx's improvement over Praos in terms of **grinding depth reduction** as follows:
 
@@ -1598,7 +1649,7 @@ In the conclusion of [**Section 1.4: How Much Risk Is Mitigated?**](#14-conclusi
 
 </center>
 
-In our previous examples, we are given that under **Praos**, the Ant Glance scenario results in a required security level of $`2^{-139.4}`$, which translate into the following threshold for the Phalanx configurations : 
+In our previous examples, we are given that under **Praos**, the Ant Glance scenario results in a required security level of $`2^{-139.4}`$, which translate into the following threshold for the Phalanx configurations :
 
 <center>
 
@@ -1638,7 +1689,7 @@ Compared to Praos' ~5.69 h → ~6.83 h (from blocks 1024 to 1229), these configu
 
 While Peras dramatically reduces settlement times compared to both Praos and Phalanx, it does so through a **certification mechanism** that depends on the timely participation of randomly selected committees. In practice, this mechanism offers fast settlement when quorum is achieved—but when participation conditions are not met (e.g., insufficient online stake or network asynchrony), **Peras gracefully falls back to standard Praos behavior** ([Peras Technical Report](https://peras.cardano-scaling.org/docs/reports/tech-report-2/)). This fallback mode retains the full settlement guarantees we've detailed in this CIP and in the accompanying [CPS-18: Ouroboros Randomness Manipulation](https://github.com/cardano-foundation/CIPs/pull/0000) and [CIP-Phalanx](https://github.com/input-output-hk/ouroboros-anti-grinding-design). In such scenarios, settlement times revert to those defined under grinding-aware Praos parameters—precisely where Phalanx becomes relevant as a **complementary defense layer**, ensuring that even in fallback conditions, the chain benefits from **stronger security guarantees** and **significantly improved settlement times** compared to unmodified Praos.
 
-Finally, a point of critical importance that we emphasized in the [CPS-21: Ouroboros Randomness Generation Sub-Protocol – The Coin-Flipping Problem](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021): **today, the protocol remains effectively blind to grinding attacks**. Within the *window of opportunity* defined in the CPD, detecting randomness manipulation is inherently difficult—both in terms of real-time monitoring and retrospective analysis. However, [Ouroboros Peras](https://peras.cardano-scaling.org/docs/intro/) introduces a meaningful defense: by reducing settlement times to **1–2 minutes** ([Peras FAQ](https://peras.cardano-scaling.org/docs/faq/)), it can **close the grinding window entirely**, provided it does **not fall back to Praos mode** during this period. If such a fallback *does* occur within the grinding window, it becomes a suspicion that a grinding attempt may be underway. In this case, examining which SPOs abstained from voting during the certification phase could provide actionable insights to **identify adversarial behavior**. In this light, Peras is not only a mechanism for faster settlement—it also contributes to **resilience against randomness manipulation**. 
+Finally, a point of critical importance that we emphasized in the [CPS-21: Ouroboros Randomness Generation Sub-Protocol – The Coin-Flipping Problem](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0021): **today, the protocol remains effectively blind to grinding attacks**. Within the *window of opportunity* defined in the CPD, detecting randomness manipulation is inherently difficult—both in terms of real-time monitoring and retrospective analysis. However, [Ouroboros Peras](https://peras.cardano-scaling.org/docs/intro/) introduces a meaningful defense: by reducing settlement times to **1–2 minutes** ([Peras FAQ](https://peras.cardano-scaling.org/docs/faq/)), it can **close the grinding window entirely**, provided it does **not fall back to Praos mode** during this period. If such a fallback *does* occur within the grinding window, it becomes a suspicion that a grinding attempt may be underway. In this case, examining which SPOs abstained from voting during the certification phase could provide actionable insights to **identify adversarial behavior**. In this light, Peras is not only a mechanism for faster settlement—it also contributes to **resilience against randomness manipulation**.
 
 We therefore **strongly recommend deploying both mechanisms in tandem**:
 
@@ -1647,7 +1698,7 @@ We therefore **strongly recommend deploying both mechanisms in tandem**:
 
 **Note:** If Peras committee selection ultimately relies on randomness from the standard beacon in its production version, it too inherits vulnerability to grinding — especially when a **Praos epoch precedes a Peras epoch**. In such cases, **Phalanx mitigates the grinding risk at the source**, reducing the manipulation surface of the beacon and thereby **indirectly strengthening Peras**. This highlights the **complementarity** of the two systems: **each reinforces the other**.
 
-### 3. Why VDFs Were Chosen over other Cryptographic Primitives ? 
+### 3. Why VDFs Were Chosen over other Cryptographic Primitives ?
 
 As shown previously in the CPS and CPD, Cardano’s randomness generation currently is biasable and this CIP aims at presenting solutions on top of the current Praos’ randomness generation algorithm to disincentivize adversaries from performing grinding attacks by increasing their computational cost. We do not intend to change the protocol in depth, as this would need a much greater initiative that may not bear fruits, but add an additional layer of security on top of the current protocol only.
 
@@ -1691,7 +1742,7 @@ VDF. Similarly to the other problems, we first start by generating an unknown or
 
 **Security Strength & Maturity.** RSA cryptography, since its introduction in 1977, has reached a high level of maturity and is widely considered one of the most reliable and well-understood public-key cryptographic systems. Its security is based on the computational difficulty of factoring large composite numbers, a problem that has remained challenging even with significant advances in both hardware and algorithmic techniques. Over the years, RSA has undergone extensive cryptanalysis, making it one of the most scrutinized cryptographic algorithms. Its applications have become deeply embedded in a wide range of security protocols, such as SSL/TLS for secure communications, digital signatures, and encryption. RSA is however vulnerable to quantum attacks; when large-scale quantum computers become practical, RSA’s security could be broken by quantum algorithms like Shor's algorithm, making it less future-proof compared to post-quantum cryptographic algorithms.
 
-**Performance.** One of the main drawbacks of the RSA cryptosystem relies on its inefficiency due to large modulus, making the group element large space-wise and operations computationally expensive. 
+**Performance.** One of the main drawbacks of the RSA cryptosystem relies on its inefficiency due to large modulus, making the group element large space-wise and operations computationally expensive.
 
 **Deployability.**  As solving the RSA problem or integer factorization consists in breaking the group security, groups latter cannot be continuously reused in this scenario. More particularly, after finding the factorization of the group modulus, decrypting further ciphertexts in the same group becomes trivial. As for solving a VDF puzzle, the group can be reused safely as long as the modulus is of sufficient size, at least 2,048 bit-long. We can in that scenario choose a known secure modulus, whose factorization is unknown, such as an RSA challenge to create a group. Such trusted unknown moduli are however limited in numbers and we would have to generate new ones, in a trustless manner, when updating security parameters or in case of an, potentially post-quantum, attack.
 In our context, setting up RSA groups would be challenging to say the least, as we would need to generate groups of unknown order, that is the RSA modulus must be public while the underlying prime numbers must remain unknown. There is no known method to generate such groups, even inefficiently, which becomes especially critical if we have to do it repeatedly. Generating such a group might be achievable via multi-party computation (MPC) where the network would compute random numbers passing distributive primality tests. This would however be highly impractical.
@@ -1701,7 +1752,7 @@ None of the methods, GNFS or VDFs, are proprietary and there exists open source 
 
 ##### 3.2.2 ECC solutions
 
-Elliptic Curve Cryptography (ECC) is a form of public-key cryptography based on the mathematical structure of elliptic curves over finite fields. More particularly, ECC relies on a safe subgroup of elliptic curves, usually defined on a prime field for security and efficiency. It provides strong security with smaller key sizes compared to traditional methods like RSA, needing 256 to 388 bit long prime only [[3]](https://csrc.nist.gov/pubs/sp/800/78/5/final),  making it ideal for constrained environments. To break ECC, one has to compute the discrete logarithm of the group (ECDLP), which can be done most efficiently with Pollard's Rho algorithm that solves the discrete logarithm in $\mathcal{O}(n​^{1/2})$ time and $\mathcal{O}(1)$ space. 
+Elliptic Curve Cryptography (ECC) is a form of public-key cryptography based on the mathematical structure of elliptic curves over finite fields. More particularly, ECC relies on a safe subgroup of elliptic curves, usually defined on a prime field for security and efficiency. It provides strong security with smaller key sizes compared to traditional methods like RSA, needing 256 to 388 bit long prime only [[3]](https://csrc.nist.gov/pubs/sp/800/78/5/final),  making it ideal for constrained environments. To break ECC, one has to compute the discrete logarithm of the group (ECDLP), which can be done most efficiently with Pollard's Rho algorithm that solves the discrete logarithm in $\mathcal{O}(n​^{1/2})$ time and $\mathcal{O}(1)$ space.
 
 ###### 3.2.2.1 Designs
 
@@ -1710,7 +1761,7 @@ The most efficient methods to find this scalar include the Index Calculus and Po
 
 ###### 3.2.2.2 Properties
 
-**Security Strength & Maturity.** Elliptic Curve Cryptography has reached a high level of maturity over the past few decades and is widely regarded as a modern, efficient alternative to traditional public-key cryptosystems like RSA. Its security is based on the hardness of the Elliptic Curve Discrete Logarithm Problem (ECDLP), which has been extensively analyzed, making ECC a trusted and well-understood cryptographic method. ECC is now widely adopted in industry standards, including TLS, SSH, Cardano, Bitcoin, and other blockchain technologies, where its efficiency and robustness are critical. 
+**Security Strength & Maturity.** Elliptic Curve Cryptography has reached a high level of maturity over the past few decades and is widely regarded as a modern, efficient alternative to traditional public-key cryptosystems like RSA. Its security is based on the hardness of the Elliptic Curve Discrete Logarithm Problem (ECDLP), which has been extensively analyzed, making ECC a trusted and well-understood cryptographic method. ECC is now widely adopted in industry standards, including TLS, SSH, Cardano, Bitcoin, and other blockchain technologies, where its efficiency and robustness are critical.
 ECC is also vulnerable to post-quantum attacks and can be broken in polynomial time with Pollard's Rho or the Index Calculus algorithm.
 
 **Performance.** ECC is known for its great performance, particularly in terms of computational efficiency and resource utilization. Compared to traditional public-key systems like RSA, ECC achieves the same level of security with much smaller key sizes, which translates into faster computation, reduced storage requirements, and lower power consumption.
@@ -1734,14 +1785,14 @@ VDF. Similarly to the CLPD, we first start by generating a discriminant and samp
 
 ###### 3.2.3.2 Properties
 
-**Security Strength & Maturity.** Class group-based cryptography has reached a moderate level of maturity in cryptographic research. While not as widely deployed as more traditional cryptographic methods like RSA or ECC, class group cryptography has gained attention due to its potential resistance to quantum computing attacks. The mathematical foundations, particularly the hardness of the class group discrete logarithm problem, are well-understood, and class group cryptosystems have been rigorously analyzed. However, practical deployment is still in the early stages, with ongoing efforts focused on optimizing efficiency, key management, and standardization. 
+**Security Strength & Maturity.** Class group-based cryptography has reached a moderate level of maturity in cryptographic research. While not as widely deployed as more traditional cryptographic methods like RSA or ECC, class group cryptography has gained attention due to its potential resistance to quantum computing attacks. The mathematical foundations, particularly the hardness of the class group discrete logarithm problem, are well-understood, and class group cryptosystems have been rigorously analyzed. However, practical deployment is still in the early stages, with ongoing efforts focused on optimizing efficiency, key management, and standardization.
 
 **Performance.** Class group-based cryptography is generally less efficient than RSA or ECC due to the size of their elements and the computational complexity of the composition of elements.
 More particularly, to achieve strong security, class groups’ discriminants must be several thousands bit long, and group elements half of this. Operations are thus costly, especially as composition in class groups rely on finding the greatest common denominator between such numbers that is particularly expensive.
 
 **Deployability.**  Setting up class groups, even though their order is hidden, is much easier than previously discussed solutions as it consists in practice to generate a sufficiently long negative square-free random integer d, and such that d ≡ 1 mod 4. as discriminant. Generating a random element in a class group by hashing also is however more of a delicate but still feasible task as mentioned in [[11]](https://eprint.iacr.org/2024/034.pdf). Mysten Labs recently iterated on this work and published a more efficient and secure hash function [[38]](https://eprint.iacr.org/2024/295.pdf) to class groups. Interestingly, there exist algorithms that have been designed to reuse the underlying group such as cascaded and continuous VDFs [[13]](https://par.nsf.gov/servlets/purl/10159432).
 
-**Compliance.** Since class group-based cryptography is still being researched, it is not as broadly standardized or regulated as more established cryptographic techniques like ECC. That said, once formal standards and guidelines are developed and adopted, class group-based cryptography could achieve compliance with relevant legal and regulatory frameworks. None of the VDF proof generation algorithms are proprietary and there exists open source code implementing these. 
+**Compliance.** Since class group-based cryptography is still being researched, it is not as broadly standardized or regulated as more established cryptographic techniques like ECC. That said, once formal standards and guidelines are developed and adopted, class group-based cryptography could achieve compliance with relevant legal and regulatory frameworks. None of the VDF proof generation algorithms are proprietary and there exists open source code implementing these.
 Other groups
 We mostly focused on commonly used groups, such as RSA and ECC, and class groups whose usage have been increasing lately, notably because of the popularity of VDF primitives. There exist however other groups such as lattices which are one of the main candidates for post quantum cryptography, supersingular isogenies, whose security is dubious at the moment since the attack on SIDH in 2022, and hyperelliptic Jacobians groups, which are still novel and need further time to get confidence in their security and for more protocols to be built upon, to cite a few.
 
@@ -1800,8 +1851,8 @@ Table 2. Halo2 benchmarks, using KZG [[28]](https://www.cypherpunks.ca/~iang/pub
 
 **Memory-hard functions (MHFs).** are primitives relying on hash functions designed to resist attacks by requiring significant memory and computational effort, making them particularly interesting in our use case, where memory would become another bottleneck to an adversary attempting a grinding attack.
 Argon2, the winner of the Password Hashing Competition in 2015, is the current industry standard due to its strong security, configurability, and resistance to known attacks.
-Balloon Hashing offers a simpler design focused on provable security guarantees and ease of analysis but is less widely adopted. 
-The MHF scrypt, introduced earlier and used notably in cryptocurrencies like Litecoin, was among the first practical memory-hard functions but has seen some theoretical attacks exploiting trade-offs between memory and computation. 
+Balloon Hashing offers a simpler design focused on provable security guarantees and ease of analysis but is less widely adopted.
+The MHF scrypt, introduced earlier and used notably in cryptocurrencies like Litecoin, was among the first practical memory-hard functions but has seen some theoretical attacks exploiting trade-offs between memory and computation.
 Of the three, only Argon2 is formally standardized in RFC 9106 and recommended for new applications, while scrypt remains popular in legacy systems and Balloon Hashing is still primarily academic.
 Unfortunately, these primitives are much more expensive than hashes on CPU as well as on SNARKs, where the memory requirements become even more prohibitive.
 
@@ -1825,7 +1876,7 @@ Using OWFs and SNARKs in the context of Phalanx is straightforward. To each iter
 
 #### 3.3 Primitive recommendation
 
-The combination of OWFs and SNARKs, however elegant it may be for its modularity, is not practical for the proof generation overhead being prohibitive. 
+The combination of OWFs and SNARKs, however elegant it may be for its modularity, is not practical for the proof generation overhead being prohibitive.
 Trapdoor based solutions seem to be the best candidates for anti-grinding solutions. Out of the ones considered, VDFs seem the most practical primitive thanks to the possibility of reusing the group, and class groups offer the simplest deployment. The main caveat of such a solution is in its relative novelty, regular assessment would need to be done to ensure correct and up to date parametrization.
 
 ## Path to Active
