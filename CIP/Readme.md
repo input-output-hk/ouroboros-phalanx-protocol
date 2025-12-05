@@ -1183,7 +1183,7 @@ protocol_param_update =
 
 ### 7. Formal specification in Agda
 
-We also provide an update to the [Agda formal specfication](https://github.com/IntersectMBO/ouroboros-consensus/compare/main...polina/anti-grinding#diff-f60c5478ab694d6e9554069[…]0500de488bf3c264c91325bed2eaf)
+We also provide an update to the [Agda formal specfication](https://github.com/IntersectMBO/ouroboros-consensus/pull/1799)
 of the (on-chain component of the) consensus protocol that implements the anti-grinding measures. The following modules  
 contain the majority of the relevant changes, which we summarize here :
 
