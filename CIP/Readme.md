@@ -1166,6 +1166,54 @@ The current **maximum block header size** in Cardano is **1100 bytes**, although
 
 This would **exceed the 1500-bytes limit**, risking fragmentation and violating guidance from the Cardano networking team. We could safely decrease the group element size by decreasing the security parameters if we were to generate new class groups at each epoch. Doing so would however render the protocol more complex and potentially weaken the security of the protocol as we may have more chances to generate a weak class group.
 
+**Protocol Parameter Update Changes**. The Phalanx update also requires the addition of two new protocol parameters,
+`phalanx_security_parameter` and `phalanx_i_parameter`, as follows:
+
+```
+phalanx_security_parameter = uint .size 4
+phalanx_i_parameter = uint .size 4
+protocol_param_update =
+  { ? 0  : coin                   ; minfeeA
+    ...
+  , ? 33 : nonnegative_interval   ; minfee refscriptcoinsperbyte
+  , ? 34 : phalanx_security_parameter
+  , ? 35 : phalanx_i_parameter
+  }
+```
+
+### 7. Formal specification in Agda
+
+We also provide an update to the [Agda formal specfication](https://github.com/IntersectMBO/ouroboros-consensus/pull/1799)
+of the (on-chain component of the) consensus protocol that implements the anti-grinding measures. The following modules  
+contain the majority of the relevant changes, which we summarize here :
+
+- `Spec.VDF` : Defines a type representing VDF functionality, which is not instantiated with actual VDFs
+
+- `Spec.OutsVec` : Contains functionality for manipulating vectors of VDF outputs
+
+- `Spec.UpdateNonce` : Specifies a new transition type `UPDNONESTREAM`, which corresponds to a single stream in the Phalanx State Transition Diagram. Also, the `UPDN` transition is updated to represent the rules of three nonce streams being updated simultaneously :
+  (1) `pre-η-candidate` which is the VRF output of the previous epoch, and is being stabilized for several intervals,
+
+  (2) `ηstate` which is the state of the Phalanx state machine, using the VDF procedure to evolve the nonce, and
+
+  (3) `next-η` which is the output of the state machine once it has finished a complete VDF round, and it will become the real current epoch nonce in several intervals.
+
+- `InterfaceLibrary.Ledger` : Updated to include a `LedgerInterface` API call `getPhalanxCommand  : BlockBody -> UpdateNonceCommand`
+which returns the command (either nothing or a pair of group elements) to the Phalanx state machine
+
+- `Spec.TickNonce` : Just some renaming here
+
+- `Ledger.PParams` : Updated to support a new parameter group *Phalanx Security Group*, which contains the two parameters
+required to parametrize Phalanx, `phalanxSecurityParam` and `phalanxSecurityParam`, which will be adopted by the Phalanx
+protocol when entering the Initialized state
+
+- `Spec.Protocol` : Updated to call `UPDN` rule with the appropriate parameters. This
+includes the stake
+distribution from the correct epoch (which is one epoch before than the one used in Praos),
+the relevant values from the nonce streams, and the correct Phalanx parameters.
+
+- `Spec.ChainHead` : Updated to call the `PRTCL` and `TICKN` rules with the appropriate signal, state, and environment.
+
 ## Rationale: How does this CIP achieve its goals?
 
 ### 1. How Phalanx Addresses CPS-21 - Ouroboros Randomness Manipulation?
