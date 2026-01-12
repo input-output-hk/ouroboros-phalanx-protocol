@@ -2,11 +2,12 @@
 CPS: 21
 Title: Ouroboros Randomness Manipulation
 Category: Consensus
-Status: Proposed
+Status: Open
 Authors:
     - Nicolas Henin <nicolas.henin@iohk.io>
     - Raphael Toledo <raphael.toledo@iohk.io>
-Proposed Solutions: []
+Proposed Solutions: 
+  ["CIP-0161 : Ouroboros Phalanx - Breaking Grinding Incentives"]
 Discussions:
     - https://github.com/cardano-foundation/CIPs/pull/1009
 Created: 2025-10-03
