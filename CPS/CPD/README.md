@@ -66,12 +66,12 @@ This document deliberately avoids advocating specific countermeasures, instead p
 - [**1. Preliminaries**](#1-preliminaries)
   - [1.1 Fundamental Properties](#11-fundamental-properties)
     + [1.1.1 Transaction Ledger Properties](#111-transaction-ledger-properties)
-      * [1.1.1.1 Persistence with the security parameter k](#1111-persistence-with-the-security-parameter--textk-in-mathbbn-)
-      * [1.1.1.2 Liveness with the transaction confirmation time parameter u](#1112-liveness-with-the-transaction-confirmation-time-parameter--textu-in-mathbbn-)
+      * [1.1.1.1 Persistence with the security parameter k in N](#1111-persistence-with-the-security-parameter-k-in-n)
+      * [1.1.1.2 Liveness with the transaction confirmation time parameter u in N](#1112-liveness-with-the-transaction-confirmation-time-parameter-u-in-n)
     + [1.1.2 Chain Properties](#112-chain-properties)
-      * [1.1.2.1 Common Prefix (CP)](#1121-common-prefix-cp)
-      * [1.1.2.2 Existential Chain Quality (∃CQ)](#1122-existential-chain-quality-cq)
-      * [1.1.2.3 Chain Growth (CG)](#1123-chain-growth-cg)
+      * [1.1.2.1 Common Prefix (CP)](#1121-common-prefix-cp-with-the-security-parameter-k-in-n)
+      * [1.1.2.2 Existential Chain Quality (∃CQ)](#1122-existential-chain-quality-cq-with-parameter-s-in-n-minimum-honest-block-inclusion-interval)
+      * [1.1.2.3 Chain Growth (CG)](#1123-chain-growth-cg-with-parameters-tau-in-0-1-speed-coefficient-and-s-in-n-minimum-honest-block-inclusion-interval)
   - [1.2 The Coin-Flipping Problem](#12-the-coin-flipping-problem)
     + [1.2.1 Defining the Problem](#121-defining-the-problem)
     + [1.2.2 Strategies for Randomness Generation](#122-strategies-for-randomness-generation)
@@ -96,7 +96,7 @@ This document deliberately avoids advocating specific countermeasures, instead p
     + [2.2.3 Forking Strategies](#223-forking-strategies)
 - [**3. The Cost of Grinding: Adversarial Effort and Feasibility**](#3-the-cost-of-grinding-adversarial-effort-and-feasibility)
   - [3.1 Definitions](#31-definitions)
-    + [3.1.1 α-heavy and Heaviness](#311-α-heavy-and-heaviness)
+    + [3.1.1 Alpha-Heavy and Heaviness](#311-alpha-heavy-and-heaviness)
     + [3.1.2 Grinding Power g](#312-grinding-power-g)
     + [3.1.3 Grinding Windows](#314-grinding-windows)
       * [3.1.3.1 Opportunity Windows](#3141-opportunity-windows-wo)
@@ -133,19 +133,19 @@ The protocol must satisfy the two critical properties of _**Persistence**_ and _
 | **Chain Growth (CG)**                   | Ensures that the blockchain extends at a minimum rate over time, preventing indefinite stalling by adversaries while maintaining progress based on the fraction of honest stakeholders producing blocks. |
 
 ### 1.1.1 Transaction Ledger Properties 
-#### 1.1.1.1 Persistence with the **security parameter $` \text{k} \in \mathbb{N} `$**
+#### 1.1.1.1 Persistence with the **security parameter k in N**
  
-Once a node of the system proclaims a certain transaction *tx* in the stable part of its ledger, all nodes, if queried, will either report *tx* in the same position of that ledger or report a stable ledger which is a prefix of that ledger. Here the notion of stability is a predicate that is parameterized by a **security parameter $` \text{k} `$**. Specifically, a transaction is declared **stable** if and only if it is in a block that is more than $` \text{k} `$ blocks deep in the ledger.
+Once a node of the system proclaims a certain transaction *tx* in the stable part of its ledger, all nodes, if queried, will either report *tx* in the same position of that ledger or report a stable ledger which is a prefix of that ledger. Here the notion of stability is a predicate that is parameterized by a **security parameter k**. Specifically, a transaction is declared **stable** if and only if it is in a block that is more than k blocks deep in the ledger.
 
-#### 1.1.1.2 Liveness with the **transaction confirmation time parameter $` u \in \mathbb{N} `$** 
+#### 1.1.1.2 Liveness with the **transaction confirmation time parameter u in N**
 
-If all honest nodes in the system attempt to include a certain transaction then, after the passing of time corresponding to $`\text{u}`$ slots (called the **transaction confirmation time**), all nodes, if queried and responding honestly, will report the transaction as stable.
+If all honest nodes in the system attempt to include a certain transaction then, after the passing of time corresponding to u slots (called the **transaction confirmation time**), all nodes, if queried and responding honestly, will report the transaction as stable.
 
 ### 1.1.2 Chain properties 
 
 **Persistence** and **liveness** can be derived from basic **chain properties**, provided that the protocol structures the ledger as a **blockchain**—a sequential data structure. The following key chain properties ensure that the blockchain behaves securely and efficiently:
 
-#### 1.1.2.1 **Common Prefix (CP)**: With the **security parameter $`k \in \mathbb{N}`$**. 
+#### 1.1.2.1 **Common Prefix (CP)**: With the **security parameter k in N** 
 
 Consider 2 chains $C_1$ and $C_2$ adopted by 2 honest parties at the onset of slots $sl_1$ and $sl_2$, respectively, where $sl_1 \leq sl_2$. The chains must satisfy the condition:
 
@@ -158,11 +158,11 @@ Consider 2 chains $C_1$ and $C_2$ adopted by 2 honest parties at the onset of sl
 
   This ensures that the shorter chain is a prefix of the longer one, ensuring consistency across honest parties.
 
-#### 1.1.2.2 **Existential Chain Quality (∃CQ)**: With parameter $s \in \mathbb{N}$ (Minimum Honest Block Inclusion Interval). 
+#### 1.1.2.2 **Existential Chain Quality (∃CQ)**: With parameter s in N (Minimum Honest Block Inclusion Interval) 
 
 Consider a chain $C$ adopted by an honest party at the onset of a slot. For any portion of $C$ spanning $s$ prior slots, there must be at least one honestly-generated block within this portion. This ensures that the chain includes contributions from honest participants. In practical terms, $s$ defines the length of a "safety window" where honest contributions are guaranteed.
 
-#### 1.1.2.3 **Chain Growth (CG)**: With parameters $\tau \in (0, 1]$ (speed coefficient) and $s \in \mathbb{N}$ (Minimum Honest Block Inclusion Interval).
+#### 1.1.2.3 **Chain Growth (CG)**: With parameters tau in (0, 1] (speed coefficient) and s in N (Minimum Honest Block Inclusion Interval)
 
 The Chain Growth (CG) property is a more general concept that combines both the **speed of block production** and the **frequency of honest contributions**. It uses two parameters: $\tau$, the **speed coefficient**, which governs how fast the chain grows, and $s$, the **Minimum Honest Block Inclusion Interval**, which ensures that honest blocks are consistently produced within a given interval of slots.
 
@@ -526,7 +526,7 @@ Note that the third phase is only longer than the first one to complete the epoc
 
 To select the slots leaders, which stake pool is eligible to produce and propose a slot's block, we need to rely on random numbers. As economic reward and transaction inclusion depends on these numbers, the generation of these number is of critical importance to the protocol and its security. We show in this section how these random numbers, or _random nonces_ are defined.
 
-#### **The $\eta^\text{evolving}$ Stream Definition**  
+#### **The eta-evolving Stream Definition**  
 
 Contrary to [Section 1.2.3](#123-the-historical-evolution-of-ouroboros-randomness-generation), where we first defined the random nonce as the hash of all VRF outputs, we adopt an iterative approach for the randomness generation in practice.
 More particularly, the random nonces $\eta$ are defined iteratively from a genesis value, as the hash of the previous epoch's nonce and the VRF outputs published between the Phase 2 of consecutive epochs. We thus talk about _evolving nonces_ $\eta^\text{evolving}$ as their value can be updated with the VRF output comprised in each block.
@@ -554,7 +554,7 @@ false & \text{otherwise.}
 | $\mathsf{VRF}^\text{Output}_\text{i}$ | The **VRF output** generated by the $\text{slot}_\text{i}$ Leader and included in the block header |
 | $a\ ⭒\ b$    | The concatenation of $a$ and $b$ , followed by a BLAKE2b-256 hash computation.
 
-#### **The $`\eta^\text{candidates}`$**  
+#### **The eta candidates**  
 
 - As multiple competing forks can exist at any given time, we also encounter multiple **nonce candidates**, denoted as $`\eta^\text{candidates}`$. More precisely, the **nonce candidate** of a specific fork for epoch $`e`$ is derived from the **previous epoch’s nonce** $`\eta_{e-1}`$, the **Verifiable Random Function (VRF) outputs** from the **candidate chain** starting from epoch $`e-2`$, and the **VRF outputs of the fork** itself up to the **end of Phase 2** of epoch $`e-1`$. 
 
@@ -565,7 +565,7 @@ false & \text{otherwise.}
 \eta_\text{e}^\text{candidate} = \eta^\text{evolving}_{t}, \quad \text{when } t = T_{\text{phase2}_\text{end}}^{\text{epoch}_{e-1}}  
 ```
 
-#### **The $`\eta`$** Generations
+#### **The eta** Generations
    - This is the final nonce used to determine participant eligibility during epoch $`e`$. 
    - The value of $`\eta_\text{e}`$ is derived from the $`\eta_e^\text{candidate}`$ contained within the fork that is ultimately selected as the **canonical chain** at the conclusion of $`\text{epoch}_{e-1}`$.  
    - It originates from $`\eta_e^\text{candidate}`$ concatenated with $`\eta^\text{evolving}`$ of the last block of the previous epoch followed by a BLAKE2b-256 hash computation , which becomes stabilized at the conclusion of $`\text{epoch}_{e-1}`$ and transitions into $`\text{epoch}_e`$.  
@@ -795,7 +795,7 @@ Both strategies undermine fairness in leader election, with **Preemptive Forking
 
 ### 3.1 Definitions
 
-#### 3.1.1 $\alpha$-Heavy and Heaviness
+#### 3.1.1 Alpha-Heavy and Heaviness
 We define the heaviness of an interval as the percentage of blocks an adversary controls.
 Let $X_A(w)$ be the **number of adversarial blocks** and similarly $X_H(w)$ the **number of honest blocks** in the an interval of $w$ blocks.
 The **heaviness** of an interval of size $w$ is thus the ratio $\frac{X_A(w)}{w}$. Heaviness thus vary between 0, where the interval only comprises honest blocks, and 1, where the adversary control them all. 
@@ -848,7 +848,7 @@ In **Cardano mainnet**, the nonce size used in the randomness beacon is **256 bi
 
 #### 3.1.3 Grinding Windows
 
-#### 3.1.3.1 Opportunity Windows $w_O$
+#### 3.1.3.1 Opportunity Windows wO
 
 The **grinding opportunity window** $w_O$ is the time interval at the end of Phase 2 during which an adversary, dominating a suffix of size $w$, can compute and reveal one of $g$ possible $\eta_e^\text{candidate}$ nonces before the honest chain outpaces their chosen chain.
 
@@ -932,7 +932,7 @@ The position $P$ then becomes $\mathbb{E}[P] = {S2} + 1 - \mathbb{E}[T] \approx 
 </details>
 
 
-##### 3.1.3.2 Target Window $w_T$
+##### 3.1.3.2 Target Window wT
 
 Once the adversary obtains a potential **candidate nonce** ($\eta_e^{\text{candidate}}$) for epoch $e$, they can compute their private **slot leader distribution** for the entire epoch, spanning:  
 
@@ -1247,7 +1247,7 @@ which leads to the lower bound on computational power ($N_CPU$) :
 N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot T_{\text{grinding}}}{w_O}\right \rceil
 ```
 
-#### Expanding $T_{\text{grinding}}$
+#### Expanding Tgrinding
 From **Section 3.3**, the per-attempt grinding time is:
 
 ```math
@@ -1261,7 +1261,7 @@ N_{\text{CPU}} \geq \left \lceil \frac{2^{\rho} \cdot \left( \frac{\rho}{2} \cdo
 ```
 
 
-#### Expanding $w_O$ in Terms of $\rho$ and $f$
+#### Expanding wO in Terms of rho and f
 From previous sections, the **grinding opportunity window** is:
 
 ```math
@@ -1402,7 +1402,7 @@ The table below summarizes the feasibility for `Owl Survey` ($T_{\text{eval}} = 
 
 Let’s walk through the calculation for the Owl Survey scenario at $\rho=50$ to demonstrate how the values in the table are derived. The Owl Survey scenario has $T_{\text{eval}}=1$ (high complexity) and $w_T=432,000\,\text{s}$ (5 days), making it the most resource-intensive scenario.
 
-### Step 1: Compute $N_{\text{CPU}}$
+### Step 1: Compute NCPU
 
 The formula for $N_{\text{CPU}}$ in the Owl Survey scenario, as given in [Section 3.5 - Scenarios](#35-scenarios), is:
 
